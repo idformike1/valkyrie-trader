@@ -1,19 +1,15 @@
 import json
-import asyncio
 import threading
 import time
 from datetime import datetime
 import pandas as pd
 import numpy as np
-import requests
-import websockets
 from flask import Flask, render_template_string, jsonify, request
 from flask_cors import CORS
 import os
-import sys
 
 # -------------------------------
-# Load access token (only for live mode)
+# Load token (reserved for live mode)
 # -------------------------------
 TOKEN_FILE = "token.txt"
 ACCESS_TOKEN = None
@@ -22,7 +18,7 @@ if os.path.exists(TOKEN_FILE):
         ACCESS_TOKEN = f.read().strip()
 
 # -------------------------------
-# Paper Trading Account
+# Paper Trading Account (same as before)
 # -------------------------------
 class PaperAccount:
     def __init__(self, initial_balance=100000):
@@ -32,26 +28,15 @@ class PaperAccount:
         self.daily_pnl = 0
         self.daily_loss_limit = 20000
         self.kill_switch_triggered = False
-        self.status_callbacks = []
-
-    def register_callback(self, cb):
-        self.status_callbacks.append(cb)
-
-    def _notify(self):
-        for cb in self.status_callbacks:
-            cb(self.get_status())
 
     def place_buy_order(self, instrument_key, price, qty=75, timestamp=None):
-        if self.kill_switch_triggered:
-            return False
-        if instrument_key in self.positions:
+        if self.kill_switch_triggered or instrument_key in self.positions:
             return False
         cost = price * qty
         if cost > self.balance:
             return False
         self.balance -= cost
         self.positions[instrument_key] = {'qty': qty, 'entry_price': price, 'entry_time': timestamp}
-        self._notify()
         return True
 
     def place_sell_order(self, instrument_key, price, qty=75, timestamp=None, reason=""):
@@ -72,7 +57,6 @@ class PaperAccount:
         })
         if self.daily_pnl <= -self.daily_loss_limit:
             self.kill_switch_triggered = True
-        self._notify()
         return True
 
     def get_status(self):
@@ -85,7 +69,7 @@ class PaperAccount:
         }
 
 # -------------------------------
-# Heikin-Ashi and Strategy
+# Heikin-Ashi Strategy
 # -------------------------------
 def calculate_heikin_ashi(candles):
     df = pd.DataFrame(candles)
@@ -107,13 +91,15 @@ class HeikinAshiStrategy:
         self.candles = []
         self.in_position = False
         self.entry_price = None
-        self.callback = None
+        self.candle_callback = None
 
     def set_candle_callback(self, cb):
-        self.callback = cb
+        self.candle_callback = cb
 
     def on_candle_close(self, candle):
         self.candles.append(candle)
+        if self.candle_callback:
+            self.candle_callback(candle)
         if len(self.candles) < 2:
             return
         ha = calculate_heikin_ashi(self.candles[-10:])
@@ -136,15 +122,13 @@ class HeikinAshiStrategy:
                 self.account.place_sell_order(self.instrument_key, candle['close'], timestamp=candle['timestamp'], reason=exit_reason)
                 self.in_position = False
                 self.entry_price = None
-        if self.callback:
-            self.callback(candle)
 
 # -------------------------------
-# Demo Mode
+# Demo Mode Replay
 # -------------------------------
-def demo_mode(instrument_key, strategy, csv_file='backtest_output.csv'):
+def demo_replay(strategy, csv_file='backtest_output.csv'):
     if not os.path.exists(csv_file):
-        print(f"❌ {csv_file} not found. Run strategy_simulator.py first.")
+        print(f"❌ {csv_file} not found")
         return
     df = pd.read_csv(csv_file)
     if 'timestamp' not in df.columns:
@@ -152,8 +136,8 @@ def demo_mode(instrument_key, strategy, csv_file='backtest_output.csv'):
         return
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     df = df.sort_values('timestamp')
-    print(f"Demo mode: replaying {len(df)} candles at 1-second intervals")
-    for idx, row in df.iterrows():
+    print(f"Demo replay: {len(df)} candles")
+    for _, row in df.iterrows():
         candle = {
             'timestamp': row['timestamp'],
             'open': row['open'],
@@ -162,97 +146,8 @@ def demo_mode(instrument_key, strategy, csv_file='backtest_output.csv'):
             'close': row['close']
         }
         strategy.on_candle_close(candle)
-        time.sleep(0.5)
-    print("Demo replay finished.")
-
-# -------------------------------
-# Live WebSocket Feed (stub if pb missing)
-# -------------------------------
-try:
-    import MarketDataFeed_pb2 as pb
-except ImportError:
-    pb = None
-
-class LiveFeed:
-    def __init__(self, instrument_key, strategy):
-        self.instrument_key = instrument_key
-        self.strategy = strategy
-        self.current_candle = None
-        self.running = True
-
-    async def get_websocket_uri(self):
-        url = "https://api.upstox.com/v3/feed/market-data-feed/authorize"
-        headers = {"Accept": "application/json", "Authorization": f"Bearer {ACCESS_TOKEN}"}
-        resp = requests.get(url, headers=headers)
-        resp.raise_for_status()
-        data = resp.json()
-        ws_uri = data['data']['authorizedRedirectUri'] or data['data']['authorized_redirect_uri']
-        return ws_uri
-
-    async def connect(self):
-        uri = await self.get_websocket_uri()
-        print(f"Connecting to {uri}")
-        async with websockets.connect(uri, max_size=2**25) as ws:
-            subscribe_msg = {
-                "guid": "valkyrie_dashboard",
-                "method": "sub",
-                "data": {
-                    "mode": "full",
-                    "instrumentKeys": [self.instrument_key]
-                }
-            }
-            await ws.send(json.dumps(subscribe_msg))
-            print(f"Subscribed to {self.instrument_key}")
-            while self.running:
-                try:
-                    message = await asyncio.wait_for(ws.recv(), timeout=1.0)
-                    await self.process_message(message)
-                except asyncio.TimeoutError:
-                    continue
-                except websockets.exceptions.ConnectionClosed:
-                    print("WebSocket closed, reconnecting...")
-                    break
-
-    async def process_message(self, raw_message):
-        if pb is None:
-            return
-        try:
-            feed = pb.FeedResponse()
-            feed.ParseFromString(raw_message)
-            for feed_data in feed.feeds.values():
-                if feed_data.index_ff:
-                    index_data = pb.IndexMarketData()
-                    index_data.ParseFromString(feed_data.index_ff.value)
-                    price = None
-                    if hasattr(index_data, 'ltpc'):
-                        price = index_data.ltpc / 100.0
-                    elif hasattr(index_data, 'indicies') and hasattr(index_data.indicies, 'ttq'):
-                        price = index_data.indicies.ttq / 100.0
-                    if price:
-                        now = datetime.now()
-                        self.on_tick(price, now)
-        except Exception as e:
-            print(f"Protobuf error: {e}")
-
-    def on_tick(self, price, timestamp):
-        current_minute = timestamp.replace(second=0, microsecond=0)
-        if self.current_candle is None or self.current_candle['timestamp'] != current_minute:
-            if self.current_candle is not None:
-                self.strategy.on_candle_close(self.current_candle)
-            self.current_candle = {
-                'timestamp': current_minute,
-                'open': price,
-                'high': price,
-                'low': price,
-                'close': price
-            }
-        else:
-            self.current_candle['high'] = max(self.current_candle['high'], price)
-            self.current_candle['low'] = min(self.current_candle['low'], price)
-            self.current_candle['close'] = price
-
-    def stop(self):
-        self.running = False
+        time.sleep(0.1)  # fast replay
+    print("Demo finished")
 
 # -------------------------------
 # Flask App
@@ -260,70 +155,55 @@ class LiveFeed:
 app = Flask(__name__)
 CORS(app)
 
-# Global state
-current_feed = None
 current_strategy = None
 current_account = None
-feed_thread = None
 demo_thread = None
-is_demo_mode = False
 
-# HTML Template (same as before)
-HTML_TEMPLATE = '''
+HTML = """
 <!DOCTYPE html>
 <html>
 <head>
     <title>Valkyrie Trader</title>
-    <script src="/static/lightweight-charts.standalone.js"></script>
     <style>
         body { font-family: Arial; margin: 20px; background: #1e1e1e; color: #ddd; }
         .container { max-width: 1400px; margin: auto; }
-        .controls { background: #2d2d2d; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
-        button { padding: 8px 16px; margin: 0 5px; cursor: pointer; }
+        .controls { background: #2d2d2d; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
+        button { padding: 8px 16px; cursor: pointer; }
         #chart { width: 100%; height: 500px; margin-bottom: 20px; }
         .status-panel { display: flex; gap: 20px; margin-bottom: 20px; }
         .card { background: #2d2d2d; padding: 15px; border-radius: 8px; flex: 1; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
         th, td { border: 1px solid #444; padding: 6px; text-align: left; }
         th { background: #3d3d3d; }
+        .log { background: #2d2d2d; padding: 10px; height: 150px; overflow-y: auto; font-family: monospace; font-size: 11px; margin-top: 20px; }
     </style>
+    <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.js"></script>
 </head>
 <body>
 <div class="container">
     <h1>⚡ Valkyrie Trader</h1>
     <div class="controls">
-        <label>Instrument: </label>
-        <input type="text" id="instrument" placeholder="NSE_INDEX|NIFTY 50" size="30">
-        <button id="startBtn">▶ START (Live)</button>
-        <button id="demoBtn">🎬 DEMO (Historical)</button>
+        <input type="text" id="instrument" placeholder="Instrument Key" value="NSE_INDEX|NIFTY 50" size="30">
+        <button id="demoBtn">▶ DEMO (Historical)</button>
         <button id="stopBtn">⏹ STOP</button>
-        <span style="margin-left:20px">Mode: <span id="modeLabel">Idle</span></span>
+        <span id="modeLabel">Mode: Idle</span>
     </div>
     <div id="chart"></div>
     <div class="status-panel">
-        <div class="card">
-            <h3>Balance & P&L</h3>
-            <div>Balance: ₹<span id="balance">0</span></div>
-            <div>Daily P&L: ₹<span id="dailyPnl">0</span></div>
-            <div>Loss Limit: ₹20,000</div>
-            <div>Kill Switch: <span id="killSwitch">OFF</span></div>
-        </div>
-        <div class="card">
-            <h3>Open Positions</h3>
-            <div id="positions">None</div>
-        </div>
+        <div class="card"><h3>Balance</h3><div>₹<span id="balance">0</span></div></div>
+        <div class="card"><h3>Daily P&L</h3><div>₹<span id="dailyPnl">0</span></div></div>
+        <div class="card"><h3>Kill Switch</h3><div><span id="killSwitch">OFF</span></div></div>
+        <div class="card"><h3>Open Positions</h3><div id="positions">None</div></div>
     </div>
-    <div class="card">
-        <h3>Trade Log (last 20)</h3>
-        <table id="tradeTable">
-            <thead><tr><th>#</th><th>Entry Time</th><th>Exit Time</th><th>Entry Price</th><th>Exit Price</th><th>P&L (₹)</th><th>Reason</th></tr></thead>
-            <tbody></tbody>
-        </table>
+    <div class="card"><h3>Trade Log (last 20)</h3>
+        <table id="tradeTable"><thead><tr><th>Exit Time</th><th>Reason</th><th>Exit Price</th><th>P&L</th><th>Entry Price</th></tr></thead><tbody></tbody></table>
     </div>
+    <div class="log" id="logPanel"></div>
 </div>
 <script>
     let chart = null;
     let candleSeries = null;
+    let eventSource = null;
 
     function initChart() {
         chart = LightweightCharts.createChart(document.getElementById('chart'), {
@@ -333,41 +213,13 @@ HTML_TEMPLATE = '''
             grid: { vertLines: { color: '#333' }, horzLines: { color: '#333' } }
         });
         candleSeries = chart.addCandlestickSeries();
-    }
-
-    function updateStatus(data) {
-        document.getElementById('balance').innerText = data.balance.toFixed(2);
-        document.getElementById('dailyPnl').innerText = data.daily_pnl.toFixed(2);
-        document.getElementById('killSwitch').innerText = data.kill_switch ? 'ACTIVATED' : 'OFF';
-        let posHtml = '';
-        if (data.open_positions && typeof data.open_positions === 'object') {
-            for (let key in data.open_positions) {
-                posHtml += `${key}: ${data.open_positions[key].qty} lots @ ₹${data.open_positions[key].entry_price}<br>`;
-            }
-        } else if (data.open_positions) {
-            posHtml = `${data.open_positions} open position(s)`;
-        }
-        document.getElementById('positions').innerHTML = posHtml || 'None';
-        let tbody = document.querySelector('#tradeTable tbody');
-        tbody.innerHTML = '';
-        (data.trades || []).slice().reverse().forEach((t, idx) => {
-            let row = `<tr>
-                <td>${idx+1}</td>
-                <td>${t.entry_time || ''}</td>
-                <td>${t.exit_time || ''}</td>
-                <td>${t.entry_price.toFixed(2)}</td>
-                <td>${t.exit_price.toFixed(2)}</td>
-                <td style="color: ${t.pnl>=0?'green':'red'}">${t.pnl.toFixed(2)}</td>
-                <td>${t.reason || ''}</td>
-            </tr>`;
-            tbody.innerHTML += row;
-        });
+        window.addEventListener('resize', () => chart.resize(document.getElementById('chart').clientWidth, 500));
     }
 
     function addCandle(candle) {
         if (!candleSeries) return;
         candleSeries.update({
-            time: candle.timestamp,
+            time: Math.floor(new Date(candle.timestamp).getTime() / 1000),
             open: candle.open,
             high: candle.high,
             low: candle.low,
@@ -375,27 +227,51 @@ HTML_TEMPLATE = '''
         });
     }
 
-    function startBot(mode) {
+    function updateStatus(data) {
+        document.getElementById('balance').innerText = data.balance.toFixed(2);
+        document.getElementById('dailyPnl').innerText = data.daily_pnl.toFixed(2);
+        document.getElementById('killSwitch').innerText = data.kill_switch ? 'ACTIVATED' : 'OFF';
+        document.getElementById('positions').innerHTML = data.open_positions ? `${data.open_positions} position(s)` : 'None';
+        let tbody = document.querySelector('#tradeTable tbody');
+        tbody.innerHTML = '';
+        (data.trades || []).slice().reverse().forEach(t => {
+            tbody.innerHTML += `<tr><td>${t.exit_time}</td><td>${t.reason}</td><td>${t.exit_price.toFixed(2)}</td><td style="color:${t.pnl>=0?'green':'red'}">${t.pnl.toFixed(2)}</td><td>${t.entry_price.toFixed(2)}</td></tr>`;
+        });
+    }
+
+    function addLog(msg) {
+        let logDiv = document.getElementById('logPanel');
+        let entry = document.createElement('div');
+        entry.innerText = new Date().toLocaleTimeString() + ' ' + msg;
+        logDiv.appendChild(entry);
+        logDiv.scrollTop = logDiv.scrollHeight;
+        if (logDiv.children.length > 50) logDiv.removeChild(logDiv.children[0]);
+    }
+
+    function startDemo() {
         let instr = document.getElementById('instrument').value;
         if (!instr) instr = 'NSE_INDEX|NIFTY 50';
         fetch('/start', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ instrument_key: instr, mode: mode })
+            body: JSON.stringify({ instrument_key: instr, mode: 'demo' })
         }).then(res => res.json()).then(data => {
             console.log(data);
-            document.getElementById('modeLabel').innerText = mode === 'demo' ? 'DEMO (replaying)' : 'LIVE';
+            document.getElementById('modeLabel').innerText = 'Mode: DEMO';
+            addLog('Demo mode started');
+            initChart();
             connectEventSource();
         });
     }
 
     function stopBot() {
-        fetch('/stop', { method: 'POST' }).then(res => res.json()).then(console.log);
-        document.getElementById('modeLabel').innerText = 'Idle';
-        if (eventSource) eventSource.close();
+        fetch('/stop', { method: 'POST' }).then(res => res.json()).then(() => {
+            document.getElementById('modeLabel').innerText = 'Mode: Idle';
+            addLog('Bot stopped');
+            if (eventSource) eventSource.close();
+        });
     }
 
-    let eventSource = null;
     function connectEventSource() {
         if (eventSource) eventSource.close();
         eventSource = new EventSource('/stream');
@@ -403,102 +279,86 @@ HTML_TEMPLATE = '''
             let data = JSON.parse(event.data);
             if (data.type === 'status') updateStatus(data.data);
             else if (data.type === 'candle') addCandle(data.data);
+            else if (data.type === 'log') addLog(data.data);
         };
-        eventSource.onerror = function() {
-            setTimeout(connectEventSource, 3000);
-        };
+        eventSource.onerror = () => setTimeout(connectEventSource, 3000);
     }
 
     window.onload = () => {
-        initChart();
-        document.getElementById('startBtn').onclick = () => startBot('live');
-        document.getElementById('demoBtn').onclick = () => startBot('demo');
+        document.getElementById('demoBtn').onclick = startDemo;
         document.getElementById('stopBtn').onclick = stopBot;
-        fetch('/status').then(res => res.json()).then(data => updateStatus(data));
+        fetch('/status').then(res => res.json()).then(updateStatus);
+        addLog('Dashboard ready. Click DEMO to start.');
     };
-    window.onresize = () => { if (chart) chart.resize(document.getElementById('chart').clientWidth, 500); };
 </script>
 </body>
 </html>
-'''
+"""
 
 @app.route('/')
 def index():
-    return render_template_string(HTML_TEMPLATE)
+    return render_template_string(HTML)
 
 @app.route('/start', methods=['POST'])
 def start_bot():
-    global current_feed, current_strategy, current_account, feed_thread, demo_thread, is_demo_mode
+    global current_strategy, current_account, demo_thread
     data = request.get_json()
     instrument_key = data.get('instrument_key')
-    mode = data.get('mode', 'live')
     if not instrument_key:
         return jsonify({'error': 'instrument_key required'}), 400
-    if current_feed or demo_thread:
+    if current_strategy:
         return jsonify({'error': 'Bot already running'}), 400
     current_account = PaperAccount()
     current_strategy = HeikinAshiStrategy(current_account, instrument_key)
-    def broadcast_candle(candle):
+    # Store candles for SSE
+    def on_candle(candle):
         app.config['latest_candle'] = candle
-    current_strategy.set_candle_callback(broadcast_candle)
-    is_demo_mode = (mode == 'demo')
-    if mode == 'demo':
-        def run_demo():
-            global demo_thread, current_strategy, current_account
-            demo_mode(instrument_key, current_strategy, 'backtest_output.csv')
-            demo_thread = None
-            current_strategy = None
-            current_account = None
-        demo_thread = threading.Thread(target=run_demo, daemon=True)
-        demo_thread.start()
-    else:
-        current_feed = LiveFeed(instrument_key, current_strategy)
-        def run_async():
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            loop.run_until_complete(current_feed.connect())
-        feed_thread = threading.Thread(target=run_async, daemon=True)
-        feed_thread.start()
-    return jsonify({'status': 'started', 'instrument': instrument_key, 'mode': mode})
+    current_strategy.set_candle_callback(on_candle)
+    def run():
+        global current_strategy, current_account, demo_thread
+        demo_replay(current_strategy, 'backtest_output.csv')
+        current_strategy = None
+        current_account = None
+        demo_thread = None
+    demo_thread = threading.Thread(target=run, daemon=True)
+    demo_thread.start()
+    return jsonify({'status': 'started'})
 
 @app.route('/stop', methods=['POST'])
 def stop_bot():
-    global current_feed, current_strategy, current_account, feed_thread, demo_thread, is_demo_mode
-    if current_feed:
-        current_feed.stop()
-        current_feed = None
-    # Demo thread will exit on its own, just clear references
+    global current_strategy, current_account, demo_thread
     current_strategy = None
     current_account = None
-    feed_thread = None
     demo_thread = None
-    is_demo_mode = False
+    app.config['latest_candle'] = None
     return jsonify({'status': 'stopped'})
 
 @app.route('/status')
 def status():
     if current_account:
         return jsonify(current_account.get_status())
-    else:
-        return jsonify({'balance': 0, 'daily_pnl': 0, 'open_positions': 0, 'kill_switch': False, 'trades': []})
+    return jsonify({'balance': 0, 'daily_pnl': 0, 'open_positions': 0, 'kill_switch': False, 'trades': []})
 
 @app.route('/stream')
 def stream():
     def event_stream():
         last_candle_ts = None
+        last_status_hash = None
         while True:
             if current_account:
                 status = current_account.get_status()
-                yield f"data: {json.dumps({'type': 'status', 'data': status})}\n\n"
+                if str(status) != last_status_hash:
+                    yield f"data: {json.dumps({'type': 'status', 'data': status})}\n\n"
+                    last_status_hash = str(status)
                 candle = app.config.get('latest_candle')
                 if candle and (not last_candle_ts or candle['timestamp'] != last_candle_ts):
                     last_candle_ts = candle['timestamp']
                     candle_copy = candle.copy()
                     candle_copy['timestamp'] = candle_copy['timestamp'].isoformat()
                     yield f"data: {json.dumps({'type': 'candle', 'data': candle_copy})}\n\n"
-            time.sleep(1)
+            time.sleep(0.5)
     return app.response_class(event_stream(), mimetype='text/event-stream')
 
 if __name__ == '__main__':
     app.config['latest_candle'] = None
-    app.run(debug=True, port=8080, threaded=True)
+    app.run(debug=True, port=8080)
