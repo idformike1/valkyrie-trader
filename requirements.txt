@@ -1,0 +1,11 @@
+upstox-python
+protobuf
+websocket-client
+python-dotenv
+flask
+flask-cors
+requests
+pytz
+pyotp
+pandas
+numpy
