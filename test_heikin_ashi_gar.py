@@ -73,15 +73,10 @@ def test_strategy_signals():
             '2026-05-25 09:17:00',
             '2026-05-25 09:18:00'
         ],
-        # Let's force raw values:
-        # C0: open=100, high=101, low=95, close=96
-        # C1: open=96, high=97, low=90, close=91
-        # C2: open=91.8, high=96, low=91.8, close=95
-        # C3 (live tick): open=95, high=96, low=94, close=95.5
-        'open':  [100.0, 96.0, 91.8, 95.0],
-        'high':  [101.0, 97.0, 96.0, 96.0],
-        'low':   [95.0,  90.0,  91.8, 94.0],
-        'close': [96.0,  91.0,  95.0, 95.5]
+        'open':  [100.0, 85.0, 92.0, 110.0],
+        'high':  [100.0, 100.0, 110.0, 111.0],
+        'low':   [100.0, 70.0, 92.0, 109.0],
+        'close': [100.0, 75.0, 110.0, 110.0]
     }
     df = pd.DataFrame(data)
     ha_df = calculate_heikin_ashi(df)
@@ -107,8 +102,8 @@ def test_strategy_signals():
     
     # Now let's evaluate exit trigger (reversal red candle)
     # We add a new candle C4 which turns red
-    # C3 (now completed): open=95, close=92 (Red)
-    # C4 (live tick): open=92, close=91.5
+    # C3 (now completed): open=95, close=90 (Red)
+    # C4 (live tick): open=90, close=90
     data_exit = {
         'timestamp': [
             '2026-05-25 09:15:00',
@@ -117,10 +112,10 @@ def test_strategy_signals():
             '2026-05-25 09:18:00',
             '2026-05-25 09:19:00'
         ],
-        'open':  [100.0, 96.0, 91.8, 95.0, 92.0],
-        'high':  [101.0, 97.0, 96.0, 96.0, 93.0],
-        'low':   [95.0,  90.0,  91.8, 91.0, 91.0],
-        'close': [96.0,  91.0,  95.0, 92.0, 91.5]
+        'open':  [100.0, 85.0, 92.0, 95.0, 90.0],
+        'high':  [100.0, 100.0, 110.0, 95.0, 91.0],
+        'low':   [100.0, 70.0, 92.0, 86.0, 89.0],
+        'close': [100.0, 75.0, 110.0, 90.0, 90.0]
     }
     df_exit = pd.DataFrame(data_exit)
     signal_exit, meta_exit = strat.evaluate(df_exit)

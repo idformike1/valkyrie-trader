@@ -22,7 +22,7 @@ def calculate_heikin_ashi(df: pd.DataFrame) -> pd.DataFrame:
     return ha_df
 
 class HeikinAshiGarStrategy:
-    def __init__(self, candle_limit: int = 10, cut_off_time: str = "14:00"):
+    def __init__(self, candle_limit: int = 10, cut_off_time: str = "15:15"):
         self.candle_limit = candle_limit
         self.cut_off_time = datetime.strptime(cut_off_time, "%H:%M").time()
         self.reset_state()
