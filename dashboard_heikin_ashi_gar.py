@@ -313,25 +313,37 @@ class EngineAccount:
         self.buy_cost = 0.0
         
     def buy(self, instrument_key, price, timestamp, stop_loss=0.0, details=""):
-        if self.position:
+        if self.position and self.position != instrument_key:
+            log_event(f"REJECTED: Already have an open position in {self.position}. Close it first.", "WARNING")
             return False
             
-        # Calculate premium cost + buying friction
-        buy_cost = self.brokerage_flat + (price * (self.slippage_pct / 100.0) * self.qty)
-        required_capital = (price * self.qty) + buy_cost
+        new_qty = self.qty
+        buy_cost = self.brokerage_flat + (price * (self.slippage_pct / 100.0) * new_qty)
+        required_capital = (price * new_qty) + buy_cost
         
         if SYSTEM_STATUS["balance"] < required_capital:
             log_event(f"REJECTED: Insufficient funds. Required: ₹{required_capital:.2f}, Available: ₹{SYSTEM_STATUS['balance']:.2f}", "WARNING")
             return False
             
-        self.position = instrument_key
-        self.entry_price = price
-        self.buy_cost = buy_cost
-        SYSTEM_STATUS["balance"] -= self.buy_cost
+        if self.position:
+            # Scale in / average entry price
+            total_qty = self.qty + new_qty
+            self.entry_price = ((self.entry_price * self.qty) + (price * new_qty)) / total_qty
+            self.qty = total_qty
+            self.buy_cost += buy_cost
+            log_msg = f"Position scaled in. Total Qty: {self.qty} @ Avg Price: ₹{self.entry_price:.2f}"
+        else:
+            self.position = instrument_key
+            self.entry_price = price
+            self.qty = new_qty
+            self.buy_cost = buy_cost
+            log_msg = f"Position opened. BUY {self.qty} @ ₹{price:.2f} | Cost: ₹{self.buy_cost:.2f} | SL: ₹{stop_loss:.2f}"
+            
+        SYSTEM_STATUS["balance"] -= buy_cost
         
         SYSTEM_STATUS["position"] = {
             "instrument_key": instrument_key,
-            "entry_price": price,
+            "entry_price": self.entry_price,
             "timestamp": timestamp.isoformat() if hasattr(timestamp, 'isoformat') else str(timestamp),
             "stop_loss": stop_loss
         }
@@ -343,7 +355,7 @@ class EngineAccount:
                 trading_symbol=SYSTEM_STATUS.get("trading_symbol", "UNKNOWN"),
                 trade_type="BUY",
                 price=price,
-                quantity=self.qty,
+                quantity=new_qty,
                 stop_loss=stop_loss,
                 target_price=0.0,
                 reason="SIGNAL_TRIGGER",
@@ -361,11 +373,11 @@ class EngineAccount:
                 "reason": "SIGNAL_TRIGGER",
                 "details": details
             })
-        log_event(f"Position opened. BUY {self.qty} @ ₹{price:.2f} | Cost: ₹{self.buy_cost:.2f} | SL: ₹{stop_loss:.2f}", "TRADE")
+        log_event(log_msg, "TRADE")
         
         # Real Execution Call
         if self.is_real:
-            execute_order(instrument_key, self.qty, "BUY")
+            execute_order(instrument_key, new_qty, "BUY")
         return True
 
     def sell(self, instrument_key, price, timestamp, reason, details=""):
@@ -3690,6 +3702,7 @@ HTML_MANUAL_DASHBOARD = """
                 </div>
                 
                 <button class="action-btn" id="execute-btn" onclick="toggleExecutionSession()" style="margin-top:2px; font-size:11px;">Connect Option Stream</button>
+                <button class="action-btn" id="panic-btn" onclick="executePanicExit()" style="margin-top:4px; font-size:11px; background:var(--accent-red); color:#16141f; font-weight:700;">PANIC EXIT (Shift+Esc)</button>
             </div>
 
             <!-- Target Instrument Picker (Middle) -->
@@ -3805,22 +3818,41 @@ HTML_MANUAL_DASHBOARD = """
                         <div style="font-weight:700; font-size:10px; color:var(--text-mute); text-transform:uppercase;">Bracket Protection</div>
                         <div class="bracket-row">
                             <label style="font-size:10px;">Stop Loss</label>
-                            <div class="bracket-input-group">
-                                <input type="number" id="sc-bracket-sl" value="0.0" step="0.5">
-                                <select id="sc-bracket-sl-type">
-                                    <option value="points">pts</option>
-                                    <option value="percent">%</option>
-                                </select>
+                            <div style="display:flex; flex-direction:column; gap:4px; width:100%;">
+                                <div class="bracket-input-group">
+                                    <input type="number" id="sc-bracket-sl" value="0.0" step="0.5">
+                                    <select id="sc-bracket-sl-type" onchange="handleAtrChange('sc-bracket-sl')">
+                                        <option value="points">pts</option>
+                                        <option value="percent">%</option>
+                                        <option value="atr">auto (atr)</option>
+                                    </select>
+                                </div>
+                                <div class="preset-buttons" style="display:flex; gap:3px; flex-wrap:wrap;">
+                                    <button class="preset-btn" onclick="setPreset('sc-bracket-sl', 2, 'points')" style="padding:2px 6px; font-size:8.5px; background:#3a1e1e; border:1px solid #6e2d2d; border-radius:3px; color:#f87171; cursor:pointer; font-weight:600;">2</button>
+                                    <button class="preset-btn" onclick="setPreset('sc-bracket-sl', 3, 'points')" style="padding:2px 6px; font-size:8.5px; background:#3a1e1e; border:1px solid #6e2d2d; border-radius:3px; color:#f87171; cursor:pointer; font-weight:600;">3</button>
+                                    <button class="preset-btn" onclick="setPreset('sc-bracket-sl', 5, 'points')" style="padding:2px 6px; font-size:8.5px; background:#3a1e1e; border:1px solid #6e2d2d; border-radius:3px; color:#f87171; cursor:pointer; font-weight:600;">5</button>
+                                    <button class="preset-btn" onclick="setPreset('sc-bracket-sl', 8, 'points')" style="padding:2px 6px; font-size:8.5px; background:#3a1e1e; border:1px solid #6e2d2d; border-radius:3px; color:#f87171; cursor:pointer; font-weight:600;">8</button>
+                                    <button class="preset-btn" onclick="setPreset('sc-bracket-sl', 10, 'points')" style="padding:2px 6px; font-size:8.5px; background:#3a1e1e; border:1px solid #6e2d2d; border-radius:3px; color:#f87171; cursor:pointer; font-weight:600;">10</button>
+                                </div>
                             </div>
                         </div>
                         <div class="bracket-row">
                             <label style="font-size:10px;">Take Profit</label>
-                            <div class="bracket-input-group">
-                                <input type="number" id="sc-bracket-target" value="0.0" step="0.5">
-                                <select id="sc-bracket-target-type">
-                                    <option value="points">pts</option>
-                                    <option value="percent">%</option>
-                                </select>
+                            <div style="display:flex; flex-direction:column; gap:4px; width:100%;">
+                                <div class="bracket-input-group">
+                                    <input type="number" id="sc-bracket-target" value="0.0" step="0.5">
+                                    <select id="sc-bracket-target-type" onchange="handleAtrChange('sc-bracket-target')">
+                                        <option value="points">pts</option>
+                                        <option value="percent">%</option>
+                                        <option value="atr">auto (atr)</option>
+                                    </select>
+                                </div>
+                                <div class="preset-buttons" style="display:flex; gap:3px; flex-wrap:wrap;">
+                                    <button class="preset-btn" onclick="setPreset('sc-bracket-target', 2, 'points')" style="padding:2px 6px; font-size:8.5px; background:#1e3a28; border:1px solid #2d6e4e; border-radius:3px; color:#4ade80; cursor:pointer; font-weight:600;">+2</button>
+                                    <button class="preset-btn" onclick="setPreset('sc-bracket-target', 5, 'points')" style="padding:2px 6px; font-size:8.5px; background:#1e3a28; border:1px solid #2d6e4e; border-radius:3px; color:#4ade80; cursor:pointer; font-weight:600;">+5</button>
+                                    <button class="preset-btn" onclick="setPreset('sc-bracket-target', 10, 'points')" style="padding:2px 6px; font-size:8.5px; background:#1e3a28; border:1px solid #2d6e4e; border-radius:3px; color:#4ade80; cursor:pointer; font-weight:600;">+10</button>
+                                    <button class="preset-btn" onclick="setPreset('sc-bracket-target', 20, 'points')" style="padding:2px 6px; font-size:8.5px; background:#1e3a28; border:1px solid #2d6e4e; border-radius:3px; color:#4ade80; cursor:pointer; font-weight:600;">+20</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -3986,6 +4018,8 @@ HTML_MANUAL_DASHBOARD = """
                 document.getElementById('pad-std-btn').classList.add('active');
                 document.getElementById('pad-standard').style.display = 'flex';
             }
+            activePad = pad;
+            if (typeof saveLocalSettings === 'function') saveLocalSettings();
         }
 
         let selectedQty = 65;
@@ -4013,6 +4047,7 @@ HTML_MANUAL_DASHBOARD = """
             
             // Recalculate SL/Target relative to the mode's correct ref price
             recalcBracketValues();
+            if (typeof saveLocalSettings === 'function') saveLocalSettings();
         }
 
         function adjustQty(val) {
@@ -4276,7 +4311,13 @@ HTML_MANUAL_DASHBOARD = """
         }
 
         window.addEventListener('keydown', function(e) {
-            if (!hotkeysActive || !isRunning) return;
+            if (!isRunning) return;
+            if (e.shiftKey && e.key === 'Escape') {
+                e.preventDefault();
+                executePanicExit();
+                return;
+            }
+            if (!hotkeysActive) return;
             if (e.shiftKey && e.key === 'ArrowUp') {
                 e.preventDefault();
                 placeOrder('BUY', true);
@@ -4292,6 +4333,7 @@ HTML_MANUAL_DASHBOARD = """
             if (scalperLots < 1) scalperLots = 1;
             document.getElementById("sc-selected-lots").innerText = scalperLots + " lots";
             document.getElementById("sc-selected-qty").innerText = "(" + (scalperLots * lotMultiplier) + " qty.)";
+            if (typeof saveLocalSettings === 'function') saveLocalSettings();
         }
 
         // Dropdown actions and handlers
@@ -4608,6 +4650,7 @@ HTML_MANUAL_DASHBOARD = """
                 document.getElementById("mode-live-btn").classList.add("active");
                 document.getElementById("live-trading-toggle-row").style.display = "flex";
             }
+            if (typeof saveLocalSettings === 'function') saveLocalSettings();
         }
 
         // Setup TradingView Lightweight Charts variables
@@ -4998,11 +5041,13 @@ HTML_MANUAL_DASHBOARD = """
                 stopLoss = parseFloat(document.getElementById("sc-bracket-sl").value) || 0.0;
                 stopLossType = document.getElementById("sc-bracket-sl-type").value;
             } else {
-                qty = parseInt(document.getElementById("std-qty").value) || 1;
-                target = parseFloat(document.getElementById("std-bracket-target").value) || 0.0;
-                targetType = document.getElementById("std-bracket-target-type").value;
-                stopLoss = parseFloat(document.getElementById("std-bracket-sl").value) || 0.0;
-                stopLossType = document.getElementById("std-bracket-sl-type").value;
+                qty = typeof selectedQty !== 'undefined' ? selectedQty : 1;
+                const targetEl = document.getElementById("gtt-target-pct");
+                target = targetEl ? parseFloat(targetEl.value) || 0.0 : 0.0;
+                targetType = "percent";
+                const slEl = document.getElementById("gtt-sl-pct");
+                stopLoss = slEl ? parseFloat(slEl.value) || 0.0 : 0.0;
+                stopLossType = "percent";
             }
 
             const endpoint = (side === 'BUY') ? '/manual/buy' : '/manual/sell';
@@ -5029,6 +5074,88 @@ HTML_MANUAL_DASHBOARD = """
                     logConsole(`[TRADE] Filled ${side} ${qty} Lots of ${symb} at Market.`);
                 }
             });
+        }
+
+        function executePanicExit() {
+            if (!isRunning) {
+                alert("Option stream is not connected.");
+                return;
+            }
+            fetch('/manual/panic_exit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) {
+                    logConsole("[ERROR] Panic Exit failed: " + data.error);
+                } else {
+                    logConsole("[SYSTEM] Panic Exit Completed: " + data.message);
+                }
+            })
+            .catch(err => {
+                logConsole("[ERROR] Panic Exit failed: " + err);
+            });
+        }
+
+        function setPreset(inputId, value, type) {
+            const input = document.getElementById(inputId);
+            if (input) {
+                input.value = value;
+                input.dispatchEvent(new Event('input'));
+                input.dispatchEvent(new Event('change'));
+                
+                const typeSelect = document.getElementById(inputId + '-type');
+                if (typeSelect && type) {
+                    typeSelect.value = type;
+                    typeSelect.dispatchEvent(new Event('change'));
+                }
+            }
+        }
+
+        function handleAtrChange(inputId) {
+            const typeSelect = document.getElementById(inputId + '-type');
+            const input = document.getElementById(inputId);
+            if (!typeSelect || !input) return;
+            
+            if (typeSelect.value === 'atr') {
+                input.readOnly = true;
+                input.style.opacity = '0.7';
+                fetchAtrAndUpdate(inputId);
+            } else {
+                input.readOnly = false;
+                input.style.opacity = '1.0';
+            }
+            if (typeof saveLocalSettings === 'function') saveLocalSettings();
+        }
+
+        function fetchAtrAndUpdate(inputId) {
+            fetch('/api/atr')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.atr) {
+                        const multiplier = inputId.includes('sl') ? 1.5 : 2.0;
+                        const finalVal = parseFloat((data.atr * multiplier).toFixed(2));
+                        const input = document.getElementById(inputId);
+                        const typeSelect = document.getElementById(inputId + '-type');
+                        if (input && typeSelect && typeSelect.value === 'atr') {
+                            input.value = finalVal;
+                            saveLocalSettings();
+                        }
+                    }
+                })
+                .catch(err => console.error("Failed to fetch ATR:", err));
+        }
+
+        function refreshAutoAtr() {
+            const slType = document.getElementById('sc-bracket-sl-type');
+            if (slType && slType.value === 'atr') {
+                fetchAtrAndUpdate('sc-bracket-sl');
+            }
+            const targetType = document.getElementById('sc-bracket-target-type');
+            if (targetType && targetType.value === 'atr') {
+                fetchAtrAndUpdate('sc-bracket-target');
+            }
         }
 
         // Submit GTT trigger
@@ -5593,6 +5720,7 @@ HTML_MANUAL_DASHBOARD = """
 
                 // Repeat update if running
                 if (isRunning) {
+                    if (typeof refreshAutoAtr === 'function') refreshAutoAtr();
                     setTimeout(updateTelemetry, 1000);
                 }
             });
@@ -5607,11 +5735,122 @@ HTML_MANUAL_DASHBOARD = """
             consoleDiv.insertBefore(p, consoleDiv.firstChild);
         }
 
+        let activePad = 'scalper'; // track active pad globally
+
+        function saveLocalSettings() {
+            const settings = {
+                scalperLots: scalperLots,
+                scBracketSl: document.getElementById("sc-bracket-sl") ? document.getElementById("sc-bracket-sl").value : "0.0",
+                scBracketSlType: document.getElementById("sc-bracket-sl-type") ? document.getElementById("sc-bracket-sl-type").value : "points",
+                scBracketTarget: document.getElementById("sc-bracket-target") ? document.getElementById("sc-bracket-target").value : "0.0",
+                scBracketTargetType: document.getElementById("sc-bracket-target-type") ? document.getElementById("sc-bracket-target-type").value : "points",
+                deskMode: deskMode,
+                selectedOrderMode: selectedOrderMode,
+                activePad: activePad,
+                currentExchange: currentExchange,
+                currentIndex: currentIndex,
+                currentOptionType: currentOptionType
+            };
+            localStorage.setItem("valkyrie_manual_settings", JSON.stringify(settings));
+        }
+
+        function loadLocalSettings() {
+            try {
+                const stored = localStorage.getItem("valkyrie_manual_settings");
+                if (!stored) return;
+                const settings = JSON.parse(stored);
+                
+                if (settings.scalperLots) {
+                    scalperLots = parseInt(settings.scalperLots) || 1;
+                    document.getElementById("sc-selected-lots").innerText = scalperLots + " lots";
+                    if (typeof lotMultiplier !== 'undefined') {
+                        document.getElementById("sc-selected-qty").innerText = "(" + (scalperLots * lotMultiplier) + " qty.)";
+                    }
+                }
+                if (settings.scBracketSl) {
+                    const el = document.getElementById("sc-bracket-sl");
+                    if (el) el.value = settings.scBracketSl;
+                }
+                if (settings.scBracketSlType) {
+                    const el = document.getElementById("sc-bracket-sl-type");
+                    if (el) el.value = settings.scBracketSlType;
+                }
+                if (settings.scBracketTarget) {
+                    const el = document.getElementById("sc-bracket-target");
+                    if (el) el.value = settings.scBracketTarget;
+                }
+                if (settings.scBracketTargetType) {
+                    const el = document.getElementById("sc-bracket-target-type");
+                    if (el) el.value = settings.scBracketTargetType;
+                }
+                if (settings.deskMode) {
+                    deskMode = settings.deskMode;
+                    document.getElementById("mode-paper-btn").classList.remove("active");
+                    document.getElementById("mode-live-btn").classList.remove("active");
+                    if (deskMode === 'PAPER') {
+                        document.getElementById("mode-paper-btn").classList.add("active");
+                        document.getElementById("live-trading-toggle-row").style.display = "none";
+                    } else {
+                        document.getElementById("mode-live-btn").classList.add("active");
+                        document.getElementById("live-trading-toggle-row").style.display = "flex";
+                    }
+                }
+                if (settings.selectedOrderMode) {
+                    selectedOrderMode = settings.selectedOrderMode;
+                    document.getElementById("mode-std").classList.toggle("active", selectedOrderMode === 'STANDARD');
+                    document.getElementById("mode-gtt").classList.toggle("active", selectedOrderMode === 'GTT');
+                    document.getElementById("gtt-entry-row").style.display = (selectedOrderMode === 'GTT') ? 'block' : 'none';
+                    const submitBtn = document.getElementById("main-exec-btn");
+                    if (selectedOrderMode === 'GTT') {
+                        submitBtn.innerText = "Deploy GTT Trigger";
+                        submitBtn.style.background = "var(--accent-amber)";
+                        submitBtn.style.color = "#16141f";
+                    } else {
+                        submitBtn.innerText = "Execute Standard Order";
+                        submitBtn.style.background = "var(--accent-purple)";
+                        submitBtn.style.color = "#fff";
+                    }
+                }
+                if (settings.activePad) {
+                    activePad = settings.activePad;
+                    document.getElementById('pad-std-btn').classList.remove('active');
+                    document.getElementById('pad-scalper-btn').classList.remove('active');
+                    document.getElementById('pad-standard').style.display = 'none';
+                    document.getElementById('pad-scalper').style.display = 'none';
+                    if (activePad === 'scalper') {
+                        document.getElementById('pad-scalper-btn').classList.add('active');
+                        document.getElementById('pad-scalper').style.display = 'flex';
+                    } else {
+                        document.getElementById('pad-std-btn').classList.add('active');
+                        document.getElementById('pad-standard').style.display = 'flex';
+                    }
+                }
+                if (settings.currentExchange) {
+                    currentExchange = settings.currentExchange;
+                }
+                if (settings.currentIndex) {
+                    currentIndex = settings.currentIndex;
+                }
+                if (settings.currentOptionType) {
+                    currentOptionType = settings.currentOptionType;
+                }
+            } catch (e) {
+                console.error("Failed to load local settings", e);
+            }
+        }
+
         // Initialize selectors
-        setDeskMode('PAPER');
         setExchange('NSE');
+        loadLocalSettings();
+        setExchange(currentExchange);
         updateUIForConnectionState(false);
         updateTelemetry();
+
+        // Bind input listeners to save configuration changes
+        document.getElementById("sc-bracket-sl").addEventListener("input", saveLocalSettings);
+        document.getElementById("sc-bracket-sl-type").addEventListener("change", saveLocalSettings);
+        document.getElementById("sc-bracket-target").addEventListener("input", saveLocalSettings);
+        document.getElementById("sc-bracket-target-type").addEventListener("change", saveLocalSettings);
     </script>
 </body>
 </html>
@@ -5628,9 +5867,8 @@ def manual_buy():
     if not current_feed or not current_feed.account:
         return jsonify({"error": "Trading Desk stream is not connected. Connect first."}), 400
         
-    if SYSTEM_STATUS["position"]:
-        return jsonify({"error": "A position is already open."}), 400
-        
+    # Allow scale-in on same instrument; block only if a DIFFERENT instrument is open
+    pos = SYSTEM_STATUS.get("position")
     req_data = request.get_json() or {}
     qty = int(req_data.get("qty", 1))
     target = float(req_data.get("target", 0.0))
@@ -5648,11 +5886,14 @@ def manual_buy():
         instrument_key = SYSTEM_STATUS["instrument_key"]
         lot_mult = SYSTEM_STATUS["lot_size_multiplier"]
         price = SYSTEM_STATUS["spot_price"]
+
+    if pos and pos.get("instrument_key") and pos["instrument_key"] != instrument_key:
+        return jsonify({"error": f"Already in a position for {pos['instrument_key']}. Exit first before buying a different instrument."}), 400
         
     if price <= 0.0:
         return jsonify({"error": f"LTP is not available yet for {instrument_key}. Wait for a tick."}), 400
         
-    # Update lot size dynamically
+    # Set lot size for this order (scale-in preserves cumulative qty in Account.buy)
     current_feed.account.lot_size = qty
     current_feed.account.lot_size_multiplier = lot_mult
     current_feed.account.qty = qty * lot_mult
@@ -5666,21 +5907,26 @@ def manual_buy():
         details="SCALPER_BUY" if is_scalper else "MANUAL_BUY"
     )
     if success:
-        # Calculate bracket exit prices
+        # Recalculate bracket exits using avg entry price (handles scale-in)
+        avg_entry = current_feed.account.entry_price
         target_price = 0.0
         stop_loss_price = 0.0
         
         if target > 0.0:
             if target_type == "points":
-                target_price = price + target
+                target_price = avg_entry + target
             elif target_type == "percent":
-                target_price = price * (1.0 + target / 100.0)
+                target_price = avg_entry * (1.0 + target / 100.0)
+            elif target_type == "atr":
+                target_price = avg_entry + target  # target already computed as ATR * multiplier
                 
         if stop_loss > 0.0:
             if stop_loss_type == "points":
-                stop_loss_price = price - stop_loss
+                stop_loss_price = avg_entry - stop_loss
             elif stop_loss_type == "percent":
-                stop_loss_price = price * (1.0 - stop_loss / 100.0)
+                stop_loss_price = avg_entry * (1.0 - stop_loss / 100.0)
+            elif stop_loss_type == "atr":
+                stop_loss_price = avg_entry - stop_loss  # sl already computed as ATR * multiplier
                 
         if SYSTEM_STATUS["position"]:
             SYSTEM_STATUS["position"]["target_price"] = target_price
@@ -5688,10 +5934,12 @@ def manual_buy():
             SYSTEM_STATUS["position"]["is_scalper"] = is_scalper
             SYSTEM_STATUS["position"]["trailing_gap"] = trailing_gap
             SYSTEM_STATUS["position"]["highest_price"] = price
+            SYSTEM_STATUS["position"]["total_qty"] = current_feed.account.qty
             
-        return jsonify({"message": "Manual BUY order executed.", "status": SYSTEM_STATUS})
+        action = "scaled in" if pos else "opened"
+        return jsonify({"message": f"BUY order executed ({action}). Avg: ₹{avg_entry:.2f} | Qty: {current_feed.account.qty}", "status": SYSTEM_STATUS})
     else:
-        return jsonify({"error": "Manual BUY order failed (Check funds)."}), 400
+        return jsonify({"error": "Manual BUY order failed (Check funds or no active stream)."}), 400
 
 @app.route('/manual/sell', methods=['POST'])
 def manual_sell():
@@ -5718,6 +5966,57 @@ def manual_sell():
         return jsonify({"message": "Manual SELL/EXIT order executed.", "status": SYSTEM_STATUS})
     else:
         return jsonify({"error": "Manual SELL/EXIT order failed."}), 400
+
+@app.route('/manual/panic_exit', methods=['POST'])
+def manual_panic_exit():
+    global SYSTEM_STATUS, current_feed, GTT_ORDERS
+    
+    # 1. Cancel all PENDING GTT orders
+    cancelled_count = 0
+    for order in GTT_ORDERS:
+        if order.get("status") == "PENDING":
+            order["status"] = "CANCELLED"
+            cancelled_count += 1
+            log_event(f"GTT Trigger Cancelled via Panic Exit: {order['id']}", "SYSTEM")
+            
+    # 2. Square off active position if it exists
+    squared_off = False
+    if current_feed and current_feed.account and current_feed.account.position:
+        pos = SYSTEM_STATUS["position"]
+        if pos:
+            instrument_key = pos["instrument_key"]
+            is_scalper = pos.get("is_scalper", False)
+            price = SYSTEM_STATUS["scalper_spot_price"] if is_scalper else SYSTEM_STATUS["spot_price"]
+            if price > 0.0:
+                success = current_feed.account.sell(
+                    instrument_key=instrument_key,
+                    price=price,
+                    timestamp=datetime.now(),
+                    reason="PANIC_EXIT",
+                    details="Emergency Panic Square Off"
+                )
+                if success:
+                    squared_off = True
+            else:
+                fallback_price = pos.get("average_price", 1.0)
+                success = current_feed.account.sell(
+                    instrument_key=instrument_key,
+                    price=fallback_price,
+                    timestamp=datetime.now(),
+                    reason="PANIC_EXIT",
+                    details="Emergency Panic Square Off (LTP Fallback)"
+                )
+                if success:
+                    squared_off = True
+                    
+    msg = f"Panic Exit Executed: Cancelled {cancelled_count} GTT orders."
+    if squared_off:
+        msg += " Open position squared off."
+    else:
+        msg += " No active position to square off."
+        
+    log_event(msg, "SYSTEM")
+    return jsonify({"message": msg, "status": SYSTEM_STATUS})
 
 @app.route('/manual/gtt/create', methods=['POST'])
 def manual_gtt_create():
@@ -5823,6 +6122,39 @@ def get_strikes():
     ]
     strikes = sorted(filtered['strike_price'].dropna().unique())
     return jsonify(strikes)
+
+@app.route('/api/atr')
+def get_atr():
+    global current_feed
+    if not current_feed or not current_feed.candles_history:
+        return jsonify({"atr": 1.0, "error": "No candles data available."})
+        
+    candles = list(current_feed.candles_history)
+    period = int(request.args.get('period', 14))
+    
+    if len(candles) < 3:
+        return jsonify({"atr": 1.0, "warning": "Too few candles."})
+        
+    # Calculate True Ranges
+    trs = []
+    for i in range(1, len(candles)):
+        h = candles[i].get('high', candles[i].get('close', 0.0))
+        l = candles[i].get('low', candles[i].get('close', 0.0))
+        pc = candles[i-1].get('close', 0.0)
+        tr = max(h - l, abs(h - pc), abs(l - pc))
+        trs.append(tr)
+        
+    if not trs:
+        return jsonify({"atr": 1.0})
+        
+    if len(trs) < period:
+        atr = sum(trs) / len(trs)
+    else:
+        atr = sum(trs[:period]) / period
+        for i in range(period, len(trs)):
+            atr = (atr * (period - 1) + trs[i]) / period
+            
+    return jsonify({"atr": round(atr, 2)})
 
 @app.route('/api/options/metadata')
 def get_options_metadata():
