@@ -23,6 +23,8 @@ build/
 *.pid
 .DS_Store
 *.sqlite
+*.db
+artifacts/
 
 # Protobuf generated (but keep .proto)
 MarketDataFeed_pb2.py
