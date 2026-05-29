@@ -311,10 +311,13 @@ class EngineAccount:
         self.brokerage_flat = brokerage_flat
         self.slippage_pct = slippage_pct
         self.buy_cost = 0.0
+        self.buy_reject_reason = ""  # last rejection reason for diagnostics
         
     def buy(self, instrument_key, price, timestamp, stop_loss=0.0, details=""):
         if self.position and self.position != instrument_key:
-            log_event(f"REJECTED: Already have an open position in {self.position}. Close it first.", "WARNING")
+            reason = f"Already in {self.position}. Close it first before switching instruments."
+            log_event(f"REJECTED: {reason}", "WARNING")
+            self.buy_reject_reason = reason
             return False
             
         new_qty = self.qty
@@ -322,7 +325,9 @@ class EngineAccount:
         required_capital = (price * new_qty) + buy_cost
         
         if SYSTEM_STATUS["balance"] < required_capital:
-            log_event(f"REJECTED: Insufficient funds. Required: ₹{required_capital:.2f}, Available: ₹{SYSTEM_STATUS['balance']:.2f}", "WARNING")
+            reason = f"Insufficient funds. Required: ₹{required_capital:.2f}, Available: ₹{SYSTEM_STATUS['balance']:.2f}"
+            log_event(f"REJECTED: {reason}", "WARNING")
+            self.buy_reject_reason = reason
             return False
             
         if self.position:
@@ -496,6 +501,7 @@ class LiveFeed:
             await ws.send(json.dumps(subscribe_msg).encode('utf-8'))
             log_event(f"Subscribed to market feed for: {keys_to_subscribe}", "WS")
             SYSTEM_STATUS["state"] = "LIVE_MONITORING"
+            SESSION_START_TIME = time.time()  # stamp connection start for grace window
             
             while self.running:
                 try:
@@ -3829,10 +3835,9 @@ HTML_MANUAL_DASHBOARD = """
                                 </div>
                                 <div class="preset-buttons" style="display:flex; gap:3px; flex-wrap:wrap;">
                                     <button class="preset-btn" onclick="setPreset('sc-bracket-sl', 2, 'points')" style="padding:2px 6px; font-size:8.5px; background:#3a1e1e; border:1px solid #6e2d2d; border-radius:3px; color:#f87171; cursor:pointer; font-weight:600;">2</button>
-                                    <button class="preset-btn" onclick="setPreset('sc-bracket-sl', 3, 'points')" style="padding:2px 6px; font-size:8.5px; background:#3a1e1e; border:1px solid #6e2d2d; border-radius:3px; color:#f87171; cursor:pointer; font-weight:600;">3</button>
                                     <button class="preset-btn" onclick="setPreset('sc-bracket-sl', 5, 'points')" style="padding:2px 6px; font-size:8.5px; background:#3a1e1e; border:1px solid #6e2d2d; border-radius:3px; color:#f87171; cursor:pointer; font-weight:600;">5</button>
-                                    <button class="preset-btn" onclick="setPreset('sc-bracket-sl', 8, 'points')" style="padding:2px 6px; font-size:8.5px; background:#3a1e1e; border:1px solid #6e2d2d; border-radius:3px; color:#f87171; cursor:pointer; font-weight:600;">8</button>
                                     <button class="preset-btn" onclick="setPreset('sc-bracket-sl', 10, 'points')" style="padding:2px 6px; font-size:8.5px; background:#3a1e1e; border:1px solid #6e2d2d; border-radius:3px; color:#f87171; cursor:pointer; font-weight:600;">10</button>
+                                    <button class="preset-btn" onclick="setPreset('sc-bracket-sl', 20, 'points')" style="padding:2px 6px; font-size:8.5px; background:#3a1e1e; border:1px solid #6e2d2d; border-radius:3px; color:#f87171; cursor:pointer; font-weight:600;">20</button>
                                 </div>
                             </div>
                         </div>
@@ -3858,19 +3863,30 @@ HTML_MANUAL_DASHBOARD = """
                     </div>
                 </div>
 
-                <!-- Pad 2: Standard & GTT Pad -->
-                <div id="pad-standard" style="display:none; flex-direction:column; gap:12px; overflow-y:auto; max-height:480px; padding-right:2px;">
-                    <!-- Order Mode Toggle (Standard vs GTT) -->
-                    <div style="display:flex; border: 1px solid var(--border-glow); border-radius: 6px; padding: 2px;">
-                        <button id="mode-std" class="product-toggle-btn active" onclick="setOrderMode('STANDARD')">Standard Mode</button>
-                        <button id="mode-gtt" class="product-toggle-btn" onclick="setOrderMode('GTT')">GTT Trigger Mode</button>
+                <!-- Pad 2: Standard Order Pad -->
+                <div id="pad-standard" style="display:none; flex-direction:column; gap:14px; overflow-y:auto; max-height:480px; padding-right:2px;">
+
+                    <!-- Order Type: Market / Limit -->
+                    <div>
+                        <label style="font-size:10px; color:var(--text-mute); display:block; margin-bottom:5px; text-transform:uppercase; font-weight:600;">Order Type</label>
+                        <div style="display:flex; border: 1px solid var(--border-glow); border-radius: 6px; padding: 2px;">
+                            <button id="otype-market-btn" class="product-toggle-btn active" onclick="setOrderType('MARKET')">Market</button>
+                            <button id="otype-limit-btn" class="product-toggle-btn" onclick="setOrderType('LIMIT')">Limit Price</button>
+                        </div>
                     </div>
 
+                    <!-- Limit Price Row (hidden by default) -->
+                    <div id="limit-price-row" style="display:none; flex-direction:column; gap:4px;">
+                        <label style="font-size:10px; color:var(--text-mute); text-transform:uppercase; font-weight:600;">Limit Price (buy at this price or below)</label>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="color:var(--text-mute); font-size:12px;">₹</span>
+                            <input type="number" id="std-limit-price" value="0.00" step="0.05" style="flex:1; background:var(--bg-card); border:1px solid var(--border-glow); border-radius:5px; color:#fff; padding:6px 10px; font-size:13px; font-family:var(--font-family-mono); font-weight:700;" placeholder="Enter limit price">
+                            <button onclick="document.getElementById('std-limit-price').value = spotPrice.toFixed(2)" style="padding:5px 8px; font-size:9px; background:#2a263a; border:1px solid #443e5c; border-radius:4px; color:var(--text-mute); cursor:pointer; white-space:nowrap;">Use LTP</button>
+                        </div>
+                    </div>
 
-
-                    <!-- 3. Split Row: Quantity & Transaction Side -->
+                    <!-- Quantity & Side -->
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; align-items: end;">
-                        <!-- Left: Quantity Stepper -->
                         <div>
                             <label style="font-size:10px; color:var(--text-mute); display:block; margin-bottom:4px; text-transform:uppercase; font-weight:600;">Quantity</label>
                             <div class="stepper-container">
@@ -3882,8 +3898,6 @@ HTML_MANUAL_DASHBOARD = """
                                 <button class="stepper-btn" onclick="adjustQty(1)">+</button>
                             </div>
                         </div>
-
-                        <!-- Right: Transaction Side Toggle -->
                         <div>
                             <label style="font-size:10px; color:var(--text-mute); display:block; margin-bottom:4px; text-transform:uppercase; font-weight:600;">Action</label>
                             <div style="display:flex; border: 1px solid var(--border-glow); border-radius:6px; padding:2px; height: 32px; box-sizing: border-box;">
@@ -3893,24 +3907,8 @@ HTML_MANUAL_DASHBOARD = """
                         </div>
                     </div>
 
-                    <!-- 4. Condition & Trigger Stacked Body -->
+                    <!-- SL & Target Inputs -->
                     <div style="display:flex; flex-direction:column; gap:12px; border-top:1px solid var(--border-glow); padding-top:12px;">
-                        
-                        <!-- Entry Trigger Row -->
-                        <div id="gtt-entry-row" style="display:none;">
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <select id="gtt-trigger-dir" onchange="syncLinkedPair('entry', 'pct')" style="background:transparent; border:none; color:var(--text-mute); font-size:11px; padding:0; cursor:pointer; width:auto; font-weight:600; text-transform:uppercase; outline:none;">
-                                    <option value="below">Place order If price is below</option>
-                                    <option value="above">Place order If price is above</option>
-                                </select>
-                            </div>
-                            <div class="linked-pair-row">
-                                <input type="number" id="gtt-trigger-price" class="linked-pair-input" value="186.85" step="0.05" oninput="syncLinkedPair('entry', 'abs')">
-                                <span class="linked-indicator">↔</span>
-                                <input type="number" id="gtt-trigger-pct" class="linked-pair-input" value="0.25" step="0.01" placeholder="%" oninput="syncLinkedPair('entry', 'pct')">
-                            </div>
-                        </div>
-
                         <!-- Stop-Loss Leg -->
                         <div>
                             <label style="display:flex; align-items:center; gap:6px; font-size:11px; color:#fff; cursor:pointer; font-weight:600; text-transform:uppercase;">
@@ -3922,9 +3920,7 @@ HTML_MANUAL_DASHBOARD = """
                                 <span class="linked-indicator">↔</span>
                                 <input type="number" id="gtt-sl-pct" class="linked-pair-input" value="5.55" step="0.01" placeholder="%" oninput="syncLinkedPair('sl', 'pct')">
                             </div>
-
                         </div>
-
                         <!-- Target Leg -->
                         <div>
                             <label style="display:flex; align-items:center; gap:6px; font-size:11px; color:#fff; cursor:pointer; font-weight:600; text-transform:uppercase;">
@@ -3939,8 +3935,11 @@ HTML_MANUAL_DASHBOARD = """
                         </div>
                     </div>
 
-                    <!-- 5. Submit Action Button -->
-                    <button id="main-exec-btn" class="action-btn" onclick="submitMainOrder()" style="width:100%; margin-top:8px; padding:10px; font-size:12px; background:var(--accent-purple); color:#fff; border-radius:6px; font-weight:700; cursor:pointer;">Execute Standard Order</button>
+                    <!-- Execute Button -->
+                    <button id="main-exec-btn" onclick="submitMainOrder()" style="width:100%; margin-top:4px; padding:13px; font-size:14px; letter-spacing:0.5px; background:linear-gradient(135deg, #7c3aed, #6d28d9); color:#fff; border:none; border-radius:8px; font-weight:800; cursor:pointer; box-shadow:0 0 18px rgba(124,58,237,0.45); transition:all 0.15s ease;"
+                        onmouseover="this.style.boxShadow='0 0 28px rgba(124,58,237,0.7)'; this.style.transform='translateY(-1px)';"
+                        onmouseout="this.style.boxShadow='0 0 18px rgba(124,58,237,0.45)'; this.style.transform='translateY(0)';"
+                    >⚡ EXECUTE ORDER</button>
                 </div>
 
             </div>
@@ -4024,30 +4023,16 @@ HTML_MANUAL_DASHBOARD = """
 
         let selectedQty = 65;
         let selectedSide = 'BUY';
-        let selectedOrderMode = 'STANDARD';
+        let selectedOrderMode = 'STANDARD';  // kept for compatibility
+        let selectedOrderType = 'MARKET';    // 'MARKET' or 'LIMIT'
         let hasInitializedDefaults = false;
 
-        function setOrderMode(mode) {
-            selectedOrderMode = mode;
-            document.getElementById("mode-std").classList.toggle("active", mode === 'STANDARD');
-            document.getElementById("mode-gtt").classList.toggle("active", mode === 'GTT');
-            
-            document.getElementById("gtt-entry-row").style.display = (mode === 'GTT') ? 'block' : 'none';
-            
-            const submitBtn = document.getElementById("main-exec-btn");
-            if (mode === 'GTT') {
-                submitBtn.innerText = "Deploy GTT Trigger";
-                submitBtn.style.background = "var(--accent-amber)";
-                submitBtn.style.color = "#16141f";
-            } else {
-                submitBtn.innerText = "Execute Standard Order";
-                submitBtn.style.background = "var(--accent-purple)";
-                submitBtn.style.color = "#fff";
-            }
-            
-            // Recalculate SL/Target relative to the mode's correct ref price
-            recalcBracketValues();
-            if (typeof saveLocalSettings === 'function') saveLocalSettings();
+        function setOrderType(type) {
+            selectedOrderType = type;
+            document.getElementById('otype-market-btn').classList.toggle('active', type === 'MARKET');
+            document.getElementById('otype-limit-btn').classList.toggle('active', type === 'LIMIT');
+            const row = document.getElementById('limit-price-row');
+            row.style.display = (type === 'LIMIT') ? 'flex' : 'none';
         }
 
         function adjustQty(val) {
@@ -4080,37 +4065,12 @@ HTML_MANUAL_DASHBOARD = """
         }
 
         function getEntryRefPrice() {
-            if (selectedOrderMode === 'GTT') {
-                return parseFloat(document.getElementById("gtt-trigger-price").value) || spotPrice;
-            } else {
-                return spotPrice;
-            }
+            return spotPrice;
         }
 
         function syncLinkedPair(field, source) {
             const ref = getEntryRefPrice();
-            if (field === 'entry') {
-                if (source === 'abs') {
-                    const val = parseFloat(document.getElementById("gtt-trigger-price").value) || 0;
-                    let pct = 0;
-                    if (spotPrice > 0) {
-                        pct = Math.abs(val - spotPrice) / spotPrice * 100;
-                    }
-                    document.getElementById("gtt-trigger-pct").value = pct.toFixed(2);
-                } else {
-                    const pctVal = parseFloat(document.getElementById("gtt-trigger-pct").value) || 0;
-                    const dir = document.getElementById("gtt-trigger-dir").value;
-                    let val = spotPrice;
-                    if (dir === 'below') {
-                        val = spotPrice * (1.0 - pctVal / 100.0);
-                    } else {
-                        val = spotPrice * (1.0 + pctVal / 100.0);
-                    }
-                    document.getElementById("gtt-trigger-price").value = val.toFixed(2);
-                }
-                // When trigger price changes, SL/Target reference point changes
-                recalcBracketValues();
-            } else if (field === 'sl') {
+            if (field === 'sl') {
                 if (source === 'abs') {
                     const val = parseFloat(document.getElementById("gtt-sl").value) || 0;
                     let pct = 0;
@@ -4157,9 +4117,6 @@ HTML_MANUAL_DASHBOARD = """
         function initDefaultOrderPadValues() {
             if (spotPrice <= 0) return;
             
-            document.getElementById("gtt-trigger-price").value = spotPrice.toFixed(2);
-            document.getElementById("gtt-trigger-pct").value = "0.00";
-            
             // Stop loss
             document.getElementById("gtt-sl-pct").value = "5.55";
             let slVal = spotPrice * (1.0 - 0.0555);
@@ -4175,88 +4132,59 @@ HTML_MANUAL_DASHBOARD = """
 
         function submitMainOrder() {
             if (!isRunning) {
-                alert("Option stream is not connected.");
+                logConsole('[ERROR] Option stream is not connected.');
                 return;
             }
 
-            if (selectedOrderMode === 'GTT') {
-                const triggerPrice = parseFloat(document.getElementById("gtt-trigger-price").value) || 0;
-                if (triggerPrice <= 0) {
-                    alert("Please provide a valid trigger price.");
+            const side = selectedSide;
+            const qty = selectedQty;
+
+            // Limit order check — only buy at limitPrice or below
+            if (selectedOrderType === 'LIMIT' && side === 'BUY') {
+                const limitPrice = parseFloat(document.getElementById('std-limit-price').value) || 0;
+                if (limitPrice <= 0) {
+                    logConsole('[ERROR] Set a valid limit price before placing a limit order.');
                     return;
                 }
-                const side = selectedSide;
-                const qty = selectedQty;
-                const dir = document.getElementById("gtt-trigger-dir").value;
-                
-                const addTarget = document.getElementById("chk-add-target").checked;
-                const target = addTarget ? parseFloat(document.getElementById("gtt-target-pct").value) || 0.0 : 0.0;
-                
-                const addSl = document.getElementById("chk-add-sl").checked;
-                const stopLoss = addSl ? parseFloat(document.getElementById("gtt-sl-pct").value) || 0.0 : 0.0;
-                
-                const payload = {
-                    trigger_price: triggerPrice,
-                    direction: dir,
-                    side: side,
-                    qty: qty,
-                    order_type: 'MARKET',
-                    target: target,
-                    target_type: 'percent',
-                    stop_loss: stopLoss,
-                    stop_loss_type: 'percent',
-                    trailing_gap: 0.0
-                };
-
-                fetch('/manual/gtt/create', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.error) {
-                        alert(data.error);
-                    } else {
-                        logConsole(`[GTT] Registered trigger for ${side} at ₹${triggerPrice.toFixed(2)}`);
-                        switchLowerTab('gtt-registry');
-                    }
-                });
-            } else {
-                const side = selectedSide;
-                const qty = selectedQty;
-                
-                const addTarget = document.getElementById("chk-add-target").checked;
-                const target = addTarget ? parseFloat(document.getElementById("gtt-target-pct").value) || 0.0 : 0.0;
-                
-                const addSl = document.getElementById("chk-add-sl").checked;
-                const stopLoss = addSl ? parseFloat(document.getElementById("gtt-sl-pct").value) || 0.0 : 0.0;
-                
-                const endpoint = (side === 'BUY') ? '/manual/buy' : '/manual/sell';
-                const payload = {
-                    qty: qty,
-                    target: target,
-                    target_type: 'percent',
-                    stop_loss: stopLoss,
-                    stop_loss_type: 'percent',
-                    trailing_gap: 0.0,
-                    is_scalper: false
-                };
-
-                fetch(endpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.error) {
-                        logConsole("[ERROR] " + data.error);
-                    } else {
-                        logConsole(`[TRADE] Filled ${side} ${qty} Lots of ${data.status.trading_symbol} at Market.`);
-                    }
-                });
+                if (spotPrice > limitPrice) {
+                    logConsole(`[LIMIT] Waiting — LTP ₹${spotPrice.toFixed(2)} is above limit ₹${limitPrice.toFixed(2)}. Order not placed.`);
+                    return;
+                }
             }
+
+            const addTarget = document.getElementById('chk-add-target').checked;
+            const target = addTarget ? parseFloat(document.getElementById('gtt-target-pct').value) || 0.0 : 0.0;
+
+            const addSl = document.getElementById('chk-add-sl').checked;
+            const stopLoss = addSl ? parseFloat(document.getElementById('gtt-sl-pct').value) || 0.0 : 0.0;
+
+            const endpoint = (side === 'BUY') ? '/manual/buy' : '/manual/sell';
+            const payload = {
+                qty: qty,
+                target: target,
+                target_type: 'percent',
+                stop_loss: stopLoss,
+                stop_loss_type: 'percent',
+                trailing_gap: 0.0,
+                is_scalper: false,
+                order_type: selectedOrderType
+            };
+
+            fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) {
+                    logConsole('[ERROR] ' + data.error);
+                } else {
+                    const typeLabel = selectedOrderType === 'LIMIT' ? 'Limit' : 'Market';
+                    logConsole(`[TRADE] ${typeLabel} ${side} ${qty} Lots — ${data.message}`);
+                }
+            })
+            .catch(err => logConsole('[ERROR] Network error: ' + err));
         }
 
         function togglePanelHeight() {
@@ -5795,22 +5723,7 @@ HTML_MANUAL_DASHBOARD = """
                         document.getElementById("live-trading-toggle-row").style.display = "flex";
                     }
                 }
-                if (settings.selectedOrderMode) {
-                    selectedOrderMode = settings.selectedOrderMode;
-                    document.getElementById("mode-std").classList.toggle("active", selectedOrderMode === 'STANDARD');
-                    document.getElementById("mode-gtt").classList.toggle("active", selectedOrderMode === 'GTT');
-                    document.getElementById("gtt-entry-row").style.display = (selectedOrderMode === 'GTT') ? 'block' : 'none';
-                    const submitBtn = document.getElementById("main-exec-btn");
-                    if (selectedOrderMode === 'GTT') {
-                        submitBtn.innerText = "Deploy GTT Trigger";
-                        submitBtn.style.background = "var(--accent-amber)";
-                        submitBtn.style.color = "#16141f";
-                    } else {
-                        submitBtn.innerText = "Execute Standard Order";
-                        submitBtn.style.background = "var(--accent-purple)";
-                        submitBtn.style.color = "#fff";
-                    }
-                }
+                // selectedOrderMode (GTT removed — skip GTT-specific DOM ops)
                 if (settings.activePad) {
                     activePad = settings.activePad;
                     document.getElementById('pad-std-btn').classList.remove('active');
@@ -5939,7 +5852,9 @@ def manual_buy():
         action = "scaled in" if pos else "opened"
         return jsonify({"message": f"BUY order executed ({action}). Avg: ₹{avg_entry:.2f} | Qty: {current_feed.account.qty}", "status": SYSTEM_STATUS})
     else:
-        return jsonify({"error": "Manual BUY order failed (Check funds or no active stream)."}), 400
+        reason = getattr(current_feed.account, 'buy_reject_reason', '') or 'Unknown failure'
+        log_event(f"Manual BUY rejected: {reason} | instrument={instrument_key} | price={price} | qty={qty}*{lot_mult}={qty*lot_mult} | balance=\u20b9{SYSTEM_STATUS.get('balance',0):.2f}", "ERROR")
+        return jsonify({"error": f"BUY rejected: {reason}"}), 400
 
 @app.route('/manual/sell', methods=['POST'])
 def manual_sell():
@@ -6279,30 +6194,34 @@ def set_chart_config():
 
 LAST_NIFTY_SPOT_TIME = 0.0
 CACHED_NIFTY_SPOT = 0.0
+SESSION_START_TIME = 0.0  # stamped when stream enters LIVE_MONITORING
 
 @app.route('/telemetry')
 def get_telemetry():
-    global LAST_NIFTY_SPOT_TIME, CACHED_NIFTY_SPOT, current_feed, active_thread
+    global LAST_NIFTY_SPOT_TIME, CACHED_NIFTY_SPOT, current_feed, active_thread, SESSION_START_TIME
     
     # Active connection state validation
     if SYSTEM_STATUS.get("state") in ["LIVE_MONITORING", "PROCESSING"]:
-        is_alive = False
-        if current_feed and active_thread and active_thread.is_alive():
-            if SYSTEM_STATUS.get("state") == "PROCESSING":
-                is_alive = True
-            elif current_feed.ws and not getattr(current_feed.ws, 'closed', False):
-                is_alive = True
-                
-        if not is_alive:
-            log_event("Connection check: option stream feed is not active. Resetting state to IDLE.", "SYSTEM")
-            if current_feed:
-                try:
-                    current_feed.stop()
-                except Exception:
-                    pass
-                current_feed = None
-            SYSTEM_STATUS["state"] = "IDLE"
-            SYSTEM_STATUS["position"] = None
+        # Give the WS 8 seconds to fully handshake before running health check
+        elapsed_since_start = time.time() - SESSION_START_TIME
+        if elapsed_since_start > 8.0:
+            is_alive = False
+            if current_feed and active_thread and active_thread.is_alive():
+                if SYSTEM_STATUS.get("state") == "PROCESSING":
+                    is_alive = True
+                elif current_feed.ws and not getattr(current_feed.ws, 'closed', False):
+                    is_alive = True
+                    
+            if not is_alive:
+                log_event("Connection check: option stream feed is not active. Resetting state to IDLE.", "SYSTEM")
+                if current_feed:
+                    try:
+                        current_feed.stop()
+                    except Exception:
+                        pass
+                    current_feed = None
+                SYSTEM_STATUS["state"] = "IDLE"
+                SYSTEM_STATUS["position"] = None
             
     update_telemetry_metrics()
     now = time.time()
