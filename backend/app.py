@@ -134,11 +134,12 @@ async def broadcast_telemetry():
     
     update_telemetry_metrics()
     payload = {
-        "status": SYSTEM_STATUS,
-        "trades": TRADE_LOGS,
-        "logs": EVENT_LOGS[-100:],  # Limit logs size in websocket transmission
-        "candles": HEIKIN_ASHI_CANDLES[-300:],
-        "gtt_orders": GTT_ORDERS
+      "status": SYSTEM_STATUS,
+      "trades": TRADE_LOGS,
+      "logs": EVENT_LOGS[-100:],  # Limit logs size in websocket transmission
+      "candles": HEIKIN_ASHI_CANDLES[-300:],
+      "gtt_orders": GTT_ORDERS,
+      "equity_curve": EQUITY_CURVE
     }
     
     dead_connections = []
@@ -1604,7 +1605,8 @@ def get_telemetry():
         "trades": TRADE_LOGS,
         "logs": EVENT_LOGS,
         "candles": HEIKIN_ASHI_CANDLES,
-        "gtt_orders": GTT_ORDERS
+        "gtt_orders": GTT_ORDERS,
+        "equity_curve": EQUITY_CURVE
     }
 
 class BuyOrderModel(BaseModel):

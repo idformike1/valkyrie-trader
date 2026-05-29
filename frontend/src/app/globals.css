@@ -1,4 +1,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-bg-deep: var(--bg-deep);
+  --color-bg-card: var(--bg-card);
+  --color-bg-card-hover: var(--bg-card-hover);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-glow: var(--border-glow);
+  --color-cyan-neon: var(--cyan-neon);
+  --color-teal-neon: var(--teal-neon);
+  --color-gold-accent: var(--gold-accent);
+  --color-green-neon: var(--green-neon);
+  --color-red-neon: var(--red-neon);
+  --color-text-main: var(--text-main);
+  --color-text-mute: var(--text-mute);
+  --color-text-dark: var(--text-dark);
+}
 
 :root {
   --bg-deep: #05070f;

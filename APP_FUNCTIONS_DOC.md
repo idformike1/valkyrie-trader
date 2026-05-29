@@ -15,7 +15,34 @@
 - [frontend/next-env.d.ts](#frontendnext-envdts)
 - [frontend/next.config.ts](#frontendnextconfigts)
 - [frontend/src/app/layout.tsx](#frontendsrcapplayouttsx)
+- [frontend/src/app/page.bak.tsx](#frontendsrcapppagebaktsx)
 - [frontend/src/app/page.tsx](#frontendsrcapppagetsx)
+- [frontend/src/components/shell/CommandPalette.tsx](#frontendsrccomponentsshellcommandpalettetsx)
+- [frontend/src/components/shell/EventBar.tsx](#frontendsrccomponentsshelleventbartsx)
+- [frontend/src/components/shell/Header.tsx](#frontendsrccomponentsshellheadertsx)
+- [frontend/src/components/shell/Sidebar.tsx](#frontendsrccomponentsshellsidebartsx)
+- [frontend/src/components/workspace/Panel.tsx](#frontendsrccomponentsworkspacepaneltsx)
+- [frontend/src/components/workspace/WorkspaceHost.tsx](#frontendsrccomponentsworkspaceworkspacehosttsx)
+- [frontend/src/services/tradingApi.ts](#frontendsrcservicestradingapits)
+- [frontend/src/services/tradingQueries.ts](#frontendsrcservicestradingqueriests)
+- [frontend/src/services/tradingTypes.ts](#frontendsrcservicestradingtypests)
+- [frontend/src/store/useCommandPaletteStore.ts](#frontendsrcstoreusecommandpalettestorets)
+- [frontend/src/store/useEventStore.ts](#frontendsrcstoreuseeventstorets)
+- [frontend/src/store/useLayoutStore.ts](#frontendsrcstoreuselayoutstorets)
+- [frontend/src/store/useSidebarStore.ts](#frontendsrcstoreusesidebarstorets)
+- [frontend/src/store/useSimulatedDataStore.ts](#frontendsrcstoreusesimulateddatastorets)
+- [frontend/src/store/useTerminalStore.ts](#frontendsrcstoreuseterminalstorets)
+- [frontend/src/store/useThemeStore.ts](#frontendsrcstoreusethemestorets)
+- [frontend/src/store/useWorkspaceStore.ts](#frontendsrcstoreuseworkspacestorets)
+- [frontend/src/workspaces/BacktestWorkspace.tsx](#frontendsrcworkspacesbacktestworkspacetsx)
+- [frontend/src/workspaces/DeploymentsWorkspace.tsx](#frontendsrcworkspacesdeploymentsworkspacetsx)
+- [frontend/src/workspaces/ManualTradingWorkspace.tsx](#frontendsrcworkspacesmanualtradingworkspacetsx)
+- [frontend/src/workspaces/OperationsWorkspace.tsx](#frontendsrcworkspacesoperationsworkspacetsx)
+- [frontend/src/workspaces/PaperWorkspace.tsx](#frontendsrcworkspacespaperworkspacetsx)
+- [frontend/src/workspaces/ScalperWorkspace.tsx](#frontendsrcworkspacesscalperworkspacetsx)
+- [frontend/src/workspaces/mockPanels.tsx](#frontendsrcworkspacesmockpanelstsx)
+- [frontend/src/workspaces/registry.ts](#frontendsrcworkspacesregistryts)
+- [frontend/src/workspaces/types.ts](#frontendsrcworkspacestypests)
 
 ---
 
@@ -565,7 +592,7 @@ No description provided.
 
 ---
 
-## frontend/src/app/page.tsx
+## frontend/src/app/page.bak.tsx
 *TypeScript/JavaScript Source Component*
 
 ### Functions & Endpoints
@@ -681,6 +708,1362 @@ Chart config trigger (Interval/Type change)
 No description provided.
 ```
 
+
+
+---
+
+## frontend/src/app/page.tsx
+*TypeScript/JavaScript Source Component*
+
+### Functions & Endpoints
+#### `ValkyrieCommandRoom` (React Component)
+- **Signature**: `export default function ValkyrieCommandRoom() `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `isCollapsed` (Function)
+- **Signature**: `const isCollapsed = useSidebarStore((state) => state.isCollapsed)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `addEvent` (Function)
+- **Signature**: `const addEvent = useEventStore((state) => state.addEvent)`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## frontend/src/components/shell/CommandPalette.tsx
+*TypeScript/JavaScript Source Component*
+
+### Functions & Endpoints
+#### `isOpen` (Function)
+- **Signature**: `const isOpen = useCommandPaletteStore((state) => state.isOpen)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `setOpen` (Function)
+- **Signature**: `const setOpen = useCommandPaletteStore((state) => state.setOpen)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `setWorkspace` (Function)
+- **Signature**: `const setWorkspace = useTerminalStore((state) => state.setWorkspace)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `toggleSidebar` (Function)
+- **Signature**: `const toggleSidebar = useSidebarStore((state) => state.toggleCollapsed)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `resetLayout` (Function)
+- **Signature**: `const resetLayout = useLayoutStore((state) => state.resetLayout)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `addEvent` (Function)
+- **Signature**: `const addEvent = useEventStore((state) => state.addEvent)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `filteredCommands` (Function)
+- **Signature**: `const filteredCommands = commands.filter((cmd) =>`
+- **Description**:
+```text
+Filter commands
+```
+
+#### `handleKeyDown` (Function)
+- **Signature**: `const handleKeyDown = (e: KeyboardEvent) => `
+- **Description**:
+```text
+Handle keyboard events (Ctrl+K globally, and arrows inside palette)
+```
+
+#### `executeCommand` (Function)
+- **Signature**: `const executeCommand = (cmd: CommandItem) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `itemsInCat` (Function)
+- **Signature**: `const itemsInCat = filteredCommands.filter((c) => c.category === cat)`
+- **Description**:
+```text
+Group commands by category
+```
+
+
+
+---
+
+## frontend/src/components/shell/EventBar.tsx
+*TypeScript/JavaScript Source Component*
+
+### Functions & Endpoints
+#### `events` (Function)
+- **Signature**: `const events = useEventStore((state) => state.events)`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## frontend/src/components/shell/Header.tsx
+*TypeScript/JavaScript Source Component*
+
+### Functions & Endpoints
+#### `selectedWorkspace` (Function)
+- **Signature**: `const selectedWorkspace = useTerminalStore((state) => state.selectedWorkspace)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `currentAccount` (Function)
+- **Signature**: `const currentAccount = useTerminalStore((state) => state.currentAccount)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `setAccount` (Function)
+- **Signature**: `const setAccount = useTerminalStore((state) => state.setAccount)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `toggleCommandPalette` (Function)
+- **Signature**: `const toggleCommandPalette = useCommandPaletteStore((state) => state.toggleOpen)`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## frontend/src/components/shell/Sidebar.tsx
+*TypeScript/JavaScript Source Component*
+
+### Functions & Endpoints
+#### `selectedWorkspace` (Function)
+- **Signature**: `const selectedWorkspace = useTerminalStore((state) => state.selectedWorkspace)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `setWorkspace` (Function)
+- **Signature**: `const setWorkspace = useTerminalStore((state) => state.setWorkspace)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `isCollapsed` (Function)
+- **Signature**: `const isCollapsed = useSidebarStore((state) => state.isCollapsed)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `toggleCollapsed` (Function)
+- **Signature**: `const toggleCollapsed = useSidebarStore((state) => state.toggleCollapsed)`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## frontend/src/components/workspace/Panel.tsx
+*TypeScript/JavaScript Source Component*
+
+
+---
+
+## frontend/src/components/workspace/WorkspaceHost.tsx
+*TypeScript/JavaScript Source Component*
+
+### Functions & Endpoints
+#### `activeWorkspaceId` (Function)
+- **Signature**: `const activeWorkspaceId = useTerminalStore((state) => state.selectedWorkspace)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `layout` (Function)
+- **Signature**: `const layout = useLayoutStore((state) => state.layouts[activeWorkspaceId]) || `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `updateSize` (Function)
+- **Signature**: `const updateSize = useLayoutStore((state) => state.updateSize)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `toggleCollapse` (Function)
+- **Signature**: `const toggleCollapse = useLayoutStore((state) => state.toggleCollapse)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleResize` (Function)
+- **Signature**: `const handleResize = (panel: "left" | "right" | "bottom") => (mouseDownEvent: React.MouseEvent) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleMouseMove` (Function)
+- **Signature**: `const handleMouseMove = (mouseMoveEvent: MouseEvent) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleMouseUp` (Function)
+- **Signature**: `const handleMouseUp = () => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `simulateInstrumentCycle` (Function)
+- **Signature**: `const simulateInstrumentCycle = () => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `currentIdx` (Function)
+- **Signature**: `const currentIdx = instruments.findIndex(i => i.symbol === context.selectedInstrument?.symbol)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `simulateStrategyCycle` (Function)
+- **Signature**: `const simulateStrategyCycle = () => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `currentIdx` (Function)
+- **Signature**: `const currentIdx = strategies.findIndex(s => s.strategyId === context.selectedStrategy?.strategyId)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `simulateTimeframeCycle` (Function)
+- **Signature**: `const simulateTimeframeCycle = () => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `simulateModeCycle` (Function)
+- **Signature**: `const simulateModeCycle = () => `
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## frontend/src/services/tradingApi.ts
+*TypeScript/JavaScript Source Component*
+
+### Functions & Endpoints
+#### `request` (Function)
+- **Signature**: `async function request<T>(path: string, options?: RequestInit): Promise<T> `
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## frontend/src/services/tradingQueries.ts
+*TypeScript/JavaScript Source Component*
+
+### Functions & Endpoints
+#### `useBackendTradingStore` (React Hook)
+- **Signature**: `export const useBackendTradingStore = create<TradingQueriesState>((set, get) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleMessage` (Function)
+- **Signature**: `const handleMessage = (event: MessageEvent) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `connect` (Function)
+- **Signature**: `const connect = () => `
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## frontend/src/services/tradingTypes.ts
+*TypeScript/JavaScript Source Component*
+
+
+---
+
+## frontend/src/store/useCommandPaletteStore.ts
+*TypeScript/JavaScript Source Component*
+
+### Functions & Endpoints
+#### `useCommandPaletteStore` (React Hook)
+- **Signature**: `export const useCommandPaletteStore = create<CommandPaletteState>((set) => (`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## frontend/src/store/useEventStore.ts
+*TypeScript/JavaScript Source Component*
+
+### Functions & Endpoints
+#### `useEventStore` (React Hook)
+- **Signature**: `export const useEventStore = create<EventState>((set) => (`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## frontend/src/store/useLayoutStore.ts
+*TypeScript/JavaScript Source Component*
+
+
+---
+
+## frontend/src/store/useSidebarStore.ts
+*TypeScript/JavaScript Source Component*
+
+
+---
+
+## frontend/src/store/useSimulatedDataStore.ts
+*TypeScript/JavaScript Source Component*
+
+### Functions & Endpoints
+#### `useSimulatedDataStore` (React Hook)
+- **Signature**: `export const useSimulatedDataStore = create<SimulatedDataState>((set, get) => (`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `existingPosIdx` (Function)
+- **Signature**: `const existingPosIdx = updatedPositions.findIndex((p) => p.symbol === symbol)`
+- **Description**:
+```text
+Update positions
+```
+
+#### `pos` (Function)
+- **Signature**: `const pos = get().positions.find((p) => p.symbol === symbol)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `updatedPositions` (Function)
+- **Signature**: `const updatedPositions = state.positions.map((pos) => `
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## frontend/src/store/useTerminalStore.ts
+*TypeScript/JavaScript Source Component*
+
+
+---
+
+## frontend/src/store/useThemeStore.ts
+*TypeScript/JavaScript Source Component*
+
+### Functions & Endpoints
+#### `useThemeStore` (React Hook)
+- **Signature**: `export const useThemeStore = create<ThemeState>(() => (`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## frontend/src/store/useWorkspaceStore.ts
+*TypeScript/JavaScript Source Component*
+
+
+---
+
+## frontend/src/workspaces/BacktestWorkspace.tsx
+*TypeScript/JavaScript Source Component*
+
+### Functions & Endpoints
+#### `getBackendStrategyName` (Function)
+- **Signature**: `const getBackendStrategyName = (strategyId: string): string => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `fetchExpiry` (Function)
+- **Signature**: `const fetchExpiry = async (indexName: string): Promise<string> => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `selectedStrategy` (Function)
+- **Signature**: `const selectedStrategy = useTerminalStore((state) => state.selectedStrategy)`
+- **Description**:
+```text
+==========================================
+1. LEFT PANEL: STRATEGY REPOSITORY
+==========================================
+```
+
+#### `setStrategy` (Function)
+- **Signature**: `const setStrategy = useTerminalStore((state) => state.setStrategy)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleSelect` (Function)
+- **Signature**: `const handleSelect = (item: StrategyRepoItem) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `filtered` (Function)
+- **Signature**: `const filtered = AVAILABLE_STRATEGIES.filter((str) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `selectedStrategy` (Function)
+- **Signature**: `const selectedStrategy = useTerminalStore((state) => state.selectedStrategy)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `selectedInstrument` (Function)
+- **Signature**: `const selectedInstrument = useTerminalStore((state) => state.selectedInstrument)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `addEvent` (Function)
+- **Signature**: `const addEvent = useEventStore((state) => state.addEvent)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `startBacktest` (Function)
+- **Signature**: `const startBacktest = useBackendTradingStore((state) => state.startBacktest)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `connectTelemetry` (Function)
+- **Signature**: `const connectTelemetry = useBackendTradingStore((state) => state.connectTelemetry)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `disconnectTelemetry` (Function)
+- **Signature**: `const disconnectTelemetry = useBackendTradingStore((state) => state.disconnectTelemetry)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `candles` (Function)
+- **Signature**: `const candles = useBackendTradingStore((state) => state.candles)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `trades` (Function)
+- **Signature**: `const trades = useBackendTradingStore((state) => state.trades)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `priceData` (Function)
+- **Signature**: `const priceData = candles.map((c) => (`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `markers` (Function)
+- **Signature**: `const markers = trades.map((t) => `
+- **Description**:
+```text
+Render actual execution trade markers
+```
+
+#### `observer` (Function)
+- **Signature**: `const observer = new ResizeObserver((entries) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleRunBacktest` (Function)
+- **Signature**: `const handleRunBacktest = async () => `
+- **Description**:
+```text
+Run real backtesting engine on backend
+```
+
+#### `interval` (Function)
+- **Signature**: `const interval = setInterval(() => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `selectedStrategy` (Function)
+- **Signature**: `const selectedStrategy = useTerminalStore((state) => state.selectedStrategy)`
+- **Description**:
+```text
+==========================================
+3. RIGHT PANEL: STRATEGY PARAMETERS
+==========================================
+```
+
+#### `item` (Function)
+- **Signature**: `const item = AVAILABLE_STRATEGIES.find((s) => s.id === selectedStrategy.strategyId)`
+- **Description**:
+```text
+Sync parameter presets when active strategy swaps
+```
+
+#### `handleParamChange` (Function)
+- **Signature**: `const handleParamChange = (key: string, val: number) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `item` (Function)
+- **Signature**: `const item = AVAILABLE_STRATEGIES.find((s) => s.id === selectedStrategy?.strategyId)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `status` (Function)
+- **Signature**: `const status = useBackendTradingStore((state) => state.status)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `trades` (Function)
+- **Signature**: `const trades = useBackendTradingStore((state) => state.trades)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `logs` (Function)
+- **Signature**: `const logs = useBackendTradingStore((state) => state.logs)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `equityCurve` (Function)
+- **Signature**: `const equityCurve = useBackendTradingStore((state) => state.equityCurve)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `points` (Function)
+- **Signature**: `const points = equityCurve.map((pt) => (`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `points` (Function)
+- **Signature**: `const points = equityCurve.map((pt) => `
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## frontend/src/workspaces/DeploymentsWorkspace.tsx
+*TypeScript/JavaScript Source Component*
+
+### Functions & Endpoints
+#### `selectedStrategy` (Function)
+- **Signature**: `const selectedStrategy = useTerminalStore((state) => state.selectedStrategy)`
+- **Description**:
+```text
+==========================================
+1. LEFT PANEL: LIVE DEPLOYMENTS
+==========================================
+```
+
+#### `setStrategy` (Function)
+- **Signature**: `const setStrategy = useTerminalStore((state) => state.setStrategy)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleSelect` (Function)
+- **Signature**: `const handleSelect = (item: DeploymentClusterItem) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `filtered` (Function)
+- **Signature**: `const filtered = INITIAL_CLUSTERS.filter((c) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `selectedStrategy` (Function)
+- **Signature**: `const selectedStrategy = useTerminalStore((state) => state.selectedStrategy)`
+- **Description**:
+```text
+==========================================
+2. MAIN PANEL: DEPLOYMENT GRID & COMMAND BAR
+==========================================
+```
+
+#### `setMode` (Function)
+- **Signature**: `const setMode = useTerminalStore((state) => state.setMode)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `addEvent` (Function)
+- **Signature**: `const addEvent = useEventStore((state) => state.addEvent)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleAction` (Function)
+- **Signature**: `const handleAction = (action: string) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `selectedStrategy` (Function)
+- **Signature**: `const selectedStrategy = useTerminalStore((state) => state.selectedStrategy)`
+- **Description**:
+```text
+==========================================
+3. RIGHT PANEL: DEPLOYMENT HEALTH
+==========================================
+```
+
+
+
+---
+
+## frontend/src/workspaces/ManualTradingWorkspace.tsx
+*TypeScript/JavaScript Source Component*
+
+### Functions & Endpoints
+#### `currentInstrument` (Function)
+- **Signature**: `const currentInstrument = useTerminalStore((state) => state.selectedInstrument)`
+- **Description**:
+```text
+==========================================
+1. LEFT PANEL: WATCHLIST
+==========================================
+```
+
+#### `setInstrument` (Function)
+- **Signature**: `const setInstrument = useTerminalStore((state) => state.setInstrument)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `status` (Function)
+- **Signature**: `const status = useBackendTradingStore((state) => state.status)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `connectionStatus` (Function)
+- **Signature**: `const connectionStatus = useBackendTradingStore((state) => state.connectionStatus)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `connectTelemetry` (Function)
+- **Signature**: `const connectTelemetry = useBackendTradingStore((state) => state.connectTelemetry)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `togglePin` (Function)
+- **Signature**: `const togglePin = (sym: string, e: React.MouseEvent) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `filtered` (Function)
+- **Signature**: `const filtered = AVAILABLE_INSTRUMENTS.filter((ins) =>`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `selectedInstrument` (Function)
+- **Signature**: `const selectedInstrument = useTerminalStore((state) => state.selectedInstrument)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `selectedTimeframe` (Function)
+- **Signature**: `const selectedTimeframe = useTerminalStore((state) => state.selectedTimeframe)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `setInstrument` (Function)
+- **Signature**: `const setInstrument = useTerminalStore((state) => state.setInstrument)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `setTimeframe` (Function)
+- **Signature**: `const setTimeframe = useTerminalStore((state) => state.setTimeframe)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `generateInitialData` (Function)
+- **Signature**: `const generateInitialData = (symbol: string) => `
+- **Description**:
+```text
+Generate realistic candles based on selected symbol
+```
+
+#### `observer` (Function)
+- **Signature**: `const observer = new ResizeObserver((entries) => `
+- **Description**:
+```text
+Handle resizing dynamically using ResizeObserver
+```
+
+#### `candles` (Function)
+- **Signature**: `const candles = useBackendTradingStore((state) => state.candles)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `status` (Function)
+- **Signature**: `const status = useBackendTradingStore((state) => state.status)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `connectTelemetry` (Function)
+- **Signature**: `const connectTelemetry = useBackendTradingStore((state) => state.connectTelemetry)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `formattedCandles` (Function)
+- **Signature**: `const formattedCandles = candles.map((c) => (`
+- **Description**:
+```text
+Convert BackendCandle to the format expected by lightweight-charts (with a 'time' property)
+```
+
+#### `volumeData` (Function)
+- **Signature**: `const volumeData = formattedCandles.map((c) => (`
+- **Description**:
+```text
+Populate volume series matched to candles
+```
+
+#### `toggleIndicator` (Function)
+- **Signature**: `const toggleIndicator = (ind: string) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `matched` (Function)
+- **Signature**: `const matched = AVAILABLE_INSTRUMENTS.find((i) => i.symbol === e.target.value)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `currentInstrument` (Function)
+- **Signature**: `const currentInstrument = useTerminalStore((state) => state.selectedInstrument)`
+- **Description**:
+```text
+==========================================
+3. RIGHT PANEL: ORDER ENTRY & POSITIONS SUMMARY
+==========================================
+```
+
+#### `activeMode` (Function)
+- **Signature**: `const activeMode = useTerminalStore((state) => state.activeMode)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `currentAccount` (Function)
+- **Signature**: `const currentAccount = useTerminalStore((state) => state.currentAccount)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `addEvent` (Function)
+- **Signature**: `const addEvent = useEventStore((state) => state.addEvent)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `status` (Function)
+- **Signature**: `const status = useBackendTradingStore((state) => state.status)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `isLoading` (Function)
+- **Signature**: `const isLoading = useBackendTradingStore((state) => state.isLoading)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `actionError` (Function)
+- **Signature**: `const actionError = useBackendTradingStore((state) => state.actionError)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `successMessage` (Function)
+- **Signature**: `const successMessage = useBackendTradingStore((state) => state.successMessage)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `buyAction` (Function)
+- **Signature**: `const buyAction = useBackendTradingStore((state) => state.buy)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `sellAction` (Function)
+- **Signature**: `const sellAction = useBackendTradingStore((state) => state.sell)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `createGttAction` (Function)
+- **Signature**: `const createGttAction = useBackendTradingStore((state) => state.createGtt)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `clearMessages` (Function)
+- **Signature**: `const clearMessages = useBackendTradingStore((state) => state.clearMessages)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handlePlaceOrder` (Function)
+- **Signature**: `const handlePlaceOrder = async (overrideSide?: "BUY" | "SELL") => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `closePosition` (Function)
+- **Signature**: `const closePosition = async (sym?: string) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `status` (Function)
+- **Signature**: `const status = useBackendTradingStore((state) => state.status)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `tradesList` (Function)
+- **Signature**: `const tradesList = useBackendTradingStore((state) => state.trades)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `gttOrdersList` (Function)
+- **Signature**: `const gttOrdersList = useBackendTradingStore((state) => state.gttOrders)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `cancelGttAction` (Function)
+- **Signature**: `const cancelGttAction = useBackendTradingStore((state) => state.cancelGtt)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `sellAction` (Function)
+- **Signature**: `const sellAction = useBackendTradingStore((state) => state.sell)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `trades` (Function)
+- **Signature**: `const trades = tradesList.map((t) => (`
+- **Description**:
+```text
+Trades mapped from real trade logs
+```
+
+#### `orders` (Function)
+- **Signature**: `const orders = gttOrdersList.map((o) => (`
+- **Description**:
+```text
+GTT orders mapped to orders tab
+```
+
+#### `closePosition` (Function)
+- **Signature**: `const closePosition = async () => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `cancelOrder` (Function)
+- **Signature**: `const cancelOrder = async (id: string) => `
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## frontend/src/workspaces/OperationsWorkspace.tsx
+*TypeScript/JavaScript Source Component*
+
+### Functions & Endpoints
+#### `filteredLogs` (Function)
+- **Signature**: `const filteredLogs = logs.filter((log) => `
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## frontend/src/workspaces/PaperWorkspace.tsx
+*TypeScript/JavaScript Source Component*
+
+### Functions & Endpoints
+#### `selectedStrategy` (Function)
+- **Signature**: `const selectedStrategy = useTerminalStore((state) => state.selectedStrategy)`
+- **Description**:
+```text
+==========================================
+1. LEFT PANEL: DEPLOYMENT CENTER
+==========================================
+```
+
+#### `setStrategy` (Function)
+- **Signature**: `const setStrategy = useTerminalStore((state) => state.setStrategy)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleSelect` (Function)
+- **Signature**: `const handleSelect = (item: DeploymentItem) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `filtered` (Function)
+- **Signature**: `const filtered = INITIAL_DEPLOYMENTS.filter((dep) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `selectedStrategy` (Function)
+- **Signature**: `const selectedStrategy = useTerminalStore((state) => state.selectedStrategy)`
+- **Description**:
+```text
+==========================================
+2. MAIN PANEL: DEPLOYMENT DASHBOARD
+==========================================
+```
+
+#### `currentAccount` (Function)
+- **Signature**: `const currentAccount = useTerminalStore((state) => state.currentAccount)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `addEvent` (Function)
+- **Signature**: `const addEvent = useEventStore((state) => state.addEvent)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `match` (Function)
+- **Signature**: `const match = INITIAL_DEPLOYMENTS.find((d) => d.id === selectedStrategy.strategyId)`
+- **Description**:
+```text
+Sync details when active strategy swaps
+```
+
+#### `handleDeploy` (Function)
+- **Signature**: `const handleDeploy = () => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handlePause` (Function)
+- **Signature**: `const handlePause = () => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleStop` (Function)
+- **Signature**: `const handleStop = () => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `selectedStrategy` (Function)
+- **Signature**: `const selectedStrategy = useTerminalStore((state) => state.selectedStrategy)`
+- **Description**:
+```text
+==========================================
+3. RIGHT PANEL: STRATEGY HEALTH
+==========================================
+```
+
+
+
+---
+
+## frontend/src/workspaces/ScalperWorkspace.tsx
+*TypeScript/JavaScript Source Component*
+
+### Functions & Endpoints
+#### `selectedInstrument` (Function)
+- **Signature**: `const selectedInstrument = useTerminalStore((state) => state.selectedInstrument)`
+- **Description**:
+```text
+==========================================
+1. MAIN PANEL: TICK / VOLUME CHART + EXECUTION PAD + HOTKEYS
+==========================================
+```
+
+#### `activeMode` (Function)
+- **Signature**: `const activeMode = useTerminalStore((state) => state.activeMode)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `setMode` (Function)
+- **Signature**: `const setMode = useTerminalStore((state) => state.setMode)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `addEvent` (Function)
+- **Signature**: `const addEvent = useEventStore((state) => state.addEvent)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `initialTicks` (Function)
+- **Signature**: `const initialTicks = Array.from({ length: 40 }, () => base + (Math.random() - 0.5) * 20)`
+- **Description**:
+```text
+Generate initial ticks
+```
+
+#### `interval` (Function)
+- **Signature**: `const interval = setInterval(() => `
+- **Description**:
+```text
+Live High-Frequency Tick Generator (every 350ms)
+```
+
+#### `handleMarketOrder` (Function)
+- **Signature**: `const handleMarketOrder = (orderSide: "BUY" | "SELL") => `
+- **Description**:
+```text
+Order Placement logic
+```
+
+#### `handleFlatten` (Function)
+- **Signature**: `const handleFlatten = () => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleCancel` (Function)
+- **Signature**: `const handleCancel = () => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleReverse` (Function)
+- **Signature**: `const handleReverse = () => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handlePosCloseEvent` (Function)
+- **Signature**: `const handlePosCloseEvent = () => `
+- **Description**:
+```text
+Sync local changes from bottom position monitor closures
+```
+
+#### `getSvgY` (Function)
+- **Signature**: `const getSvgY = (val: number) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `getSvgX` (Function)
+- **Signature**: `const getSvgX = (idx: number) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `polylinePoints` (Function)
+- **Signature**: `const polylinePoints = ticks.map((val, idx) => `${getSvgX(idx)},${getSvgY(val)}`).join(" ")`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleTickEvent` (Function)
+- **Signature**: `const handleTickEvent = (e: Event) => `
+- **Description**:
+```text
+Update DOM when ticks update
+```
+
+#### `askSum` (Function)
+- **Signature**: `const askSum = spreadLevels.reduce((acc, curr) => acc + (curr.ask || 0), 0)`
+- **Description**:
+```text
+Sum volumes
+```
+
+#### `bidSum` (Function)
+- **Signature**: `const bidSum = spreadLevels.reduce((acc, curr) => acc + (curr.bid || 0), 0)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `triggerPanicExit` (Function)
+- **Signature**: `const triggerPanicExit = () => `
+- **Description**:
+```text
+Panic Exit Trigger
+```
+
+#### `handlePosUpdate` (Function)
+- **Signature**: `const handlePosUpdate = (e: Event) => `
+- **Description**:
+```text
+Sync positions from chart updates
+```
+
+#### `handleClosePos` (Function)
+- **Signature**: `const handleClosePos = () => `
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## frontend/src/workspaces/mockPanels.tsx
+*TypeScript/JavaScript Source Component*
+
+
+---
+
+## frontend/src/workspaces/registry.ts
+*TypeScript/JavaScript Source Component*
+
+### Functions & Endpoints
+#### `getWorkspaceConfig` (Function)
+- **Signature**: `export const getWorkspaceConfig = (id: string): WorkspaceConfig | undefined => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `getAllWorkspaces` (Function)
+- **Signature**: `export const getAllWorkspaces = (): WorkspaceConfig[] => `
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## frontend/src/workspaces/types.ts
+*TypeScript/JavaScript Source Component*
 
 
 ---
