@@ -1,0 +1,1966 @@
+import os
+import sys
+import json
+import asyncio
+import threading
+import time
+from datetime import datetime, timedelta
+import socket
+import urllib.parse
+import urllib3.util.connection as urllib3_connection
+import pandas as pd
+import numpy as np
+import requests
+import websockets
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, HTTPException, BackgroundTasks
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from typing import List, Optional, Dict, Any
+
+# Force requests library to use IPv4 exclusively (resolves static IP mismatch on IPv6 networks)
+def allowed_gai_family():
+    return socket.AF_INET
+
+urllib3_connection.allowed_gai_family = allowed_gai_family
+
+# Resolve path mapping
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(ROOT_DIR)
+sys.path.append(os.path.join(ROOT_DIR, "backend"))
+
+import database as db
+import auth
+from strategy_heikin_ashi_gar import HeikinAshiGarStrategy, FiveEmaScalpingStrategy, calculate_heikin_ashi
+import MarketDataFeed_pb2 as pb
+
+TOKEN_FILE = os.path.join(ROOT_DIR, "token.txt")
+CSV_PATH = os.path.join(ROOT_DIR, "nifty_options.csv")
+DB_PATH = os.path.join(ROOT_DIR, "valkyrie_trades.db")
+
+# Proxy configuration for Upstox order API
+PROXIES = {
+    "http": "http://USER:PASS@STATIC_PROXY_IP:PORT",
+    "https": "http://USER:PASS@STATIC_PROXY_IP:PORT",
+}
+
+STRATEGY_REGISTRY = {
+    "heikin_ashi_gar": HeikinAshiGarStrategy,
+    "five_ema_scalping": FiveEmaScalpingStrategy
+}
+
+CURRENT_SESSION_ID = None
+
+# Initialize FastAPI App
+app = FastAPI(title="Valkyrie Trading Strategy Daemon", version="2.0.0")
+
+# Enable CORS for Next.js App
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins or specify client url
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Global System Telemetry State
+SYSTEM_STATUS = {
+    "state": "IDLE", 
+    "mode": "NONE", 
+    "balance": 100000.0,
+    "initial_balance": 100000.0,
+    "position": None,
+    "instrument_key": None,
+    "trading_symbol": None,
+    "strike": None,
+    "expiry": None,
+    "option_type": None,
+    "exchange": "NSE",
+    "index_name": "NIFTY",
+    "live_protection": False,
+    "is_real_execution": False,
+    "lot_size": 1,
+    "lot_size_multiplier": 75,
+    "spot_price": 0.0,
+    "total_pnl": 0.0,
+    "return_percent": 0.0,
+    "max_drawdown": 0.0,
+    "profit_factor": 0.0,
+    "total_trades": 0,
+    "win_rate": 0.0,
+    "chart_interval": "1minute",
+    "chart_type": "heikin_ashi",
+    
+    # Scalper targets
+    "scalper_instrument_key": None,
+    "scalper_trading_symbol": None,
+    "scalper_lot_multiplier": 75,
+    "scalper_option_type": None,
+    "scalper_strike": None,
+    "scalper_spot_price": 0.0,
+}
+
+TRADE_LOGS = []
+EVENT_LOGS = []
+EQUITY_CURVE = []
+HEIKIN_ASHI_CANDLES = []
+GTT_ORDERS = []
+
+# List to keep track of active WebSocket connections for telemetry broadcasting
+ws_connections: List[WebSocket] = []
+
+def get_unix_timestamp(ts):
+    if hasattr(ts, 'timestamp'):
+        return int(ts.timestamp())
+    elif isinstance(ts, str):
+        try:
+            return int(pd.to_datetime(ts).timestamp())
+        except:
+            return 0
+    else:
+        return 0
+
+def log_event(msg, level="INFO"):
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    formatted_msg = f"[{timestamp}] [{level}] {msg}"
+    EVENT_LOGS.append(formatted_msg)
+    print(formatted_msg)
+    # Trigger an async broadcast task
+    asyncio.run_coroutine_threadsafe(broadcast_telemetry(), main_event_loop)
+
+async def broadcast_telemetry():
+    if not ws_connections:
+        return
+    
+    update_telemetry_metrics()
+    payload = {
+        "status": SYSTEM_STATUS,
+        "trades": TRADE_LOGS,
+        "logs": EVENT_LOGS[-100:],  # Limit logs size in websocket transmission
+        "candles": HEIKIN_ASHI_CANDLES[-300:],
+        "gtt_orders": GTT_ORDERS
+    }
+    
+    dead_connections = []
+    for ws in ws_connections:
+        try:
+            await ws.send_json(payload)
+        except Exception:
+            dead_connections.append(ws)
+            
+    for ws in dead_connections:
+        if ws in ws_connections:
+            ws_connections.remove(ws)
+
+def load_upstox_token():
+    if os.path.exists(TOKEN_FILE):
+        with open(TOKEN_FILE, "r") as f:
+            return f.read().strip()
+    return os.getenv("UPSTOX_ACCESS_TOKEN", "")
+
+def sync_nifty_options_csv(force=False):
+    stale = False
+    if not os.path.exists(CSV_PATH):
+        stale = True
+    else:
+        try:
+            df = pd.read_csv(CSV_PATH)
+            required_indices = {'NIFTY', 'BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY', 'SENSEX', 'BANKEX'}
+            existing_indices = set(df['name'].unique()) if 'name' in df.columns else set()
+            if df.empty or 'expiry' not in df.columns or not required_indices.issubset(existing_indices):
+                stale = True
+            else:
+                max_expiry_ts = df['expiry'].max()
+                max_expiry_date = pd.to_datetime(max_expiry_ts, unit='ms')
+                if max_expiry_date.date() < datetime.now().date():
+                    stale = True
+        except Exception:
+            stale = True
+            
+    if stale or force:
+        log_event("Local nifty_options.csv is missing or expired. Fetching fresh options chain...", "SYSTEM")
+        try:
+            url = "https://assets.upstox.com/market-quote/instruments/exchange/complete.json.gz"
+            df = pd.read_json(url, compression='gzip')
+            options_df = df.loc[
+                (df['segment'].isin(['NSE_FO', 'BSE_FO'])) & 
+                (df['instrument_type'].isin(['CE', 'PE'])) &
+                (df['name'].isin(['NIFTY', 'BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY', 'SENSEX', 'BANKEX']))
+            ].copy()
+            options_df.to_csv(CSV_PATH, index=False)
+            log_event(f"Successfully saved {len(options_df)} active options to nifty_options.csv", "SYSTEM")
+        except Exception as e:
+            log_event(f"Failed to synchronize instruments: {e}", "ERROR")
+
+def get_index_spot_price(underlying_key):
+    token = load_upstox_token()
+    if not token or not underlying_key:
+        return 0.0
+    encoded_key = urllib.parse.quote(underlying_key)
+    url = f"https://api.upstox.com/v2/market-quote/ltp?instrument_key={encoded_key}"
+    headers = {"Accept": "application/json", "Authorization": f"Bearer {token}"}
+    try:
+        resp = requests.get(url, headers=headers, timeout=5)
+        if resp.status_code == 200:
+            data = resp.json().get("data", {})
+            colon_key = underlying_key.replace("|", ":")
+            pipe_key = underlying_key.replace(":", "|")
+            price = data.get(colon_key, {}).get("last_price", 0.0) or data.get(pipe_key, {}).get("last_price", 0.0)
+            return float(price)
+    except Exception as e:
+        log_event(f"Error fetching spot price for {underlying_key}: {e}", "ERROR")
+    return 0.0
+
+def get_instrument_details(index_name, strike, expiry_str, option_type):
+    if not os.path.exists(CSV_PATH):
+        sync_nifty_options_csv()
+    df = pd.read_csv(CSV_PATH)
+    df['expiry_date'] = pd.to_datetime(df['expiry'], unit='ms').dt.strftime('%Y-%m-%d')
+    mask = (df['name'] == index_name) & (df['strike_price'] == float(strike)) & (df['expiry_date'] == expiry_str) & (df['instrument_type'] == option_type)
+    matches = df[mask]
+    if matches.empty:
+        raise ValueError(f"No contract matching {index_name} strike {strike}, expiry {expiry_str}, type {option_type}")
+    row = matches.iloc[0]
+    lot_sz = int(row.get('lot_size', 75))
+    if pd.isna(lot_sz):
+        lot_sz = 75
+    return row['instrument_key'], row['trading_symbol'], lot_sz
+
+def execute_order(instrument_token, quantity, transaction_type):
+    token = load_upstox_token()
+    if not token:
+        log_event("Failed to place order: Missing access token.", "ERROR")
+        return {"status": "ERROR", "message": "Access token missing"}
+        
+    url = "https://api.upstox.com/v2/order/place"
+    headers = {
+        "Authorization": f"Bearer {token}", 
+        "Content-Type": "application/json", 
+        "Accept": "application/json"
+    }
+    payload = {
+        "quantity": int(quantity),
+        "product": "MIS",
+        "validity": "DAY",
+        "price": 0.0,
+        "tag": "HA-GAR-ENGINE",
+        "instrument_token": instrument_token,
+        "order_type": "MARKET",
+        "transaction_type": transaction_type,
+        "disclosed_quantity": 0,
+        "trigger_price": 0.0,
+        "is_amo": False
+    }
+    try:
+        log_event(f"Sending real Upstox market order: {transaction_type} {quantity} units of {instrument_token}", "ORDER")
+        resp = requests.post(url, json=payload, headers=headers, timeout=10, proxies=PROXIES)
+        data = resp.json()
+        log_event(f"Upstox API Response Code: {resp.status_code} | Body: {json.dumps(data)}", "ORDER")
+        return data
+    except Exception as e:
+        log_event(f"Order transmission exception: {e}", "ERROR")
+        return {"status": "error", "message": str(e)}
+
+def update_telemetry_metrics():
+    global SYSTEM_STATUS, TRADE_LOGS, EQUITY_CURVE
+    if CURRENT_SESSION_ID:
+        TRADE_LOGS = db.get_session_trades(CURRENT_SESSION_ID, DB_PATH)
+        EQUITY_CURVE = db.get_session_equity_curve(CURRENT_SESSION_ID, SYSTEM_STATUS["initial_balance"], DB_PATH)
+        
+    if not TRADE_LOGS:
+        return
+    
+    total_pnl = sum(t['pnl'] for t in TRADE_LOGS if 'pnl' in t)
+    SYSTEM_STATUS["total_pnl"] = total_pnl
+    SYSTEM_STATUS["return_percent"] = (total_pnl / SYSTEM_STATUS["initial_balance"]) * 100
+    
+    # Calculate Max Drawdown
+    peak = SYSTEM_STATUS["initial_balance"]
+    max_dd = 0.0
+    for pt in EQUITY_CURVE:
+        eq = pt["equity"]
+        if eq > peak:
+            peak = eq
+        dd = peak - eq
+        if dd > max_dd:
+            max_dd = dd
+    SYSTEM_STATUS["max_drawdown"] = max_dd
+    
+    # Win rate & Profit factor
+    exits = [t for t in TRADE_LOGS if t['type'] == 'EXIT']
+    total_trades = len(exits)
+    SYSTEM_STATUS["total_trades"] = total_trades
+    
+    pnl_list = [t['pnl'] for t in exits if 'pnl' in t]
+    
+    if total_trades > 0:
+        wins = sum(1 for t in exits if t['pnl'] > 0)
+        SYSTEM_STATUS["win_rate"] = (wins / total_trades) * 100
+        
+        gains = sum(t['pnl'] for t in exits if t['pnl'] > 0)
+        losses = abs(sum(t['pnl'] for t in exits if t['pnl'] < 0))
+        SYSTEM_STATUS["profit_factor"] = (gains / losses) if losses > 0 else (gains if gains > 0 else 0.0)
+        
+        # Sharpe ratio
+        if len(pnl_list) >= 2:
+            std_val = np.std(pnl_list)
+            SYSTEM_STATUS["sharpe_ratio"] = float(np.mean(pnl_list) / std_val) if std_val > 0 else 0.0
+        else:
+            SYSTEM_STATUS["sharpe_ratio"] = 0.0
+            
+        # Consecutive win/loss streaks
+        consec_wins = 0
+        consec_losses = 0
+        max_wins = 0
+        max_losses = 0
+        for pnl in pnl_list:
+            if pnl > 0:
+                consec_wins += 1
+                consec_losses = 0
+                if consec_wins > max_wins:
+                    max_wins = consec_wins
+            elif pnl < 0:
+                consec_losses += 1
+                consec_wins = 0
+                if consec_losses > max_losses:
+                    max_losses = consec_losses
+        SYSTEM_STATUS["max_consec_wins"] = max_wins
+        SYSTEM_STATUS["max_consec_losses"] = max_losses
+    else:
+        SYSTEM_STATUS["sharpe_ratio"] = 0.0
+        SYSTEM_STATUS["max_consec_wins"] = 0
+        SYSTEM_STATUS["max_consec_losses"] = 0
+
+class EngineAccount:
+    def __init__(self, initial_balance=100000.0, is_real=False, lot_size=1, lot_size_multiplier=75, brokerage_flat=20.0, slippage_pct=0.05):
+        self.is_real = is_real
+        self.lot_size = lot_size
+        self.lot_size_multiplier = lot_size_multiplier
+        self.qty = lot_size * lot_size_multiplier
+        self.position = None
+        self.entry_price = 0.0
+        self.brokerage_flat = brokerage_flat
+        self.slippage_pct = slippage_pct
+        self.buy_cost = 0.0
+        self.buy_reject_reason = ""
+        
+    def buy(self, instrument_key, price, timestamp, stop_loss=0.0, details=""):
+        if self.position and self.position != instrument_key:
+            reason = f"Already in {self.position}. Close it first before switching instruments."
+            log_event(f"REJECTED: {reason}", "WARNING")
+            self.buy_reject_reason = reason
+            return False
+            
+        new_qty = self.qty
+        buy_cost = self.brokerage_flat + (price * (self.slippage_pct / 100.0) * new_qty)
+        required_capital = (price * new_qty) + buy_cost
+        
+        if SYSTEM_STATUS["balance"] < required_capital:
+            reason = f"Insufficient funds. Required: ₹{required_capital:.2f}, Available: ₹{SYSTEM_STATUS['balance']:.2f}"
+            log_event(f"REJECTED: {reason}", "WARNING")
+            self.buy_reject_reason = reason
+            return False
+            
+        if self.position:
+            # Scale in / average entry price
+            total_qty = self.qty + new_qty
+            self.entry_price = ((self.entry_price * self.qty) + (price * new_qty)) / total_qty
+            self.qty = total_qty
+            self.buy_cost += buy_cost
+            log_msg = f"Position scaled in. Total Qty: {self.qty} @ Avg Price: ₹{self.entry_price:.2f}"
+        else:
+            self.position = instrument_key
+            self.entry_price = price
+            self.qty = new_qty
+            self.buy_cost = buy_cost
+            log_msg = f"Position opened. BUY {self.qty} @ ₹{price:.2f} | Cost: ₹{self.buy_cost:.2f} | SL: ₹{stop_loss:.2f}"
+            
+        SYSTEM_STATUS["balance"] -= buy_cost
+        
+        SYSTEM_STATUS["position"] = {
+            "instrument_key": instrument_key,
+            "entry_price": self.entry_price,
+            "timestamp": timestamp.isoformat() if hasattr(timestamp, 'isoformat') else str(timestamp),
+            "stop_loss": stop_loss
+        }
+        
+        if CURRENT_SESSION_ID:
+            db.log_trade(
+                session_id=CURRENT_SESSION_ID,
+                instrument_key=instrument_key,
+                trading_symbol=SYSTEM_STATUS.get("trading_symbol", "UNKNOWN"),
+                trade_type="BUY",
+                price=price,
+                quantity=new_qty,
+                stop_loss=stop_loss,
+                target_price=0.0,
+                reason="SIGNAL_TRIGGER",
+                pnl=0.0,
+                timestamp=timestamp,
+                db_path=DB_PATH
+            )
+            global TRADE_LOGS
+            TRADE_LOGS = db.get_session_trades(CURRENT_SESSION_ID, DB_PATH)
+        else:
+            TRADE_LOGS.append({
+                "timestamp": timestamp.strftime("%Y-%m-%d %H:%M:%S") if hasattr(timestamp, 'strftime') else str(timestamp),
+                "type": "BUY",
+                "price": price,
+                "sl": stop_loss,
+                "reason": "SIGNAL_TRIGGER",
+                "details": details
+            })
+        log_event(log_msg, "TRADE")
+        
+        if self.is_real:
+            execute_order(instrument_key, new_qty, "BUY")
+        return True
+
+    def sell(self, instrument_key, price, timestamp, reason, details=""):
+        if not self.position or self.position != instrument_key:
+            return False
+            
+        sell_cost = self.brokerage_flat + (price * (self.slippage_pct / 100.0) * self.qty)
+        SYSTEM_STATUS["balance"] -= sell_cost
+        
+        gross_pnl = (price - self.entry_price) * self.qty
+        SYSTEM_STATUS["balance"] += gross_pnl
+        net_pnl = gross_pnl - (self.buy_cost + sell_cost)
+        
+        if CURRENT_SESSION_ID:
+            db.log_trade(
+                session_id=CURRENT_SESSION_ID,
+                instrument_key=instrument_key,
+                trading_symbol=SYSTEM_STATUS.get("trading_symbol", "UNKNOWN"),
+                trade_type="EXIT",
+                price=price,
+                quantity=self.qty,
+                stop_loss=0.0,
+                target_price=0.0,
+                reason=reason,
+                pnl=net_pnl,
+                timestamp=timestamp,
+                db_path=DB_PATH
+            )
+            global TRADE_LOGS, EQUITY_CURVE
+            TRADE_LOGS = db.get_session_trades(CURRENT_SESSION_ID, DB_PATH)
+            EQUITY_CURVE = db.get_session_equity_curve(CURRENT_SESSION_ID, SYSTEM_STATUS["initial_balance"], DB_PATH)
+        else:
+            TRADE_LOGS.append({
+                "timestamp": timestamp.strftime("%Y-%m-%d %H:%M:%S") if hasattr(timestamp, 'strftime') else str(timestamp),
+                "type": "EXIT",
+                "price": price,
+                "reason": reason,
+                "pnl": net_pnl,
+                "details": details
+            })
+            EQUITY_CURVE.append({
+                "timestamp": timestamp.isoformat() if hasattr(timestamp, 'isoformat') else str(timestamp),
+                "equity": SYSTEM_STATUS["balance"]
+            })
+        log_event(f"Position closed. SELL {self.qty} @ ₹{price:.2f} | Net P&L: ₹{net_pnl:.2f} (Gross: ₹{gross_pnl:.2f}, Cost: ₹{self.buy_cost + sell_cost:.2f}) | Reason: {reason}", "TRADE")
+        
+        if self.is_real:
+            execute_order(instrument_key, self.qty, "SELL")
+            
+        self.position = None
+        self.entry_price = 0.0
+        SYSTEM_STATUS["position"] = None
+        
+        update_telemetry_metrics()
+        return True
+
+class LiveFeed:
+    def __init__(self, instrument_key, strategy_engine, account, scalper_key=None):
+        self.instrument_key = instrument_key
+        self.scalper_key = scalper_key or instrument_key
+        self.strategy = strategy_engine
+        self.account = account
+        self.current_candle = None
+        self.candles_history = []
+        self.running = True
+        self.ws = None
+        self.interval = SYSTEM_STATUS.get("chart_interval", "1minute")
+
+    async def get_websocket_uri(self):
+        token = load_upstox_token()
+        if not token:
+            raise Exception("Access token missing in token.txt")
+        url = "https://api.upstox.com/v3/feed/market-data-feed/authorize"
+        headers = {"Accept": "application/json", "Authorization": f"Bearer {token}"}
+        resp = requests.get(url, headers=headers, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+        return data['data']['authorizedRedirectUri'] or data['data']['authorized_redirect_uri']
+
+    async def connect(self):
+        try:
+            uri = await self.get_websocket_uri()
+        except Exception as e:
+            log_event(f"WebSocket auth failed: {e}", "ERROR")
+            SYSTEM_STATUS["state"] = "FAILED"
+            return
+            
+        log_event("Connecting to Upstox Market Stream...", "WS")
+        async with websockets.connect(uri, max_size=2**25) as ws:
+            self.ws = ws
+            
+            try:
+                to_date = datetime.now()
+                from_date = to_date - timedelta(days=3)
+                active_int = SYSTEM_STATUS.get("chart_interval", "1minute")
+                hist = fetch_historical_candles(self.instrument_key, '1minute', from_date, to_date)
+                if active_int in ["5minute", "15minute"]:
+                    hist = resample_candles(hist, active_int)
+                self.candles_history = hist[-100:]
+                
+                rebuild_telemetry_candles()
+                log_event(f"Pre-populated {len(HEIKIN_ASHI_CANDLES)} candles from history ({active_int}).", "WS")
+            except Exception as e:
+                log_event(f"Failed to pre-populate candles: {e}", "WARNING")
+
+            keys_to_subscribe = list(filter(None, list(set([self.instrument_key, self.scalper_key]))))
+            subscribe_msg = {
+                "guid": "valkyrie_heikin_ashi_gar",
+                "method": "sub",
+                "data": {"mode": "full", "instrumentKeys": keys_to_subscribe}
+            }
+            await ws.send(json.dumps(subscribe_msg).encode('utf-8'))
+            log_event(f"Subscribed to market feed for: {keys_to_subscribe}", "WS")
+            SYSTEM_STATUS["state"] = "LIVE_MONITORING"
+            
+            # Record connect time
+            global SESSION_START_TIME
+            SESSION_START_TIME = time.time()
+            
+            while self.running:
+                try:
+                    message = await asyncio.wait_for(ws.recv(), timeout=1.0)
+                    await self.process_message(message)
+                except asyncio.TimeoutError:
+                    continue
+                except websockets.exceptions.ConnectionClosed:
+                    log_event("WebSocket closed, attempting reconnection...", "WARNING")
+                    break
+
+    async def subscribe_to_keys(self, keys_list):
+        if self.ws and self.ws.state.name == 'OPEN':
+            subscribe_msg = {
+                "guid": "valkyrie_heikin_ashi_gar",
+                "method": "sub",
+                "data": {"mode": "full", "instrumentKeys": keys_list}
+            }
+            await self.ws.send(json.dumps(subscribe_msg).encode('utf-8'))
+            log_event(f"Subscribed dynamically to market feeds: {keys_list}", "WS")
+        else:
+            log_event(f"Cannot subscribe to keys {keys_list}: WebSocket is closed or not initialized.", "WARNING")
+
+    async def process_message(self, raw_message):
+        try:
+            feed = pb.FeedResponse()
+            feed.ParseFromString(raw_message)
+            for key, feed_data in feed.feeds.items():
+                price = None
+                if feed_data.HasField("fullFeed"):
+                    full_feed = feed_data.fullFeed
+                    if full_feed.HasField("marketFF"):
+                        price = full_feed.marketFF.ltpc.ltp
+                    elif full_feed.HasField("indexFF"):
+                        price = full_feed.indexFF.ltpc.ltp
+                    
+                if price:
+                    if key == self.instrument_key:
+                        SYSTEM_STATUS["spot_price"] = price
+                        self.on_tick(price, datetime.now())
+                    if key == self.scalper_key:
+                        SYSTEM_STATUS["scalper_spot_price"] = price
+                        self.on_scalper_tick(price, datetime.now())
+        except Exception as e:
+            log_event(f"Protobuf processing error: {e}", "ERROR")
+
+    def on_scalper_tick(self, price, timestamp):
+        if self.account.position and SYSTEM_STATUS.get("position"):
+            pos = SYSTEM_STATUS["position"]
+            if pos.get("is_scalper") and pos["instrument_key"] == self.scalper_key:
+                target_price = pos.get("target_price", 0.0)
+                stop_loss_price = pos.get("stop_loss", 0.0)
+                
+                if stop_loss_price > 0.0 and price <= stop_loss_price:
+                    details = f"Stop Loss triggered. LTP ₹{price:.2f} touched SL level of ₹{stop_loss_price:.2f}."
+                    self.account.sell(self.scalper_key, price, timestamp, "STOP_LOSS", details=details)
+                    self.strategy.reset_state()
+                elif target_price > 0.0 and price >= target_price:
+                    details = f"Target Limit triggered. LTP ₹{price:.2f} touched Target level of ₹{target_price:.2f}."
+                    self.account.sell(self.scalper_key, price, timestamp, "TARGET_LIMIT", details=details)
+                    self.strategy.reset_state()
+
+    def on_tick(self, price, timestamp):
+        interval = getattr(self, "interval", "1minute")
+        if interval == "10s":
+            current_bucket = timestamp.replace(second=(timestamp.second // 10) * 10, microsecond=0)
+        elif interval == "30s":
+            current_bucket = timestamp.replace(second=(timestamp.second // 30) * 30, microsecond=0)
+        elif interval == "1minute":
+            current_bucket = timestamp.replace(second=0, microsecond=0)
+        elif interval == "5minute":
+            current_bucket = timestamp.replace(minute=(timestamp.minute // 5) * 5, second=0, microsecond=0)
+        elif interval == "15minute":
+            current_bucket = timestamp.replace(minute=(timestamp.minute // 15) * 15, second=0, microsecond=0)
+        else:
+            current_bucket = timestamp.replace(second=0, microsecond=0)
+        
+        # Check targets/stop-losses
+        if self.account.position and SYSTEM_STATUS.get("position"):
+            pos = SYSTEM_STATUS["position"]
+            if not pos.get("is_scalper") and pos["instrument_key"] == self.instrument_key:
+                trailing_gap = pos.get("trailing_gap", 0.0)
+                if trailing_gap > 0.0:
+                    highest_price = pos.get("highest_price", 0.0)
+                    if highest_price <= 0.0:
+                        highest_price = pos.get("entry_price", price)
+                        pos["highest_price"] = highest_price
+                    
+                    if price > highest_price:
+                        steps = int((price - highest_price) / trailing_gap)
+                        if steps > 0:
+                            pos["highest_price"] = highest_price + steps * trailing_gap
+                            pos["stop_loss"] = pos.get("stop_loss", 0.0) + steps * trailing_gap
+                            log_event(f"Trailing SL adjusted to ₹{pos['stop_loss']:.2f} (LTP: ₹{price:.2f})", "SYSTEM")
+
+                target_price = pos.get("target_price", 0.0)
+                stop_loss_price = pos.get("stop_loss", 0.0)
+                
+                if stop_loss_price > 0.0 and price <= stop_loss_price:
+                    details = f"Stop Loss triggered. LTP ₹{price:.2f} touched SL level of ₹{stop_loss_price:.2f}."
+                    self.account.sell(self.instrument_key, price, timestamp, "STOP_LOSS", details=details)
+                    self.strategy.reset_state()
+                elif target_price > 0.0 and price >= target_price:
+                    details = f"Target Limit triggered. LTP ₹{price:.2f} touched Target level of ₹{target_price:.2f}."
+                    self.account.sell(self.instrument_key, price, timestamp, "TARGET_LIMIT", details=details)
+                    self.strategy.reset_state()
+        elif self.account.position and not SYSTEM_STATUS.get("position", {}).get("is_scalper"):
+            if price <= self.strategy.stop_loss_level:
+                entry_sl = self.strategy.stop_loss_level
+                details = f"Stop Loss triggered. Live price ₹{price:.2f} touched SL level of ₹{entry_sl:.2f}."
+                self.account.sell(self.instrument_key, price, timestamp, "STOP_LOSS", details=details)
+                self.strategy.reset_state()
+                
+        # Check pending GTT orders
+        global GTT_ORDERS
+        for order in GTT_ORDERS:
+            if order["status"] == "PENDING":
+                trigger_met = False
+                tp = order["trigger_price"]
+                direction = order.get("direction", "ABOVE")
+                
+                if direction == "ABOVE" and price >= tp:
+                    trigger_met = True
+                elif direction == "BELOW" and price <= tp:
+                    trigger_met = True
+                    
+                if trigger_met:
+                    order["status"] = "TRIGGERED"
+                    log_event(f"GTT Trigger Met: {order['side']} {order['qty']} Lots at LTP ₹{price:.2f}", "SYSTEM")
+                    if order["side"] == "BUY":
+                        self.account.lot_size = order["qty"]
+                        self.account.qty = order["qty"] * self.account.lot_size_multiplier
+                        SYSTEM_STATUS["lot_size"] = order["qty"]
+                        
+                        success = self.account.buy(
+                            instrument_key=self.instrument_key,
+                            price=price,
+                            timestamp=timestamp,
+                            stop_loss=0.0,
+                            details="GTT_TRIGGER"
+                        )
+                        if success:
+                            target_price = 0.0
+                            stop_loss_price = 0.0
+                            target = order["target"]
+                            target_type = order["target_type"]
+                            stop_loss = order["stop_loss"]
+                            stop_loss_type = order["stop_loss_type"]
+                            
+                            if target > 0.0:
+                                if target_type == "points":
+                                    target_price = price + target
+                                elif target_type == "percent":
+                                    target_price = price * (1.0 + target / 100.0)
+                                    
+                            if stop_loss > 0.0:
+                                if stop_loss_type == "points":
+                                    stop_loss_price = price - stop_loss
+                                elif stop_loss_type == "percent":
+                                    stop_loss_price = price * (1.0 - stop_loss / 100.0)
+                                    
+                            if SYSTEM_STATUS["position"]:
+                                SYSTEM_STATUS["position"]["target_price"] = target_price
+                                SYSTEM_STATUS["position"]["stop_loss"] = stop_loss_price
+                                SYSTEM_STATUS["position"]["trailing_gap"] = order.get("trailing_gap", 0.0)
+                                SYSTEM_STATUS["position"]["highest_price"] = price
+                    else:
+                        self.account.sell(
+                            instrument_key=self.instrument_key,
+                            price=price,
+                            timestamp=timestamp,
+                            reason="GTT_EXIT",
+                            details="GTT Trigger Exit"
+                        )
+            
+        if self.current_candle is None or self.current_candle['timestamp'] != current_bucket:
+            if self.current_candle is not None:
+                self.on_candle_close(self.current_candle)
+            self.current_candle = {
+                'timestamp': current_bucket,
+                'open': price,
+                'high': price,
+                'low': price,
+                'close': price
+            }
+        else:
+            self.current_candle['high'] = max(self.current_candle['high'], price)
+            self.current_candle['low'] = min(self.current_candle['low'], price)
+            self.current_candle['close'] = price
+            
+        rebuild_telemetry_candles()
+
+    def on_candle_close(self, candle):
+        self.candles_history.append(candle)
+        interval = getattr(self, "interval", "1minute")
+        log_event(f"Candle closed ({interval}): {candle['timestamp'].strftime('%H:%M:%S')} | O: {candle['open']} H: {candle['high']} L: {candle['low']} C: {candle['close']}", "ENGINE")
+        
+        rebuild_telemetry_candles()
+        
+        if len(self.candles_history) < 3:
+            return
+            
+        df = pd.DataFrame(self.candles_history)
+        
+        if SYSTEM_STATUS["mode"] == "MANUAL":
+            return
+            
+        signal, meta = self.strategy.evaluate(df)
+        
+        if signal == "BUY":
+            stop_loss = meta.get("stop_loss", 0.0)
+            target = meta.get("target_price", 0.0)
+            details = meta.get("details", "")
+            
+            if not details:
+                if isinstance(self.strategy, HeikinAshiGarStrategy):
+                    prior_ha_open = meta.get("prior_ha_open", 0.0)
+                    prior_ha_close = meta.get("prior_ha_close", 0.0)
+                    comp_ha_open = meta.get("comp_ha_open", 0.0)
+                    comp_ha_close = meta.get("comp_ha_close", 0.0)
+                    comp_ha_low = meta.get("comp_ha_low", 0.0)
+                    comp_ha_open_low_diff = abs(comp_ha_open - comp_ha_low)
+                    details = (
+                        f"GAR Pattern confirmed. Prior RED HA candle closed (O: ₹{prior_ha_open:.2f}, C: ₹{prior_ha_close:.2f}). "
+                        f"Completed GREEN HA candle closed (O: ₹{comp_ha_open:.2f}, C: ₹{comp_ha_close:.2f}) "
+                        f"with bottom-wick low deviation of {comp_ha_open_low_diff:.3f}. "
+                        f"Stop Loss anchored at prior raw candle open (₹{stop_loss:.2f})."
+                    )
+                else:
+                    details = f"5 EMA Scalping entry at ₹{candle['close']:.2f}. SL: ₹{stop_loss:.2f}, Target: ₹{target:.2f}."
+            
+            self.account.buy(self.instrument_key, candle['close'], candle['timestamp'], stop_loss=stop_loss, details=details)
+            self.strategy.stop_loss_level = stop_loss
+            if target > 0.0:
+                self.strategy.target_level = target
+                
+        elif signal == "EXIT":
+            reason = meta.get("reason", "TECHNICAL_REVERSAL")
+            details = meta.get("details", "")
+            if not details:
+                if reason == "TECHNICAL_REVERSAL":
+                    details = (
+                        f"Technical trend reversal detected. Completed Heikin Ashi candle closed RED "
+                        f"(Open: ₹{meta.get('ha_open', 0.0):.2f}, Close: ₹{meta.get('ha_close', 0.0):.2f})."
+                    )
+                elif reason == "MAX_DURATION":
+                    details = f"Maximum candle limit reached. Position held for {self.strategy.candles_held} candles."
+                elif reason == "SESSION_END":
+                    details = f"Intraday cutoff triggered at candle close time {candle['timestamp'].strftime('%H:%M')}."
+                elif reason == "STOP_LOSS":
+                    details = f"Stop Loss triggered at ₹{candle['close']:.2f}."
+                elif reason == "TARGET_LIMIT":
+                    details = f"Target Limit hit at ₹{candle['close']:.2f}."
+                    
+            self.account.sell(self.instrument_key, candle['close'], candle['timestamp'], reason, details=details)
+
+    def stop(self):
+        self.running = False
+
+def fetch_historical_candles(instrument_key, interval, from_date, to_date):
+    if not instrument_key:
+        return []
+    token = load_upstox_token()
+    if not token:
+        raise Exception("Access token missing in token.txt")
+    encoded_key = urllib.parse.quote(instrument_key)
+    url = f"https://api.upstox.com/v2/historical-candle/{encoded_key}/{interval}/{to_date.strftime('%Y-%m-%d')}/{from_date.strftime('%Y-%m-%d')}"
+    headers = {"Accept": "application/json", "Authorization": f"Bearer {token}"}
+    resp = requests.get(url, headers=headers)
+    if resp.status_code != 200:
+        if "Invalid Instrument key" in resp.text or "UDAPI100011" in resp.text:
+            raise Exception("Option contract is expired or invalid. Historical candles not supported for expired contracts.")
+        raise Exception(f"API error {resp.status_code}: {resp.text}")
+    data = resp.json()
+    candles_data = data.get('data', {}).get('candles', [])
+    candles = []
+    for c in candles_data:
+        ts = datetime.fromisoformat(c[0].replace('Z', '+00:00'))
+        candles.append({
+            'timestamp': ts,
+            'open': float(c[1]),
+            'high': float(c[2]),
+            'low': float(c[3]),
+            'close': float(c[4])
+        })
+    return candles[::-1]
+
+def resample_candles(candles, target_interval):
+    if target_interval not in ['5minute', '15minute']:
+        return candles
+    rule_map = {'5minute': '5min', '15minute': '15min'}
+    rule = rule_map[target_interval]
+    df = pd.DataFrame(candles)
+    df.set_index('timestamp', inplace=True)
+    ohlc = df.resample(rule).agg({
+        'open': 'first',
+        'high': 'max',
+        'low': 'min',
+        'close': 'last'
+    }).dropna()
+    ohlc.reset_index(inplace=True)
+    return ohlc.to_dict('records')
+
+def parse_predefined_period(period_type, start_date_str=None, end_date_str=None):
+    today = datetime.now()
+    if period_type == 'last_week':
+        start = today - timedelta(days=7)
+        return start, today
+    elif period_type == 'last_month':
+        start = today - timedelta(days=30)
+        return start, today
+    elif period_type == 'last_3_months':
+        start = today - timedelta(days=90)
+        return start, today
+    elif period_type == 'last_6_months':
+        start = today - timedelta(days=180)
+        return start, today
+    elif period_type == 'ytd':
+        start = datetime(today.year, 1, 1)
+        return start, today
+    elif period_type == 'custom' or not period_type:
+        if start_date_str:
+            if isinstance(start_date_str, datetime):
+                start = start_date_str
+            else:
+                start = datetime.strptime(start_date_str, "%Y-%m-%d")
+        else:
+            start = today - timedelta(days=7)
+        if end_date_str:
+            if isinstance(end_date_str, datetime):
+                end = end_date_str
+            else:
+                end = datetime.strptime(end_date_str, "%Y-%m-%d")
+            end = end.replace(hour=23, minute=59, second=59)
+        else:
+            end = today
+        return start, end
+    return today - timedelta(days=7), today
+
+def run_historical_backtest(instrument_key, lot_size, start_date, end_date, timeframe, max_candles, cutoff_time, brokerage_flat, slippage_pct, initial_balance, strategy_name="heikin_ashi_gar", strategy_params=None):
+    global TRADE_LOGS, EQUITY_CURVE, HEIKIN_ASHI_CANDLES, CURRENT_SESSION_ID
+    log_event(f"Historical backtest sequence started for strategy: {strategy_name}...", "BACKTEST")
+    
+    CURRENT_SESSION_ID = db.create_session("BACKTEST", initial_balance, DB_PATH)
+    SYSTEM_STATUS["session_id"] = CURRENT_SESSION_ID
+    SYSTEM_STATUS["initial_balance"] = initial_balance
+    SYSTEM_STATUS["balance"] = initial_balance
+    
+    try:
+        candles = fetch_historical_candles(instrument_key, '1minute', start_date, end_date)
+    except Exception as e:
+        log_event(f"Failed to retrieve historical candles: {e}", "ERROR")
+        return
+        
+    if not candles:
+        log_event("No historical candles returned.", "WARNING")
+        return
+        
+    if timeframe != '1minute':
+        log_event(f"Resampling candles to {timeframe}...", "BACKTEST")
+        candles = resample_candles(candles, timeframe)
+        
+    log_event(f"Loaded {len(candles)} candles. Starting optimized replay...", "BACKTEST")
+    
+    raw_df = pd.DataFrame(candles)
+    ha_df = calculate_heikin_ashi(raw_df)
+    
+    lot_multiplier = 75
+    try:
+        df = pd.read_csv(CSV_PATH)
+        matches = df[df['instrument_key'] == instrument_key]
+        if not matches.empty:
+            lot_multiplier = int(matches.iloc[0].get('lot_size', 75))
+            if pd.isna(lot_multiplier):
+                lot_multiplier = 75
+    except Exception:
+        pass
+    SYSTEM_STATUS["lot_size_multiplier"] = lot_multiplier
+    
+    backtest_account = EngineAccount(initial_balance=initial_balance, is_real=False, lot_size=lot_size, lot_size_multiplier=lot_multiplier, brokerage_flat=brokerage_flat, slippage_pct=slippage_pct)
+    
+    strategy_class = STRATEGY_REGISTRY.get(strategy_name, HeikinAshiGarStrategy)
+    backtest_strategy = strategy_class(**(strategy_params or {}))
+    
+    for i in range(2, len(raw_df)):
+        slice_df = raw_df.iloc[:i+1]
+        current_tick = raw_df.iloc[i]
+        
+        signal, meta = backtest_strategy.evaluate(slice_df)
+        
+        if signal == "BUY":
+            stop_loss = meta.get("stop_loss", 0.0)
+            target = meta.get("target_price", 0.0)
+            details = ""
+            if isinstance(backtest_strategy, HeikinAshiGarStrategy):
+                raw_prior_open = raw_df.iloc[i-2]['open']
+                candle_prior = ha_df.iloc[i-2]
+                candle_completed = ha_df.iloc[i-1]
+                details = (
+                    f"GAR Pattern confirmed. "
+                    f"Prior RED HA candle closed (O: ₹{candle_prior['open']:.2f}, C: ₹{candle_prior['close']:.2f}). "
+                    f"Completed GREEN HA candle closed (O: ₹{candle_completed['open']:.2f}, C: ₹{candle_completed['close']:.2f}) "
+                    f"with low deviation of {abs(candle_completed['open'] - candle_completed['low']):.3f}. "
+                    f"Stop Loss anchored at prior raw candle open (₹{raw_prior_open:.2f})."
+                )
+            else:
+                details = f"5 EMA Scalping entry at ₹{current_tick['close']:.2f}. SL: ₹{stop_loss:.2f}, Target: ₹{target:.2f}."
+                
+            backtest_account.buy(instrument_key, current_tick['close'], current_tick['timestamp'], stop_loss=stop_loss, details=details)
+            backtest_strategy.stop_loss_level = stop_loss
+            if target > 0.0:
+                backtest_strategy.target_level = target
+                
+        elif signal == "EXIT":
+            reason = meta.get("reason", "TECHNICAL_REVERSAL")
+            details = ""
+            if reason == "TECHNICAL_REVERSAL" and isinstance(backtest_strategy, HeikinAshiGarStrategy):
+                candle_completed = ha_df.iloc[i-1]
+                details = (
+                    f"Technical trend reversal detected. Completed Heikin Ashi candle closed RED "
+                    f"(Open: ₹{candle_completed['open']:.2f}, Close: ₹{candle_completed['close']:.2f})."
+                )
+            elif reason == "MAX_DURATION":
+                details = f"Max holding limit reached. Position held for {backtest_strategy.candles_held} candles."
+            elif reason == "SESSION_END":
+                details = f"Session cutoff triggered. Intraday position automatically closed."
+            elif reason == "STOP_LOSS":
+                details = f"Stop Loss triggered. Low price of current candle touched SL: ₹{backtest_strategy.stop_loss_level:.2f}."
+            elif reason == "TARGET_LIMIT":
+                details = f"Target Limit hit at ₹{backtest_strategy.target_level:.2f}."
+                
+            exit_price = current_tick['close']
+            if reason == "STOP_LOSS":
+                exit_price = backtest_strategy.stop_loss_level
+            elif reason == "TARGET_LIMIT":
+                exit_price = backtest_strategy.target_level
+                
+            backtest_account.sell(instrument_key, exit_price, current_tick['timestamp'], reason, details=details)
+            backtest_strategy.reset_state()
+            
+    HEIKIN_ASHI_CANDLES = []
+    for idx, row in ha_df.iterrows():
+        HEIKIN_ASHI_CANDLES.append({
+            'time': get_unix_timestamp(row['timestamp']),
+            'open': float(row['open']),
+            'high': float(row['high']),
+            'low': float(row['low']),
+            'close': float(row['close'])
+        })
+        
+    db.close_session(CURRENT_SESSION_ID, SYSTEM_STATUS["balance"], DB_PATH)
+    log_event("Historical backtest sequence execution complete.", "BACKTEST")
+
+def rebuild_telemetry_candles():
+    global HEIKIN_ASHI_CANDLES, current_feed, SYSTEM_STATUS
+    if not current_feed:
+        return
+        
+    merged = list(current_feed.candles_history)
+    if current_feed.current_candle:
+        merged.append(current_feed.current_candle)
+        
+    if not merged:
+        HEIKIN_ASHI_CANDLES = []
+        return
+        
+    candle_type = SYSTEM_STATUS.get("chart_type", "heikin_ashi")
+    
+    if candle_type == "heikin_ashi":
+        try:
+            df = pd.DataFrame(merged)
+            ha_df = calculate_heikin_ashi(df)
+            new_candles = []
+            for idx, row in ha_df.iterrows():
+                new_candles.append({
+                    'time': get_unix_timestamp(row['timestamp']),
+                    'open': round(float(row['open']), 2),
+                    'high': round(float(row['high']), 2),
+                    'low': round(float(row['low']), 2),
+                    'close': round(float(row['close']), 2)
+                })
+            HEIKIN_ASHI_CANDLES = new_candles
+        except Exception as e:
+            log_event(f"Failed to calculate Heikin Ashi: {e}", "ERROR")
+            HEIKIN_ASHI_CANDLES = []
+    else:
+        HEIKIN_ASHI_CANDLES = []
+        for c in merged:
+            HEIKIN_ASHI_CANDLES.append({
+                'time': get_unix_timestamp(c['timestamp']),
+                'open': round(float(c['open']), 2),
+                'high': round(float(c['high']), 2),
+                'low': round(float(c['low']), 2),
+                'close': round(float(c['close']), 2)
+            })
+
+current_feed = None
+current_strategy = None
+active_thread = None
+running_loop = None
+main_event_loop = asyncio.get_event_loop()
+
+LAST_NIFTY_SPOT_TIME = 0.0
+CACHED_NIFTY_SPOT = 0.0
+SESSION_START_TIME = 0.0
+
+# -------------------------------
+# FastAPI REST Endpoint Implementations
+# -------------------------------
+
+@app.get('/api/instruments')
+def get_expiry_dates(exchange: str = 'NSE', index: str = 'NIFTY'):
+    sync_nifty_options_csv()
+    segment = "NSE_FO" if exchange == "NSE" else "BSE_FO"
+    if not os.path.exists(CSV_PATH):
+        raise HTTPException(status_code=404, detail="Instruments catalog missing.")
+    df = pd.read_csv(CSV_PATH)
+    df['expiry_date'] = pd.to_datetime(df['expiry'], unit='ms').dt.strftime('%Y-%m-%d')
+    filtered = df[(df['segment'] == segment) & (df['name'] == index)]
+    expiries = sorted(filtered['expiry_date'].dropna().unique())
+    return expiries
+
+@app.get('/api/strikes')
+def get_strikes(expiry: str, type: str = 'CE', exchange: str = 'NSE', index: str = 'NIFTY'):
+    segment = "NSE_FO" if exchange == "NSE" else "BSE_FO"
+    if not os.path.exists(CSV_PATH):
+        raise HTTPException(status_code=404, detail="Instruments catalog missing.")
+    df = pd.read_csv(CSV_PATH)
+    df['expiry_date'] = pd.to_datetime(df['expiry'], unit='ms').dt.strftime('%Y-%m-%d')
+    filtered = df[
+        (df['segment'] == segment) & 
+        (df['name'] == index) & 
+        (df['expiry_date'] == expiry) & 
+        (df['instrument_type'] == type)
+    ]
+    strikes = sorted(filtered['strike_price'].dropna().unique())
+    return strikes
+
+@app.get('/api/atr')
+def get_atr(period: int = 14):
+    global current_feed
+    if not current_feed or not current_feed.candles_history:
+        return {"atr": 1.0, "error": "No candles data available."}
+        
+    candles = list(current_feed.candles_history)
+    if len(candles) < 3:
+        return {"atr": 1.0, "warning": "Too few candles."}
+        
+    trs = []
+    for i in range(1, len(candles)):
+        h = candles[i].get('high', candles[i].get('close', 0.0))
+        l = candles[i].get('low', candles[i].get('close', 0.0))
+        pc = candles[i-1].get('close', 0.0)
+        tr = max(h - l, abs(h - pc), abs(l - pc))
+        trs.append(tr)
+        
+    if not trs:
+        return {"atr": 1.0}
+        
+    if len(trs) < period:
+        atr = sum(trs) / len(trs)
+    else:
+        atr = sum(trs[:period]) / period
+        for i in range(period, len(trs)):
+            atr = (atr * (period - 1) + trs[i]) / period
+            
+    return {"atr": round(atr, 2)}
+
+@app.get('/api/options/metadata')
+def get_options_metadata(exchange: str = 'NSE', index: str = 'NIFTY'):
+    sync_nifty_options_csv()
+    if not os.path.exists(CSV_PATH):
+        raise HTTPException(status_code=404, detail="CSV file missing")
+        
+    df = pd.read_csv(CSV_PATH)
+    segment = "NSE_FO" if exchange == "NSE" else "BSE_FO"
+    
+    sub_df = df[(df['segment'] == segment) & (df['name'] == index)].copy()
+    if sub_df.empty:
+        return {"expiries": [], "spot_price": 0.0, "atm_strike": 0.0, "strikes": []}
+        
+    sub_df['expiry_date'] = pd.to_datetime(sub_df['expiry'], unit='ms').dt.strftime('%Y-%m-%d')
+    expiries = sorted(sub_df['expiry_date'].dropna().unique())
+    
+    underlying_keys_map = {
+        "NIFTY": "NSE_INDEX|Nifty 50",
+        "BANKNIFTY": "NSE_INDEX|Nifty Bank",
+        "FINNIFTY": "NSE_INDEX|Nifty Fin Service",
+        "MIDCPNIFTY": "NSE_INDEX|NIFTY MID SELECT",
+        "SENSEX": "BSE_INDEX|SENSEX",
+        "BANKEX": "BSE_INDEX|BANKEX"
+    }
+    
+    underlying_key = underlying_keys_map.get(index, "NSE_INDEX|Nifty 50")
+    spot_price = get_index_spot_price(underlying_key)
+    
+    atm_strike = 0.0
+    if spot_price > 0:
+        step = 100
+        if index in ["NIFTY", "MIDCPNIFTY"]:
+            step = 50
+        atm_strike = round(spot_price / step) * step
+        
+    strikes = sorted([float(x) for x in sub_df['strike_price'].dropna().unique()])
+    
+    return {
+        "expiries": expiries,
+        "spot_price": spot_price,
+        "atm_strike": atm_strike,
+        "strikes": strikes
+    }
+
+class ChartConfigModel(BaseModel):
+    interval: str = "1minute"
+    candle_type: str = "heikin_ashi"
+
+@app.post('/api/chart/config')
+def set_chart_config(config: ChartConfigModel):
+    global current_feed, SYSTEM_STATUS, HEIKIN_ASHI_CANDLES
+    interval = config.interval
+    candle_type = config.candle_type
+    
+    SYSTEM_STATUS["chart_interval"] = interval
+    SYSTEM_STATUS["chart_type"] = candle_type
+    
+    if current_feed:
+        current_feed.interval = interval
+        current_feed.candles_history = []
+        current_feed.current_candle = None
+        
+        try:
+            to_date = datetime.now()
+            from_date = to_date - timedelta(days=3)
+            hist = fetch_historical_candles(current_feed.instrument_key, '1minute', from_date, to_date)
+            if interval in ["5minute", "15minute"]:
+                hist = resample_candles(hist, interval)
+            current_feed.candles_history = hist[-100:]
+            
+            rebuild_telemetry_candles()
+            log_event(f"Chart interval updated to {interval}.", "SYSTEM")
+        except Exception as e:
+            log_event(f"Failed to fetch historical candles for interval {interval}: {e}", "WARNING")
+            
+    return {"status": "success", "chart_interval": interval, "chart_type": candle_type}
+
+class UnifiedTargetUpdateModel(BaseModel):
+    expiry: str
+    option_type: str = "CE"
+    strike: str = "ATM"
+    exchange: str = "NSE"
+    index_name: str = "NIFTY"
+    index: Optional[str] = None
+
+def handle_unified_target_update(req_data: UnifiedTargetUpdateModel):
+    global SYSTEM_STATUS, current_feed, running_loop
+    expiry = req_data.expiry
+    option_type = req_data.option_type
+    strike = req_data.strike
+    exchange = req_data.exchange
+    index_name = req_data.index or req_data.index_name
+    
+    sync_nifty_options_csv()
+    
+    if strike == "ATM":
+        underlying_keys_map = {
+            "NIFTY": "NSE_INDEX|Nifty 50",
+            "BANKNIFTY": "NSE_INDEX|Nifty Bank",
+            "FINNIFTY": "NSE_INDEX|Nifty Fin Service",
+            "MIDCPNIFTY": "NSE_INDEX|NIFTY MID SELECT",
+            "SENSEX": "BSE_INDEX|SENSEX",
+            "BANKEX": "BSE_INDEX|BANKEX"
+        }
+        underlying_key = underlying_keys_map.get(index_name, "NSE_INDEX|Nifty 50")
+        spot_price = get_index_spot_price(underlying_key)
+        if spot_price == 0.0:
+            strike_price = 22000.0
+        else:
+            step = 100
+            if index_name in ["NIFTY", "MIDCPNIFTY"]:
+                step = 50
+            strike_price = round(spot_price / step) * step
+    else:
+        strike_price = float(strike)
+        
+    try:
+        standard_key, standard_symbol, standard_multiplier = get_instrument_details(index_name, strike_price, expiry, option_type)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Instrument lookup failed: {e}")
+        
+    SYSTEM_STATUS.update({
+        "instrument_key": standard_key,
+        "trading_symbol": standard_symbol,
+        "lot_size_multiplier": standard_multiplier,
+        "option_type": option_type,
+        "strike": strike_price,
+        "expiry": expiry,
+        "exchange": exchange,
+        "index_name": index_name,
+        "spot_price": 0.0,
+        
+        "scalper_instrument_key": standard_key,
+        "scalper_trading_symbol": standard_symbol,
+        "scalper_lot_multiplier": standard_multiplier,
+        "scalper_option_type": option_type,
+        "scalper_strike": strike_price,
+        "scalper_spot_price": 0.0
+    })
+    
+    if current_feed and running_loop:
+        current_feed.instrument_key = standard_key
+        current_feed.scalper_key = standard_key
+        current_feed.candles_history = []
+        current_feed.current_candle = None
+        
+        try:
+            to_date = datetime.now()
+            from_date = to_date - timedelta(days=3)
+            active_int = SYSTEM_STATUS.get("chart_interval", "1minute")
+            hist = fetch_historical_candles(standard_key, '1minute', from_date, to_date)
+            if active_int in ["5minute", "15minute"]:
+                hist = resample_candles(hist, active_int)
+            current_feed.candles_history = hist[-100:]
+            
+            rebuild_telemetry_candles()
+            log_event(f"Dynamically pre-populated candles for target: {standard_symbol}", "SYSTEM")
+        except Exception as e:
+            log_event(f"Failed to pre-populate candles: {e}", "WARNING")
+            
+        future = asyncio.run_coroutine_threadsafe(
+            current_feed.subscribe_to_keys([standard_key]),
+            running_loop
+        )
+        try:
+            future.result(timeout=2.0)
+        except Exception as e:
+            log_event(f"Error subscribing dynamically to {standard_key}: {e}", "ERROR")
+        log_event(f"Updated Target Option dynamically: {standard_symbol}", "SYSTEM")
+        
+    return {"message": f"Target updated to {standard_symbol}", "status": SYSTEM_STATUS}
+
+@app.post('/api/scalper/update_target')
+def update_scalper_target(req_data: UnifiedTargetUpdateModel):
+    return handle_unified_target_update(req_data)
+
+@app.post('/api/standard/update_target')
+def update_standard_target(req_data: UnifiedTargetUpdateModel):
+    return handle_unified_target_update(req_data)
+
+class StartEngineModel(BaseModel):
+    mode: str = "BACKTEST"
+    lot_size: int = 1
+    live_protection: bool = False
+    expiry: str
+    option_type: str = "CE"
+    strike: str = "ATM"
+    exchange: str = "NSE"
+    index_name: Optional[str] = None
+    index: Optional[str] = None
+    
+    scalper_expiry: Optional[str] = None
+    scalper_option_type: str = "CE"
+    scalper_strike: str = "ATM"
+    
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    timeframe: str = "1minute"
+    max_candles: int = 10
+    cutoff_time: str = "15:15"
+    brokerage_flat: float = 20.0
+    slippage_pct: float = 0.05
+    initial_balance: float = 100000.0
+    
+    strategy: str = "heikin_ashi_gar"
+    five_ema_period: int = 5
+    five_ema_rr: float = 3.0
+    
+    live_trading: bool = False
+
+@app.post('/start')
+def start_engine(req_data: StartEngineModel):
+    global SYSTEM_STATUS, TRADE_LOGS, EVENT_LOGS, EQUITY_CURVE, HEIKIN_ASHI_CANDLES, current_feed, current_strategy, active_thread, running_loop, CURRENT_SESSION_ID
+    
+    mode = req_data.mode
+    lot_size = req_data.lot_size
+    live_protection = req_data.live_protection
+    expiry = req_data.expiry
+    option_type = req_data.option_type
+    strike = req_data.strike
+    exchange = req_data.exchange
+    index_name = req_data.index or req_data.index_name or "NIFTY"
+    
+    scalper_expiry = req_data.scalper_expiry
+    scalper_option_type = req_data.scalper_option_type
+    scalper_strike = req_data.scalper_strike
+    
+    start_date_str = req_data.start_date
+    end_date_str = req_data.end_date
+    timeframe = req_data.timeframe
+    max_candles = req_data.max_candles
+    cutoff_time = req_data.cutoff_time
+    brokerage_flat = req_data.brokerage_flat
+    slippage_pct = req_data.slippage_pct
+    initial_balance = req_data.initial_balance
+    
+    strategy_name = req_data.strategy
+    strategy_params = {}
+    if strategy_name == "heikin_ashi_gar":
+        strategy_params = {
+            "candle_limit": int(max_candles),
+            "cut_off_time": cutoff_time
+        }
+    elif strategy_name == "five_ema_scalping":
+        strategy_params = {
+            "ema_period": int(req_data.five_ema_period),
+            "rr_ratio": float(req_data.five_ema_rr),
+            "cut_off_time": cutoff_time
+        }
+        
+    period_type = "custom"
+    start_date, end_date = parse_predefined_period(period_type, start_date_str, end_date_str)
+    
+    if strike == "ATM":
+        log_event(f"Strike configured as ATM for {index_name}. Fetching spot price...", "SYSTEM")
+        underlying_keys_map = {
+            "NIFTY": "NSE_INDEX|Nifty 50",
+            "BANKNIFTY": "NSE_INDEX|Nifty Bank",
+            "FINNIFTY": "NSE_INDEX|Nifty Fin Service",
+            "MIDCPNIFTY": "NSE_INDEX|NIFTY MID SELECT",
+            "SENSEX": "BSE_INDEX|SENSEX",
+            "BANKEX": "BSE_INDEX|BANKEX"
+        }
+        underlying_key = underlying_keys_map.get(index_name, "NSE_INDEX|Nifty 50")
+        spot_price = get_index_spot_price(underlying_key)
+        if spot_price == 0.0:
+            strike_price = 22000.0
+        else:
+            step = 100
+            if index_name in ["NIFTY", "MIDCPNIFTY"]:
+                step = 50
+            strike_price = round(spot_price / step) * step
+    else:
+        strike_price = float(strike)
+        
+    try:
+        instrument_key, trading_symbol, lot_multiplier = get_instrument_details(index_name, strike_price, expiry, option_type)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Instrument lookup failed: {e}")
+        
+    if not scalper_expiry:
+        scalper_expiry = expiry
+        scalper_option_type = option_type
+        scalper_strike = strike
+        scalper_key = instrument_key
+        scalper_symbol = trading_symbol
+        scalper_multiplier = lot_multiplier
+    else:
+        if scalper_strike == "ATM":
+            underlying_keys_map = {
+                "NIFTY": "NSE_INDEX|Nifty 50",
+                "BANKNIFTY": "NSE_INDEX|Nifty Bank",
+                "FINNIFTY": "NSE_INDEX|Nifty Fin Service",
+                "MIDCPNIFTY": "NSE_INDEX|NIFTY MID SELECT",
+                "SENSEX": "BSE_INDEX|SENSEX",
+                "BANKEX": "BSE_INDEX|BANKEX"
+            }
+            underlying_key = underlying_keys_map.get(index_name, "NSE_INDEX|Nifty 50")
+            spot_price = get_index_spot_price(underlying_key)
+            if spot_price == 0.0:
+                scalper_strike_price = 22000.0
+            else:
+                step = 100
+                if index_name in ["NIFTY", "MIDCPNIFTY"]:
+                    step = 50
+                scalper_strike_price = round(spot_price / step) * step
+        else:
+            scalper_strike_price = float(scalper_strike)
+            
+        try:
+            scalper_key, scalper_symbol, scalper_multiplier = get_instrument_details(index_name, scalper_strike_price, scalper_expiry, scalper_option_type)
+        except Exception:
+            scalper_key, scalper_symbol, scalper_multiplier = instrument_key, trading_symbol, lot_multiplier
+ 
+    if SYSTEM_STATUS["state"] in ["PROCESSING", "LIVE_MONITORING", "RUNNING_BACKTEST"]:
+        raise HTTPException(status_code=400, detail="Session is already active. Stop it first.")
+ 
+    global GTT_ORDERS
+    TRADE_LOGS = []
+    EVENT_LOGS = []
+    EQUITY_CURVE = [{"timestamp": datetime.now().isoformat(), "equity": initial_balance}]
+    HEIKIN_ASHI_CANDLES = []
+    GTT_ORDERS = []
+    
+    SYSTEM_STATUS.update({
+        "state": "PROCESSING",
+        "mode": mode,
+        "balance": initial_balance,
+        "initial_balance": initial_balance,
+        "position": None,
+        "instrument_key": instrument_key,
+        "trading_symbol": trading_symbol,
+        "strike": strike_price,
+        "expiry": expiry,
+        "option_type": option_type,
+        "exchange": exchange,
+        "index_name": index_name,
+        
+        "scalper_instrument_key": scalper_key,
+        "scalper_trading_symbol": scalper_symbol,
+        "scalper_lot_multiplier": scalper_multiplier,
+        "scalper_option_type": scalper_option_type,
+        "scalper_strike": scalper_strike,
+        "scalper_spot_price": 0.0,
+        
+        "live_protection": live_protection,
+        "is_real_execution": False,
+        "lot_size": lot_size,
+        "lot_size_multiplier": lot_multiplier,
+        "total_pnl": 0.0,
+        "return_percent": 0.0,
+        "max_drawdown": 0.0,
+        "profit_factor": 0.0,
+        "total_trades": 0,
+        "win_rate": 0.0,
+        "sharpe_ratio": 0.0,
+        "max_consec_wins": 0,
+        "max_consec_losses": 0
+    })
+    
+    if mode == "BACKTEST":
+        def run_backtest_thread():
+            global SYSTEM_STATUS
+            SYSTEM_STATUS["state"] = "RUNNING_BACKTEST"
+            try:
+                run_historical_backtest(
+                    instrument_key, 
+                    lot_size, 
+                    start_date, 
+                    end_date, 
+                    timeframe, 
+                    max_candles, 
+                    cutoff_time, 
+                    brokerage_flat, 
+                    slippage_pct,
+                    initial_balance,
+                    strategy_name=strategy_name,
+                    strategy_params=strategy_params
+                )
+                SYSTEM_STATUS["state"] = "COMPLETED"
+            except Exception as e:
+                log_event(f"Backtest execution failed: {e}", "ERROR")
+                SYSTEM_STATUS["state"] = "FAILED"
+        active_thread = threading.Thread(target=run_backtest_thread, daemon=True)
+        active_thread.start()
+        return {"message": "Backtest session initialized.", "status": SYSTEM_STATUS}
+        
+    elif mode in ["PAPER", "LIVE", "MANUAL"]:
+        CURRENT_SESSION_ID = db.create_session(mode, initial_balance, DB_PATH)
+        SYSTEM_STATUS["session_id"] = CURRENT_SESSION_ID
+        
+        account_is_real = (mode == "LIVE" or (mode == "MANUAL" and req_data.live_trading)) and live_protection
+        log_event(f"Starting {mode} session engine. Real Execution active: {account_is_real} | Session ID: {CURRENT_SESSION_ID}", "SYSTEM")
+        SYSTEM_STATUS["is_real_execution"] = account_is_real
+        
+        strategy_class = STRATEGY_REGISTRY.get(strategy_name, HeikinAshiGarStrategy)
+        current_strategy = strategy_class(**strategy_params)
+        
+        engine_account = EngineAccount(
+            initial_balance=initial_balance, 
+            is_real=account_is_real, 
+            lot_size=lot_size, 
+            lot_size_multiplier=lot_multiplier,
+            brokerage_flat=brokerage_flat, 
+            slippage_pct=slippage_pct
+        )
+        current_feed = LiveFeed(instrument_key, current_strategy, engine_account, scalper_key=scalper_key)
+        
+        def run_websocket_loop():
+            global running_loop
+            running_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(running_loop)
+            try:
+                running_loop.run_until_complete(current_feed.connect())
+            except Exception as e:
+                log_event(f"WebSocket session disconnected: {e}", "ERROR")
+            finally:
+                SYSTEM_STATUS["state"] = "DISCONNECTED"
+                
+        active_thread = threading.Thread(target=run_websocket_loop, daemon=True)
+        active_thread.start()
+        
+        SYSTEM_STATUS["state"] = "LIVE_MONITORING"
+        return {"message": f"{mode} session engine initialized.", "status": SYSTEM_STATUS}
+        
+    raise HTTPException(status_code=400, detail="Unsupported execution mode.")
+
+@app.post('/stop')
+def stop_engine():
+    global current_feed, running_loop, active_thread, SYSTEM_STATUS, CURRENT_SESSION_ID
+    log_event("Shutdown instruction received. Stopping session engine...", "SYSTEM")
+    
+    if current_feed:
+        current_feed.stop()
+        current_feed = None
+        
+    if running_loop:
+        try:
+            running_loop.call_soon_threadsafe(running_loop.stop)
+        except Exception:
+            pass
+        running_loop = None
+        
+    if CURRENT_SESSION_ID:
+        db.close_session(CURRENT_SESSION_ID, SYSTEM_STATUS["balance"], DB_PATH)
+        CURRENT_SESSION_ID = None
+        
+    SYSTEM_STATUS["state"] = "IDLE"
+    return {"message": "Session engine successfully halted.", "status": SYSTEM_STATUS}
+
+@app.get('/telemetry')
+def get_telemetry():
+    global LAST_NIFTY_SPOT_TIME, CACHED_NIFTY_SPOT, current_feed, active_thread, SESSION_START_TIME
+    
+    if SYSTEM_STATUS.get("state") in ["LIVE_MONITORING", "PROCESSING"]:
+        elapsed_since_start = time.time() - SESSION_START_TIME
+        if elapsed_since_start > 8.0:
+            is_alive = False
+            if current_feed and active_thread and active_thread.is_alive():
+                if SYSTEM_STATUS.get("state") == "PROCESSING":
+                    is_alive = True
+                elif current_feed.ws and not getattr(current_feed.ws, 'closed', False):
+                    is_alive = True
+                    
+            if not is_alive:
+                log_event("Connection check: option stream feed is not active. Resetting state to IDLE.", "SYSTEM")
+                if current_feed:
+                    try:
+                        current_feed.stop()
+                    except Exception:
+                        pass
+                    current_feed = None
+                SYSTEM_STATUS["state"] = "IDLE"
+                SYSTEM_STATUS["position"] = None
+            
+    update_telemetry_metrics()
+    now = time.time()
+    active_index = SYSTEM_STATUS.get("index_name", "NIFTY")
+    
+    underlying_keys_map = {
+        "NIFTY": "NSE_INDEX|Nifty 50",
+        "BANKNIFTY": "NSE_INDEX|Nifty Bank",
+        "FINNIFTY": "NSE_INDEX|Nifty Fin Service",
+        "MIDCPNIFTY": "NSE_INDEX|NIFTY MID SELECT",
+        "SENSEX": "BSE_INDEX|SENSEX",
+        "BANKEX": "BSE_INDEX|BANKEX"
+    }
+    
+    if now - LAST_NIFTY_SPOT_TIME > 10.0:
+        try:
+            underlying_key = underlying_keys_map.get(active_index, "NSE_INDEX|Nifty 50")
+            spot = get_index_spot_price(underlying_key)
+            if spot > 0:
+                CACHED_NIFTY_SPOT = spot
+                LAST_NIFTY_SPOT_TIME = now
+        except Exception:
+            pass
+    SYSTEM_STATUS["nifty_spot"] = CACHED_NIFTY_SPOT
+
+    return {
+        "status": SYSTEM_STATUS,
+        "trades": TRADE_LOGS,
+        "logs": EVENT_LOGS,
+        "candles": HEIKIN_ASHI_CANDLES,
+        "gtt_orders": GTT_ORDERS
+    }
+
+class BuyOrderModel(BaseModel):
+    qty: int = 1
+    target: float = 0.0
+    target_type: str = "points"
+    stop_loss: float = 0.0
+    stop_loss_type: str = "points"
+    trailing_gap: float = 0.0
+    is_scalper: bool = False
+
+@app.post('/manual/buy')
+def manual_buy(req_data: BuyOrderModel):
+    global SYSTEM_STATUS, current_feed, TRADE_LOGS
+    if not current_feed or not current_feed.account:
+        raise HTTPException(status_code=400, detail="Trading Desk stream is not connected. Connect first.")
+        
+    pos = SYSTEM_STATUS.get("position")
+    qty = req_data.qty
+    target = req_data.target
+    target_type = req_data.target_type
+    stop_loss = req_data.stop_loss
+    stop_loss_type = req_data.stop_loss_type
+    trailing_gap = req_data.trailing_gap
+    is_scalper = req_data.is_scalper
+    
+    if is_scalper:
+        instrument_key = SYSTEM_STATUS.get("scalper_instrument_key", SYSTEM_STATUS["instrument_key"])
+        lot_mult = SYSTEM_STATUS.get("scalper_lot_multiplier", SYSTEM_STATUS["lot_size_multiplier"])
+        price = SYSTEM_STATUS.get("scalper_spot_price", 0.0)
+    else:
+        instrument_key = SYSTEM_STATUS["instrument_key"]
+        lot_mult = SYSTEM_STATUS["lot_size_multiplier"]
+        price = SYSTEM_STATUS["spot_price"]
+
+    if pos and pos.get("instrument_key") and pos["instrument_key"] != instrument_key:
+        raise HTTPException(status_code=400, detail=f"Already in a position for {pos['instrument_key']}. Exit first before buying a different instrument.")
+        
+    if price <= 0.0:
+        raise HTTPException(status_code=400, detail=f"LTP is not available yet for {instrument_key}. Wait for a tick.")
+        
+    current_feed.account.lot_size = qty
+    current_feed.account.lot_size_multiplier = lot_mult
+    current_feed.account.qty = qty * lot_mult
+    SYSTEM_STATUS["lot_size"] = qty
+    
+    success = current_feed.account.buy(
+        instrument_key=instrument_key,
+        price=price,
+        timestamp=datetime.now(),
+        stop_loss=0.0,
+        details="SCALPER_BUY" if is_scalper else "MANUAL_BUY"
+    )
+    if success:
+        avg_entry = current_feed.account.entry_price
+        target_price = 0.0
+        stop_loss_price = 0.0
+        
+        if target > 0.0:
+            if target_type == "points":
+                target_price = avg_entry + target
+            elif target_type == "percent":
+                target_price = avg_entry * (1.0 + target / 100.0)
+            elif target_type == "atr":
+                target_price = avg_entry + target
+                
+        if stop_loss > 0.0:
+            if stop_loss_type == "points":
+                stop_loss_price = avg_entry - stop_loss
+            elif stop_loss_type == "percent":
+                stop_loss_price = avg_entry * (1.0 - stop_loss / 100.0)
+            elif stop_loss_type == "atr":
+                stop_loss_price = avg_entry - stop_loss
+                
+        if SYSTEM_STATUS["position"]:
+            SYSTEM_STATUS["position"]["target_price"] = target_price
+            SYSTEM_STATUS["position"]["stop_loss"] = stop_loss_price
+            SYSTEM_STATUS["position"]["is_scalper"] = is_scalper
+            SYSTEM_STATUS["position"]["trailing_gap"] = trailing_gap
+            SYSTEM_STATUS["position"]["highest_price"] = price
+            SYSTEM_STATUS["position"]["total_qty"] = current_feed.account.qty
+            
+        action = "scaled in" if pos else "opened"
+        return {"message": f"BUY order executed ({action}). Avg: ₹{avg_entry:.2f} | Qty: {current_feed.account.qty}", "status": SYSTEM_STATUS}
+    else:
+        reason = getattr(current_feed.account, 'buy_reject_reason', '') or 'Unknown failure'
+        log_event(f"Manual BUY rejected: {reason}", "ERROR")
+        raise HTTPException(status_code=400, detail=f"BUY rejected: {reason}")
+
+@app.post('/manual/sell')
+def manual_sell():
+    global SYSTEM_STATUS, current_feed, TRADE_LOGS
+    if not current_feed or not current_feed.account or not current_feed.account.position:
+        raise HTTPException(status_code=400, detail="No active position to exit.")
+        
+    pos = SYSTEM_STATUS["position"]
+    instrument_key = pos["instrument_key"]
+    is_scalper = pos.get("is_scalper", False)
+    
+    price = SYSTEM_STATUS["scalper_spot_price"] if is_scalper else SYSTEM_STATUS["spot_price"]
+    if price <= 0.0:
+        raise HTTPException(status_code=400, detail="Spot price is not available yet.")
+        
+    success = current_feed.account.sell(
+        instrument_key=instrument_key,
+        price=price,
+        timestamp=datetime.now(),
+        reason="MANUAL_EXIT",
+        details="Manual exit from dashboard"
+    )
+    if success:
+        return {"message": "Manual SELL/EXIT order executed.", "status": SYSTEM_STATUS}
+    else:
+        raise HTTPException(status_code=400, detail="Manual SELL/EXIT order failed.")
+
+@app.post('/manual/panic_exit')
+def manual_panic_exit():
+    global SYSTEM_STATUS, current_feed, GTT_ORDERS
+    
+    cancelled_count = 0
+    for order in GTT_ORDERS:
+        if order.get("status") == "PENDING":
+            order["status"] = "CANCELLED"
+            cancelled_count += 1
+            log_event(f"GTT Trigger Cancelled via Panic Exit: {order['id']}", "SYSTEM")
+            
+    squared_off = False
+    if current_feed and current_feed.account and current_feed.account.position:
+        pos = SYSTEM_STATUS["position"]
+        if pos:
+            instrument_key = pos["instrument_key"]
+            is_scalper = pos.get("is_scalper", False)
+            price = SYSTEM_STATUS["scalper_spot_price"] if is_scalper else SYSTEM_STATUS["spot_price"]
+            if price > 0.0:
+                success = current_feed.account.sell(
+                    instrument_key=instrument_key,
+                    price=price,
+                    timestamp=datetime.now(),
+                    reason="PANIC_EXIT",
+                    details="Emergency Panic Square Off"
+                )
+                if success:
+                    squared_off = True
+            else:
+                fallback_price = pos.get("average_price", 1.0)
+                success = current_feed.account.sell(
+                    instrument_key=instrument_key,
+                    price=fallback_price,
+                    timestamp=datetime.now(),
+                    reason="PANIC_EXIT",
+                    details="Emergency Panic Square Off (LTP Fallback)"
+                )
+                if success:
+                    squared_off = True
+                    
+    msg = f"Panic Exit Executed: Cancelled {cancelled_count} GTT orders."
+    if squared_off:
+        msg += " Open position squared off."
+    else:
+        msg += " No active position to square off."
+        
+    log_event(msg, "SYSTEM")
+    return {"message": msg, "status": SYSTEM_STATUS}
+
+class GttOrderModel(BaseModel):
+    trigger_price: float
+    qty: int = 1
+    side: str = "BUY"
+    order_type: str = "MARKET"
+    price: float = 0.0
+    target: float = 0.0
+    target_type: str = "points"
+    stop_loss: float = 0.0
+    stop_loss_type: str = "points"
+    trailing_gap: float = 0.0
+    direction: Optional[str] = None
+
+@app.post('/manual/gtt/create')
+def manual_gtt_create(req_data: GttOrderModel):
+    global GTT_ORDERS, SYSTEM_STATUS
+    if not current_feed:
+        raise HTTPException(status_code=400, detail="Trading Desk stream is not connected.")
+        
+    try:
+        trigger_price = req_data.trigger_price
+        qty = req_data.qty
+        side = req_data.side.upper()
+        order_type = req_data.order_type.upper()
+        price = req_data.price
+        
+        target = req_data.target
+        target_type = req_data.target_type
+        stop_loss = req_data.stop_loss
+        stop_loss_type = req_data.stop_loss_type
+        trailing_gap = req_data.trailing_gap
+        
+        if trigger_price <= 0.0:
+            raise HTTPException(status_code=400, detail="Trigger price must be greater than 0.")
+            
+        direction = req_data.direction
+        if not direction:
+            current_price = SYSTEM_STATUS["spot_price"]
+            if current_price <= 0.0:
+                current_price = trigger_price
+            direction = "ABOVE" if trigger_price >= current_price else "BELOW"
+        direction = direction.upper()
+        
+        gtt_id = f"GTT_{int(time.time() * 1000)}"
+        gtt_order = {
+            "id": gtt_id,
+            "trigger_price": trigger_price,
+            "side": side,
+            "qty": qty,
+            "order_type": order_type,
+            "price": price if order_type == "LIMIT" else trigger_price,
+            "target": target,
+            "target_type": target_type,
+            "stop_loss": stop_loss,
+            "stop_loss_type": stop_loss_type,
+            "trailing_gap": trailing_gap,
+            "direction": direction,
+            "status": "PENDING",
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+        GTT_ORDERS.append(gtt_order)
+        log_event(f"GTT Trigger Created: {side} {qty} Lots if LTP goes {direction} {trigger_price:.2f}", "SYSTEM")
+        return {"message": "GTT order created successfully.", "gtt_order": gtt_order}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+class CancelGttModel(BaseModel):
+    id: str
+
+@app.post('/manual/gtt/cancel')
+def manual_gtt_cancel(req_data: CancelGttModel):
+    global GTT_ORDERS
+    gtt_id = req_data.id
+    for order in GTT_ORDERS:
+        if order["id"] == gtt_id and order["status"] == "PENDING":
+            order["status"] = "CANCELLED"
+            log_event(f"GTT Trigger Cancelled: {order['id']}", "SYSTEM")
+            return {"message": "GTT order cancelled successfully."}
+    raise HTTPException(status_code=404, detail="GTT order not found or already triggered/cancelled.")
+
+# -------------------------------
+# WebSocket Telemetry Server
+# -------------------------------
+
+@app.websocket("/ws/telemetry")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    ws_connections.append(websocket)
+    log_event("Telemetry WebSocket client connected.", "WS")
+    try:
+        while True:
+            # Keep connection alive & receive client messages if any
+            data = await websocket.receive_text()
+            # Handle incoming ping / custom control frames from UI if needed
+            if data == "ping":
+                await websocket.send_text("pong")
+    except WebSocketDisconnect:
+        log_event("Telemetry WebSocket client disconnected.", "WS")
+    except Exception as e:
+        log_event(f"Telemetry WS handling error: {e}", "ERROR")
+    finally:
+        if websocket in ws_connections:
+            ws_connections.remove(websocket)
+
+# Periodically broadcast telemetry to all connected WS clients
+async def start_periodic_broadcaster():
+    while True:
+        try:
+            await broadcast_telemetry()
+        except Exception:
+            pass
+        await asyncio.sleep(1.0)
+
+def resume_active_session_if_any():
+    global CURRENT_SESSION_ID, SYSTEM_STATUS
+    active_session = db.get_active_session(DB_PATH)
+    if active_session:
+        session_id = active_session["id"]
+        db.close_session(session_id, active_session["initial_balance"], DB_PATH)
+        log_event(f"Halted previous active session {session_id} on startup.", "SYSTEM")
+    SYSTEM_STATUS["state"] = "IDLE"
+
+def start_docs_watcher():
+    def watch_docs():
+        files_state = {}
+        for root, dirs, files in os.walk(os.path.join(ROOT_DIR, "backend")):
+            for f in files:
+                if f.endswith(".py"):
+                    path = os.path.join(root, f)
+                    try:
+                        files_state[path] = os.path.getmtime(path)
+                    except Exception:
+                        pass
+        for f in os.listdir(ROOT_DIR):
+            if f.endswith(".py") and f != "docs_generator.py":
+                path = os.path.join(ROOT_DIR, f)
+                try:
+                    files_state[path] = os.path.getmtime(path)
+                except Exception:
+                    pass
+        
+        while True:
+            time.sleep(5)
+            changed = False
+            for root, dirs, files in os.walk(os.path.join(ROOT_DIR, "backend")):
+                for f in files:
+                    if f.endswith(".py"):
+                        path = os.path.join(root, f)
+                        try:
+                            mtime = os.path.getmtime(path)
+                            if path not in files_state or files_state[path] != mtime:
+                                files_state[path] = mtime
+                                changed = True
+                        except Exception:
+                            pass
+            for f in os.listdir(ROOT_DIR):
+                if f.endswith(".py") and f != "docs_generator.py":
+                    path = os.path.join(ROOT_DIR, f)
+                    try:
+                        mtime = os.path.getmtime(path)
+                        if path not in files_state or files_state[path] != mtime:
+                            files_state[path] = mtime
+                            changed = True
+                    except Exception:
+                        pass
+                        
+            if changed:
+                log_event("Codebase change detected. Re-generating documentation...", "SYSTEM")
+                import subprocess
+                try:
+                    subprocess.run([sys.executable, os.path.join(ROOT_DIR, "docs_generator.py")], cwd=ROOT_DIR, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                except Exception as e:
+                    log_event(f"Docs auto-generation failed: {e}", "WARNING")
+                    
+    t = threading.Thread(target=watch_docs, daemon=True)
+    t.start()
+
+@app.on_event("startup")
+async def startup_event():
+    sync_nifty_options_csv()
+    resume_active_session_if_any()
+    # Trigger initial docs generation at startup
+    import subprocess
+    try:
+        subprocess.Popen([sys.executable, os.path.join(ROOT_DIR, "docs_generator.py")], cwd=ROOT_DIR)
+    except Exception:
+        pass
+    # Start file changes docs watcher
+    start_docs_watcher()
+    # Start periodic broadcaster in background of main event loop
+    asyncio.create_task(start_periodic_broadcaster())
+
+if __name__ == '__main__':
+    import uvicorn
+    uvicorn.run(app, host='0.0.0.0', port=8081)

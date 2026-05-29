@@ -2,8 +2,9 @@ upstox-python
 protobuf
 websocket-client
 python-dotenv
-flask
-flask-cors
+fastapi
+uvicorn
+websockets
 requests
 pytz
 pyotp

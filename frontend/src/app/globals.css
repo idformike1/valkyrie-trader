@@ -1,0 +1,203 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono&display=swap');
+
+:root {
+  --bg-deep: #05070f;
+  --bg-card: rgba(13, 20, 38, 0.6);
+  --bg-card-hover: rgba(20, 29, 54, 0.8);
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border-glow: rgba(0, 240, 255, 0.15);
+  --cyan-neon: #00f0ff;
+  --teal-neon: #00b4d8;
+  --gold-accent: #c5a880;
+  --green-neon: #00f5d4;
+  --red-neon: #ff5c8a;
+  --text-main: #f1f5f9;
+  --text-mute: #94a3b8;
+  --text-dark: #0f172a;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--bg-deep);
+  color: var(--text-main);
+  font-family: 'Outfit', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Scrollbar customizations */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.01);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cyan-neon);
+}
+
+/* Glassmorphism card styles */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-panel:hover {
+  border-color: rgba(0, 240, 255, 0.25);
+  box-shadow: 0 8px 32px 0 rgba(0, 240, 255, 0.05);
+}
+
+.glow-cyan {
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+}
+
+.glow-green {
+  text-shadow: 0 0 10px rgba(0, 255, 212, 0.5);
+}
+
+.glow-red {
+  text-shadow: 0 0 10px rgba(255, 92, 138, 0.5);
+}
+
+/* Animations */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.6;
+    box-shadow: 0 0 5px rgba(0, 240, 255, 0.2);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.6);
+  }
+}
+
+.pulse-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.pulse-active {
+  background-color: var(--cyan-neon);
+  animation: pulse-glow 2s infinite;
+}
+
+.pulse-live {
+  background-color: var(--green-neon);
+  animation: pulse-glow 1.5s infinite;
+}
+
+.pulse-idle {
+  background-color: var(--text-mute);
+  opacity: 0.5;
+}
+
+/* Terminal logger styling */
+.terminal-log {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: #a7f3d0;
+  max-height: 250px;
+  overflow-y: auto;
+  border-radius: 8px;
+  background: rgba(5, 7, 15, 0.85);
+  border: 1px solid var(--border-subtle);
+  padding: 12px;
+}
+
+.terminal-line {
+  margin-bottom: 4px;
+  border-left: 2px solid transparent;
+  padding-left: 6px;
+}
+
+.line-info {
+  border-left-color: var(--cyan-neon);
+  color: #e2e8f0;
+}
+
+.line-trade {
+  border-left-color: var(--green-neon);
+  color: var(--green-neon);
+}
+
+.line-error {
+  border-left-color: var(--red-neon);
+  color: var(--red-neon);
+}
+
+.line-order {
+  border-left-color: var(--gold-accent);
+  color: var(--gold-accent);
+}
+
+.line-warning {
+  border-left-color: #fbbf24;
+  color: #fbbf24;
+}
+
+/* Form controls */
+input, select {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  outline: none;
+}
+
+input:focus, select:focus {
+  border-color: var(--cyan-neon);
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.2);
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+/* Tabs styling */
+.tab-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-mute);
+  padding: 8px 16px;
+  border-bottom: 2px solid transparent;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+
+.tab-btn.active {
+  color: var(--cyan-neon);
+  border-bottom-color: var(--cyan-neon);
+}
+
+.tab-btn:hover:not(.active) {
+  color: var(--text-main);
+  border-bottom-color: rgba(255,255,255,0.1);
+}
