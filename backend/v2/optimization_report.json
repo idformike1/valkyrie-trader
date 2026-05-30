@@ -1,0 +1,4104 @@
+{
+  "run_info": {
+    "run_id": "9c96b132-0a30-4e71-9a8f-bac91b05b317",
+    "start_time": "2026-05-30T18:22:33.741725",
+    "end_time": "2026-05-30T18:29:19.207050",
+    "config": {
+      "underlying_instrument_key": "NSE_INDEX|Nifty 50",
+      "timeframe": "5m",
+      "start_date": "2025-04-15",
+      "end_date": "2025-05-14",
+      "strategy_name": "EMA",
+      "strategy_params": {
+        "fast_period": 2,
+        "slow_period": 3,
+        "cut_off_time": "15:25"
+      },
+      "option_type_preference": "CE_ONLY",
+      "strike_selection": {
+        "mode": "ATM"
+      },
+      "expiry_selection": {
+        "mode": "CURRENT_WEEKLY",
+        "roll_threshold_hours": 2.0
+      },
+      "risk_management": {
+        "target_type": "none",
+        "target_value": 0.0,
+        "stop_loss_type": "none",
+        "stop_loss_value": 0.0,
+        "trailing_sl_gap": 0.0,
+        "max_holding_candles": 10,
+        "cutoff_time": "15:15"
+      },
+      "execution": {
+        "brokerage_flat": 20.0,
+        "slippage_pct": 0.05,
+        "lot_size": 1,
+        "initial_balance": 100000.0
+      }
+    },
+    "total_combinations": 144,
+    "executed_combinations": 123,
+    "skipped_combinations": 21,
+    "skipped_details": {
+      "{'fast_period': 5, 'slow_period': 5}": "Constraint 'fast_less_than_slow' failed: fast_period must be less than slow_period",
+      "{'fast_period': 6, 'slow_period': 5}": "Constraint 'fast_less_than_slow' failed: fast_period must be less than slow_period",
+      "{'fast_period': 6, 'slow_period': 6}": "Constraint 'fast_less_than_slow' failed: fast_period must be less than slow_period",
+      "{'fast_period': 7, 'slow_period': 5}": "Constraint 'fast_less_than_slow' failed: fast_period must be less than slow_period",
+      "{'fast_period': 7, 'slow_period': 6}": "Constraint 'fast_less_than_slow' failed: fast_period must be less than slow_period",
+      "{'fast_period': 7, 'slow_period': 7}": "Constraint 'fast_less_than_slow' failed: fast_period must be less than slow_period",
+      "{'fast_period': 8, 'slow_period': 5}": "Constraint 'fast_less_than_slow' failed: fast_period must be less than slow_period",
+      "{'fast_period': 8, 'slow_period': 6}": "Constraint 'fast_less_than_slow' failed: fast_period must be less than slow_period",
+      "{'fast_period': 8, 'slow_period': 7}": "Constraint 'fast_less_than_slow' failed: fast_period must be less than slow_period",
+      "{'fast_period': 8, 'slow_period': 8}": "Constraint 'fast_less_than_slow' failed: fast_period must be less than slow_period",
+      "{'fast_period': 9, 'slow_period': 5}": "Constraint 'fast_less_than_slow' failed: fast_period must be less than slow_period",
+      "{'fast_period': 9, 'slow_period': 6}": "Constraint 'fast_less_than_slow' failed: fast_period must be less than slow_period",
+      "{'fast_period': 9, 'slow_period': 7}": "Constraint 'fast_less_than_slow' failed: fast_period must be less than slow_period",
+      "{'fast_period': 9, 'slow_period': 8}": "Constraint 'fast_less_than_slow' failed: fast_period must be less than slow_period",
+      "{'fast_period': 9, 'slow_period': 9}": "Constraint 'fast_less_than_slow' failed: fast_period must be less than slow_period",
+      "{'fast_period': 10, 'slow_period': 5}": "Constraint 'fast_less_than_slow' failed: fast_period must be less than slow_period",
+      "{'fast_period': 10, 'slow_period': 6}": "Constraint 'fast_less_than_slow' failed: fast_period must be less than slow_period",
+      "{'fast_period': 10, 'slow_period': 7}": "Constraint 'fast_less_than_slow' failed: fast_period must be less than slow_period",
+      "{'fast_period': 10, 'slow_period': 8}": "Constraint 'fast_less_than_slow' failed: fast_period must be less than slow_period",
+      "{'fast_period': 10, 'slow_period': 9}": "Constraint 'fast_less_than_slow' failed: fast_period must be less than slow_period",
+      "{'fast_period': 10, 'slow_period': 10}": "Constraint 'fast_less_than_slow' failed: fast_period must be less than slow_period"
+    },
+    "results": [
+      {
+        "combination": {
+          "params": {
+            "fast_period": 2,
+            "slow_period": 5
+          }
+        },
+        "net_profit": 128782.34,
+        "win_rate": 66.43,
+        "profit_factor": 11.6,
+        "expectancy": 919.87,
+        "max_drawdown": 1265.95,
+        "max_drawdown_pct": 0.99,
+        "sharpe_ratio": 13.93,
+        "sortino_ratio": 0.0,
+        "trade_count": 140,
+        "composite_score": 84.95
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 2,
+            "slow_period": 6
+          }
+        },
+        "net_profit": 117112.99,
+        "win_rate": 65.35,
+        "profit_factor": 11.17,
+        "expectancy": 922.15,
+        "max_drawdown": 1265.95,
+        "max_drawdown_pct": 0.99,
+        "sharpe_ratio": 15.02,
+        "sortino_ratio": 3611.08,
+        "trade_count": 127,
+        "composite_score": 84.87
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 2,
+            "slow_period": 7
+          }
+        },
+        "net_profit": 109347.78,
+        "win_rate": 66.39,
+        "profit_factor": 8.48,
+        "expectancy": 896.29,
+        "max_drawdown": 1506.82,
+        "max_drawdown_pct": 0.98,
+        "sharpe_ratio": 13.2,
+        "sortino_ratio": 1278.41,
+        "trade_count": 122,
+        "composite_score": 84.59
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 2,
+            "slow_period": 8
+          }
+        },
+        "net_profit": 101237.06,
+        "win_rate": 66.1,
+        "profit_factor": 7.66,
+        "expectancy": 857.94,
+        "max_drawdown": 2110.0,
+        "max_drawdown_pct": 1.21,
+        "sharpe_ratio": 11.57,
+        "sortino_ratio": 175.43,
+        "trade_count": 118,
+        "composite_score": 83.87
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 2,
+            "slow_period": 9
+          }
+        },
+        "net_profit": 104265.98,
+        "win_rate": 66.96,
+        "profit_factor": 8.38,
+        "expectancy": 906.66,
+        "max_drawdown": 2476.75,
+        "max_drawdown_pct": 1.4,
+        "sharpe_ratio": 12.27,
+        "sortino_ratio": 232.37,
+        "trade_count": 115,
+        "composite_score": 84.6
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 2,
+            "slow_period": 10
+          }
+        },
+        "net_profit": 105504.38,
+        "win_rate": 64.15,
+        "profit_factor": 7.14,
+        "expectancy": 995.32,
+        "max_drawdown": 2333.58,
+        "max_drawdown_pct": 1.27,
+        "sharpe_ratio": 11.81,
+        "sortino_ratio": 214.17,
+        "trade_count": 106,
+        "composite_score": 85.71
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 2,
+            "slow_period": 11
+          }
+        },
+        "net_profit": 101027.59,
+        "win_rate": 65.35,
+        "profit_factor": 7.04,
+        "expectancy": 1000.27,
+        "max_drawdown": 2333.58,
+        "max_drawdown_pct": 1.29,
+        "sharpe_ratio": 11.64,
+        "sortino_ratio": 202.01,
+        "trade_count": 101,
+        "composite_score": 85.89
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 2,
+            "slow_period": 12
+          }
+        },
+        "net_profit": 99380.71,
+        "win_rate": 64.89,
+        "profit_factor": 8.09,
+        "expectancy": 1057.24,
+        "max_drawdown": 2333.58,
+        "max_drawdown_pct": 1.32,
+        "sharpe_ratio": 11.43,
+        "sortino_ratio": 264.05,
+        "trade_count": 94,
+        "composite_score": 85.83
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 2,
+            "slow_period": 13
+          }
+        },
+        "net_profit": 95587.97,
+        "win_rate": 63.33,
+        "profit_factor": 8.04,
+        "expectancy": 1062.09,
+        "max_drawdown": 2333.58,
+        "max_drawdown_pct": 1.33,
+        "sharpe_ratio": 10.82,
+        "sortino_ratio": 243.46,
+        "trade_count": 90,
+        "composite_score": 85.67
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 2,
+            "slow_period": 14
+          }
+        },
+        "net_profit": 88204.49,
+        "win_rate": 60.0,
+        "profit_factor": 6.4,
+        "expectancy": 980.05,
+        "max_drawdown": 2333.58,
+        "max_drawdown_pct": 1.74,
+        "sharpe_ratio": 10.57,
+        "sortino_ratio": 212.52,
+        "trade_count": 90,
+        "composite_score": 84.83
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 2,
+            "slow_period": 15
+          }
+        },
+        "net_profit": 86665.41,
+        "win_rate": 60.0,
+        "profit_factor": 6.19,
+        "expectancy": 962.95,
+        "max_drawdown": 2668.09,
+        "max_drawdown_pct": 1.74,
+        "sharpe_ratio": 10.3,
+        "sortino_ratio": 160.87,
+        "trade_count": 90,
+        "composite_score": 84.57
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 2,
+            "slow_period": 16
+          }
+        },
+        "net_profit": 77385.39,
+        "win_rate": 60.92,
+        "profit_factor": 5.49,
+        "expectancy": 889.49,
+        "max_drawdown": 2333.58,
+        "max_drawdown_pct": 1.74,
+        "sharpe_ratio": 9.11,
+        "sortino_ratio": 128.92,
+        "trade_count": 87,
+        "composite_score": 83.56
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 2,
+            "slow_period": 17
+          }
+        },
+        "net_profit": 73197.46,
+        "win_rate": 61.73,
+        "profit_factor": 5.17,
+        "expectancy": 903.67,
+        "max_drawdown": 2333.58,
+        "max_drawdown_pct": 1.75,
+        "sharpe_ratio": 8.67,
+        "sortino_ratio": 123.17,
+        "trade_count": 81,
+        "composite_score": 83.85
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 2,
+            "slow_period": 18
+          }
+        },
+        "net_profit": 61657.51,
+        "win_rate": 62.5,
+        "profit_factor": 4.67,
+        "expectancy": 770.72,
+        "max_drawdown": 2333.58,
+        "max_drawdown_pct": 1.75,
+        "sharpe_ratio": 7.71,
+        "sortino_ratio": 103.58,
+        "trade_count": 80,
+        "composite_score": 81.94
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 2,
+            "slow_period": 19
+          }
+        },
+        "net_profit": 62080.1,
+        "win_rate": 61.54,
+        "profit_factor": 4.87,
+        "expectancy": 795.9,
+        "max_drawdown": 3394.77,
+        "max_drawdown_pct": 2.11,
+        "sharpe_ratio": 7.78,
+        "sortino_ratio": 109.34,
+        "trade_count": 78,
+        "composite_score": 82.04
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 2,
+            "slow_period": 20
+          }
+        },
+        "net_profit": 64898.72,
+        "win_rate": 62.16,
+        "profit_factor": 5.58,
+        "expectancy": 877.01,
+        "max_drawdown": 3394.77,
+        "max_drawdown_pct": 2.08,
+        "sharpe_ratio": 8.09,
+        "sortino_ratio": 107.81,
+        "trade_count": 74,
+        "composite_score": 83.33
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 3,
+            "slow_period": 5
+          }
+        },
+        "net_profit": 100654.0,
+        "win_rate": 63.79,
+        "profit_factor": 6.77,
+        "expectancy": 867.71,
+        "max_drawdown": 3988.18,
+        "max_drawdown_pct": 1.99,
+        "sharpe_ratio": 11.8,
+        "sortino_ratio": 122.45,
+        "trade_count": 116,
+        "composite_score": 83.4
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 3,
+            "slow_period": 6
+          }
+        },
+        "net_profit": 97435.26,
+        "win_rate": 62.26,
+        "profit_factor": 6.24,
+        "expectancy": 919.2,
+        "max_drawdown": 5253.28,
+        "max_drawdown_pct": 3.47,
+        "sharpe_ratio": 10.93,
+        "sortino_ratio": 75.22,
+        "trade_count": 106,
+        "composite_score": 83.28
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 3,
+            "slow_period": 7
+          }
+        },
+        "net_profit": 100613.31,
+        "win_rate": 64.15,
+        "profit_factor": 7.57,
+        "expectancy": 949.18,
+        "max_drawdown": 2333.58,
+        "max_drawdown_pct": 1.3,
+        "sharpe_ratio": 11.75,
+        "sortino_ratio": 211.54,
+        "trade_count": 106,
+        "composite_score": 85.0
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 3,
+            "slow_period": 8
+          }
+        },
+        "net_profit": 90109.0,
+        "win_rate": 59.79,
+        "profit_factor": 5.85,
+        "expectancy": 928.96,
+        "max_drawdown": 2333.58,
+        "max_drawdown_pct": 1.72,
+        "sharpe_ratio": 11.42,
+        "sortino_ratio": 219.12,
+        "trade_count": 97,
+        "composite_score": 84.05
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 3,
+            "slow_period": 9
+          }
+        },
+        "net_profit": 89707.24,
+        "win_rate": 58.89,
+        "profit_factor": 5.8,
+        "expectancy": 996.75,
+        "max_drawdown": 2333.58,
+        "max_drawdown_pct": 1.72,
+        "sharpe_ratio": 10.61,
+        "sortino_ratio": 177.96,
+        "trade_count": 90,
+        "composite_score": 84.98
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 3,
+            "slow_period": 10
+          }
+        },
+        "net_profit": 85450.0,
+        "win_rate": 57.65,
+        "profit_factor": 6.12,
+        "expectancy": 1005.29,
+        "max_drawdown": 2333.58,
+        "max_drawdown_pct": 1.73,
+        "sharpe_ratio": 10.19,
+        "sortino_ratio": 217.32,
+        "trade_count": 85,
+        "composite_score": 84.9
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 3,
+            "slow_period": 11
+          }
+        },
+        "net_profit": 84523.91,
+        "win_rate": 58.97,
+        "profit_factor": 6.47,
+        "expectancy": 1083.64,
+        "max_drawdown": 2376.16,
+        "max_drawdown_pct": 1.74,
+        "sharpe_ratio": 10.17,
+        "sortino_ratio": 241.14,
+        "trade_count": 78,
+        "composite_score": 85.03
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 3,
+            "slow_period": 12
+          }
+        },
+        "net_profit": 78665.29,
+        "win_rate": 53.95,
+        "profit_factor": 5.83,
+        "expectancy": 1035.07,
+        "max_drawdown": 2739.78,
+        "max_drawdown_pct": 1.74,
+        "sharpe_ratio": 9.36,
+        "sortino_ratio": 209.75,
+        "trade_count": 76,
+        "composite_score": 84.52
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 3,
+            "slow_period": 13
+          }
+        },
+        "net_profit": 76619.73,
+        "win_rate": 56.0,
+        "profit_factor": 5.72,
+        "expectancy": 1021.6,
+        "max_drawdown": 2800.57,
+        "max_drawdown_pct": 1.74,
+        "sharpe_ratio": 9.12,
+        "sortino_ratio": 203.82,
+        "trade_count": 75,
+        "composite_score": 84.73
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 3,
+            "slow_period": 14
+          }
+        },
+        "net_profit": 77952.98,
+        "win_rate": 60.81,
+        "profit_factor": 5.55,
+        "expectancy": 1053.42,
+        "max_drawdown": 2731.09,
+        "max_drawdown_pct": 1.75,
+        "sharpe_ratio": 9.25,
+        "sortino_ratio": 172.7,
+        "trade_count": 74,
+        "composite_score": 85.21
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 3,
+            "slow_period": 15
+          }
+        },
+        "net_profit": 66774.93,
+        "win_rate": 59.15,
+        "profit_factor": 4.93,
+        "expectancy": 940.49,
+        "max_drawdown": 2791.16,
+        "max_drawdown_pct": 2.13,
+        "sharpe_ratio": 8.03,
+        "sortino_ratio": 121.3,
+        "trade_count": 71,
+        "composite_score": 83.96
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 3,
+            "slow_period": 16
+          }
+        },
+        "net_profit": 53513.03,
+        "win_rate": 58.57,
+        "profit_factor": 3.98,
+        "expectancy": 764.47,
+        "max_drawdown": 3409.35,
+        "max_drawdown_pct": 2.24,
+        "sharpe_ratio": 6.74,
+        "sortino_ratio": 79.33,
+        "trade_count": 70,
+        "composite_score": 81.2
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 3,
+            "slow_period": 17
+          }
+        },
+        "net_profit": 52604.22,
+        "win_rate": 60.87,
+        "profit_factor": 3.82,
+        "expectancy": 762.38,
+        "max_drawdown": 3398.97,
+        "max_drawdown_pct": 2.23,
+        "sharpe_ratio": 6.6,
+        "sortino_ratio": 61.27,
+        "trade_count": 69,
+        "composite_score": 81.41
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 3,
+            "slow_period": 18
+          }
+        },
+        "net_profit": 51862.87,
+        "win_rate": 59.09,
+        "profit_factor": 3.81,
+        "expectancy": 785.8,
+        "max_drawdown": 3990.84,
+        "max_drawdown_pct": 2.61,
+        "sharpe_ratio": 6.46,
+        "sortino_ratio": 57.49,
+        "trade_count": 66,
+        "composite_score": 81.39
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 3,
+            "slow_period": 19
+          }
+        },
+        "net_profit": 49748.27,
+        "win_rate": 55.56,
+        "profit_factor": 3.53,
+        "expectancy": 789.66,
+        "max_drawdown": 5641.06,
+        "max_drawdown_pct": 3.7,
+        "sharpe_ratio": 6.13,
+        "sortino_ratio": 50.54,
+        "trade_count": 63,
+        "composite_score": 80.55
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 3,
+            "slow_period": 20
+          }
+        },
+        "net_profit": 47498.7,
+        "win_rate": 53.33,
+        "profit_factor": 3.42,
+        "expectancy": 791.64,
+        "max_drawdown": 6635.5,
+        "max_drawdown_pct": 4.39,
+        "sharpe_ratio": 5.81,
+        "sortino_ratio": 46.58,
+        "trade_count": 60,
+        "composite_score": 80.01
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 4,
+            "slow_period": 5
+          }
+        },
+        "net_profit": 95606.04,
+        "win_rate": 62.14,
+        "profit_factor": 6.47,
+        "expectancy": 928.21,
+        "max_drawdown": 2363.19,
+        "max_drawdown_pct": 1.3,
+        "sharpe_ratio": 11.02,
+        "sortino_ratio": 139.65,
+        "trade_count": 103,
+        "composite_score": 84.49
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 4,
+            "slow_period": 6
+          }
+        },
+        "net_profit": 90495.77,
+        "win_rate": 58.16,
+        "profit_factor": 5.65,
+        "expectancy": 923.43,
+        "max_drawdown": 2363.19,
+        "max_drawdown_pct": 1.72,
+        "sharpe_ratio": 11.19,
+        "sortino_ratio": 124.21,
+        "trade_count": 98,
+        "composite_score": 83.81
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 4,
+            "slow_period": 7
+          }
+        },
+        "net_profit": 89177.31,
+        "win_rate": 55.56,
+        "profit_factor": 5.72,
+        "expectancy": 990.86,
+        "max_drawdown": 2333.58,
+        "max_drawdown_pct": 1.72,
+        "sharpe_ratio": 10.43,
+        "sortino_ratio": 171.52,
+        "trade_count": 90,
+        "composite_score": 84.56
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 4,
+            "slow_period": 8
+          }
+        },
+        "net_profit": 83904.94,
+        "win_rate": 55.81,
+        "profit_factor": 5.76,
+        "expectancy": 975.64,
+        "max_drawdown": 2333.58,
+        "max_drawdown_pct": 1.72,
+        "sharpe_ratio": 9.96,
+        "sortino_ratio": 184.64,
+        "trade_count": 86,
+        "composite_score": 84.36
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 4,
+            "slow_period": 9
+          }
+        },
+        "net_profit": 80061.11,
+        "win_rate": 53.25,
+        "profit_factor": 5.63,
+        "expectancy": 1039.75,
+        "max_drawdown": 3631.79,
+        "max_drawdown_pct": 2.2,
+        "sharpe_ratio": 9.51,
+        "sortino_ratio": 174.8,
+        "trade_count": 77,
+        "composite_score": 84.23
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 4,
+            "slow_period": 10
+          }
+        },
+        "net_profit": 77089.35,
+        "win_rate": 52.17,
+        "profit_factor": 5.57,
+        "expectancy": 1117.24,
+        "max_drawdown": 3462.37,
+        "max_drawdown_pct": 2.14,
+        "sharpe_ratio": 9.2,
+        "sortino_ratio": 156.74,
+        "trade_count": 69,
+        "composite_score": 84.15
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 4,
+            "slow_period": 11
+          }
+        },
+        "net_profit": 69810.04,
+        "win_rate": 52.94,
+        "profit_factor": 4.54,
+        "expectancy": 1026.62,
+        "max_drawdown": 4430.53,
+        "max_drawdown_pct": 2.77,
+        "sharpe_ratio": 8.37,
+        "sortino_ratio": 141.01,
+        "trade_count": 68,
+        "composite_score": 83.91
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 4,
+            "slow_period": 12
+          }
+        },
+        "net_profit": 67879.24,
+        "win_rate": 55.38,
+        "profit_factor": 4.29,
+        "expectancy": 1044.3,
+        "max_drawdown": 4734.42,
+        "max_drawdown_pct": 2.99,
+        "sharpe_ratio": 8.05,
+        "sortino_ratio": 105.87,
+        "trade_count": 65,
+        "composite_score": 84.04
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 4,
+            "slow_period": 13
+          }
+        },
+        "net_profit": 62104.52,
+        "win_rate": 55.93,
+        "profit_factor": 4.43,
+        "expectancy": 1052.62,
+        "max_drawdown": 3314.06,
+        "max_drawdown_pct": 2.2,
+        "sharpe_ratio": 7.43,
+        "sortino_ratio": 80.71,
+        "trade_count": 59,
+        "composite_score": 84.49
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 4,
+            "slow_period": 14
+          }
+        },
+        "net_profit": 61296.41,
+        "win_rate": 56.45,
+        "profit_factor": 4.23,
+        "expectancy": 988.65,
+        "max_drawdown": 3431.81,
+        "max_drawdown_pct": 2.27,
+        "sharpe_ratio": 7.24,
+        "sortino_ratio": 64.83,
+        "trade_count": 62,
+        "composite_score": 84.34
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 4,
+            "slow_period": 15
+          }
+        },
+        "net_profit": 48844.92,
+        "win_rate": 53.97,
+        "profit_factor": 3.61,
+        "expectancy": 775.32,
+        "max_drawdown": 3737.67,
+        "max_drawdown_pct": 2.49,
+        "sharpe_ratio": 6.1,
+        "sortino_ratio": 52.64,
+        "trade_count": 63,
+        "composite_score": 80.78
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 4,
+            "slow_period": 16
+          }
+        },
+        "net_profit": 49908.93,
+        "win_rate": 55.17,
+        "profit_factor": 3.82,
+        "expectancy": 860.5,
+        "max_drawdown": 4151.96,
+        "max_drawdown_pct": 2.74,
+        "sharpe_ratio": 6.22,
+        "sortino_ratio": 56.34,
+        "trade_count": 58,
+        "composite_score": 82.05
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 4,
+            "slow_period": 17
+          }
+        },
+        "net_profit": 44974.0,
+        "win_rate": 49.15,
+        "profit_factor": 3.28,
+        "expectancy": 762.27,
+        "max_drawdown": 7360.39,
+        "max_drawdown_pct": 4.9,
+        "sharpe_ratio": 5.7,
+        "sortino_ratio": 45.28,
+        "trade_count": 59,
+        "composite_score": 78.9
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 4,
+            "slow_period": 18
+          }
+        },
+        "net_profit": 42089.16,
+        "win_rate": 48.21,
+        "profit_factor": 3.14,
+        "expectancy": 751.59,
+        "max_drawdown": 9779.04,
+        "max_drawdown_pct": 6.57,
+        "sharpe_ratio": 5.25,
+        "sortino_ratio": 37.69,
+        "trade_count": 56,
+        "composite_score": 77.81
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 4,
+            "slow_period": 19
+          }
+        },
+        "net_profit": 41786.93,
+        "win_rate": 49.06,
+        "profit_factor": 3.25,
+        "expectancy": 788.43,
+        "max_drawdown": 8493.08,
+        "max_drawdown_pct": 5.77,
+        "sharpe_ratio": 5.24,
+        "sortino_ratio": 41.08,
+        "trade_count": 53,
+        "composite_score": 78.85
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 4,
+            "slow_period": 20
+          }
+        },
+        "net_profit": 41676.49,
+        "win_rate": 50.0,
+        "profit_factor": 3.24,
+        "expectancy": 801.47,
+        "max_drawdown": 9125.01,
+        "max_drawdown_pct": 6.17,
+        "sharpe_ratio": 5.22,
+        "sortino_ratio": 39.45,
+        "trade_count": 52,
+        "composite_score": 78.94
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 5,
+            "slow_period": 6
+          }
+        },
+        "net_profit": 87366.71,
+        "win_rate": 55.68,
+        "profit_factor": 5.63,
+        "expectancy": 992.8,
+        "max_drawdown": 2333.58,
+        "max_drawdown_pct": 1.73,
+        "sharpe_ratio": 10.21,
+        "sortino_ratio": 167.89,
+        "trade_count": 88,
+        "composite_score": 84.59
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 5,
+            "slow_period": 7
+          }
+        },
+        "net_profit": 83038.9,
+        "win_rate": 55.0,
+        "profit_factor": 5.86,
+        "expectancy": 1037.99,
+        "max_drawdown": 3107.53,
+        "max_drawdown_pct": 1.85,
+        "sharpe_ratio": 9.83,
+        "sortino_ratio": 185.4,
+        "trade_count": 80,
+        "composite_score": 84.58
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 5,
+            "slow_period": 8
+          }
+        },
+        "net_profit": 79063.85,
+        "win_rate": 50.0,
+        "profit_factor": 5.45,
+        "expectancy": 1098.11,
+        "max_drawdown": 3797.04,
+        "max_drawdown_pct": 2.31,
+        "sharpe_ratio": 9.49,
+        "sortino_ratio": 154.13,
+        "trade_count": 72,
+        "composite_score": 83.85
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 5,
+            "slow_period": 9
+          }
+        },
+        "net_profit": 73620.66,
+        "win_rate": 52.94,
+        "profit_factor": 5.02,
+        "expectancy": 1082.66,
+        "max_drawdown": 4430.53,
+        "max_drawdown_pct": 2.75,
+        "sharpe_ratio": 8.73,
+        "sortino_ratio": 130.58,
+        "trade_count": 68,
+        "composite_score": 83.92
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 5,
+            "slow_period": 10
+          }
+        },
+        "net_profit": 67710.41,
+        "win_rate": 54.84,
+        "profit_factor": 4.22,
+        "expectancy": 1092.1,
+        "max_drawdown": 6075.03,
+        "max_drawdown_pct": 3.83,
+        "sharpe_ratio": 8.04,
+        "sortino_ratio": 79.9,
+        "trade_count": 62,
+        "composite_score": 83.57
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 5,
+            "slow_period": 11
+          }
+        },
+        "net_profit": 67371.04,
+        "win_rate": 56.67,
+        "profit_factor": 4.15,
+        "expectancy": 1122.85,
+        "max_drawdown": 5939.98,
+        "max_drawdown_pct": 3.75,
+        "sharpe_ratio": 8.01,
+        "sortino_ratio": 77.73,
+        "trade_count": 60,
+        "composite_score": 83.79
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 5,
+            "slow_period": 12
+          }
+        },
+        "net_profit": 56873.99,
+        "win_rate": 55.17,
+        "profit_factor": 3.6,
+        "expectancy": 980.59,
+        "max_drawdown": 6291.74,
+        "max_drawdown_pct": 4.2,
+        "sharpe_ratio": 6.74,
+        "sortino_ratio": 50.18,
+        "trade_count": 58,
+        "composite_score": 83.13
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 5,
+            "slow_period": 13
+          }
+        },
+        "net_profit": 56843.28,
+        "win_rate": 52.63,
+        "profit_factor": 3.91,
+        "expectancy": 997.25,
+        "max_drawdown": 5305.8,
+        "max_drawdown_pct": 3.58,
+        "sharpe_ratio": 6.71,
+        "sortino_ratio": 54.49,
+        "trade_count": 57,
+        "composite_score": 83.43
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 5,
+            "slow_period": 14
+          }
+        },
+        "net_profit": 45080.29,
+        "win_rate": 49.09,
+        "profit_factor": 3.35,
+        "expectancy": 819.64,
+        "max_drawdown": 6529.99,
+        "max_drawdown_pct": 4.39,
+        "sharpe_ratio": 5.79,
+        "sortino_ratio": 48.45,
+        "trade_count": 55,
+        "composite_score": 80.01
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 5,
+            "slow_period": 15
+          }
+        },
+        "net_profit": 43693.54,
+        "win_rate": 50.91,
+        "profit_factor": 3.24,
+        "expectancy": 794.43,
+        "max_drawdown": 6573.68,
+        "max_drawdown_pct": 4.44,
+        "sharpe_ratio": 5.59,
+        "sortino_ratio": 46.3,
+        "trade_count": 55,
+        "composite_score": 79.79
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 5,
+            "slow_period": 16
+          }
+        },
+        "net_profit": 41113.47,
+        "win_rate": 50.91,
+        "profit_factor": 3.02,
+        "expectancy": 747.52,
+        "max_drawdown": 8984.14,
+        "max_drawdown_pct": 6.09,
+        "sharpe_ratio": 5.2,
+        "sortino_ratio": 34.14,
+        "trade_count": 55,
+        "composite_score": 78.26
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 5,
+            "slow_period": 17
+          }
+        },
+        "net_profit": 39209.95,
+        "win_rate": 45.28,
+        "profit_factor": 2.77,
+        "expectancy": 739.81,
+        "max_drawdown": 10974.46,
+        "max_drawdown_pct": 7.43,
+        "sharpe_ratio": 4.89,
+        "sortino_ratio": 28.87,
+        "trade_count": 53,
+        "composite_score": 74.04
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 5,
+            "slow_period": 18
+          }
+        },
+        "net_profit": 37288.78,
+        "win_rate": 41.51,
+        "profit_factor": 2.72,
+        "expectancy": 703.56,
+        "max_drawdown": 10760.35,
+        "max_drawdown_pct": 7.36,
+        "sharpe_ratio": 4.67,
+        "sortino_ratio": 31.93,
+        "trade_count": 53,
+        "composite_score": 72.52
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 5,
+            "slow_period": 19
+          }
+        },
+        "net_profit": 35073.4,
+        "win_rate": 43.14,
+        "profit_factor": 2.53,
+        "expectancy": 687.71,
+        "max_drawdown": 12916.09,
+        "max_drawdown_pct": 8.87,
+        "sharpe_ratio": 4.36,
+        "sortino_ratio": 26.39,
+        "trade_count": 51,
+        "composite_score": 69.32
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 5,
+            "slow_period": 20
+          }
+        },
+        "net_profit": 36146.61,
+        "win_rate": 44.68,
+        "profit_factor": 2.69,
+        "expectancy": 769.08,
+        "max_drawdown": 11675.09,
+        "max_drawdown_pct": 8.0,
+        "sharpe_ratio": 4.52,
+        "sortino_ratio": 28.84,
+        "trade_count": 47,
+        "composite_score": 73.13
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 6,
+            "slow_period": 7
+          }
+        },
+        "net_profit": 78548.86,
+        "win_rate": 50.0,
+        "profit_factor": 5.48,
+        "expectancy": 1122.13,
+        "max_drawdown": 3797.04,
+        "max_drawdown_pct": 2.32,
+        "sharpe_ratio": 9.4,
+        "sortino_ratio": 140.35,
+        "trade_count": 70,
+        "composite_score": 83.84
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 6,
+            "slow_period": 8
+          }
+        },
+        "net_profit": 68748.71,
+        "win_rate": 53.23,
+        "profit_factor": 4.32,
+        "expectancy": 1108.85,
+        "max_drawdown": 6120.05,
+        "max_drawdown_pct": 3.85,
+        "sharpe_ratio": 8.18,
+        "sortino_ratio": 81.07,
+        "trade_count": 62,
+        "composite_score": 83.4
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 6,
+            "slow_period": 9
+          }
+        },
+        "net_profit": 64406.72,
+        "win_rate": 53.33,
+        "profit_factor": 3.99,
+        "expectancy": 1073.45,
+        "max_drawdown": 6712.28,
+        "max_drawdown_pct": 4.29,
+        "sharpe_ratio": 7.7,
+        "sortino_ratio": 71.79,
+        "trade_count": 60,
+        "composite_score": 83.19
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 6,
+            "slow_period": 10
+          }
+        },
+        "net_profit": 64208.7,
+        "win_rate": 52.63,
+        "profit_factor": 3.81,
+        "expectancy": 1126.47,
+        "max_drawdown": 6104.51,
+        "max_drawdown_pct": 3.87,
+        "sharpe_ratio": 7.63,
+        "sortino_ratio": 60.92,
+        "trade_count": 57,
+        "composite_score": 83.33
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 6,
+            "slow_period": 11
+          }
+        },
+        "net_profit": 52373.51,
+        "win_rate": 50.0,
+        "profit_factor": 3.33,
+        "expectancy": 935.24,
+        "max_drawdown": 6478.46,
+        "max_drawdown_pct": 4.39,
+        "sharpe_ratio": 6.15,
+        "sortino_ratio": 46.58,
+        "trade_count": 56,
+        "composite_score": 81.83
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 6,
+            "slow_period": 12
+          }
+        },
+        "net_profit": 54366.35,
+        "win_rate": 46.3,
+        "profit_factor": 3.9,
+        "expectancy": 1006.78,
+        "max_drawdown": 5781.49,
+        "max_drawdown_pct": 3.89,
+        "sharpe_ratio": 6.58,
+        "sortino_ratio": 57.28,
+        "trade_count": 54,
+        "composite_score": 82.69
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 6,
+            "slow_period": 13
+          }
+        },
+        "net_profit": 54652.26,
+        "win_rate": 51.85,
+        "profit_factor": 3.97,
+        "expectancy": 1012.08,
+        "max_drawdown": 5371.43,
+        "max_drawdown_pct": 3.61,
+        "sharpe_ratio": 6.58,
+        "sortino_ratio": 56.58,
+        "trade_count": 54,
+        "composite_score": 83.38
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 6,
+            "slow_period": 14
+          }
+        },
+        "net_profit": 42038.31,
+        "win_rate": 46.0,
+        "profit_factor": 3.17,
+        "expectancy": 840.77,
+        "max_drawdown": 8958.83,
+        "max_drawdown_pct": 6.06,
+        "sharpe_ratio": 5.33,
+        "sortino_ratio": 38.47,
+        "trade_count": 50,
+        "composite_score": 79.18
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 6,
+            "slow_period": 15
+          }
+        },
+        "net_profit": 39351.46,
+        "win_rate": 44.23,
+        "profit_factor": 2.86,
+        "expectancy": 756.76,
+        "max_drawdown": 10236.13,
+        "max_drawdown_pct": 6.97,
+        "sharpe_ratio": 4.91,
+        "sortino_ratio": 30.13,
+        "trade_count": 52,
+        "composite_score": 75.54
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 6,
+            "slow_period": 16
+          }
+        },
+        "net_profit": 38217.19,
+        "win_rate": 42.31,
+        "profit_factor": 2.77,
+        "expectancy": 734.95,
+        "max_drawdown": 9902.21,
+        "max_drawdown_pct": 6.78,
+        "sharpe_ratio": 4.79,
+        "sortino_ratio": 32.68,
+        "trade_count": 52,
+        "composite_score": 73.99
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 6,
+            "slow_period": 17
+          }
+        },
+        "net_profit": 36864.71,
+        "win_rate": 44.0,
+        "profit_factor": 2.67,
+        "expectancy": 737.29,
+        "max_drawdown": 10695.56,
+        "max_drawdown_pct": 7.34,
+        "sharpe_ratio": 4.61,
+        "sortino_ratio": 32.53,
+        "trade_count": 50,
+        "composite_score": 72.66
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 6,
+            "slow_period": 18
+          }
+        },
+        "net_profit": 32156.54,
+        "win_rate": 40.82,
+        "profit_factor": 2.28,
+        "expectancy": 656.26,
+        "max_drawdown": 14620.18,
+        "max_drawdown_pct": 10.1,
+        "sharpe_ratio": 3.95,
+        "sortino_ratio": 21.07,
+        "trade_count": 49,
+        "composite_score": 64.88
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 6,
+            "slow_period": 19
+          }
+        },
+        "net_profit": 31504.45,
+        "win_rate": 42.86,
+        "profit_factor": 2.23,
+        "expectancy": 642.95,
+        "max_drawdown": 11786.39,
+        "max_drawdown_pct": 8.38,
+        "sharpe_ratio": 3.95,
+        "sortino_ratio": 25.65,
+        "trade_count": 49,
+        "composite_score": 65.12
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 6,
+            "slow_period": 20
+          }
+        },
+        "net_profit": 30126.25,
+        "win_rate": 44.68,
+        "profit_factor": 2.15,
+        "expectancy": 640.98,
+        "max_drawdown": 12267.52,
+        "max_drawdown_pct": 8.73,
+        "sharpe_ratio": 3.75,
+        "sortino_ratio": 20.63,
+        "trade_count": 47,
+        "composite_score": 64.09
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 7,
+            "slow_period": 8
+          }
+        },
+        "net_profit": 63172.28,
+        "win_rate": 51.72,
+        "profit_factor": 3.89,
+        "expectancy": 1089.18,
+        "max_drawdown": 6712.28,
+        "max_drawdown_pct": 4.3,
+        "sharpe_ratio": 7.54,
+        "sortino_ratio": 70.29,
+        "trade_count": 58,
+        "composite_score": 83.02
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 7,
+            "slow_period": 9
+          }
+        },
+        "net_profit": 64823.78,
+        "win_rate": 53.57,
+        "profit_factor": 3.9,
+        "expectancy": 1157.57,
+        "max_drawdown": 6171.67,
+        "max_drawdown_pct": 3.89,
+        "sharpe_ratio": 7.67,
+        "sortino_ratio": 60.63,
+        "trade_count": 56,
+        "composite_score": 83.41
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 7,
+            "slow_period": 10
+          }
+        },
+        "net_profit": 53744.95,
+        "win_rate": 46.3,
+        "profit_factor": 3.74,
+        "expectancy": 995.28,
+        "max_drawdown": 5665.86,
+        "max_drawdown_pct": 3.82,
+        "sharpe_ratio": 6.55,
+        "sortino_ratio": 57.5,
+        "trade_count": 54,
+        "composite_score": 82.65
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 7,
+            "slow_period": 11
+          }
+        },
+        "net_profit": 52872.78,
+        "win_rate": 47.17,
+        "profit_factor": 3.73,
+        "expectancy": 997.6,
+        "max_drawdown": 5635.58,
+        "max_drawdown_pct": 3.82,
+        "sharpe_ratio": 6.39,
+        "sortino_ratio": 52.71,
+        "trade_count": 53,
+        "composite_score": 82.77
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 7,
+            "slow_period": 12
+          }
+        },
+        "net_profit": 53891.4,
+        "win_rate": 49.06,
+        "profit_factor": 3.86,
+        "expectancy": 1016.82,
+        "max_drawdown": 5776.94,
+        "max_drawdown_pct": 3.89,
+        "sharpe_ratio": 6.46,
+        "sortino_ratio": 50.67,
+        "trade_count": 53,
+        "composite_score": 82.96
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 7,
+            "slow_period": 13
+          }
+        },
+        "net_profit": 38264.47,
+        "win_rate": 45.1,
+        "profit_factor": 2.9,
+        "expectancy": 750.28,
+        "max_drawdown": 10993.26,
+        "max_drawdown_pct": 7.53,
+        "sharpe_ratio": 4.79,
+        "sortino_ratio": 29.82,
+        "trade_count": 51,
+        "composite_score": 75.75
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 7,
+            "slow_period": 14
+          }
+        },
+        "net_profit": 38752.29,
+        "win_rate": 44.9,
+        "profit_factor": 2.83,
+        "expectancy": 790.86,
+        "max_drawdown": 9818.72,
+        "max_drawdown_pct": 6.75,
+        "sharpe_ratio": 4.83,
+        "sortino_ratio": 29.72,
+        "trade_count": 49,
+        "composite_score": 75.85
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 7,
+            "slow_period": 15
+          }
+        },
+        "net_profit": 33545.96,
+        "win_rate": 37.5,
+        "profit_factor": 2.35,
+        "expectancy": 698.87,
+        "max_drawdown": 13367.57,
+        "max_drawdown_pct": 9.23,
+        "sharpe_ratio": 4.14,
+        "sortino_ratio": 24.29,
+        "trade_count": 48,
+        "composite_score": 66.49
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 7,
+            "slow_period": 16
+          }
+        },
+        "net_profit": 32114.11,
+        "win_rate": 35.42,
+        "profit_factor": 2.32,
+        "expectancy": 669.04,
+        "max_drawdown": 13482.35,
+        "max_drawdown_pct": 9.36,
+        "sharpe_ratio": 3.98,
+        "sortino_ratio": 22.21,
+        "trade_count": 48,
+        "composite_score": 65.4
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 7,
+            "slow_period": 17
+          }
+        },
+        "net_profit": 35071.57,
+        "win_rate": 40.43,
+        "profit_factor": 2.63,
+        "expectancy": 746.2,
+        "max_drawdown": 11304.34,
+        "max_drawdown_pct": 7.83,
+        "sharpe_ratio": 4.41,
+        "sortino_ratio": 29.17,
+        "trade_count": 47,
+        "composite_score": 71.7
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 7,
+            "slow_period": 18
+          }
+        },
+        "net_profit": 28385.16,
+        "win_rate": 43.75,
+        "profit_factor": 2.06,
+        "expectancy": 591.36,
+        "max_drawdown": 13361.95,
+        "max_drawdown_pct": 9.6,
+        "sharpe_ratio": 3.53,
+        "sortino_ratio": 18.8,
+        "trade_count": 48,
+        "composite_score": 61.7
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 7,
+            "slow_period": 19
+          }
+        },
+        "net_profit": 26478.7,
+        "win_rate": 37.78,
+        "profit_factor": 1.99,
+        "expectancy": 588.42,
+        "max_drawdown": 13612.83,
+        "max_drawdown_pct": 9.94,
+        "sharpe_ratio": 3.26,
+        "sortino_ratio": 15.69,
+        "trade_count": 45,
+        "composite_score": 60.01
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 7,
+            "slow_period": 20
+          }
+        },
+        "net_profit": 19953.9,
+        "win_rate": 34.15,
+        "profit_factor": 1.69,
+        "expectancy": 486.68,
+        "max_drawdown": 17504.36,
+        "max_drawdown_pct": 12.98,
+        "sharpe_ratio": 2.4,
+        "sortino_ratio": 8.66,
+        "trade_count": 41,
+        "composite_score": 44.85
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 8,
+            "slow_period": 9
+          }
+        },
+        "net_profit": 53231.13,
+        "win_rate": 46.15,
+        "profit_factor": 3.79,
+        "expectancy": 1023.68,
+        "max_drawdown": 5665.86,
+        "max_drawdown_pct": 3.83,
+        "sharpe_ratio": 6.47,
+        "sortino_ratio": 54.82,
+        "trade_count": 52,
+        "composite_score": 82.7
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 8,
+            "slow_period": 10
+          }
+        },
+        "net_profit": 52332.54,
+        "win_rate": 47.17,
+        "profit_factor": 3.7,
+        "expectancy": 987.41,
+        "max_drawdown": 5635.58,
+        "max_drawdown_pct": 3.83,
+        "sharpe_ratio": 6.32,
+        "sortino_ratio": 52.16,
+        "trade_count": 53,
+        "composite_score": 82.61
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 8,
+            "slow_period": 11
+          }
+        },
+        "net_profit": 53155.21,
+        "win_rate": 49.09,
+        "profit_factor": 3.83,
+        "expectancy": 966.46,
+        "max_drawdown": 6138.16,
+        "max_drawdown_pct": 4.15,
+        "sharpe_ratio": 6.35,
+        "sortino_ratio": 49.99,
+        "trade_count": 55,
+        "composite_score": 82.33
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 8,
+            "slow_period": 12
+          }
+        },
+        "net_profit": 39879.99,
+        "win_rate": 45.1,
+        "profit_factor": 2.86,
+        "expectancy": 781.96,
+        "max_drawdown": 10197.74,
+        "max_drawdown_pct": 6.94,
+        "sharpe_ratio": 4.9,
+        "sortino_ratio": 31.0,
+        "trade_count": 51,
+        "composite_score": 76.02
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 8,
+            "slow_period": 13
+          }
+        },
+        "net_profit": 38388.32,
+        "win_rate": 43.75,
+        "profit_factor": 2.67,
+        "expectancy": 799.76,
+        "max_drawdown": 11189.42,
+        "max_drawdown_pct": 7.61,
+        "sharpe_ratio": 4.68,
+        "sortino_ratio": 26.65,
+        "trade_count": 48,
+        "composite_score": 73.44
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 8,
+            "slow_period": 14
+          }
+        },
+        "net_profit": 34015.54,
+        "win_rate": 34.78,
+        "profit_factor": 2.34,
+        "expectancy": 739.47,
+        "max_drawdown": 14738.15,
+        "max_drawdown_pct": 10.06,
+        "sharpe_ratio": 4.09,
+        "sortino_ratio": 21.85,
+        "trade_count": 46,
+        "composite_score": 66.29
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 8,
+            "slow_period": 15
+          }
+        },
+        "net_profit": 32478.68,
+        "win_rate": 33.33,
+        "profit_factor": 2.44,
+        "expectancy": 721.75,
+        "max_drawdown": 12257.26,
+        "max_drawdown_pct": 8.56,
+        "sharpe_ratio": 3.75,
+        "sortino_ratio": 22.17,
+        "trade_count": 45,
+        "composite_score": 67.88
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 8,
+            "slow_period": 16
+          }
+        },
+        "net_profit": 27886.29,
+        "win_rate": 34.78,
+        "profit_factor": 2.09,
+        "expectancy": 606.22,
+        "max_drawdown": 12977.93,
+        "max_drawdown_pct": 9.34,
+        "sharpe_ratio": 3.23,
+        "sortino_ratio": 18.42,
+        "trade_count": 46,
+        "composite_score": 61.53
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 8,
+            "slow_period": 20
+          }
+        },
+        "net_profit": 21506.02,
+        "win_rate": 30.77,
+        "profit_factor": 1.73,
+        "expectancy": 551.44,
+        "max_drawdown": 17232.78,
+        "max_drawdown_pct": 12.66,
+        "sharpe_ratio": 2.55,
+        "sortino_ratio": 9.47,
+        "trade_count": 39,
+        "composite_score": 48.14
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 8,
+            "slow_period": 18
+          }
+        },
+        "net_profit": 21577.62,
+        "win_rate": 33.33,
+        "profit_factor": 1.74,
+        "expectancy": 513.75,
+        "max_drawdown": 17040.6,
+        "max_drawdown_pct": 12.52,
+        "sharpe_ratio": 2.57,
+        "sortino_ratio": 9.65,
+        "trade_count": 42,
+        "composite_score": 48.3
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 8,
+            "slow_period": 19
+          }
+        },
+        "net_profit": 21638.44,
+        "win_rate": 32.5,
+        "profit_factor": 1.74,
+        "expectancy": 540.96,
+        "max_drawdown": 17198.37,
+        "max_drawdown_pct": 12.62,
+        "sharpe_ratio": 2.57,
+        "sortino_ratio": 9.53,
+        "trade_count": 40,
+        "composite_score": 48.57
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 8,
+            "slow_period": 17
+          }
+        },
+        "net_profit": 26840.97,
+        "win_rate": 35.56,
+        "profit_factor": 1.97,
+        "expectancy": 596.47,
+        "max_drawdown": 14103.17,
+        "max_drawdown_pct": 10.19,
+        "sharpe_ratio": 3.23,
+        "sortino_ratio": 16.11,
+        "trade_count": 45,
+        "composite_score": 59.53
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 9,
+            "slow_period": 10
+          }
+        },
+        "net_profit": 51919.85,
+        "win_rate": 49.09,
+        "profit_factor": 3.77,
+        "expectancy": 944.0,
+        "max_drawdown": 6138.16,
+        "max_drawdown_pct": 4.19,
+        "sharpe_ratio": 6.2,
+        "sortino_ratio": 48.81,
+        "trade_count": 55,
+        "composite_score": 81.97
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 9,
+            "slow_period": 11
+          }
+        },
+        "net_profit": 39872.75,
+        "win_rate": 46.94,
+        "profit_factor": 2.84,
+        "expectancy": 813.73,
+        "max_drawdown": 10472.79,
+        "max_drawdown_pct": 7.12,
+        "sharpe_ratio": 4.87,
+        "sortino_ratio": 29.64,
+        "trade_count": 49,
+        "composite_score": 76.34
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 9,
+            "slow_period": 12
+          }
+        },
+        "net_profit": 40106.11,
+        "win_rate": 42.55,
+        "profit_factor": 2.92,
+        "expectancy": 853.32,
+        "max_drawdown": 10484.58,
+        "max_drawdown_pct": 7.08,
+        "sharpe_ratio": 4.69,
+        "sortino_ratio": 28.68,
+        "trade_count": 47,
+        "composite_score": 77.51
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 9,
+            "slow_period": 13
+          }
+        },
+        "net_profit": 30744.06,
+        "win_rate": 32.61,
+        "profit_factor": 2.22,
+        "expectancy": 668.35,
+        "max_drawdown": 14831.94,
+        "max_drawdown_pct": 10.35,
+        "sharpe_ratio": 3.5,
+        "sortino_ratio": 18.08,
+        "trade_count": 46,
+        "composite_score": 63.36
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 9,
+            "slow_period": 14
+          }
+        },
+        "net_profit": 31469.66,
+        "win_rate": 33.33,
+        "profit_factor": 2.46,
+        "expectancy": 749.28,
+        "max_drawdown": 12832.49,
+        "max_drawdown_pct": 8.99,
+        "sharpe_ratio": 3.62,
+        "sortino_ratio": 20.42,
+        "trade_count": 42,
+        "composite_score": 68.33
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 9,
+            "slow_period": 15
+          }
+        },
+        "net_profit": 29311.62,
+        "win_rate": 35.56,
+        "profit_factor": 2.15,
+        "expectancy": 651.37,
+        "max_drawdown": 12807.51,
+        "max_drawdown_pct": 9.13,
+        "sharpe_ratio": 3.39,
+        "sortino_ratio": 18.88,
+        "trade_count": 45,
+        "composite_score": 63.14
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 9,
+            "slow_period": 16
+          }
+        },
+        "net_profit": 27834.6,
+        "win_rate": 33.33,
+        "profit_factor": 2.05,
+        "expectancy": 618.55,
+        "max_drawdown": 15702.35,
+        "max_drawdown_pct": 11.21,
+        "sharpe_ratio": 3.16,
+        "sortino_ratio": 12.91,
+        "trade_count": 45,
+        "composite_score": 60.13
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 9,
+            "slow_period": 17
+          }
+        },
+        "net_profit": 20415.54,
+        "win_rate": 31.71,
+        "profit_factor": 1.7,
+        "expectancy": 497.94,
+        "max_drawdown": 18463.73,
+        "max_drawdown_pct": 13.59,
+        "sharpe_ratio": 2.3,
+        "sortino_ratio": 8.15,
+        "trade_count": 41,
+        "composite_score": 43.26
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 9,
+            "slow_period": 18
+          }
+        },
+        "net_profit": 19517.6,
+        "win_rate": 30.0,
+        "profit_factor": 1.66,
+        "expectancy": 487.94,
+        "max_drawdown": 18464.03,
+        "max_drawdown_pct": 13.64,
+        "sharpe_ratio": 2.19,
+        "sortino_ratio": 7.67,
+        "trade_count": 40,
+        "composite_score": 40.95
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 9,
+            "slow_period": 19
+          }
+        },
+        "net_profit": 17254.3,
+        "win_rate": 28.21,
+        "profit_factor": 1.56,
+        "expectancy": 442.42,
+        "max_drawdown": 19309.61,
+        "max_drawdown_pct": 14.41,
+        "sharpe_ratio": 1.91,
+        "sortino_ratio": 6.21,
+        "trade_count": 39,
+        "composite_score": 34.72
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 9,
+            "slow_period": 20
+          }
+        },
+        "net_profit": 17721.3,
+        "win_rate": 30.0,
+        "profit_factor": 1.59,
+        "expectancy": 443.03,
+        "max_drawdown": 17326.17,
+        "max_drawdown_pct": 12.95,
+        "sharpe_ratio": 2.02,
+        "sortino_ratio": 6.89,
+        "trade_count": 40,
+        "composite_score": 37.48
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 10,
+            "slow_period": 11
+          }
+        },
+        "net_profit": 37690.43,
+        "win_rate": 40.43,
+        "profit_factor": 2.9,
+        "expectancy": 801.92,
+        "max_drawdown": 9129.82,
+        "max_drawdown_pct": 6.33,
+        "sharpe_ratio": 4.39,
+        "sortino_ratio": 28.39,
+        "trade_count": 47,
+        "composite_score": 76.66
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 10,
+            "slow_period": 12
+          }
+        },
+        "net_profit": 32554.12,
+        "win_rate": 31.11,
+        "profit_factor": 2.43,
+        "expectancy": 723.42,
+        "max_drawdown": 13021.88,
+        "max_drawdown_pct": 9.08,
+        "sharpe_ratio": 3.73,
+        "sortino_ratio": 20.9,
+        "trade_count": 45,
+        "composite_score": 67.3
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 10,
+            "slow_period": 13
+          }
+        },
+        "net_profit": 27821.31,
+        "win_rate": 33.33,
+        "profit_factor": 2.1,
+        "expectancy": 662.41,
+        "max_drawdown": 12832.49,
+        "max_drawdown_pct": 9.23,
+        "sharpe_ratio": 3.22,
+        "sortino_ratio": 18.18,
+        "trade_count": 42,
+        "composite_score": 62.4
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 10,
+            "slow_period": 14
+          }
+        },
+        "net_profit": 24451.75,
+        "win_rate": 31.82,
+        "profit_factor": 1.85,
+        "expectancy": 555.72,
+        "max_drawdown": 17295.94,
+        "max_drawdown_pct": 12.33,
+        "sharpe_ratio": 2.73,
+        "sortino_ratio": 9.88,
+        "trade_count": 44,
+        "composite_score": 52.38
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 10,
+            "slow_period": 15
+          }
+        },
+        "net_profit": 23671.41,
+        "win_rate": 31.82,
+        "profit_factor": 1.84,
+        "expectancy": 537.99,
+        "max_drawdown": 16851.92,
+        "max_drawdown_pct": 12.22,
+        "sharpe_ratio": 2.63,
+        "sortino_ratio": 9.71,
+        "trade_count": 44,
+        "composite_score": 50.71
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 10,
+            "slow_period": 16
+          }
+        },
+        "net_profit": 19503.96,
+        "win_rate": 31.71,
+        "profit_factor": 1.65,
+        "expectancy": 475.71,
+        "max_drawdown": 19101.52,
+        "max_drawdown_pct": 14.09,
+        "sharpe_ratio": 2.17,
+        "sortino_ratio": 7.67,
+        "trade_count": 41,
+        "composite_score": 40.32
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 10,
+            "slow_period": 17
+          }
+        },
+        "net_profit": 17758.78,
+        "win_rate": 30.0,
+        "profit_factor": 1.58,
+        "expectancy": 443.97,
+        "max_drawdown": 19221.74,
+        "max_drawdown_pct": 14.3,
+        "sharpe_ratio": 1.97,
+        "sortino_ratio": 6.85,
+        "trade_count": 40,
+        "composite_score": 36.03
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 10,
+            "slow_period": 18
+          }
+        },
+        "net_profit": 16113.56,
+        "win_rate": 25.64,
+        "profit_factor": 1.52,
+        "expectancy": 413.17,
+        "max_drawdown": 20226.43,
+        "max_drawdown_pct": 14.97,
+        "sharpe_ratio": 1.78,
+        "sortino_ratio": 6.01,
+        "trade_count": 39,
+        "composite_score": 31.51
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 10,
+            "slow_period": 19
+          }
+        },
+        "net_profit": 16601.0,
+        "win_rate": 28.21,
+        "profit_factor": 1.53,
+        "expectancy": 425.67,
+        "max_drawdown": 20138.46,
+        "max_drawdown_pct": 14.86,
+        "sharpe_ratio": 1.78,
+        "sortino_ratio": 5.98,
+        "trade_count": 39,
+        "composite_score": 32.13
+      },
+      {
+        "combination": {
+          "params": {
+            "fast_period": 10,
+            "slow_period": 20
+          }
+        },
+        "net_profit": 14824.79,
+        "win_rate": 30.77,
+        "profit_factor": 1.45,
+        "expectancy": 380.12,
+        "max_drawdown": 22271.19,
+        "max_drawdown_pct": 16.39,
+        "sharpe_ratio": 1.58,
+        "sortino_ratio": 5.18,
+        "trade_count": 39,
+        "composite_score": 27.28
+      }
+    ]
+  },
+  "top_10": [
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 11
+        }
+      },
+      "net_profit": 101027.59,
+      "win_rate": 65.35,
+      "profit_factor": 7.04,
+      "expectancy": 1000.27,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.29,
+      "sharpe_ratio": 11.64,
+      "sortino_ratio": 202.01,
+      "trade_count": 101,
+      "composite_score": 85.89
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 12
+        }
+      },
+      "net_profit": 99380.71,
+      "win_rate": 64.89,
+      "profit_factor": 8.09,
+      "expectancy": 1057.24,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.32,
+      "sharpe_ratio": 11.43,
+      "sortino_ratio": 264.05,
+      "trade_count": 94,
+      "composite_score": 85.83
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 10
+        }
+      },
+      "net_profit": 105504.38,
+      "win_rate": 64.15,
+      "profit_factor": 7.14,
+      "expectancy": 995.32,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.27,
+      "sharpe_ratio": 11.81,
+      "sortino_ratio": 214.17,
+      "trade_count": 106,
+      "composite_score": 85.71
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 13
+        }
+      },
+      "net_profit": 95587.97,
+      "win_rate": 63.33,
+      "profit_factor": 8.04,
+      "expectancy": 1062.09,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.33,
+      "sharpe_ratio": 10.82,
+      "sortino_ratio": 243.46,
+      "trade_count": 90,
+      "composite_score": 85.67
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 3,
+          "slow_period": 14
+        }
+      },
+      "net_profit": 77952.98,
+      "win_rate": 60.81,
+      "profit_factor": 5.55,
+      "expectancy": 1053.42,
+      "max_drawdown": 2731.09,
+      "max_drawdown_pct": 1.75,
+      "sharpe_ratio": 9.25,
+      "sortino_ratio": 172.7,
+      "trade_count": 74,
+      "composite_score": 85.21
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 3,
+          "slow_period": 11
+        }
+      },
+      "net_profit": 84523.91,
+      "win_rate": 58.97,
+      "profit_factor": 6.47,
+      "expectancy": 1083.64,
+      "max_drawdown": 2376.16,
+      "max_drawdown_pct": 1.74,
+      "sharpe_ratio": 10.17,
+      "sortino_ratio": 241.14,
+      "trade_count": 78,
+      "composite_score": 85.03
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 3,
+          "slow_period": 7
+        }
+      },
+      "net_profit": 100613.31,
+      "win_rate": 64.15,
+      "profit_factor": 7.57,
+      "expectancy": 949.18,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.3,
+      "sharpe_ratio": 11.75,
+      "sortino_ratio": 211.54,
+      "trade_count": 106,
+      "composite_score": 85.0
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 3,
+          "slow_period": 9
+        }
+      },
+      "net_profit": 89707.24,
+      "win_rate": 58.89,
+      "profit_factor": 5.8,
+      "expectancy": 996.75,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.72,
+      "sharpe_ratio": 10.61,
+      "sortino_ratio": 177.96,
+      "trade_count": 90,
+      "composite_score": 84.98
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 5
+        }
+      },
+      "net_profit": 128782.34,
+      "win_rate": 66.43,
+      "profit_factor": 11.6,
+      "expectancy": 919.87,
+      "max_drawdown": 1265.95,
+      "max_drawdown_pct": 0.99,
+      "sharpe_ratio": 13.93,
+      "sortino_ratio": 0.0,
+      "trade_count": 140,
+      "composite_score": 84.95
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 3,
+          "slow_period": 10
+        }
+      },
+      "net_profit": 85450.0,
+      "win_rate": 57.65,
+      "profit_factor": 6.12,
+      "expectancy": 1005.29,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.73,
+      "sharpe_ratio": 10.19,
+      "sortino_ratio": 217.32,
+      "trade_count": 85,
+      "composite_score": 84.9
+    }
+  ],
+  "top_25": [
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 11
+        }
+      },
+      "net_profit": 101027.59,
+      "win_rate": 65.35,
+      "profit_factor": 7.04,
+      "expectancy": 1000.27,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.29,
+      "sharpe_ratio": 11.64,
+      "sortino_ratio": 202.01,
+      "trade_count": 101,
+      "composite_score": 85.89
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 12
+        }
+      },
+      "net_profit": 99380.71,
+      "win_rate": 64.89,
+      "profit_factor": 8.09,
+      "expectancy": 1057.24,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.32,
+      "sharpe_ratio": 11.43,
+      "sortino_ratio": 264.05,
+      "trade_count": 94,
+      "composite_score": 85.83
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 10
+        }
+      },
+      "net_profit": 105504.38,
+      "win_rate": 64.15,
+      "profit_factor": 7.14,
+      "expectancy": 995.32,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.27,
+      "sharpe_ratio": 11.81,
+      "sortino_ratio": 214.17,
+      "trade_count": 106,
+      "composite_score": 85.71
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 13
+        }
+      },
+      "net_profit": 95587.97,
+      "win_rate": 63.33,
+      "profit_factor": 8.04,
+      "expectancy": 1062.09,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.33,
+      "sharpe_ratio": 10.82,
+      "sortino_ratio": 243.46,
+      "trade_count": 90,
+      "composite_score": 85.67
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 3,
+          "slow_period": 14
+        }
+      },
+      "net_profit": 77952.98,
+      "win_rate": 60.81,
+      "profit_factor": 5.55,
+      "expectancy": 1053.42,
+      "max_drawdown": 2731.09,
+      "max_drawdown_pct": 1.75,
+      "sharpe_ratio": 9.25,
+      "sortino_ratio": 172.7,
+      "trade_count": 74,
+      "composite_score": 85.21
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 3,
+          "slow_period": 11
+        }
+      },
+      "net_profit": 84523.91,
+      "win_rate": 58.97,
+      "profit_factor": 6.47,
+      "expectancy": 1083.64,
+      "max_drawdown": 2376.16,
+      "max_drawdown_pct": 1.74,
+      "sharpe_ratio": 10.17,
+      "sortino_ratio": 241.14,
+      "trade_count": 78,
+      "composite_score": 85.03
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 3,
+          "slow_period": 7
+        }
+      },
+      "net_profit": 100613.31,
+      "win_rate": 64.15,
+      "profit_factor": 7.57,
+      "expectancy": 949.18,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.3,
+      "sharpe_ratio": 11.75,
+      "sortino_ratio": 211.54,
+      "trade_count": 106,
+      "composite_score": 85.0
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 3,
+          "slow_period": 9
+        }
+      },
+      "net_profit": 89707.24,
+      "win_rate": 58.89,
+      "profit_factor": 5.8,
+      "expectancy": 996.75,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.72,
+      "sharpe_ratio": 10.61,
+      "sortino_ratio": 177.96,
+      "trade_count": 90,
+      "composite_score": 84.98
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 5
+        }
+      },
+      "net_profit": 128782.34,
+      "win_rate": 66.43,
+      "profit_factor": 11.6,
+      "expectancy": 919.87,
+      "max_drawdown": 1265.95,
+      "max_drawdown_pct": 0.99,
+      "sharpe_ratio": 13.93,
+      "sortino_ratio": 0.0,
+      "trade_count": 140,
+      "composite_score": 84.95
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 3,
+          "slow_period": 10
+        }
+      },
+      "net_profit": 85450.0,
+      "win_rate": 57.65,
+      "profit_factor": 6.12,
+      "expectancy": 1005.29,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.73,
+      "sharpe_ratio": 10.19,
+      "sortino_ratio": 217.32,
+      "trade_count": 85,
+      "composite_score": 84.9
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 6
+        }
+      },
+      "net_profit": 117112.99,
+      "win_rate": 65.35,
+      "profit_factor": 11.17,
+      "expectancy": 922.15,
+      "max_drawdown": 1265.95,
+      "max_drawdown_pct": 0.99,
+      "sharpe_ratio": 15.02,
+      "sortino_ratio": 3611.08,
+      "trade_count": 127,
+      "composite_score": 84.87
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 14
+        }
+      },
+      "net_profit": 88204.49,
+      "win_rate": 60.0,
+      "profit_factor": 6.4,
+      "expectancy": 980.05,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.74,
+      "sharpe_ratio": 10.57,
+      "sortino_ratio": 212.52,
+      "trade_count": 90,
+      "composite_score": 84.83
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 3,
+          "slow_period": 13
+        }
+      },
+      "net_profit": 76619.73,
+      "win_rate": 56.0,
+      "profit_factor": 5.72,
+      "expectancy": 1021.6,
+      "max_drawdown": 2800.57,
+      "max_drawdown_pct": 1.74,
+      "sharpe_ratio": 9.12,
+      "sortino_ratio": 203.82,
+      "trade_count": 75,
+      "composite_score": 84.73
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 9
+        }
+      },
+      "net_profit": 104265.98,
+      "win_rate": 66.96,
+      "profit_factor": 8.38,
+      "expectancy": 906.66,
+      "max_drawdown": 2476.75,
+      "max_drawdown_pct": 1.4,
+      "sharpe_ratio": 12.27,
+      "sortino_ratio": 232.37,
+      "trade_count": 115,
+      "composite_score": 84.6
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 7
+        }
+      },
+      "net_profit": 109347.78,
+      "win_rate": 66.39,
+      "profit_factor": 8.48,
+      "expectancy": 896.29,
+      "max_drawdown": 1506.82,
+      "max_drawdown_pct": 0.98,
+      "sharpe_ratio": 13.2,
+      "sortino_ratio": 1278.41,
+      "trade_count": 122,
+      "composite_score": 84.59
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 5,
+          "slow_period": 6
+        }
+      },
+      "net_profit": 87366.71,
+      "win_rate": 55.68,
+      "profit_factor": 5.63,
+      "expectancy": 992.8,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.73,
+      "sharpe_ratio": 10.21,
+      "sortino_ratio": 167.89,
+      "trade_count": 88,
+      "composite_score": 84.59
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 5,
+          "slow_period": 7
+        }
+      },
+      "net_profit": 83038.9,
+      "win_rate": 55.0,
+      "profit_factor": 5.86,
+      "expectancy": 1037.99,
+      "max_drawdown": 3107.53,
+      "max_drawdown_pct": 1.85,
+      "sharpe_ratio": 9.83,
+      "sortino_ratio": 185.4,
+      "trade_count": 80,
+      "composite_score": 84.58
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 15
+        }
+      },
+      "net_profit": 86665.41,
+      "win_rate": 60.0,
+      "profit_factor": 6.19,
+      "expectancy": 962.95,
+      "max_drawdown": 2668.09,
+      "max_drawdown_pct": 1.74,
+      "sharpe_ratio": 10.3,
+      "sortino_ratio": 160.87,
+      "trade_count": 90,
+      "composite_score": 84.57
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 4,
+          "slow_period": 7
+        }
+      },
+      "net_profit": 89177.31,
+      "win_rate": 55.56,
+      "profit_factor": 5.72,
+      "expectancy": 990.86,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.72,
+      "sharpe_ratio": 10.43,
+      "sortino_ratio": 171.52,
+      "trade_count": 90,
+      "composite_score": 84.56
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 3,
+          "slow_period": 12
+        }
+      },
+      "net_profit": 78665.29,
+      "win_rate": 53.95,
+      "profit_factor": 5.83,
+      "expectancy": 1035.07,
+      "max_drawdown": 2739.78,
+      "max_drawdown_pct": 1.74,
+      "sharpe_ratio": 9.36,
+      "sortino_ratio": 209.75,
+      "trade_count": 76,
+      "composite_score": 84.52
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 4,
+          "slow_period": 5
+        }
+      },
+      "net_profit": 95606.04,
+      "win_rate": 62.14,
+      "profit_factor": 6.47,
+      "expectancy": 928.21,
+      "max_drawdown": 2363.19,
+      "max_drawdown_pct": 1.3,
+      "sharpe_ratio": 11.02,
+      "sortino_ratio": 139.65,
+      "trade_count": 103,
+      "composite_score": 84.49
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 4,
+          "slow_period": 13
+        }
+      },
+      "net_profit": 62104.52,
+      "win_rate": 55.93,
+      "profit_factor": 4.43,
+      "expectancy": 1052.62,
+      "max_drawdown": 3314.06,
+      "max_drawdown_pct": 2.2,
+      "sharpe_ratio": 7.43,
+      "sortino_ratio": 80.71,
+      "trade_count": 59,
+      "composite_score": 84.49
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 4,
+          "slow_period": 8
+        }
+      },
+      "net_profit": 83904.94,
+      "win_rate": 55.81,
+      "profit_factor": 5.76,
+      "expectancy": 975.64,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.72,
+      "sharpe_ratio": 9.96,
+      "sortino_ratio": 184.64,
+      "trade_count": 86,
+      "composite_score": 84.36
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 4,
+          "slow_period": 14
+        }
+      },
+      "net_profit": 61296.41,
+      "win_rate": 56.45,
+      "profit_factor": 4.23,
+      "expectancy": 988.65,
+      "max_drawdown": 3431.81,
+      "max_drawdown_pct": 2.27,
+      "sharpe_ratio": 7.24,
+      "sortino_ratio": 64.83,
+      "trade_count": 62,
+      "composite_score": 84.34
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 4,
+          "slow_period": 9
+        }
+      },
+      "net_profit": 80061.11,
+      "win_rate": 53.25,
+      "profit_factor": 5.63,
+      "expectancy": 1039.75,
+      "max_drawdown": 3631.79,
+      "max_drawdown_pct": 2.2,
+      "sharpe_ratio": 9.51,
+      "sortino_ratio": 174.8,
+      "trade_count": 77,
+      "composite_score": 84.23
+    }
+  ],
+  "top_50": [
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 11
+        }
+      },
+      "net_profit": 101027.59,
+      "win_rate": 65.35,
+      "profit_factor": 7.04,
+      "expectancy": 1000.27,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.29,
+      "sharpe_ratio": 11.64,
+      "sortino_ratio": 202.01,
+      "trade_count": 101,
+      "composite_score": 85.89
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 12
+        }
+      },
+      "net_profit": 99380.71,
+      "win_rate": 64.89,
+      "profit_factor": 8.09,
+      "expectancy": 1057.24,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.32,
+      "sharpe_ratio": 11.43,
+      "sortino_ratio": 264.05,
+      "trade_count": 94,
+      "composite_score": 85.83
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 10
+        }
+      },
+      "net_profit": 105504.38,
+      "win_rate": 64.15,
+      "profit_factor": 7.14,
+      "expectancy": 995.32,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.27,
+      "sharpe_ratio": 11.81,
+      "sortino_ratio": 214.17,
+      "trade_count": 106,
+      "composite_score": 85.71
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 13
+        }
+      },
+      "net_profit": 95587.97,
+      "win_rate": 63.33,
+      "profit_factor": 8.04,
+      "expectancy": 1062.09,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.33,
+      "sharpe_ratio": 10.82,
+      "sortino_ratio": 243.46,
+      "trade_count": 90,
+      "composite_score": 85.67
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 3,
+          "slow_period": 14
+        }
+      },
+      "net_profit": 77952.98,
+      "win_rate": 60.81,
+      "profit_factor": 5.55,
+      "expectancy": 1053.42,
+      "max_drawdown": 2731.09,
+      "max_drawdown_pct": 1.75,
+      "sharpe_ratio": 9.25,
+      "sortino_ratio": 172.7,
+      "trade_count": 74,
+      "composite_score": 85.21
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 3,
+          "slow_period": 11
+        }
+      },
+      "net_profit": 84523.91,
+      "win_rate": 58.97,
+      "profit_factor": 6.47,
+      "expectancy": 1083.64,
+      "max_drawdown": 2376.16,
+      "max_drawdown_pct": 1.74,
+      "sharpe_ratio": 10.17,
+      "sortino_ratio": 241.14,
+      "trade_count": 78,
+      "composite_score": 85.03
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 3,
+          "slow_period": 7
+        }
+      },
+      "net_profit": 100613.31,
+      "win_rate": 64.15,
+      "profit_factor": 7.57,
+      "expectancy": 949.18,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.3,
+      "sharpe_ratio": 11.75,
+      "sortino_ratio": 211.54,
+      "trade_count": 106,
+      "composite_score": 85.0
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 3,
+          "slow_period": 9
+        }
+      },
+      "net_profit": 89707.24,
+      "win_rate": 58.89,
+      "profit_factor": 5.8,
+      "expectancy": 996.75,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.72,
+      "sharpe_ratio": 10.61,
+      "sortino_ratio": 177.96,
+      "trade_count": 90,
+      "composite_score": 84.98
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 5
+        }
+      },
+      "net_profit": 128782.34,
+      "win_rate": 66.43,
+      "profit_factor": 11.6,
+      "expectancy": 919.87,
+      "max_drawdown": 1265.95,
+      "max_drawdown_pct": 0.99,
+      "sharpe_ratio": 13.93,
+      "sortino_ratio": 0.0,
+      "trade_count": 140,
+      "composite_score": 84.95
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 3,
+          "slow_period": 10
+        }
+      },
+      "net_profit": 85450.0,
+      "win_rate": 57.65,
+      "profit_factor": 6.12,
+      "expectancy": 1005.29,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.73,
+      "sharpe_ratio": 10.19,
+      "sortino_ratio": 217.32,
+      "trade_count": 85,
+      "composite_score": 84.9
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 6
+        }
+      },
+      "net_profit": 117112.99,
+      "win_rate": 65.35,
+      "profit_factor": 11.17,
+      "expectancy": 922.15,
+      "max_drawdown": 1265.95,
+      "max_drawdown_pct": 0.99,
+      "sharpe_ratio": 15.02,
+      "sortino_ratio": 3611.08,
+      "trade_count": 127,
+      "composite_score": 84.87
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 14
+        }
+      },
+      "net_profit": 88204.49,
+      "win_rate": 60.0,
+      "profit_factor": 6.4,
+      "expectancy": 980.05,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.74,
+      "sharpe_ratio": 10.57,
+      "sortino_ratio": 212.52,
+      "trade_count": 90,
+      "composite_score": 84.83
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 3,
+          "slow_period": 13
+        }
+      },
+      "net_profit": 76619.73,
+      "win_rate": 56.0,
+      "profit_factor": 5.72,
+      "expectancy": 1021.6,
+      "max_drawdown": 2800.57,
+      "max_drawdown_pct": 1.74,
+      "sharpe_ratio": 9.12,
+      "sortino_ratio": 203.82,
+      "trade_count": 75,
+      "composite_score": 84.73
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 9
+        }
+      },
+      "net_profit": 104265.98,
+      "win_rate": 66.96,
+      "profit_factor": 8.38,
+      "expectancy": 906.66,
+      "max_drawdown": 2476.75,
+      "max_drawdown_pct": 1.4,
+      "sharpe_ratio": 12.27,
+      "sortino_ratio": 232.37,
+      "trade_count": 115,
+      "composite_score": 84.6
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 7
+        }
+      },
+      "net_profit": 109347.78,
+      "win_rate": 66.39,
+      "profit_factor": 8.48,
+      "expectancy": 896.29,
+      "max_drawdown": 1506.82,
+      "max_drawdown_pct": 0.98,
+      "sharpe_ratio": 13.2,
+      "sortino_ratio": 1278.41,
+      "trade_count": 122,
+      "composite_score": 84.59
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 5,
+          "slow_period": 6
+        }
+      },
+      "net_profit": 87366.71,
+      "win_rate": 55.68,
+      "profit_factor": 5.63,
+      "expectancy": 992.8,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.73,
+      "sharpe_ratio": 10.21,
+      "sortino_ratio": 167.89,
+      "trade_count": 88,
+      "composite_score": 84.59
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 5,
+          "slow_period": 7
+        }
+      },
+      "net_profit": 83038.9,
+      "win_rate": 55.0,
+      "profit_factor": 5.86,
+      "expectancy": 1037.99,
+      "max_drawdown": 3107.53,
+      "max_drawdown_pct": 1.85,
+      "sharpe_ratio": 9.83,
+      "sortino_ratio": 185.4,
+      "trade_count": 80,
+      "composite_score": 84.58
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 15
+        }
+      },
+      "net_profit": 86665.41,
+      "win_rate": 60.0,
+      "profit_factor": 6.19,
+      "expectancy": 962.95,
+      "max_drawdown": 2668.09,
+      "max_drawdown_pct": 1.74,
+      "sharpe_ratio": 10.3,
+      "sortino_ratio": 160.87,
+      "trade_count": 90,
+      "composite_score": 84.57
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 4,
+          "slow_period": 7
+        }
+      },
+      "net_profit": 89177.31,
+      "win_rate": 55.56,
+      "profit_factor": 5.72,
+      "expectancy": 990.86,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.72,
+      "sharpe_ratio": 10.43,
+      "sortino_ratio": 171.52,
+      "trade_count": 90,
+      "composite_score": 84.56
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 3,
+          "slow_period": 12
+        }
+      },
+      "net_profit": 78665.29,
+      "win_rate": 53.95,
+      "profit_factor": 5.83,
+      "expectancy": 1035.07,
+      "max_drawdown": 2739.78,
+      "max_drawdown_pct": 1.74,
+      "sharpe_ratio": 9.36,
+      "sortino_ratio": 209.75,
+      "trade_count": 76,
+      "composite_score": 84.52
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 4,
+          "slow_period": 5
+        }
+      },
+      "net_profit": 95606.04,
+      "win_rate": 62.14,
+      "profit_factor": 6.47,
+      "expectancy": 928.21,
+      "max_drawdown": 2363.19,
+      "max_drawdown_pct": 1.3,
+      "sharpe_ratio": 11.02,
+      "sortino_ratio": 139.65,
+      "trade_count": 103,
+      "composite_score": 84.49
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 4,
+          "slow_period": 13
+        }
+      },
+      "net_profit": 62104.52,
+      "win_rate": 55.93,
+      "profit_factor": 4.43,
+      "expectancy": 1052.62,
+      "max_drawdown": 3314.06,
+      "max_drawdown_pct": 2.2,
+      "sharpe_ratio": 7.43,
+      "sortino_ratio": 80.71,
+      "trade_count": 59,
+      "composite_score": 84.49
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 4,
+          "slow_period": 8
+        }
+      },
+      "net_profit": 83904.94,
+      "win_rate": 55.81,
+      "profit_factor": 5.76,
+      "expectancy": 975.64,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.72,
+      "sharpe_ratio": 9.96,
+      "sortino_ratio": 184.64,
+      "trade_count": 86,
+      "composite_score": 84.36
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 4,
+          "slow_period": 14
+        }
+      },
+      "net_profit": 61296.41,
+      "win_rate": 56.45,
+      "profit_factor": 4.23,
+      "expectancy": 988.65,
+      "max_drawdown": 3431.81,
+      "max_drawdown_pct": 2.27,
+      "sharpe_ratio": 7.24,
+      "sortino_ratio": 64.83,
+      "trade_count": 62,
+      "composite_score": 84.34
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 4,
+          "slow_period": 9
+        }
+      },
+      "net_profit": 80061.11,
+      "win_rate": 53.25,
+      "profit_factor": 5.63,
+      "expectancy": 1039.75,
+      "max_drawdown": 3631.79,
+      "max_drawdown_pct": 2.2,
+      "sharpe_ratio": 9.51,
+      "sortino_ratio": 174.8,
+      "trade_count": 77,
+      "composite_score": 84.23
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 4,
+          "slow_period": 10
+        }
+      },
+      "net_profit": 77089.35,
+      "win_rate": 52.17,
+      "profit_factor": 5.57,
+      "expectancy": 1117.24,
+      "max_drawdown": 3462.37,
+      "max_drawdown_pct": 2.14,
+      "sharpe_ratio": 9.2,
+      "sortino_ratio": 156.74,
+      "trade_count": 69,
+      "composite_score": 84.15
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 3,
+          "slow_period": 8
+        }
+      },
+      "net_profit": 90109.0,
+      "win_rate": 59.79,
+      "profit_factor": 5.85,
+      "expectancy": 928.96,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.72,
+      "sharpe_ratio": 11.42,
+      "sortino_ratio": 219.12,
+      "trade_count": 97,
+      "composite_score": 84.05
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 4,
+          "slow_period": 12
+        }
+      },
+      "net_profit": 67879.24,
+      "win_rate": 55.38,
+      "profit_factor": 4.29,
+      "expectancy": 1044.3,
+      "max_drawdown": 4734.42,
+      "max_drawdown_pct": 2.99,
+      "sharpe_ratio": 8.05,
+      "sortino_ratio": 105.87,
+      "trade_count": 65,
+      "composite_score": 84.04
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 3,
+          "slow_period": 15
+        }
+      },
+      "net_profit": 66774.93,
+      "win_rate": 59.15,
+      "profit_factor": 4.93,
+      "expectancy": 940.49,
+      "max_drawdown": 2791.16,
+      "max_drawdown_pct": 2.13,
+      "sharpe_ratio": 8.03,
+      "sortino_ratio": 121.3,
+      "trade_count": 71,
+      "composite_score": 83.96
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 5,
+          "slow_period": 9
+        }
+      },
+      "net_profit": 73620.66,
+      "win_rate": 52.94,
+      "profit_factor": 5.02,
+      "expectancy": 1082.66,
+      "max_drawdown": 4430.53,
+      "max_drawdown_pct": 2.75,
+      "sharpe_ratio": 8.73,
+      "sortino_ratio": 130.58,
+      "trade_count": 68,
+      "composite_score": 83.92
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 4,
+          "slow_period": 11
+        }
+      },
+      "net_profit": 69810.04,
+      "win_rate": 52.94,
+      "profit_factor": 4.54,
+      "expectancy": 1026.62,
+      "max_drawdown": 4430.53,
+      "max_drawdown_pct": 2.77,
+      "sharpe_ratio": 8.37,
+      "sortino_ratio": 141.01,
+      "trade_count": 68,
+      "composite_score": 83.91
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 8
+        }
+      },
+      "net_profit": 101237.06,
+      "win_rate": 66.1,
+      "profit_factor": 7.66,
+      "expectancy": 857.94,
+      "max_drawdown": 2110.0,
+      "max_drawdown_pct": 1.21,
+      "sharpe_ratio": 11.57,
+      "sortino_ratio": 175.43,
+      "trade_count": 118,
+      "composite_score": 83.87
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 17
+        }
+      },
+      "net_profit": 73197.46,
+      "win_rate": 61.73,
+      "profit_factor": 5.17,
+      "expectancy": 903.67,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.75,
+      "sharpe_ratio": 8.67,
+      "sortino_ratio": 123.17,
+      "trade_count": 81,
+      "composite_score": 83.85
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 5,
+          "slow_period": 8
+        }
+      },
+      "net_profit": 79063.85,
+      "win_rate": 50.0,
+      "profit_factor": 5.45,
+      "expectancy": 1098.11,
+      "max_drawdown": 3797.04,
+      "max_drawdown_pct": 2.31,
+      "sharpe_ratio": 9.49,
+      "sortino_ratio": 154.13,
+      "trade_count": 72,
+      "composite_score": 83.85
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 6,
+          "slow_period": 7
+        }
+      },
+      "net_profit": 78548.86,
+      "win_rate": 50.0,
+      "profit_factor": 5.48,
+      "expectancy": 1122.13,
+      "max_drawdown": 3797.04,
+      "max_drawdown_pct": 2.32,
+      "sharpe_ratio": 9.4,
+      "sortino_ratio": 140.35,
+      "trade_count": 70,
+      "composite_score": 83.84
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 4,
+          "slow_period": 6
+        }
+      },
+      "net_profit": 90495.77,
+      "win_rate": 58.16,
+      "profit_factor": 5.65,
+      "expectancy": 923.43,
+      "max_drawdown": 2363.19,
+      "max_drawdown_pct": 1.72,
+      "sharpe_ratio": 11.19,
+      "sortino_ratio": 124.21,
+      "trade_count": 98,
+      "composite_score": 83.81
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 5,
+          "slow_period": 11
+        }
+      },
+      "net_profit": 67371.04,
+      "win_rate": 56.67,
+      "profit_factor": 4.15,
+      "expectancy": 1122.85,
+      "max_drawdown": 5939.98,
+      "max_drawdown_pct": 3.75,
+      "sharpe_ratio": 8.01,
+      "sortino_ratio": 77.73,
+      "trade_count": 60,
+      "composite_score": 83.79
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 5,
+          "slow_period": 10
+        }
+      },
+      "net_profit": 67710.41,
+      "win_rate": 54.84,
+      "profit_factor": 4.22,
+      "expectancy": 1092.1,
+      "max_drawdown": 6075.03,
+      "max_drawdown_pct": 3.83,
+      "sharpe_ratio": 8.04,
+      "sortino_ratio": 79.9,
+      "trade_count": 62,
+      "composite_score": 83.57
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 16
+        }
+      },
+      "net_profit": 77385.39,
+      "win_rate": 60.92,
+      "profit_factor": 5.49,
+      "expectancy": 889.49,
+      "max_drawdown": 2333.58,
+      "max_drawdown_pct": 1.74,
+      "sharpe_ratio": 9.11,
+      "sortino_ratio": 128.92,
+      "trade_count": 87,
+      "composite_score": 83.56
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 5,
+          "slow_period": 13
+        }
+      },
+      "net_profit": 56843.28,
+      "win_rate": 52.63,
+      "profit_factor": 3.91,
+      "expectancy": 997.25,
+      "max_drawdown": 5305.8,
+      "max_drawdown_pct": 3.58,
+      "sharpe_ratio": 6.71,
+      "sortino_ratio": 54.49,
+      "trade_count": 57,
+      "composite_score": 83.43
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 7,
+          "slow_period": 9
+        }
+      },
+      "net_profit": 64823.78,
+      "win_rate": 53.57,
+      "profit_factor": 3.9,
+      "expectancy": 1157.57,
+      "max_drawdown": 6171.67,
+      "max_drawdown_pct": 3.89,
+      "sharpe_ratio": 7.67,
+      "sortino_ratio": 60.63,
+      "trade_count": 56,
+      "composite_score": 83.41
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 3,
+          "slow_period": 5
+        }
+      },
+      "net_profit": 100654.0,
+      "win_rate": 63.79,
+      "profit_factor": 6.77,
+      "expectancy": 867.71,
+      "max_drawdown": 3988.18,
+      "max_drawdown_pct": 1.99,
+      "sharpe_ratio": 11.8,
+      "sortino_ratio": 122.45,
+      "trade_count": 116,
+      "composite_score": 83.4
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 6,
+          "slow_period": 8
+        }
+      },
+      "net_profit": 68748.71,
+      "win_rate": 53.23,
+      "profit_factor": 4.32,
+      "expectancy": 1108.85,
+      "max_drawdown": 6120.05,
+      "max_drawdown_pct": 3.85,
+      "sharpe_ratio": 8.18,
+      "sortino_ratio": 81.07,
+      "trade_count": 62,
+      "composite_score": 83.4
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 6,
+          "slow_period": 13
+        }
+      },
+      "net_profit": 54652.26,
+      "win_rate": 51.85,
+      "profit_factor": 3.97,
+      "expectancy": 1012.08,
+      "max_drawdown": 5371.43,
+      "max_drawdown_pct": 3.61,
+      "sharpe_ratio": 6.58,
+      "sortino_ratio": 56.58,
+      "trade_count": 54,
+      "composite_score": 83.38
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 2,
+          "slow_period": 20
+        }
+      },
+      "net_profit": 64898.72,
+      "win_rate": 62.16,
+      "profit_factor": 5.58,
+      "expectancy": 877.01,
+      "max_drawdown": 3394.77,
+      "max_drawdown_pct": 2.08,
+      "sharpe_ratio": 8.09,
+      "sortino_ratio": 107.81,
+      "trade_count": 74,
+      "composite_score": 83.33
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 6,
+          "slow_period": 10
+        }
+      },
+      "net_profit": 64208.7,
+      "win_rate": 52.63,
+      "profit_factor": 3.81,
+      "expectancy": 1126.47,
+      "max_drawdown": 6104.51,
+      "max_drawdown_pct": 3.87,
+      "sharpe_ratio": 7.63,
+      "sortino_ratio": 60.92,
+      "trade_count": 57,
+      "composite_score": 83.33
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 3,
+          "slow_period": 6
+        }
+      },
+      "net_profit": 97435.26,
+      "win_rate": 62.26,
+      "profit_factor": 6.24,
+      "expectancy": 919.2,
+      "max_drawdown": 5253.28,
+      "max_drawdown_pct": 3.47,
+      "sharpe_ratio": 10.93,
+      "sortino_ratio": 75.22,
+      "trade_count": 106,
+      "composite_score": 83.28
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 6,
+          "slow_period": 9
+        }
+      },
+      "net_profit": 64406.72,
+      "win_rate": 53.33,
+      "profit_factor": 3.99,
+      "expectancy": 1073.45,
+      "max_drawdown": 6712.28,
+      "max_drawdown_pct": 4.29,
+      "sharpe_ratio": 7.7,
+      "sortino_ratio": 71.79,
+      "trade_count": 60,
+      "composite_score": 83.19
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 5,
+          "slow_period": 12
+        }
+      },
+      "net_profit": 56873.99,
+      "win_rate": 55.17,
+      "profit_factor": 3.6,
+      "expectancy": 980.59,
+      "max_drawdown": 6291.74,
+      "max_drawdown_pct": 4.2,
+      "sharpe_ratio": 6.74,
+      "sortino_ratio": 50.18,
+      "trade_count": 58,
+      "composite_score": 83.13
+    },
+    {
+      "combination": {
+        "params": {
+          "fast_period": 7,
+          "slow_period": 8
+        }
+      },
+      "net_profit": 63172.28,
+      "win_rate": 51.72,
+      "profit_factor": 3.89,
+      "expectancy": 1089.18,
+      "max_drawdown": 6712.28,
+      "max_drawdown_pct": 4.3,
+      "sharpe_ratio": 7.54,
+      "sortino_ratio": 70.29,
+      "trade_count": 58,
+      "composite_score": 83.02
+    }
+  ],
+  "heatmap_data": {
+    "x_param": "fast_period",
+    "y_param": "slow_period",
+    "metric": "net_profit",
+    "x_values": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "y_values": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ],
+    "matrix": [
+      [
+        128782.34,
+        100654.0,
+        95606.04,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        117112.99,
+        97435.26,
+        90495.77,
+        87366.71,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        109347.78,
+        100613.31,
+        89177.31,
+        83038.9,
+        78548.86,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        101237.06,
+        90109.0,
+        83904.94,
+        79063.85,
+        68748.71,
+        63172.28,
+        null,
+        null,
+        null
+      ],
+      [
+        104265.98,
+        89707.24,
+        80061.11,
+        73620.66,
+        64406.72,
+        64823.78,
+        53231.13,
+        null,
+        null
+      ],
+      [
+        105504.38,
+        85450.0,
+        77089.35,
+        67710.41,
+        64208.7,
+        53744.95,
+        52332.54,
+        51919.85,
+        null
+      ],
+      [
+        101027.59,
+        84523.91,
+        69810.04,
+        67371.04,
+        52373.51,
+        52872.78,
+        53155.21,
+        39872.75,
+        37690.43
+      ],
+      [
+        99380.71,
+        78665.29,
+        67879.24,
+        56873.99,
+        54366.35,
+        53891.4,
+        39879.99,
+        40106.11,
+        32554.12
+      ],
+      [
+        95587.97,
+        76619.73,
+        62104.52,
+        56843.28,
+        54652.26,
+        38264.47,
+        38388.32,
+        30744.06,
+        27821.31
+      ],
+      [
+        88204.49,
+        77952.98,
+        61296.41,
+        45080.29,
+        42038.31,
+        38752.29,
+        34015.54,
+        31469.66,
+        24451.75
+      ],
+      [
+        86665.41,
+        66774.93,
+        48844.92,
+        43693.54,
+        39351.46,
+        33545.96,
+        32478.68,
+        29311.62,
+        23671.41
+      ],
+      [
+        77385.39,
+        53513.03,
+        49908.93,
+        41113.47,
+        38217.19,
+        32114.11,
+        27886.29,
+        27834.6,
+        19503.96
+      ],
+      [
+        73197.46,
+        52604.22,
+        44974.0,
+        39209.95,
+        36864.71,
+        35071.57,
+        26840.97,
+        20415.54,
+        17758.78
+      ],
+      [
+        61657.51,
+        51862.87,
+        42089.16,
+        37288.78,
+        32156.54,
+        28385.16,
+        21577.62,
+        19517.6,
+        16113.56
+      ],
+      [
+        62080.1,
+        49748.27,
+        41786.93,
+        35073.4,
+        31504.45,
+        26478.7,
+        21638.44,
+        17254.3,
+        16601.0
+      ],
+      [
+        64898.72,
+        47498.7,
+        41676.49,
+        36146.61,
+        30126.25,
+        19953.9,
+        21506.02,
+        17721.3,
+        14824.79
+      ]
+    ]
+  },
+  "stability_findings": {
+    "{'fast_period': 2, 'slow_period': 11}": {
+      "avg_neighbor_profit": 90704.86,
+      "std_neighbor_profit": 11236.83,
+      "avg_neighbor_composite_score": 85.2,
+      "drop_pct": 10.22,
+      "status": "STABLE"
+    },
+    "{'fast_period': 2, 'slow_period': 12}": {
+      "avg_neighbor_profit": 87284.9,
+      "std_neighbor_profit": 10647.41,
+      "avg_neighbor_composite_score": 85.17,
+      "drop_pct": 12.17,
+      "status": "STABLE"
+    },
+    "{'fast_period': 2, 'slow_period': 10}": {
+      "avg_neighbor_profit": 92994.94,
+      "std_neighbor_profit": 9097.43,
+      "avg_neighbor_composite_score": 85.08,
+      "drop_pct": 11.86,
+      "status": "STABLE"
+    },
+    "{'fast_period': 2, 'slow_period': 13}": {
+      "avg_neighbor_profit": 84164.64,
+      "std_neighbor_profit": 9664.4,
+      "avg_neighbor_composite_score": 85.02,
+      "drop_pct": 11.95,
+      "status": "STABLE"
+    },
+    "{'fast_period': 3, 'slow_period': 14}": {
+      "avg_neighbor_profit": 73262.3,
+      "std_neighbor_profit": 16118.28,
+      "avg_neighbor_composite_score": 84.17,
+      "drop_pct": 6.02,
+      "status": "STABLE"
+    },
+    "{'fast_period': 3, 'slow_period': 11}": {
+      "avg_neighbor_profit": 85600.82,
+      "std_neighbor_profit": 14677.46,
+      "avg_neighbor_composite_score": 84.87,
+      "drop_pct": -1.27,
+      "status": "STABLE"
+    },
+    "{'fast_period': 3, 'slow_period': 7}": {
+      "avg_neighbor_profit": 97352.51,
+      "std_neighbor_profit": 11317.58,
+      "avg_neighbor_composite_score": 84.17,
+      "drop_pct": 3.24,
+      "status": "STABLE"
+    },
+    "{'fast_period': 3, 'slow_period': 9}": {
+      "avg_neighbor_profit": 90952.73,
+      "std_neighbor_profit": 11251.95,
+      "avg_neighbor_composite_score": 84.48,
+      "drop_pct": -1.39,
+      "status": "STABLE"
+    },
+    "{'fast_period': 2, 'slow_period': 5}": {
+      "avg_neighbor_profit": 105067.42,
+      "std_neighbor_profit": 10555.19,
+      "avg_neighbor_composite_score": 83.85,
+      "drop_pct": 18.41,
+      "status": "STABLE"
+    },
+    "{'fast_period': 3, 'slow_period': 10}": {
+      "avg_neighbor_profit": 88998.7,
+      "std_neighbor_profit": 13419.95,
+      "avg_neighbor_composite_score": 84.81,
+      "drop_pct": -4.15,
+      "status": "STABLE"
+    }
+  }
+}

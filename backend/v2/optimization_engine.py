@@ -136,6 +136,12 @@ class OptimizationEngine:
             config_dict["strategy_params"] = dict(config_dict.get("strategy_params", {}))
             config_dict["strategy_params"].update(params)
             
+            # Map fastEma/slowEma to fast_period/slow_period for Strategy parameters
+            if "fastEma" in params:
+                config_dict["strategy_params"]["fast_period"] = int(params["fastEma"])
+            if "slowEma" in params:
+                config_dict["strategy_params"]["slow_period"] = int(params["slowEma"])
+            
             # Since BacktestConfig inherits from BaseModel, we can reconstruct it
             config = BacktestConfig(**config_dict)
             

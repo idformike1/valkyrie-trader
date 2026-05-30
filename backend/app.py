@@ -2051,6 +2051,301 @@ def start_docs_watcher():
     t = threading.Thread(target=watch_docs, daemon=True)
     t.start()
 
+# ----------------------------------------------------
+# V2 Backend Engine REST Endpoints
+# ----------------------------------------------------
+from typing import Dict, Any, List, Optional
+from pydantic import BaseModel, Field
+
+class V2BacktestRequest(BaseModel):
+    underlying_instrument_key: str
+    timeframe: str
+    start_date: str
+    end_date: str
+    strategy_name: str
+    strategy_params: Dict[str, Any]
+    option_type_preference: str
+    strike_mode: str
+    expiry_mode: str
+    initial_capital: float = 100000.0
+    lot_multiplier: int = 1
+    brokerage_flat: float = 20.0
+    slippage_pct: float = 0.05
+
+class V2ParameterRange(BaseModel):
+    name: str
+    type: str
+    min_val: float
+    max_val: float
+    step: float
+    options: Optional[List[str]] = None
+
+class V2OptimizationRequest(BaseModel):
+    base_config: V2BacktestRequest
+    ranges: List[V2ParameterRange]
+    max_workers: int = 1
+
+LATEST_V2_BACKTEST_RESULT = None
+LATEST_V2_OPTIMIZATION_REPORT = None
+V2_BACKTEST_STATUS = {"state": "IDLE", "progress": 0, "error": None}
+
+@app.post("/api/v2/backtest/run")
+def run_v2_backtest(req: V2BacktestRequest):
+    global LATEST_V2_BACKTEST_RESULT, V2_BACKTEST_STATUS
+    V2_BACKTEST_STATUS = {"state": "RUNNING", "progress": 20, "error": None}
+    try:
+        from v2.config import BacktestConfig, StrikeConfig, ExpiryConfig, RiskConfig, ExecutionConfig
+        from v2.types import StrikeMode, ExpiryMode, Timeframe as V2Timeframe
+        from v2.replay_engine import HistoricalReplayEngine
+        from v2.pnl_engine import PnLEngine
+        from v2.metrics_engine import MetricsEngine
+        from v2.replay_engine import get_index_short_name
+
+        try:
+            strike_m = StrikeMode(req.strike_mode)
+        except ValueError:
+            val = req.strike_mode
+            if val == "ATM+1": strike_m = StrikeMode.ATM_PLUS_1
+            elif val == "ATM+2": strike_m = StrikeMode.ATM_PLUS_2
+            elif val == "ATM+3": strike_m = StrikeMode.ATM_PLUS_3
+            elif val == "ATM-1": strike_m = StrikeMode.ATM_MINUS_1
+            elif val == "ATM-2": strike_m = StrikeMode.ATM_MINUS_2
+            elif val == "ATM-3": strike_m = StrikeMode.ATM_MINUS_3
+            else: strike_m = StrikeMode.ATM
+
+        try:
+            expiry_m = ExpiryMode(req.expiry_mode)
+        except ValueError:
+            expiry_m = ExpiryMode.CURRENT_WEEKLY
+
+        try:
+            tf = V2Timeframe(req.timeframe)
+        except ValueError:
+            tf = V2Timeframe.MIN_5
+
+        strat_params = dict(req.strategy_params)
+        if "fastEma" in strat_params:
+            strat_params["fast_period"] = int(strat_params["fastEma"])
+        if "slowEma" in strat_params:
+            strat_params["slow_period"] = int(strat_params["slowEma"])
+
+        config = BacktestConfig(
+            underlying_instrument_key=req.underlying_instrument_key,
+            timeframe=tf,
+            start_date=req.start_date,
+            end_date=req.end_date,
+            strategy_name=req.strategy_name,
+            strategy_params=strat_params,
+            option_type_preference=req.option_type_preference,
+            strike_selection=StrikeConfig(mode=strike_m),
+            expiry_selection=ExpiryConfig(mode=expiry_m),
+            risk_management=RiskConfig(
+                target_type="percent" if req.strategy_name == "five_ema_scalping" else "none",
+                target_value=strat_params.get("five_ema_rr", 3.0) if req.strategy_name == "five_ema_scalping" else 0.0,
+                stop_loss_type="percent" if req.strategy_name == "five_ema_scalping" else "none",
+                stop_loss_value=1.0,
+                trailing_sl_gap=0.0,
+                max_holding_candles=strat_params.get("max_candles", 10) if req.strategy_name != "five_ema_scalping" else 10,
+                cutoff_time=strat_params.get("cut_off_time", "15:25")
+            ),
+            execution=ExecutionConfig(
+                brokerage_flat=req.brokerage_flat,
+                slippage_pct=req.slippage_pct,
+                lot_size=req.lot_multiplier,
+                initial_balance=req.initial_capital
+            )
+        )
+        
+        V2_BACKTEST_STATUS["progress"] = 50
+        
+        replay_engine = HistoricalReplayEngine()
+        replay_engine.run(config)
+        
+        V2_BACKTEST_STATUS["progress"] = 80
+        
+        pnl_engine = PnLEngine()
+        summary = pnl_engine.generate_accounting_summary(replay_engine.ledger.positions)
+        
+        metrics_engine = MetricsEngine(initial_capital=req.initial_capital)
+        report = metrics_engine.calculate_metrics(replay_engine.ledger.positions, summary.trades)
+        
+        underlying_name = get_index_short_name(config.underlying_instrument_key)
+        chart_start = datetime.strptime(req.start_date, "%Y-%m-%d").replace(hour=9, minute=15)
+        chart_end = datetime.strptime(req.end_date, "%Y-%m-%d").replace(hour=15, minute=30)
+        spot_candles = replay_engine.spot_loader.load_candles(underlying_name, "1m", chart_start, chart_end)
+        
+        formatted_candles = []
+        for c in spot_candles:
+            dt = datetime.fromisoformat(c["timestamp"].replace('Z', '+00:00')) if isinstance(c["timestamp"], str) else c["timestamp"]
+            formatted_candles.append({
+                "time": int(dt.timestamp()),
+                "open": c["open"],
+                "high": c["high"],
+                "low": c["low"],
+                "close": c["close"]
+            })
+            
+        formatted_trades = []
+        for t in summary.trades:
+            pos_dict = None
+            for p in replay_engine.ledger.positions:
+                if p.position_id == t.position_id:
+                    pos_dict = p
+                    break
+            
+            formatted_trades.append({
+                "id": f"{t.position_id}_entry",
+                "timestamp": t.entry_time.isoformat(),
+                "type": "BUY",
+                "price": t.entry_premium,
+                "quantity": t.quantity,
+                "pnl": 0.0,
+                "reason": "Signal Entry",
+                "strike": getattr(pos_dict, "strike", 0.0) if pos_dict else 0.0,
+                "expiry": getattr(pos_dict, "expiry", "") if pos_dict else "",
+                "option_type": getattr(pos_dict, "option_type", "") if pos_dict else ""
+            })
+            formatted_trades.append({
+                "id": f"{t.position_id}_exit",
+                "timestamp": t.exit_time.isoformat(),
+                "type": "SELL",
+                "price": t.exit_premium,
+                "quantity": t.quantity,
+                "pnl": t.net_pnl,
+                "reason": "Signal Exit",
+                "strike": getattr(pos_dict, "strike", 0.0) if pos_dict else 0.0,
+                "expiry": getattr(pos_dict, "expiry", "") if pos_dict else "",
+                "option_type": getattr(pos_dict, "option_type", "") if pos_dict else ""
+            })
+
+        LATEST_V2_BACKTEST_RESULT = {
+            "report": report.model_dump(),
+            "trades": [t.model_dump() for t in summary.trades],
+            "candles": formatted_candles,
+            "chart_trades": formatted_trades
+        }
+        
+        V2_BACKTEST_STATUS = {"state": "COMPLETED", "progress": 100, "error": None}
+        return LATEST_V2_BACKTEST_RESULT
+    except Exception as e:
+        import traceback
+        err_msg = f"Backtest run failed: {str(e)}\n{traceback.format_exc()}"
+        print(err_msg)
+        V2_BACKTEST_STATUS = {"state": "FAILED", "progress": 0, "error": str(e)}
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/v2/optimization/run")
+def run_v2_optimization(req: V2OptimizationRequest):
+    global LATEST_V2_OPTIMIZATION_REPORT
+    try:
+        from v2.config import BacktestConfig, StrikeConfig, ExpiryConfig, RiskConfig, ExecutionConfig
+        from v2.types import StrikeMode, ExpiryMode, Timeframe as V2Timeframe
+        from v2.optimization_models import ParameterRange
+        from v2.optimization_engine import OptimizationEngine
+
+        try:
+            strike_m = StrikeMode(req.base_config.strike_mode)
+        except ValueError:
+            strike_m = StrikeMode.ATM
+
+        try:
+            expiry_m = ExpiryMode(req.base_config.expiry_mode)
+        except ValueError:
+            expiry_m = ExpiryMode.CURRENT_WEEKLY
+
+        try:
+            tf = V2Timeframe(req.base_config.timeframe)
+        except ValueError:
+            tf = V2Timeframe.MIN_5
+
+        strat_params = dict(req.base_config.strategy_params)
+        if "fastEma" in strat_params:
+            strat_params["fast_period"] = int(strat_params["fastEma"])
+        if "slowEma" in strat_params:
+            strat_params["slow_period"] = int(strat_params["slowEma"])
+
+        base_config = BacktestConfig(
+            underlying_instrument_key=req.base_config.underlying_instrument_key,
+            timeframe=tf,
+            start_date=req.base_config.start_date,
+            end_date=req.base_config.end_date,
+            strategy_name=req.base_config.strategy_name,
+            strategy_params=strat_params,
+            option_type_preference=req.base_config.option_type_preference,
+            strike_selection=StrikeConfig(mode=strike_m),
+            expiry_selection=ExpiryConfig(mode=expiry_m),
+            risk_management=RiskConfig(
+                target_type="percent" if req.base_config.strategy_name == "five_ema_scalping" else "none",
+                target_value=strat_params.get("five_ema_rr", 3.0) if req.base_config.strategy_name == "five_ema_scalping" else 0.0,
+                stop_loss_type="percent" if req.base_config.strategy_name == "five_ema_scalping" else "none",
+                stop_loss_value=1.0,
+                trailing_sl_gap=0.0,
+                max_holding_candles=strat_params.get("max_candles", 10) if req.base_config.strategy_name != "five_ema_scalping" else 10,
+                cutoff_time=strat_params.get("cut_off_time", "15:25")
+            ),
+            execution=ExecutionConfig(
+                brokerage_flat=req.base_config.brokerage_flat,
+                slippage_pct=req.base_config.slippage_pct,
+                lot_size=req.base_config.lot_multiplier,
+                initial_balance=req.base_config.initial_capital
+            )
+        )
+
+        engine = OptimizationEngine(initial_capital=req.base_config.initial_capital)
+        
+        if req.base_config.strategy_name in ["EMA", "str_ema"]:
+            engine.register_constraint(
+                "fast_less_than_slow",
+                lambda p: (p.get("fast_period", p.get("fastEma", 0)) < p.get("slow_period", p.get("slowEma", 0)), "fast_period must be less than slow_period")
+            )
+
+        ranges = []
+        for r in req.ranges:
+            ranges.append(ParameterRange(
+                name=r.name,
+                type=r.type,
+                min_val=r.min_val,
+                max_val=r.max_val,
+                step=r.step,
+                options=r.options
+            ))
+
+        report = engine.run_optimization(base_config, ranges, max_workers=req.max_workers)
+        LATEST_V2_OPTIMIZATION_REPORT = report.model_dump()
+        return LATEST_V2_OPTIMIZATION_REPORT
+    except Exception as e:
+        import traceback
+        print(f"Optimization run failed: {str(e)}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/v2/backtest/status")
+def get_v2_backtest_status():
+    return V2_BACKTEST_STATUS
+
+@app.get("/api/v2/backtest/results")
+def get_v2_backtest_results():
+    if not LATEST_V2_BACKTEST_RESULT:
+        raise HTTPException(status_code=404, detail="No backtest results available.")
+    return LATEST_V2_BACKTEST_RESULT
+
+@app.get("/api/v2/backtest/trades")
+def get_v2_backtest_trades():
+    if not LATEST_V2_BACKTEST_RESULT:
+        raise HTTPException(status_code=404, detail="No backtest trades available.")
+    return LATEST_V2_BACKTEST_RESULT["trades"]
+
+@app.get("/api/v2/backtest/equity")
+def get_v2_backtest_equity():
+    if not LATEST_V2_BACKTEST_RESULT:
+        raise HTTPException(status_code=404, detail="No backtest results available.")
+    return LATEST_V2_BACKTEST_RESULT["report"]["equity_curve"]
+
+@app.get("/api/v2/backtest/drawdown")
+def get_v2_backtest_drawdown():
+    if not LATEST_V2_BACKTEST_RESULT:
+        raise HTTPException(status_code=404, detail="No backtest results available.")
+    return LATEST_V2_BACKTEST_RESULT["report"]["drawdown_curve"]
+
 @app.on_event("startup")
 async def startup_event():
     sync_nifty_options_csv()

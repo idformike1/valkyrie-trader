@@ -24,6 +24,8 @@
 - [backend/v2/expired_contract_provider.py](#backendv2expired_contract_providerpy)
 - [backend/v2/metrics_engine.py](#backendv2metrics_enginepy)
 - [backend/v2/metrics_models.py](#backendv2metrics_modelspy)
+- [backend/v2/optimization_engine.py](#backendv2optimization_enginepy)
+- [backend/v2/optimization_models.py](#backendv2optimization_modelspy)
 - [backend/v2/pnl_engine.py](#backendv2pnl_enginepy)
 - [backend/v2/pnl_models.py](#backendv2pnl_modelspy)
 - [backend/v2/position_ledger.py](#backendv2position_ledgerpy)
@@ -41,6 +43,7 @@
 - [backend/v2/test_cache_layer.py](#backendv2test_cache_layerpy)
 - [backend/v2/test_historical_contract_provider.py](#backendv2test_historical_contract_providerpy)
 - [backend/v2/test_metrics_engine.py](#backendv2test_metrics_enginepy)
+- [backend/v2/test_optimization_engine.py](#backendv2test_optimization_enginepy)
 - [backend/v2/test_pnl_engine.py](#backendv2test_pnl_enginepy)
 - [backend/v2/test_position_manager.py](#backendv2test_position_managerpy)
 - [backend/v2/test_replay_engine.py](#backendv2test_replay_enginepy)
@@ -62,6 +65,7 @@
 - [frontend/src/services/tradingApi.ts](#frontendsrcservicestradingapits)
 - [frontend/src/services/tradingQueries.ts](#frontendsrcservicestradingqueriests)
 - [frontend/src/services/tradingTypes.ts](#frontendsrcservicestradingtypests)
+- [frontend/src/store/useBacktestStore.ts](#frontendsrcstoreusebackteststorets)
 - [frontend/src/store/useCommandPaletteStore.ts](#frontendsrcstoreusecommandpalettestorets)
 - [frontend/src/store/useEventStore.ts](#frontendsrcstoreuseeventstorets)
 - [frontend/src/store/useLayoutStore.ts](#frontendsrcstoreuselayoutstorets)
@@ -79,6 +83,8 @@
 - [frontend/src/workspaces/mockPanels.tsx](#frontendsrcworkspacesmockpanelstsx)
 - [frontend/src/workspaces/registry.ts](#frontendsrcworkspacesregistryts)
 - [frontend/src/workspaces/types.ts](#frontendsrcworkspacestypests)
+- [run_backtest_audit_query.py](#run_backtest_audit_querypy)
+- [run_opt_sweep_query.py](#run_opt_sweep_querypy)
 
 ---
 
@@ -158,6 +164,15 @@ No description provided.
 No description provided.
 
 #### class `CancelGttModel`
+No description provided.
+
+#### class `V2BacktestRequest`
+No description provided.
+
+#### class `V2ParameterRange`
+No description provided.
+
+#### class `V2OptimizationRequest`
 No description provided.
 
 
@@ -402,6 +417,55 @@ No description provided.
 
 #### `start_docs_watcher` (Function)
 - **Signature**: `def start_docs_watcher()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `run_v2_backtest` (Function)
+- **Signature**: `def run_v2_backtest(req)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `run_v2_optimization` (Function)
+- **Signature**: `def run_v2_optimization(req)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `get_v2_backtest_status` (Function)
+- **Signature**: `def get_v2_backtest_status()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `get_v2_backtest_results` (Function)
+- **Signature**: `def get_v2_backtest_results()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `get_v2_backtest_trades` (Function)
+- **Signature**: `def get_v2_backtest_trades()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `get_v2_backtest_equity` (Function)
+- **Signature**: `def get_v2_backtest_equity()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `get_v2_backtest_drawdown` (Function)
+- **Signature**: `def get_v2_backtest_drawdown()`
 - **Description**:
 ```text
 No description provided.
@@ -908,6 +972,77 @@ No description provided.
 No description provided.
 
 #### class `MetricsReport`
+No description provided.
+
+
+
+---
+
+## backend/v2/optimization_engine.py
+*No description provided.*
+
+### Classes
+#### class `OptimizationEngine`
+No description provided.
+
+##### Methods:
+- **`__init__`**
+  *Signature*: `def __init__(self, initial_capital)`
+  *Description*: No description provided.
+
+- **`register_constraint`**
+  *Signature*: `def register_constraint(self, name, callable_fn)`
+  *Description*: Registers a validation constraint. The function must accept a parameter dict
+and return a Tuple (is_valid, rejection_reason).
+
+- **`generate_grid`**
+  *Signature*: `def generate_grid(self, ranges)`
+  *Description*: Generates the Cartesian product of all parameter ranges.
+
+- **`calculate_composite_score`**
+  *Signature*: `def calculate_composite_score(self, net_profit, win_rate, profit_factor, expectancy, max_drawdown_pct, sharpe_ratio)`
+  *Description*: Composite Score default formula:
+- 40% Sharpe Ratio (normalized: 3.0 Sharpe = 1.0)
+- 25% Profit Factor (normalized: (PF - 1.0)/2.0, PF=3.0 = 1.0)
+- 15% Expectancy (normalized: Expectancy / 1000.0 = 1.0)
+- 10% Win Rate (normalized: Win Rate / 100.0)
+- 10% Drawdown Penalty (normalized: Max DD % / 20.0 = 1.0)
+
+If Net Profit <= 0, the composite score is hardcapped to 0.0.
+
+- **`run_optimization`**
+  *Signature*: `def run_optimization(self, base_config, ranges, max_workers)`
+  *Description*: Runs parameter optimization sweep.
+
+- **`generate_heatmap`**
+  *Signature*: `def generate_heatmap(self, results, x_param, y_param, metric)`
+  *Description*: Generates 2D heatmap matrix data structures.
+
+- **`analyze_stability`**
+  *Signature*: `def analyze_stability(self, results, top_strategies, ranges)`
+  *Description*: Inspects neighboring parameter values for top strategies to verify robustness.
+
+
+
+---
+
+## backend/v2/optimization_models.py
+*No description provided.*
+
+### Classes
+#### class `ParameterRange`
+No description provided.
+
+#### class `ParameterCombination`
+No description provided.
+
+#### class `OptimizationResult`
+No description provided.
+
+#### class `OptimizationRun`
+No description provided.
+
+#### class `OptimizationReport`
 No description provided.
 
 
@@ -1734,6 +1869,190 @@ No description provided.
 
 - **`test_pydantic_field_serialization`**
   *Signature*: `def test_pydantic_field_serialization(self)`
+  *Description*: No description provided.
+
+
+
+---
+
+## backend/v2/test_optimization_engine.py
+*No description provided.*
+
+### Classes
+#### class `TestOptimizationEngine`
+No description provided.
+
+##### Methods:
+- **`setUp`**
+  *Signature*: `def setUp(self)`
+  *Description*: No description provided.
+
+- **`test_grid_generation_int_range`**
+  *Signature*: `def test_grid_generation_int_range(self)`
+  *Description*: No description provided.
+
+- **`test_grid_generation_float_range`**
+  *Signature*: `def test_grid_generation_float_range(self)`
+  *Description*: No description provided.
+
+- **`test_grid_generation_enum`**
+  *Signature*: `def test_grid_generation_enum(self)`
+  *Description*: No description provided.
+
+- **`test_grid_generation_mixed`**
+  *Signature*: `def test_grid_generation_mixed(self)`
+  *Description*: No description provided.
+
+- **`test_grid_generation_empty`**
+  *Signature*: `def test_grid_generation_empty(self)`
+  *Description*: No description provided.
+
+- **`test_constraint_registration`**
+  *Signature*: `def test_constraint_registration(self)`
+  *Description*: No description provided.
+
+- **`test_constraint_rejection`**
+  *Signature*: `def test_constraint_rejection(self)`
+  *Description*: No description provided.
+
+- **`test_constraint_rejection_reason`**
+  *Signature*: `def test_constraint_rejection_reason(self)`
+  *Description*: No description provided.
+
+- **`test_composite_score_perfect`**
+  *Signature*: `def test_composite_score_perfect(self)`
+  *Description*: No description provided.
+
+- **`test_composite_score_negative_profit`**
+  *Signature*: `def test_composite_score_negative_profit(self)`
+  *Description*: No description provided.
+
+- **`test_composite_score_zero_profit`**
+  *Signature*: `def test_composite_score_zero_profit(self)`
+  *Description*: No description provided.
+
+- **`test_composite_score_low_sharpe`**
+  *Signature*: `def test_composite_score_low_sharpe(self)`
+  *Description*: No description provided.
+
+- **`test_composite_score_high_drawdown`**
+  *Signature*: `def test_composite_score_high_drawdown(self)`
+  *Description*: No description provided.
+
+- **`test_composite_score_low_pf`**
+  *Signature*: `def test_composite_score_low_pf(self)`
+  *Description*: No description provided.
+
+- **`test_composite_score_expectancy`**
+  *Signature*: `def test_composite_score_expectancy(self)`
+  *Description*: No description provided.
+
+- **`test_ranking_by_composite_score`**
+  *Signature*: `def test_ranking_by_composite_score(self)`
+  *Description*: No description provided.
+
+- **`test_ranking_by_net_profit`**
+  *Signature*: `def test_ranking_by_net_profit(self)`
+  *Description*: No description provided.
+
+- **`test_ranking_by_sharpe`**
+  *Signature*: `def test_ranking_by_sharpe(self)`
+  *Description*: No description provided.
+
+- **`test_ranking_by_pf`**
+  *Signature*: `def test_ranking_by_pf(self)`
+  *Description*: No description provided.
+
+- **`test_ranking_by_expectancy`**
+  *Signature*: `def test_ranking_by_expectancy(self)`
+  *Description*: No description provided.
+
+- **`test_heatmap_structure`**
+  *Signature*: `def test_heatmap_structure(self)`
+  *Description*: No description provided.
+
+- **`test_heatmap_metric_mapping`**
+  *Signature*: `def test_heatmap_metric_mapping(self)`
+  *Description*: No description provided.
+
+- **`test_heatmap_missing_cells`**
+  *Signature*: `def test_heatmap_missing_cells(self)`
+  *Description*: No description provided.
+
+- **`test_stability_neighbors_identification`**
+  *Signature*: `def test_stability_neighbors_identification(self)`
+  *Description*: No description provided.
+
+- **`test_stability_stable_region`**
+  *Signature*: `def test_stability_stable_region(self)`
+  *Description*: No description provided.
+
+- **`test_stability_unstable_peak`**
+  *Signature*: `def test_stability_unstable_peak(self)`
+  *Description*: No description provided.
+
+- **`test_stability_no_neighbors`**
+  *Signature*: `def test_stability_no_neighbors(self)`
+  *Description*: No description provided.
+
+- **`test_parallel_execution_thread_safety`**
+  *Signature*: `def test_parallel_execution_thread_safety(self)`
+  *Description*: No description provided.
+
+- **`test_parallel_execution_results_integrity`**
+  *Signature*: `def test_parallel_execution_results_integrity(self)`
+  *Description*: No description provided.
+
+- **`test_parallel_execution_large_workers`**
+  *Signature*: `def test_parallel_execution_large_workers(self)`
+  *Description*: No description provided.
+
+- **`test_sequential_fallback`**
+  *Signature*: `def test_sequential_fallback(self)`
+  *Description*: No description provided.
+
+- **`test_optimization_run_fields`**
+  *Signature*: `def test_optimization_run_fields(self)`
+  *Description*: No description provided.
+
+- **`test_report_top_n_slices`**
+  *Signature*: `def test_report_top_n_slices(self)`
+  *Description*: No description provided.
+
+- **`test_invalid_config_handling`**
+  *Signature*: `def test_invalid_config_handling(self)`
+  *Description*: No description provided.
+
+- **`test_multiple_constraints`**
+  *Signature*: `def test_multiple_constraints(self)`
+  *Description*: No description provided.
+
+- **`test_custom_strategy_params_override`**
+  *Signature*: `def test_custom_strategy_params_override(self)`
+  *Description*: No description provided.
+
+- **`test_pydantic_serialization`**
+  *Signature*: `def test_pydantic_serialization(self)`
+  *Description*: No description provided.
+
+- **`test_composite_score_win_rate_bounds`**
+  *Signature*: `def test_composite_score_win_rate_bounds(self)`
+  *Description*: No description provided.
+
+- **`test_grid_generation_float_precision`**
+  *Signature*: `def test_grid_generation_float_precision(self)`
+  *Description*: No description provided.
+
+- **`test_integration_mock_run`**
+  *Signature*: `def test_integration_mock_run(self)`
+  *Description*: No description provided.
+
+- **`test_stability_analysis_single_param`**
+  *Signature*: `def test_stability_analysis_single_param(self)`
+  *Description*: No description provided.
+
+- **`test_empty_results_report`**
+  *Signature*: `def test_empty_results_report(self)`
   *Description*: No description provided.
 
 
@@ -2769,6 +3088,21 @@ No description provided.
 
 ---
 
+## frontend/src/store/useBacktestStore.ts
+*TypeScript/JavaScript Source Component*
+
+### Functions & Endpoints
+#### `useBacktestStore` (React Hook)
+- **Signature**: `export const useBacktestStore = create<BacktestStoreState>((set, get) => (`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
 ## frontend/src/store/useCommandPaletteStore.ts
 *TypeScript/JavaScript Source Component*
 
@@ -2878,20 +3212,6 @@ No description provided.
 *TypeScript/JavaScript Source Component*
 
 ### Functions & Endpoints
-#### `getBackendStrategyName` (Function)
-- **Signature**: `const getBackendStrategyName = (strategyId: string): string => `
-- **Description**:
-```text
-No description provided.
-```
-
-#### `fetchExpiry` (Function)
-- **Signature**: `const fetchExpiry = async (indexName: string): Promise<string> => `
-- **Description**:
-```text
-No description provided.
-```
-
 #### `selectedStrategy` (Function)
 - **Signature**: `const selectedStrategy = useTerminalStore((state) => state.selectedStrategy)`
 - **Description**:
@@ -2903,6 +3223,20 @@ No description provided.
 
 #### `setStrategy` (Function)
 - **Signature**: `const setStrategy = useTerminalStore((state) => state.setStrategy)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `v2Config` (Function)
+- **Signature**: `const v2Config = useBacktestStore((state) => state.v2Config)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `setV2Config` (Function)
+- **Signature**: `const setV2Config = useBacktestStore((state) => state.setV2Config)`
 - **Description**:
 ```text
 No description provided.
@@ -2929,13 +3263,6 @@ No description provided.
 No description provided.
 ```
 
-#### `selectedInstrument` (Function)
-- **Signature**: `const selectedInstrument = useTerminalStore((state) => state.selectedInstrument)`
-- **Description**:
-```text
-No description provided.
-```
-
 #### `addEvent` (Function)
 - **Signature**: `const addEvent = useEventStore((state) => state.addEvent)`
 - **Description**:
@@ -2943,43 +3270,57 @@ No description provided.
 No description provided.
 ```
 
-#### `startBacktest` (Function)
-- **Signature**: `const startBacktest = useBackendTradingStore((state) => state.startBacktest)`
+#### `v2Config` (Function)
+- **Signature**: `const v2Config = useBacktestStore((state) => state.v2Config)`
 - **Description**:
 ```text
 No description provided.
 ```
 
-#### `connectTelemetry` (Function)
-- **Signature**: `const connectTelemetry = useBackendTradingStore((state) => state.connectTelemetry)`
+#### `setV2Config` (Function)
+- **Signature**: `const setV2Config = useBacktestStore((state) => state.setV2Config)`
 - **Description**:
 ```text
 No description provided.
 ```
 
-#### `disconnectTelemetry` (Function)
-- **Signature**: `const disconnectTelemetry = useBackendTradingStore((state) => state.disconnectTelemetry)`
+#### `runV2Backtest` (Function)
+- **Signature**: `const runV2Backtest = useBacktestStore((state) => state.runV2Backtest)`
 - **Description**:
 ```text
 No description provided.
 ```
 
-#### `candles` (Function)
-- **Signature**: `const candles = useBackendTradingStore((state) => state.candles)`
+#### `v2BacktestResult` (Function)
+- **Signature**: `const v2BacktestResult = useBacktestStore((state) => state.v2BacktestResult)`
 - **Description**:
 ```text
 No description provided.
 ```
 
-#### `trades` (Function)
-- **Signature**: `const trades = useBackendTradingStore((state) => state.trades)`
+#### `v2Status` (Function)
+- **Signature**: `const v2Status = useBacktestStore((state) => state.v2Status)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `isBacktestLoading` (Function)
+- **Signature**: `const isBacktestLoading = useBacktestStore((state) => state.isBacktestLoading)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleRunBacktest` (Function)
+- **Signature**: `const handleRunBacktest = async () => `
 - **Description**:
 ```text
 No description provided.
 ```
 
 #### `markers` (Function)
-- **Signature**: `const markers = trades.map((t) => `
+- **Signature**: `const markers = v2BacktestResult.chart_trades.map((t) => `
 - **Description**:
 ```text
 Render actual execution trade markers
@@ -2992,80 +3333,108 @@ Render actual execution trade markers
 No description provided.
 ```
 
-#### `handleRunBacktest` (Function)
-- **Signature**: `const handleRunBacktest = async () => `
-- **Description**:
-```text
-Run real backtesting engine on backend
-```
-
-#### `interval` (Function)
-- **Signature**: `const interval = setInterval(() => `
-- **Description**:
-```text
-No description provided.
-```
-
 #### `selectedStrategy` (Function)
 - **Signature**: `const selectedStrategy = useTerminalStore((state) => state.selectedStrategy)`
 - **Description**:
 ```text
 ==========================================
-3. RIGHT PANEL: STRATEGY PARAMETERS
+3. RIGHT PANEL: STRATEGY PARAMETERS & CONFIG
 ==========================================
 ```
 
-#### `item` (Function)
-- **Signature**: `const item = AVAILABLE_STRATEGIES.find((s) => s.id === selectedStrategy.strategyId)`
+#### `v2Config` (Function)
+- **Signature**: `const v2Config = useBacktestStore((state) => state.v2Config)`
 - **Description**:
 ```text
-Sync parameter presets when active strategy swaps
+No description provided.
+```
+
+#### `setV2Config` (Function)
+- **Signature**: `const setV2Config = useBacktestStore((state) => state.setV2Config)`
+- **Description**:
+```text
+No description provided.
 ```
 
 #### `handleParamChange` (Function)
-- **Signature**: `const handleParamChange = (key: string, val: number) => `
+- **Signature**: `const handleParamChange = (key: string, val: any) => `
 - **Description**:
 ```text
 No description provided.
 ```
 
-#### `item` (Function)
-- **Signature**: `const item = AVAILABLE_STRATEGIES.find((s) => s.id === selectedStrategy?.strategyId)`
+#### `v2Result` (Function)
+- **Signature**: `const v2Result = useBacktestStore((state) => state.v2BacktestResult)`
+- **Description**:
+```text
+V2 Store selectors
+```
+
+#### `v2OptimizationReport` (Function)
+- **Signature**: `const v2OptimizationReport = useBacktestStore((state) => state.v2OptimizationReport)`
 - **Description**:
 ```text
 No description provided.
 ```
 
-#### `status` (Function)
-- **Signature**: `const status = useBackendTradingStore((state) => state.status)`
+#### `runV2Optimization` (Function)
+- **Signature**: `const runV2Optimization = useBacktestStore((state) => state.runV2Optimization)`
 - **Description**:
 ```text
 No description provided.
 ```
 
-#### `trades` (Function)
-- **Signature**: `const trades = useBackendTradingStore((state) => state.trades)`
+#### `isOptimizationLoading` (Function)
+- **Signature**: `const isOptimizationLoading = useBacktestStore((state) => state.isOptimizationLoading)`
 - **Description**:
 ```text
 No description provided.
 ```
 
-#### `logs` (Function)
-- **Signature**: `const logs = useBackendTradingStore((state) => state.logs)`
+#### `runV2Backtest` (Function)
+- **Signature**: `const runV2Backtest = useBacktestStore((state) => state.runV2Backtest)`
 - **Description**:
 ```text
 No description provided.
 ```
 
-#### `equityCurve` (Function)
-- **Signature**: `const equityCurve = useBackendTradingStore((state) => state.equityCurve)`
+#### `v2Config` (Function)
+- **Signature**: `const v2Config = useBacktestStore((state) => state.v2Config)`
 - **Description**:
 ```text
 No description provided.
+```
+
+#### `selectedInspectorParams` (Function)
+- **Signature**: `const selectedInspectorParams = useBacktestStore((state) => state.selectedInspectorParams)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `setSelectedInspectorParams` (Function)
+- **Signature**: `const setSelectedInspectorParams = useBacktestStore((state) => state.setSelectedInspectorParams)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleRunOptimization` (Function)
+- **Signature**: `const handleRunOptimization = async () => `
+- **Description**:
+```text
+Run optimization sweep
+```
+
+#### `handleInspectParams` (Function)
+- **Signature**: `const handleInspectParams = async (comboParams: Record<string, any>) => `
+- **Description**:
+```text
+Inspect specific parameters
 ```
 
 #### `rawPoints` (Function)
-- **Signature**: `const rawPoints = equityCurve.map((pt) => (`
+- **Signature**: `const rawPoints = report.equity_curve.map((pt) => (`
 - **Description**:
 ```text
 No description provided.
@@ -3079,7 +3448,7 @@ No description provided.
 ```
 
 #### `rawPoints` (Function)
-- **Signature**: `const rawPoints = equityCurve.map((pt) => `
+- **Signature**: `const rawPoints = report.drawdown_curve.map((pt) => (`
 - **Description**:
 ```text
 No description provided.
@@ -3090,6 +3459,27 @@ No description provided.
 - **Description**:
 ```text
 No description provided.
+```
+
+#### `getRankedList` (Function)
+- **Signature**: `const getRankedList = () => `
+- **Description**:
+```text
+Helper to extract parameters list from top ranking
+```
+
+#### `runItem` (Function)
+- **Signature**: `const runItem = [...v2OptimizationReport.top_50, ...v2OptimizationReport.top_25, ...v2OptimizationReport.top_10].find(r =>`
+- **Description**:
+```text
+Find matching run inside report
+```
+
+#### `maxVal` (Function)
+- **Signature**: `const maxVal = Math.max(1, ...v2OptimizationReport.top_10.map(r => r[heatmapMetric] || 1))`
+- **Description**:
+```text
+Coloring intensity
 ```
 
 
@@ -3779,6 +4169,46 @@ No description provided.
 
 ## frontend/src/workspaces/types.ts
 *TypeScript/JavaScript Source Component*
+
+
+---
+
+## run_backtest_audit_query.py
+*No description provided.*
+
+### Classes
+#### class `DateTimeEncoder`
+No description provided.
+
+##### Methods:
+- **`default`**
+  *Signature*: `def default(self, obj)`
+  *Description*: No description provided.
+
+
+### Functions & Endpoints
+#### `run_query` (Function)
+- **Signature**: `def run_query()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## run_opt_sweep_query.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `run_opt_query` (Function)
+- **Signature**: `def run_opt_query()`
+- **Description**:
+```text
+No description provided.
+```
+
 
 
 ---
