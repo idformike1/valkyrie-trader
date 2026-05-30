@@ -1,0 +1,132 @@
+{
+  "config": {
+    "training_window_days": 60,
+    "testing_window_days": 20,
+    "step_size_days": 20,
+    "min_trades_required": 1,
+    "optimization_enabled": true
+  },
+  "cycles": [
+    {
+      "cycle_index": 0,
+      "train_start": "2025-01-01",
+      "train_end": "2025-03-01",
+      "test_start": "2025-03-02",
+      "test_end": "2025-03-21",
+      "selected_parameters": {},
+      "train_metrics": {},
+      "test_metrics": {
+        "net_profit": 29926.53,
+        "win_rate": 63.16,
+        "profit_factor": 5.73,
+        "expectancy": 1575.08,
+        "max_drawdown_pct": 2.33,
+        "sharpe_ratio": 9.4,
+        "trade_count": 19
+      }
+    },
+    {
+      "cycle_index": 1,
+      "train_start": "2025-01-21",
+      "train_end": "2025-03-21",
+      "test_start": "2025-03-22",
+      "test_end": "2025-04-10",
+      "selected_parameters": {},
+      "train_metrics": {},
+      "test_metrics": {
+        "net_profit": 0.0,
+        "win_rate": 0.0,
+        "profit_factor": 1.0,
+        "expectancy": 0.0,
+        "max_drawdown_pct": 0.0,
+        "sharpe_ratio": 0.0,
+        "trade_count": 0
+      }
+    },
+    {
+      "cycle_index": 2,
+      "train_start": "2025-02-10",
+      "train_end": "2025-04-10",
+      "test_start": "2025-04-11",
+      "test_end": "2025-04-30",
+      "selected_parameters": {},
+      "train_metrics": {},
+      "test_metrics": {
+        "net_profit": 33972.4,
+        "win_rate": 36.36,
+        "profit_factor": 3.26,
+        "expectancy": 1544.2,
+        "max_drawdown_pct": 4.59,
+        "sharpe_ratio": 5.88,
+        "trade_count": 22
+      }
+    },
+    {
+      "cycle_index": 3,
+      "train_start": "2025-03-02",
+      "train_end": "2025-04-30",
+      "test_start": "2025-05-01",
+      "test_end": "2025-05-20",
+      "selected_parameters": {},
+      "train_metrics": {},
+      "test_metrics": {
+        "net_profit": 10551.33,
+        "win_rate": 47.62,
+        "profit_factor": 1.64,
+        "expectancy": 502.44,
+        "max_drawdown_pct": 15.05,
+        "sharpe_ratio": 1.86,
+        "trade_count": 21
+      }
+    },
+    {
+      "cycle_index": 4,
+      "train_start": "2025-03-22",
+      "train_end": "2025-05-20",
+      "test_start": "2025-05-21",
+      "test_end": "2025-06-09",
+      "selected_parameters": {
+        "fast_period": 2,
+        "slow_period": 11
+      },
+      "train_metrics": {
+        "net_profit": 129360.42,
+        "win_rate": 66.67,
+        "profit_factor": 7.13,
+        "expectancy": 1078.0,
+        "max_drawdown_pct": 1.31,
+        "sharpe_ratio": 11.02,
+        "trade_count": 120
+      },
+      "test_metrics": {
+        "net_profit": 47038.21,
+        "win_rate": 69.44,
+        "profit_factor": 3.57,
+        "expectancy": 653.31,
+        "max_drawdown_pct": 5.22,
+        "sharpe_ratio": 10.14,
+        "trade_count": 72
+      }
+    }
+  ],
+  "score": {
+    "overall_score": 58.22,
+    "test_profitability": 51.66,
+    "consistency": 43.32,
+    "drawdown_score": 72.81,
+    "parameter_stability": 100.0
+  },
+  "stability_analysis": {
+    "selected_parameters": [
+      {},
+      {},
+      {},
+      {},
+      {
+        "fast_period": 2,
+        "slow_period": 11
+      }
+    ]
+  },
+  "status": "FAIL"
+}

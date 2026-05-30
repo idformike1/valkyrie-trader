@@ -101,6 +101,8 @@ class PositionManager:
         pos.exit_value = exit_value
         pos.exit_signal = data.get("signal", "SELL_INTENT")
         pos.status = PositionStatus.CLOSED
+        if "metadata" in data and data["metadata"]:
+            pos.metadata.update(data["metadata"])
 
         # Log closed event
         closed_event = PositionClosed(

@@ -8,6 +8,7 @@
 - [backend/app.py](#backendapppy)
 - [backend/auth.py](#backendauthpy)
 - [backend/database.py](#backenddatabasepy)
+- [backend/run_fast_audit.py](#backendrun_fast_auditpy)
 - [backend/strategy_heikin_ashi_gar.py](#backendstrategy_heikin_ashi_garpy)
 - [backend/test_backend.py](#backendtest_backendpy)
 - [backend/test_heikin_ashi_gar.py](#backendtest_heikin_ashi_garpy)
@@ -24,6 +25,9 @@
 - [backend/v2/expired_contract_provider.py](#backendv2expired_contract_providerpy)
 - [backend/v2/metrics_engine.py](#backendv2metrics_enginepy)
 - [backend/v2/metrics_models.py](#backendv2metrics_modelspy)
+- [backend/v2/monte_carlo/monte_carlo_engine.py](#backendv2monte_carlomonte_carlo_enginepy)
+- [backend/v2/monte_carlo/monte_carlo_models.py](#backendv2monte_carlomonte_carlo_modelspy)
+- [backend/v2/monte_carlo/run_monte_carlo_audit.py](#backendv2monte_carlorun_monte_carlo_auditpy)
 - [backend/v2/optimization_engine.py](#backendv2optimization_enginepy)
 - [backend/v2/optimization_models.py](#backendv2optimization_modelspy)
 - [backend/v2/pnl_engine.py](#backendv2pnl_enginepy)
@@ -37,9 +41,19 @@
 - [backend/v2/replay_models.py](#backendv2replay_modelspy)
 - [backend/v2/resolvers.py](#backendv2resolverspy)
 - [backend/v2/run_expired_api_reality_check.py](#backendv2run_expired_api_reality_checkpy)
+- [backend/v2/run_fast_audit.py](#backendv2run_fast_auditpy)
 - [backend/v2/run_replay_verification.py](#backendv2run_replay_verificationpy)
+- [backend/v2/scratch/check_ema_crossover.py](#backendv2scratchcheck_ema_crossoverpy)
 - [backend/v2/signal_adapter.py](#backendv2signal_adapterpy)
 - [backend/v2/signal_source.py](#backendv2signal_sourcepy)
+- [backend/v2/strategy_builder/__init__.py](#backendv2strategy_builder__init__py)
+- [backend/v2/strategy_builder/indicator_registry.py](#backendv2strategy_builderindicator_registrypy)
+- [backend/v2/strategy_builder/risk_engine.py](#backendv2strategy_builderrisk_enginepy)
+- [backend/v2/strategy_builder/rule_engine.py](#backendv2strategy_builderrule_enginepy)
+- [backend/v2/strategy_builder/signal_pipeline.py](#backendv2strategy_buildersignal_pipelinepy)
+- [backend/v2/strategy_builder/strategy_definition.py](#backendv2strategy_builderstrategy_definitionpy)
+- [backend/v2/strategy_builder/strategy_validator.py](#backendv2strategy_builderstrategy_validatorpy)
+- [backend/v2/strategy_builder/test_strategy_builder.py](#backendv2strategy_buildertest_strategy_builderpy)
 - [backend/v2/test_cache_layer.py](#backendv2test_cache_layerpy)
 - [backend/v2/test_historical_contract_provider.py](#backendv2test_historical_contract_providerpy)
 - [backend/v2/test_metrics_engine.py](#backendv2test_metrics_enginepy)
@@ -51,6 +65,11 @@
 - [backend/v2/types.py](#backendv2typespy)
 - [backend/v2/upstox_expired_loader.py](#backendv2upstox_expired_loaderpy)
 - [backend/v2/verify_contract_master.py](#backendv2verify_contract_masterpy)
+- [backend/v2/walk_forward/run_walk_forward_audit.py](#backendv2walk_forwardrun_walk_forward_auditpy)
+- [backend/v2/walk_forward/test_walk_forward.py](#backendv2walk_forwardtest_walk_forwardpy)
+- [backend/v2/walk_forward/walk_forward_engine.py](#backendv2walk_forwardwalk_forward_enginepy)
+- [backend/v2/walk_forward/walk_forward_models.py](#backendv2walk_forwardwalk_forward_modelspy)
+- [backend/v2/walk_forward/walk_forward_report.py](#backendv2walk_forwardwalk_forward_reportpy)
 - [frontend/next-env.d.ts](#frontendnext-envdts)
 - [frontend/next.config.ts](#frontendnextconfigts)
 - [frontend/src/app/layout.tsx](#frontendsrcapplayouttsx)
@@ -561,6 +580,21 @@ No description provided.
 
 ---
 
+## backend/run_fast_audit.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `run_fast_audit` (Function)
+- **Signature**: `def run_fast_audit()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
 ## backend/strategy_heikin_ashi_gar.py
 *No description provided.*
 
@@ -973,6 +1007,154 @@ No description provided.
 
 #### class `MetricsReport`
 No description provided.
+
+
+
+---
+
+## backend/v2/monte_carlo/monte_carlo_engine.py
+*No description provided.*
+
+### Classes
+#### class `MonteCarloEngine`
+Engine that runs Monte Carlo simulations on a completed trade ledger.
+
+The engine is agnostic to the underlying strategy – it simply consumes the
+``TradeAccountingResult`` objects produced by the Replay/Walk‑Forward pipelines.
+
+##### Methods:
+- **`__init__`**
+  *Signature*: `def __init__(self, config, initial_balance, random_seed)`
+  *Description*: No description provided.
+
+- **`run`**
+  *Signature*: `def run(self, ledger)`
+  *Description*: No description provided.
+
+
+### Functions & Endpoints
+#### `_apply_variations` (Function)
+- **Signature**: `def _apply_variations(trades, cfg)`
+- **Description**:
+```text
+Return a new list of trades with Monte Carlo variations applied.
+The original TradeAccountingResult objects are immutable (pydantic), so we create shallow copies
+and adjust the mutable fields (net_pnl, total_charges, quantity) via ``model_copy``.
+```
+
+#### `_equity_curve` (Function)
+- **Signature**: `def _equity_curve(trades, initial_balance)`
+- **Description**:
+```text
+Build cumulative equity curve from net pnl list.
+Returns list of equity values after each trade.
+```
+
+#### `_max_drawdown_pct` (Function)
+- **Signature**: `def _max_drawdown_pct(equity)`
+- **Description**:
+```text
+Calculate maximum drawdown as a percentage of the peak equity.
+If equity never falls, returns 0.0.
+```
+
+
+
+---
+
+## backend/v2/monte_carlo/monte_carlo_models.py
+*No description provided.*
+
+### Classes
+#### class `MonteCarloConfig`
+Configuration for Monte Carlo simulations.
+
+#### class `SimulationMetrics`
+No description provided.
+
+#### class `MonteCarloScore`
+No description provided.
+
+#### class `MonteCarloReport`
+No description provided.
+
+
+
+---
+
+## backend/v2/monte_carlo/run_monte_carlo_audit.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `run_mc` (Function)
+- **Signature**: `def run_mc(seed, stress)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `reproducibility_audit` (Function)
+- **Signature**: `def reproducibility_audit()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `seed_variation_audit` (Function)
+- **Signature**: `def seed_variation_audit()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `equity_curve_audit` (Function)
+- **Signature**: `def equity_curve_audit(report)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `robustness_audit` (Function)
+- **Signature**: `def robustness_audit(report)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `survival_analysis_audit` (Function)
+- **Signature**: `def survival_analysis_audit(report)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `risk_of_ruin_audit` (Function)
+- **Signature**: `def risk_of_ruin_audit(report)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `stress_test_audit` (Function)
+- **Signature**: `def stress_test_audit()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `monte_carlo_score_audit` (Function)
+- **Signature**: `def monte_carlo_score_audit(report)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `performance_audit` (Function)
+- **Signature**: `def performance_audit(start_time, end_time, report)`
+- **Description**:
+```text
+No description provided.
+```
 
 
 
@@ -1407,12 +1589,42 @@ No description provided.
 
 ---
 
+## backend/v2/run_fast_audit.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `run_fast_audit` (Function)
+- **Signature**: `def run_fast_audit()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
 ## backend/v2/run_replay_verification.py
 *No description provided.*
 
 ### Functions & Endpoints
 #### `run_verification` (Function)
 - **Signature**: `def run_verification()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## backend/v2/scratch/check_ema_crossover.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `run_diagnostic` (Function)
+- **Signature**: `def run_diagnostic()`
 - **Description**:
 ```text
 No description provided.
@@ -1486,6 +1698,302 @@ Returns:
 - **`reset_state`**
   *Signature*: `def reset_state(self)`
   *Description*: Reset internal indicators and state variables between runs.
+
+
+
+---
+
+## backend/v2/strategy_builder/__init__.py
+*No description provided.*
+
+
+---
+
+## backend/v2/strategy_builder/indicator_registry.py
+*No description provided.*
+
+### Classes
+#### class `Indicator`
+No description provided.
+
+##### Methods:
+- **`calculate`**
+  *Signature*: `def calculate(self, df, params, col_name)`
+  *Description*: Calculates indicator values and returns a Series or a DataFrame.
+
+#### class `EmaIndicator`
+No description provided.
+
+##### Methods:
+- **`calculate`**
+  *Signature*: `def calculate(self, df, params, col_name)`
+  *Description*: No description provided.
+
+#### class `HeikinAshiIndicator`
+No description provided.
+
+##### Methods:
+- **`calculate`**
+  *Signature*: `def calculate(self, df, params, col_name)`
+  *Description*: No description provided.
+
+#### class `RsiIndicator`
+No description provided.
+
+##### Methods:
+- **`calculate`**
+  *Signature*: `def calculate(self, df, params, col_name)`
+  *Description*: No description provided.
+
+#### class `MacdIndicator`
+No description provided.
+
+##### Methods:
+- **`calculate`**
+  *Signature*: `def calculate(self, df, params, col_name)`
+  *Description*: No description provided.
+
+#### class `VolumeSpikeIndicator`
+No description provided.
+
+##### Methods:
+- **`calculate`**
+  *Signature*: `def calculate(self, df, params, col_name)`
+  *Description*: No description provided.
+
+#### class `PriceActionIndicator`
+No description provided.
+
+##### Methods:
+- **`calculate`**
+  *Signature*: `def calculate(self, df, params, col_name)`
+  *Description*: No description provided.
+
+#### class `IndicatorRegistry`
+No description provided.
+
+##### Methods:
+- **`register`**
+  *Signature*: `def register(cls, name, indicator_cls)`
+  *Description*: No description provided.
+
+- **`get`**
+  *Signature*: `def get(cls, name)`
+  *Description*: No description provided.
+
+
+
+---
+
+## backend/v2/strategy_builder/risk_engine.py
+*No description provided.*
+
+### Classes
+#### class `RiskEngine`
+No description provided.
+
+##### Methods:
+- **`evaluate_exits`**
+  *Signature*: `def evaluate_exits(cls, risk_config, active_contract, current_premium, current_spot, candles_held)`
+  *Description*: Evaluates risk-based exits (Stop Loss, Take Profit, Trailing Stop Loss, Max Candles).
+Returns (exit_reason, exit_price).
+If no exit is triggered, returns (None, 0.0).
+
+
+
+---
+
+## backend/v2/strategy_builder/rule_engine.py
+*No description provided.*
+
+### Classes
+#### class `RuleEngine`
+No description provided.
+
+##### Methods:
+- **`evaluate`**
+  *Signature*: `def evaluate(cls, df, condition)`
+  *Description*: Recursively evaluates a logical condition dictionary on the given DataFrame.
+
+- **`evaluate_leaf`**
+  *Signature*: `def evaluate_leaf(cls, df, cond_type, params)`
+  *Description*: No description provided.
+
+- **`resolve_operand`**
+  *Signature*: `def resolve_operand(cls, df, operand)`
+  *Description*: No description provided.
+
+- **`check_crossover_up`**
+  *Signature*: `def check_crossover_up(cls, df, params)`
+  *Description*: No description provided.
+
+- **`check_crossover_down`**
+  *Signature*: `def check_crossover_down(cls, df, params)`
+  *Description*: No description provided.
+
+
+
+---
+
+## backend/v2/strategy_builder/signal_pipeline.py
+*No description provided.*
+
+### Classes
+#### class `SignalPipeline`
+No description provided.
+
+##### Methods:
+- **`__init__`**
+  *Signature*: `def __init__(self, definition)`
+  *Description*: No description provided.
+
+- **`reset_state`**
+  *Signature*: `def reset_state(self)`
+  *Description*: No description provided.
+
+- **`evaluate`**
+  *Signature*: `def evaluate(self, df_input)`
+  *Description*: Evaluates signals on the given DataFrame or list of candle dicts.
+Returns:
+    Tuple of (action, info_dict)
+    action can be "BUY", "SELL", or "HOLD".
+
+
+### Functions & Endpoints
+#### `invert_condition` (Function)
+- **Signature**: `def invert_condition(condition)`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## backend/v2/strategy_builder/strategy_definition.py
+*No description provided.*
+
+### Classes
+#### class `StrategyMetadata`
+No description provided.
+
+#### class `SignalConfig`
+No description provided.
+
+#### class `StrikeSelection`
+No description provided.
+
+#### class `ExpirySelection`
+No description provided.
+
+#### class `ContractConfig`
+No description provided.
+
+#### class `RiskConfig`
+No description provided.
+
+#### class `TimeExitConfig`
+No description provided.
+
+#### class `ExitConfig`
+No description provided.
+
+#### class `StrategyDefinition`
+No description provided.
+
+
+
+---
+
+## backend/v2/strategy_builder/strategy_validator.py
+*No description provided.*
+
+### Classes
+#### class `StrategyValidator`
+No description provided.
+
+##### Methods:
+- **`validate_dict`**
+  *Signature*: `def validate_dict(cls, data)`
+  *Description*: Validates a strategy definition dictionary before parsing into Pydantic models.
+Returns a tuple of (is_valid, list_of_error_strings).
+
+
+
+---
+
+## backend/v2/strategy_builder/test_strategy_builder.py
+*No description provided.*
+
+### Classes
+#### class `TestStrategyBuilder`
+No description provided.
+
+##### Methods:
+- **`setUp`**
+  *Signature*: `def setUp(self)`
+  *Description*: No description provided.
+
+- **`test_validator_valid`**
+  *Signature*: `def test_validator_valid(self)`
+  *Description*: No description provided.
+
+- **`test_validator_invalid_field`**
+  *Signature*: `def test_validator_invalid_field(self)`
+  *Description*: No description provided.
+
+- **`test_validator_invalid_indicator`**
+  *Signature*: `def test_validator_invalid_indicator(self)`
+  *Description*: No description provided.
+
+- **`test_ema_indicator`**
+  *Signature*: `def test_ema_indicator(self)`
+  *Description*: No description provided.
+
+- **`test_heikin_ashi_indicator`**
+  *Signature*: `def test_heikin_ashi_indicator(self)`
+  *Description*: No description provided.
+
+- **`test_rsi_indicator`**
+  *Signature*: `def test_rsi_indicator(self)`
+  *Description*: No description provided.
+
+- **`test_macd_indicator`**
+  *Signature*: `def test_macd_indicator(self)`
+  *Description*: No description provided.
+
+- **`test_rule_engine_gt_lt_eq`**
+  *Signature*: `def test_rule_engine_gt_lt_eq(self)`
+  *Description*: No description provided.
+
+- **`test_rule_engine_logical_operators`**
+  *Signature*: `def test_rule_engine_logical_operators(self)`
+  *Description*: No description provided.
+
+- **`test_invert_condition`**
+  *Signature*: `def test_invert_condition(self)`
+  *Description*: No description provided.
+
+- **`test_risk_engine_sl_exit`**
+  *Signature*: `def test_risk_engine_sl_exit(self)`
+  *Description*: No description provided.
+
+- **`test_risk_engine_tp_exit`**
+  *Signature*: `def test_risk_engine_tp_exit(self)`
+  *Description*: No description provided.
+
+- **`test_risk_engine_trailing_sl_exit`**
+  *Signature*: `def test_risk_engine_trailing_sl_exit(self)`
+  *Description*: No description provided.
+
+- **`test_signal_pipeline`**
+  *Signature*: `def test_signal_pipeline(self)`
+  *Description*: No description provided.
+
+- **`test_historical_replay_with_strategy_def`**
+  *Signature*: `def test_historical_replay_with_strategy_def(self, mock_contract, mock_expiry, mock_strike)`
+  *Description*: No description provided.
 
 
 
@@ -2586,6 +3094,118 @@ No description provided.
 - **Description**:
 ```text
 No description provided.
+```
+
+
+
+---
+
+## backend/v2/walk_forward/run_walk_forward_audit.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `main` (Function)
+- **Signature**: `def main()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## backend/v2/walk_forward/test_walk_forward.py
+*No description provided.*
+
+### Classes
+#### class `TestWalkForwardEngine`
+No description provided.
+
+##### Methods:
+- **`setUp`**
+  *Signature*: `def setUp(self)`
+  *Description*: No description provided.
+
+- **`test_window_generation`**
+  *Signature*: `def test_window_generation(self)`
+  *Description*: No description provided.
+
+- **`test_full_run`**
+  *Signature*: `def test_full_run(self)`
+  *Description*: No description provided.
+
+- **`test_score_components_range`**
+  *Signature*: `def test_score_components_range(self)`
+  *Description*: No description provided.
+
+
+
+---
+
+## backend/v2/walk_forward/walk_forward_engine.py
+*No description provided.*
+
+### Classes
+#### class `WalkForwardEngine`
+Lightweight Walk Forward Engine.
+
+Generates rolling training/testing windows, runs optimization on the training
+window, applies the best parameters to the testing window, collects metrics,
+and aggregates a final Walk Forward Score.
+
+##### Methods:
+- **`__init__`**
+  *Signature*: `def __init__(self, base_config, wf_config)`
+  *Description*: No description provided.
+
+- **`run`**
+  *Signature*: `def run(self, max_cycles)`
+  *Description*: No description provided.
+
+
+
+---
+
+## backend/v2/walk_forward/walk_forward_models.py
+*No description provided.*
+
+### Classes
+#### class `WalkForwardConfig`
+No description provided.
+
+#### class `WalkForwardCycle`
+No description provided.
+
+#### class `WalkForwardScore`
+No description provided.
+
+#### class `WalkForwardReport`
+No description provided.
+
+
+
+---
+
+## backend/v2/walk_forward/walk_forward_report.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `_format_metrics` (Function)
+- **Signature**: `def _format_metrics(metrics)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `generate_markdown_report` (Function)
+- **Signature**: `def generate_markdown_report(report, output_path)`
+- **Description**:
+```text
+Writes a human‑readable markdown report for the walk‑forward run.
+
+The report includes window details, selected EMA parameters, training & testing
+metrics, the aggregated WalkForwardScore and a PASS/FAIL status.
 ```
 
 

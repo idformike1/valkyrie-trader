@@ -1,4 +1,4 @@
-from typing import Dict, Any, Literal
+from typing import Dict, Any, Literal, Optional
 from pydantic import BaseModel, Field
 from v2.types import StrikeMode, ExpiryMode, Timeframe, TargetStopLossType
 
@@ -35,8 +35,11 @@ class BacktestConfig(BaseModel):
     start_date: str = Field(..., description="Start date of the backtest (YYYY-MM-DD).")
     end_date: str = Field(..., description="End date of the backtest (YYYY-MM-DD).")
     
-    strategy_name: str = Field(..., description="Registered strategy identifier.")
+    strategy_name: Optional[str] = Field(default=None, description="Registered strategy identifier.")
     strategy_params: Dict[str, Any] = Field(default_factory=dict, description="Strategy hyperparameters.")
+    strategy_definition: Optional[Dict[str, Any]] = Field(
+        default=None, description="JSON strategy definition for the dynamic rule engine."
+    )
     
     option_type_preference: Literal["DYNAMIC", "CE_ONLY", "PE_ONLY"] = Field(
         default="DYNAMIC", 
@@ -47,3 +50,4 @@ class BacktestConfig(BaseModel):
     expiry_selection: ExpiryConfig = Field(default_factory=ExpiryConfig)
     risk_management: RiskConfig = Field(default_factory=RiskConfig)
     execution: ExecutionConfig = Field(default_factory=ExecutionConfig)
+

@@ -12,7 +12,7 @@ from v2.expired_contract_provider import HistoricalContractProvider
 from v2.signal_adapter import SignalAdapter
 from v2.replay_models import ReplaySignalEvent, ReplayContractEvent, ReplayTradeIntent, ReplayTimeline
 from v2.replay_audit import log_replay_event
-from v2.types import OptionType, StrikeMode
+from v2.types import OptionType, StrikeMode, ExpiryMode
 
 logger = logging.getLogger("Valkyrie.ReplayEngine")
 logger.setLevel(logging.INFO)
@@ -155,13 +155,23 @@ class HistoricalReplayEngine:
         logger.info(f"Replay starting for {underlying_name}. Total underlying candles: {len(underlying_candles)}")
         
         # 3. Setup Signal Adapter
-        adapter = SignalAdapter(config.strategy_name, config.strategy_params)
+        is_dynamic = False
+        strategy_def = None
+        if getattr(config, "strategy_definition", None) is not None:
+            from v2.strategy_builder import StrategyDefinition, SignalPipeline
+            strategy_def = StrategyDefinition(**config.strategy_definition)
+            adapter = SignalPipeline(strategy_def)
+            strategy_name = strategy_def.name
+            is_dynamic = True
+        else:
+            adapter = SignalAdapter(config.strategy_name, config.strategy_params)
+            strategy_name = config.strategy_name
         
         # 4. Walk chronological replay loop
         timeline = ReplayTimeline(
             underlying=underlying_name,
             timeframe=tf_val,
-            strategy=config.strategy_name
+            strategy=strategy_name
         )
         
         # Initialize Position Manager & Ledger
@@ -177,17 +187,85 @@ class HistoricalReplayEngine:
             current_ts = current_candle["timestamp"]
             spot_price = current_candle["close"]
             
+            opened_this_candle = False
+            
+            # If position is open and strategy_definition is used, check risk exits first
+            if active_contract is not None and is_dynamic and strategy_def is not None:
+                # Lookup current option premium
+                held_premium_candle = self._lookup_premium(
+                    index_name=underlying_name,
+                    strike=active_contract["strike"],
+                    expiry=active_contract["expiry"],
+                    option_type=active_contract["option_type"],
+                    timeframe="1m",
+                    timestamp=current_ts,
+                    day_date=current_ts
+                )
+                held_premium = held_premium_candle["close"] if held_premium_candle else active_contract.get("last_premium", active_contract["strike"])
+                if held_premium_candle:
+                    active_contract["last_premium"] = held_premium
+                    
+                # Update highest premium for trailing SL
+                if held_premium > active_contract.get("highest_premium", 0.0):
+                    active_contract["highest_premium"] = held_premium
+                    
+                candles_held = i - active_contract.get("entry_index", 0)
+                
+                from v2.strategy_builder.risk_engine import RiskEngine
+                exit_reason, exit_price = RiskEngine.evaluate_exits(
+                    strategy_def.risk,
+                    active_contract,
+                    held_premium,
+                    spot_price,
+                    candles_held
+                )
+                
+                if exit_reason:
+                    # Close position due to risk exit
+                    pos_data = {
+                        "underlying": underlying_name,
+                        "strike": float(active_contract["strike"]),
+                        "expiry": active_contract["expiry"],
+                        "option_type": active_contract["option_type"],
+                        "instrument_key": active_contract["instrument_key"],
+                        "premium_price": float(exit_price),
+                        "signal": "SELL_INTENT",
+                        "metadata": {"exit_reason": exit_reason}
+                    }
+                    
+                    intent = ReplayTradeIntent(
+                        timestamp=current_ts,
+                        underlying=underlying_name,
+                        signal="SELL_INTENT",
+                        spot_price=float(spot_price),
+                        strike=float(active_contract["strike"]),
+                        expiry=active_contract["expiry"],
+                        option_type=active_contract["option_type"],
+                        instrument_key=active_contract["instrument_key"],
+                        premium_price=float(exit_price),
+                        source=active_contract["source"]
+                    )
+                    timeline.events.append(intent)
+                    log_replay_event(current_ts, "SELL_INTENT", f"{active_contract['strike']} {active_contract['option_type']} ({active_contract['expiry']})", exit_price, active_contract["source"])
+                    
+                    self.position_manager.close_position(pos_data, current_ts)
+                    adapter.reset_state()
+                    active_contract = None
+                    continue  # skip to next candle
+            
             # Evaluate signal
             signal, info = adapter.evaluate(history)
-            
-            opened_this_candle = False
             
             if signal == "BUY":
                 if active_contract is not None:
                     continue  # Already in position, ignore new entries
                 
                 # Determine Option Type (CE or PE)
-                opt_pref = config.option_type_preference
+                if is_dynamic and strategy_def is not None:
+                    opt_pref = strategy_def.contract.option_type
+                else:
+                    opt_pref = config.option_type_preference
+                    
                 if opt_pref == "DYNAMIC":
                     option_type = "CE"  # Default CE for simple replay
                 elif opt_pref == "CE_ONLY":
@@ -198,13 +276,24 @@ class HistoricalReplayEngine:
                     option_type = "CE"
                 
                 # Resolve Strike Mode
-                strike_mode = config.strike_selection.mode
+                if is_dynamic and strategy_def is not None:
+                    strike_mode_str = strategy_def.contract.strike.mode
+                else:
+                    strike_mode_str = config.strike_selection.mode
+                strike_mode = StrikeMode(strike_mode_str) if isinstance(strike_mode_str, str) else strike_mode_str
+                
                 strike_res = HistoricalStrikeResolver.resolve(underlying_name, spot_price, strike_mode, OptionType(option_type))
                 strike = strike_res["resolved_strike"]
                 
                 # Resolve Expiry Mode
-                expiry_mode = config.expiry_selection.mode
-                roll_hrs = config.expiry_selection.roll_threshold_hours
+                if is_dynamic and strategy_def is not None:
+                    expiry_mode_str = strategy_def.contract.expiry.mode
+                    roll_hrs = strategy_def.contract.expiry.roll_threshold_hours
+                else:
+                    expiry_mode_str = config.expiry_selection.mode
+                    roll_hrs = config.expiry_selection.roll_threshold_hours
+                expiry_mode = ExpiryMode(expiry_mode_str) if isinstance(expiry_mode_str, str) else expiry_mode_str
+                
                 expiry = HistoricalExpiryResolver.resolve(underlying_name, current_ts, expiry_mode, roll_hrs)
                 
                 # Resolve Option Key
@@ -288,7 +377,11 @@ class HistoricalReplayEngine:
                         "expiry": expiry,
                         "option_type": option_type,
                         "instrument_key": instrument_key,
-                        "source": source
+                        "source": source,
+                        "entry_premium": float(premium),
+                        "entry_spot": float(spot_price),
+                        "entry_index": i,
+                        "highest_premium": float(premium)
                     }
             
             elif signal == "SELL":
@@ -357,3 +450,4 @@ class HistoricalReplayEngine:
                 self.position_manager.hold_position(pos_data, current_ts)
                     
         return timeline
+

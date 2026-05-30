@@ -1,0 +1,1043 @@
+{
+  "config": {
+    "simulation_count": 100,
+    "random_seed": 42,
+    "slippage_variation_pct": 0.0,
+    "commission_variation_pct": 0.0,
+    "trade_order_shuffle": false,
+    "skip_trade_probability": 0.0,
+    "position_size_variation_pct": 0.0,
+    "combined_stress_test": false
+  },
+  "simulations": [
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    },
+    {
+      "net_profit": 18278.11,
+      "max_drawdown_pct": 14.0,
+      "profit_factor": 1.67,
+      "win_rate": 0.3421,
+      "trade_count": 38
+    }
+  ],
+  "robustness_metrics": {
+    "mean_net_profit": 18278.11,
+    "median_net_profit": 18278.11,
+    "worst_net_profit": 18278.11,
+    "best_net_profit": 18278.11,
+    "mean_drawdown_pct": 14.0,
+    "worst_drawdown_pct": 14.0
+  },
+  "survival_analysis": {
+    "prob_profit_positive": 1.0,
+    "prob_pf_gt_one": 1.0,
+    "prob_dd_lt_20": 1.0
+  },
+  "risk_of_ruin_score": 1.0,
+  "score": {
+    "overall_score": 75.8,
+    "survival": 100.0,
+    "drawdown_stability": 86.0,
+    "profit_stability": 0.0,
+    "risk_of_ruin": 100.0
+  },
+  "histogram_data": {
+    "net_profit": [
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11,
+      18278.11
+    ],
+    "max_drawdown_pct": [
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0,
+      14.0
+    ],
+    "profit_factor": [
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67,
+      1.67
+    ]
+  }
+}
