@@ -330,13 +330,15 @@ export const BacktestMain: React.FC = () => {
     });
 
     if (candles && candles.length > 0) {
-      const priceData = candles.map((c) => ({
-        time: c.timestamp as UTCTimestamp,
-        open: c.open,
-        high: c.high,
-        low: c.low,
-        close: c.close
-      }));
+      const priceData = candles
+        .map((c) => ({
+          time: c.time as UTCTimestamp,
+          open: c.open,
+          high: c.high,
+          low: c.low,
+          close: c.close,
+        }))
+        .sort((a, b) => a.time - b.time);
       candleSeries.setData(priceData);
 
       // Render actual execution trade markers
@@ -433,37 +435,35 @@ export const BacktestMain: React.FC = () => {
     }
 
     const interval = setInterval(() => {
-      setRunProgress((prev) => {
-        const currentStatus = useBackendTradingStore.getState().status;
-        const currentState = currentStatus?.state;
+      const currentStatus = useBackendTradingStore.getState().status;
+      const currentState = currentStatus?.state;
 
-        if (currentState === "COMPLETED") {
-          clearInterval(interval);
-          setIsRunning(false);
-          addEvent({
-            type: "success",
-            message: `BACKTEST COMPLETED - Profit: ₹${(currentStatus?.total_pnl || 0).toLocaleString("en-IN")} | Win Rate: ${currentStatus?.win_rate?.toFixed(1) || 0}%`,
-            workspace: "Backtest",
-          });
-          return 100;
-        }
-
-        if (currentState === "FAILED") {
-          clearInterval(interval);
-          setIsRunning(false);
-          addEvent({
-            type: "error",
-            message: `BACKTEST FAILED. Check backend console logs.`,
-            workspace: "Backtest",
-          });
-          return 0;
-        }
-
-        if (prev >= 90) {
-          return 90;
-        }
-        return prev + 15;
-      });
+      if (currentState === "COMPLETED") {
+        clearInterval(interval);
+        setIsRunning(false);
+        setRunProgress(100);
+        addEvent({
+          type: "success",
+          message: `BACKTEST COMPLETED - Profit: ₹${(currentStatus?.total_pnl || 0).toLocaleString("en-IN")} | Win Rate: ${currentStatus?.win_rate?.toFixed(1) || 0}%`,
+          workspace: "Backtest",
+        });
+      } else if (currentState === "FAILED") {
+        clearInterval(interval);
+        setIsRunning(false);
+        setRunProgress(0);
+        addEvent({
+          type: "error",
+          message: `BACKTEST FAILED. Check backend console logs.`,
+          workspace: "Backtest",
+        });
+      } else {
+        setRunProgress((prev) => {
+          if (prev >= 90) {
+            return 90;
+          }
+          return prev + 15;
+        });
+      }
     }, 150);
   };
 
@@ -671,10 +671,18 @@ export const BacktestBottom: React.FC = () => {
       lineWidth: 2,
     });
 
-    const points = equityCurve.map((pt) => ({
+    const rawPoints = equityCurve.map((pt) => ({
       time: Math.floor(new Date(pt.timestamp).getTime() / 1000) as UTCTimestamp,
       value: pt.equity,
     }));
+
+    if (rawPoints.length > 1) {
+      const firstTradeTime = rawPoints[1].time;
+      if (rawPoints[0].time > firstTradeTime) {
+        rawPoints[0].time = (firstTradeTime - 60) as UTCTimestamp;
+      }
+    }
+    const points = rawPoints.sort((a, b) => a.time - b.time);
     series.setData(points);
     chart.timeScale().fitContent();
 
@@ -709,7 +717,7 @@ export const BacktestBottom: React.FC = () => {
     });
 
     let peak = equityCurve[0]?.equity || 100000;
-    const points = equityCurve.map((pt) => {
+    const rawPoints = equityCurve.map((pt) => {
       const eq = pt.equity;
       if (eq > peak) peak = eq;
       const dd = ((peak - eq) / peak) * -100;
@@ -718,6 +726,14 @@ export const BacktestBottom: React.FC = () => {
         value: dd
       };
     });
+
+    if (rawPoints.length > 1) {
+      const firstTradeTime = rawPoints[1].time;
+      if (rawPoints[0].time > firstTradeTime) {
+        rawPoints[0].time = (firstTradeTime - 60) as UTCTimestamp;
+      }
+    }
+    const points = rawPoints.sort((a, b) => a.time - b.time);
     series.setData(points);
     chart.timeScale().fitContent();
 

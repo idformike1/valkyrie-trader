@@ -351,7 +351,7 @@ export const TradingMain: React.FC = () => {
     
     // Convert BackendCandle to the format expected by lightweight-charts (with a 'time' property)
     const formattedCandles = candles.map((c) => ({
-      time: (typeof c.timestamp === "number" ? c.timestamp : Math.floor(new Date(c.timestamp).getTime() / 1000)) as UTCTimestamp,
+      time: (c.time ?? (typeof c.timestamp === "number" ? c.timestamp : Math.floor(new Date(c.timestamp || "").getTime() / 1000))) as UTCTimestamp,
       open: c.open,
       high: c.high,
       low: c.low,

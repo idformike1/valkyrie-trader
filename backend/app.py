@@ -1310,11 +1310,114 @@ class StartEngineModel(BaseModel):
     five_ema_rr: float = 3.0
     
     live_trading: bool = False
+    engine_version: str = "v1"
 
 @app.post('/start')
 def start_engine(req_data: StartEngineModel):
     global SYSTEM_STATUS, TRADE_LOGS, EVENT_LOGS, EQUITY_CURVE, HEIKIN_ASHI_CANDLES, current_feed, current_strategy, active_thread, running_loop, CURRENT_SESSION_ID
     
+    if getattr(req_data, "engine_version", "v1") == "v2":
+        try:
+            index_name = req_data.index or req_data.index_name or "NIFTY"
+            underlying_keys_map = {
+                "NIFTY": "NSE_INDEX|Nifty 50",
+                "BANKNIFTY": "NSE_INDEX|Nifty Bank",
+                "FINNIFTY": "NSE_INDEX|Nifty Fin Service",
+                "MIDCPNIFTY": "NSE_INDEX|NIFTY MID SELECT",
+                "SENSEX": "BSE_INDEX|SENSEX",
+                "BANKEX": "BSE_INDEX|BANKEX"
+            }
+            underlying_key = underlying_keys_map.get(index_name.upper(), "NSE_INDEX|Nifty 50")
+            
+            tf_val = req_data.timeframe
+            timeframe_mapped = "1m"
+            if tf_val == "1minute":
+                timeframe_mapped = "1m"
+            elif tf_val == "5minute":
+                timeframe_mapped = "5m"
+            elif tf_val in ["10s", "30s", "1m", "3m", "5m", "15m", "30m"]:
+                timeframe_mapped = tf_val
+
+            opt_pref = "DYNAMIC"
+            if req_data.option_type == "CE":
+                opt_pref = "CE_ONLY"
+            elif req_data.option_type == "PE":
+                opt_pref = "PE_ONLY"
+
+            strategy_params = {}
+            if req_data.strategy == "heikin_ashi_gar":
+                strategy_params = {
+                    "candle_limit": int(req_data.max_candles),
+                    "cut_off_time": req_data.cutoff_time
+                }
+            elif req_data.strategy == "five_ema_scalping":
+                strategy_params = {
+                    "ema_period": int(req_data.five_ema_period),
+                    "rr_ratio": float(req_data.five_ema_rr),
+                    "cut_off_time": req_data.cutoff_time
+                }
+
+            strike_m = req_data.strike
+            if strike_m not in [
+                "ATM", "ATM+1", "ATM+2", "ATM+3", "ATM-1", "ATM-2", "ATM-3",
+                "OTM_1", "OTM_2", "OTM_3", "ITM_1", "ITM_2", "ITM_3"
+            ]:
+                strike_m = "ATM"
+
+            expiry_mode_val = "CURRENT_WEEKLY"
+            if req_data.expiry == "NEXT_WEEKLY":
+                expiry_mode_val = "NEXT_WEEKLY"
+            elif req_data.expiry == "CURRENT_MONTHLY":
+                expiry_mode_val = "CURRENT_MONTHLY"
+
+            v2_payload = {
+                "underlying_instrument_key": underlying_key,
+                "timeframe": timeframe_mapped,
+                "start_date": req_data.start_date or "2026-05-25",
+                "end_date": req_data.end_date or "2026-05-29",
+                "strategy_name": req_data.strategy,
+                "strategy_params": strategy_params,
+                "option_type_preference": opt_pref,
+                "strike_selection": {
+                    "mode": strike_m
+                },
+                "expiry_selection": {
+                    "mode": expiry_mode_val,
+                    "roll_threshold_hours": 2.0
+                },
+                "risk_management": {
+                    "target_type": "percent" if req_data.strategy == "five_ema_scalping" else "none",
+                    "target_value": req_data.five_ema_rr if req_data.strategy == "five_ema_scalping" else 0.0,
+                    "stop_loss_type": "percent" if req_data.strategy == "five_ema_scalping" else "none",
+                    "stop_loss_value": 1.0,
+                    "trailing_sl_gap": 0.0,
+                    "max_holding_candles": int(req_data.max_candles),
+                    "cutoff_time": req_data.cutoff_time
+                },
+                "execution": {
+                    "brokerage_flat": req_data.brokerage_flat,
+                    "slippage_pct": req_data.slippage_pct,
+                    "lot_size": req_data.lot_size,
+                    "initial_balance": req_data.initial_balance
+                }
+            }
+            
+            import sys
+            import os
+            backend_dir = os.path.dirname(os.path.abspath(__file__))
+            if backend_dir not in sys.path:
+                sys.path.insert(0, backend_dir)
+                
+            from v2.engine_v2 import run_backtest_v2
+            result = run_backtest_v2(v2_payload)
+            return {
+                "status": "accepted",
+                "engine": "v2",
+                "configuration": result.get("configuration")
+            }
+        except Exception as ex:
+            raise HTTPException(status_code=400, detail=f"V2 Initialization failed: {str(ex)}")
+
     mode = req_data.mode
     lot_size = req_data.lot_size
     live_protection = req_data.live_protection

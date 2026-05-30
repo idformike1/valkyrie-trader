@@ -62,7 +62,8 @@ export interface BackendTrade {
 }
 
 export interface BackendCandle {
-  timestamp: string | number;
+  timestamp?: string | number;
+  time?: number;
   open: number;
   high: number;
   low: number;

@@ -12,6 +12,23 @@
 - [backend/test_backend.py](#backendtest_backendpy)
 - [backend/test_heikin_ashi_gar.py](#backendtest_heikin_ashi_garpy)
 - [backend/test_token.py](#backendtest_tokenpy)
+- [backend/v2/__init__.py](#backendv2__init__py)
+- [backend/v2/cache/database.py](#backendv2cachedatabasepy)
+- [backend/v2/cache/manager.py](#backendv2cachemanagerpy)
+- [backend/v2/cache/models.py](#backendv2cachemodelspy)
+- [backend/v2/cache/schema.py](#backendv2cacheschemapy)
+- [backend/v2/config.py](#backendv2configpy)
+- [backend/v2/data_loader.py](#backendv2data_loaderpy)
+- [backend/v2/engine_v2.py](#backendv2engine_v2py)
+- [backend/v2/reality_check.py](#backendv2reality_checkpy)
+- [backend/v2/resolvers.py](#backendv2resolverspy)
+- [backend/v2/signal_source.py](#backendv2signal_sourcepy)
+- [backend/v2/test_cache_layer.py](#backendv2test_cache_layerpy)
+- [backend/v2/test_premium.py](#backendv2test_premiumpy)
+- [backend/v2/test_spot.py](#backendv2test_spotpy)
+- [backend/v2/test_v2.py](#backendv2test_v2py)
+- [backend/v2/types.py](#backendv2typespy)
+- [backend/v2/upstox_expired_loader.py](#backendv2upstox_expired_loaderpy)
 - [frontend/next-env.d.ts](#frontendnext-envdts)
 - [frontend/next.config.ts](#frontendnextconfigts)
 - [frontend/src/app/layout.tsx](#frontendsrcapplayouttsx)
@@ -561,6 +578,591 @@ No description provided.
 
 ## backend/test_token.py
 *No description provided.*
+
+
+---
+
+## backend/v2/__init__.py
+*No description provided.*
+
+
+---
+
+## backend/v2/cache/database.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `get_cache_db_connection` (Function)
+- **Signature**: `def get_cache_db_connection(db_path)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `init_cache_db` (Function)
+- **Signature**: `def init_cache_db(db_path)`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## backend/v2/cache/manager.py
+*No description provided.*
+
+### Classes
+#### class `HistoricalDataCacheManager`
+No description provided.
+
+##### Methods:
+- **`__init__`**
+  *Signature*: `def __init__(self, db_path)`
+  *Description*: No description provided.
+
+- **`verify_coverage`**
+  *Signature*: `def verify_coverage(self, requested_from, requested_to, cached_from, cached_to)`
+  *Description*: No description provided.
+
+- **`has_range`**
+  *Signature*: `def has_range(self, instrument_key, from_date, to_date)`
+  *Description*: No description provided.
+
+- **`get_metadata`**
+  *Signature*: `def get_metadata(self, instrument_key)`
+  *Description*: No description provided.
+
+- **`store_range`**
+  *Signature*: `def store_range(self, instrument_key, candles, is_option, strike, option_type, expiry)`
+  *Description*: No description provided.
+
+- **`get_range`**
+  *Signature*: `def get_range(self, instrument_key, from_date, to_date, is_option)`
+  *Description*: No description provided.
+
+- **`invalidate`**
+  *Signature*: `def invalidate(self, instrument_key)`
+  *Description*: No description provided.
+
+
+### Functions & Endpoints
+#### `parse_to_utc_naive` (Function)
+- **Signature**: `def parse_to_utc_naive(dt_str)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `to_naive_iso` (Function)
+- **Signature**: `def to_naive_iso(ts)`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## backend/v2/cache/models.py
+*No description provided.*
+
+### Classes
+#### class `UnderlyingCandleModel`
+No description provided.
+
+#### class `OptionCandleModel`
+No description provided.
+
+#### class `CacheMetadataModel`
+No description provided.
+
+#### class `DownloadJobModel`
+No description provided.
+
+
+
+---
+
+## backend/v2/cache/schema.py
+*No description provided.*
+
+
+---
+
+## backend/v2/config.py
+*No description provided.*
+
+### Classes
+#### class `StrikeConfig`
+No description provided.
+
+#### class `ExpiryConfig`
+No description provided.
+
+#### class `RiskConfig`
+No description provided.
+
+#### class `ExecutionConfig`
+No description provided.
+
+#### class `BacktestConfig`
+No description provided.
+
+
+
+---
+
+## backend/v2/data_loader.py
+*No description provided.*
+
+### Classes
+#### class `UnderlyingHistoricalLoader`
+No description provided.
+
+##### Methods:
+- **`__init__`**
+  *Signature*: `def __init__(self, cache_manager)`
+  *Description*: No description provided.
+
+- **`get_instrument_key`**
+  *Signature*: `def get_instrument_key(self, index_name)`
+  *Description*: No description provided.
+
+- **`load_candles`**
+  *Signature*: `def load_candles(self, index_name, timeframe, from_date, to_date)`
+  *Description*: No description provided.
+
+#### class `OptionHistoricalLoader`
+No description provided.
+
+##### Methods:
+- **`__init__`**
+  *Signature*: `def __init__(self, cache_manager)`
+  *Description*: No description provided.
+
+- **`load_candles`**
+  *Signature*: `def load_candles(self, index_name, strike_price, expiry_date, option_type, timeframe, from_date, to_date)`
+  *Description*: Cache-first historical loader for option premium candles.
+Resolves option contract key using nifty_options.csv and queries cache or downloads.
+
+
+
+---
+
+## backend/v2/engine_v2.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `run_backtest_v2` (Function)
+- **Signature**: `def run_backtest_v2(config_dict)`
+- **Description**:
+```text
+V2 Engine placeholder entry point.
+Validates input using the Pydantic BacktestConfig schema.
+```
+
+
+
+---
+
+## backend/v2/reality_check.py
+*No description provided.*
+
+### Classes
+#### class `VerificationExpiryProvider`
+No description provided.
+
+##### Methods:
+- **`get_expiries`**
+  *Signature*: `def get_expiries(self, index_name)`
+  *Description*: No description provided.
+
+
+### Functions & Endpoints
+#### `run_verification` (Function)
+- **Signature**: `def run_verification()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## backend/v2/resolvers.py
+*No description provided.*
+
+### Classes
+#### class `HistoricalStrikeResolver`
+No description provided.
+
+##### Methods:
+- **`get_step_size`**
+  *Signature*: `def get_step_size(cls, index_name)`
+  *Description*: No description provided.
+
+- **`resolve`**
+  *Signature*: `def resolve(cls, index_name, spot_price, strike_mode, option_type)`
+  *Description*: Resolves the strike price, step size, and option classification based on moneyness.
+
+Moneyness logic:
+- CE (Call): OTM are higher strikes (+), ITM are lower strikes (-)
+- PE (Put): OTM are lower strikes (-), ITM are higher strikes (+)
+
+Returns:
+    dict containing:
+    - "resolved_strike": float
+    - "step_size": int
+    - "classification": str ("ATM", "ITM", "OTM")
+    - "mode_label": str (the normalized mode name)
+
+#### class `ExpiryCalendarProvider`
+No description provided.
+
+##### Methods:
+- **`get_expiries`**
+  *Signature*: `def get_expiries(self, index_name)`
+  *Description*: Returns a sorted list of unique expiry dates in 'YYYY-MM-DD' format.
+
+#### class `MockExpiryProvider`
+No description provided.
+
+##### Methods:
+- **`get_expiries`**
+  *Signature*: `def get_expiries(self, index_name)`
+  *Description*: No description provided.
+
+#### class `HistoricalExpiryProvider`
+No description provided.
+
+##### Methods:
+- **`get_expiries`**
+  *Signature*: `def get_expiries(self, index_name)`
+  *Description*: No description provided.
+
+#### class `HistoricalExpiryResolver`
+No description provided.
+
+##### Methods:
+- **`set_provider`**
+  *Signature*: `def set_provider(cls, provider)`
+  *Description*: No description provided.
+
+- **`resolve`**
+  *Signature*: `def resolve(cls, index_name, signal_timestamp, expiry_mode, roll_threshold_hours)`
+  *Description*: Resolves the expiry date based on signal timestamp, expiry mode, and roll threshold.
+
+#### class `ContractMasterCache`
+No description provided.
+
+##### Methods:
+- **`preload`**
+  *Signature*: `def preload(self, csv_path)`
+  *Description*: No description provided.
+
+- **`lookup`**
+  *Signature*: `def lookup(self, index_name, strike_price, expiry_date, option_type)`
+  *Description*: No description provided.
+
+#### class `HistoricalContractResolver`
+No description provided.
+
+##### Methods:
+- **`resolve`**
+  *Signature*: `def resolve(cls, index_name, strike_price, expiry_date, option_type, csv_path)`
+  *Description*: Resolves the instrument_key using the optimized preloaded cache.
+
+
+
+---
+
+## backend/v2/signal_source.py
+*No description provided.*
+
+### Classes
+#### class `SignalSource`
+No description provided.
+
+##### Methods:
+- **`__init__`**
+  *Signature*: `def __init__(self)`
+  *Description*: Initialize strategy-specific parameters.
+
+- **`evaluate`**
+  *Signature*: `def evaluate(self, underlying_df)`
+  *Description*: Evaluate the resampled underlying candles (Spot or Futures).
+
+Args:
+    underlying_df: Historical dataframe of Spot/Futures index with columns:
+                   ['timestamp', 'open', 'high', 'low', 'close', 'volume']
+                   
+Returns:
+    Tuple containing:
+    1. signal_type: SignalType (e.g. SignalType.BUY, SignalType.EXIT)
+    2. metadata: Dictionary with signal attributes (e.g. direction, stop_loss, etc.)
+
+- **`reset_state`**
+  *Signature*: `def reset_state(self)`
+  *Description*: Reset internal indicators and state variables between runs.
+
+
+
+---
+
+## backend/v2/test_cache_layer.py
+*No description provided.*
+
+### Classes
+#### class `TestCacheLayer`
+No description provided.
+
+##### Methods:
+- **`setUpClass`**
+  *Signature*: `def setUpClass(cls)`
+  *Description*: No description provided.
+
+- **`tearDownClass`**
+  *Signature*: `def tearDownClass(cls)`
+  *Description*: No description provided.
+
+- **`setUp`**
+  *Signature*: `def setUp(self)`
+  *Description*: No description provided.
+
+- **`test_init_db`**
+  *Signature*: `def test_init_db(self)`
+  *Description*: No description provided.
+
+- **`test_coverage_missing_no_metadata`**
+  *Signature*: `def test_coverage_missing_no_metadata(self)`
+  *Description*: No description provided.
+
+- **`test_coverage_full`**
+  *Signature*: `def test_coverage_full(self)`
+  *Description*: No description provided.
+
+- **`test_coverage_partial_left_gap`**
+  *Signature*: `def test_coverage_partial_left_gap(self)`
+  *Description*: No description provided.
+
+- **`test_coverage_partial_right_gap`**
+  *Signature*: `def test_coverage_partial_right_gap(self)`
+  *Description*: No description provided.
+
+- **`test_coverage_missing_completely_before`**
+  *Signature*: `def test_coverage_missing_completely_before(self)`
+  *Description*: No description provided.
+
+- **`test_coverage_missing_completely_after`**
+  *Signature*: `def test_coverage_missing_completely_after(self)`
+  *Description*: No description provided.
+
+- **`test_store_and_retrieve_underlying_candles`**
+  *Signature*: `def test_store_and_retrieve_underlying_candles(self)`
+  *Description*: No description provided.
+
+- **`test_store_and_retrieve_option_candles`**
+  *Signature*: `def test_store_and_retrieve_option_candles(self)`
+  *Description*: No description provided.
+
+- **`test_get_metadata_empty`**
+  *Signature*: `def test_get_metadata_empty(self)`
+  *Description*: No description provided.
+
+- **`test_metadata_creation_on_store`**
+  *Signature*: `def test_metadata_creation_on_store(self)`
+  *Description*: No description provided.
+
+- **`test_metadata_range_expansion_left`**
+  *Signature*: `def test_metadata_range_expansion_left(self)`
+  *Description*: No description provided.
+
+- **`test_metadata_range_expansion_right`**
+  *Signature*: `def test_metadata_range_expansion_right(self)`
+  *Description*: No description provided.
+
+- **`test_metadata_range_no_expansion`**
+  *Signature*: `def test_metadata_range_no_expansion(self)`
+  *Description*: No description provided.
+
+- **`test_get_range_empty`**
+  *Signature*: `def test_get_range_empty(self)`
+  *Description*: No description provided.
+
+- **`test_get_range_filter`**
+  *Signature*: `def test_get_range_filter(self)`
+  *Description*: No description provided.
+
+- **`test_invalidate_instrument`**
+  *Signature*: `def test_invalidate_instrument(self)`
+  *Description*: No description provided.
+
+- **`test_downloader_mock_success_standard`**
+  *Signature*: `def test_downloader_mock_success_standard(self, mock_get, mock_token)`
+  *Description*: No description provided.
+
+- **`test_downloader_mock_success_expired`**
+  *Signature*: `def test_downloader_mock_success_expired(self, mock_get, mock_token)`
+  *Description*: No description provided.
+
+- **`test_downloader_mock_failure`**
+  *Signature*: `def test_downloader_mock_failure(self, mock_get, mock_token)`
+  *Description*: No description provided.
+
+- **`test_underlying_loader_cache_miss_then_hit`**
+  *Signature*: `def test_underlying_loader_cache_miss_then_hit(self, mock_get, mock_token)`
+  *Description*: No description provided.
+
+- **`test_option_loader_cache_miss_then_hit`**
+  *Signature*: `def test_option_loader_cache_miss_then_hit(self, mock_get, mock_token)`
+  *Description*: No description provided.
+
+- **`test_benchmarks`**
+  *Signature*: `def test_benchmarks(self)`
+  *Description*: No description provided.
+
+
+
+---
+
+## backend/v2/test_premium.py
+*No description provided.*
+
+
+---
+
+## backend/v2/test_spot.py
+*No description provided.*
+
+
+---
+
+## backend/v2/test_v2.py
+*No description provided.*
+
+### Classes
+#### class `TestV2ConfigSchema`
+No description provided.
+
+##### Methods:
+- **`test_valid_config`**
+  *Signature*: `def test_valid_config(self)`
+  *Description*: No description provided.
+
+- **`test_invalid_enum_validation`**
+  *Signature*: `def test_invalid_enum_validation(self)`
+  *Description*: No description provided.
+
+#### class `TestHistoricalStrikeResolver`
+No description provided.
+
+##### Methods:
+- **`test_nifty_ce_moneyness`**
+  *Signature*: `def test_nifty_ce_moneyness(self)`
+  *Description*: No description provided.
+
+- **`test_nifty_pe_moneyness`**
+  *Signature*: `def test_nifty_pe_moneyness(self)`
+  *Description*: No description provided.
+
+- **`test_banknifty_ce_moneyness`**
+  *Signature*: `def test_banknifty_ce_moneyness(self)`
+  *Description*: No description provided.
+
+- **`test_banknifty_pe_moneyness`**
+  *Signature*: `def test_banknifty_pe_moneyness(self)`
+  *Description*: No description provided.
+
+- **`test_backward_compatibility`**
+  *Signature*: `def test_backward_compatibility(self)`
+  *Description*: No description provided.
+
+#### class `TestHistoricalExpiryResolver`
+No description provided.
+
+##### Methods:
+- **`test_expiry_resolver_with_calendar_provider`**
+  *Signature*: `def test_expiry_resolver_with_calendar_provider(self)`
+  *Description*: No description provided.
+
+#### class `TestContractMasterCache`
+No description provided.
+
+##### Methods:
+- **`test_cache_preload_and_lookup`**
+  *Signature*: `def test_cache_preload_and_lookup(self)`
+  *Description*: No description provided.
+
+#### class `TestEngineRouting`
+No description provided.
+
+##### Methods:
+- **`test_routing_v2`**
+  *Signature*: `def test_routing_v2(self)`
+  *Description*: No description provided.
+
+
+
+---
+
+## backend/v2/types.py
+*No description provided.*
+
+### Classes
+#### class `SignalType`
+No description provided.
+
+#### class `Direction`
+No description provided.
+
+#### class `ExpiryMode`
+No description provided.
+
+#### class `StrikeMode`
+No description provided.
+
+#### class `Timeframe`
+No description provided.
+
+#### class `OptionType`
+No description provided.
+
+#### class `TargetStopLossType`
+No description provided.
+
+
+
+---
+
+## backend/v2/upstox_expired_loader.py
+*No description provided.*
+
+### Classes
+#### class `UpstoxExpiredOptionDownloader`
+No description provided.
+
+##### Methods:
+- **`__init__`**
+  *Signature*: `def __init__(self, cache_manager)`
+  *Description*: No description provided.
+
+- **`download_and_cache`**
+  *Signature*: `def download_and_cache(self, instrument_key, interval, from_date, to_date, strike, option_type, expiry)`
+  *Description*: Downloads option candles from Upstox (active or expired) and stores them in the cache.
+
+
+### Functions & Endpoints
+#### `load_upstox_token` (Function)
+- **Signature**: `def load_upstox_token(token_path)`
+- **Description**:
+```text
+No description provided.
+```
+
 
 
 ---
@@ -1270,13 +1872,6 @@ No description provided.
 No description provided.
 ```
 
-#### `priceData` (Function)
-- **Signature**: `const priceData = candles.map((c) => (`
-- **Description**:
-```text
-No description provided.
-```
-
 #### `markers` (Function)
 - **Signature**: `const markers = trades.map((t) => `
 - **Description**:
@@ -1363,15 +1958,29 @@ No description provided.
 No description provided.
 ```
 
-#### `points` (Function)
-- **Signature**: `const points = equityCurve.map((pt) => (`
+#### `rawPoints` (Function)
+- **Signature**: `const rawPoints = equityCurve.map((pt) => (`
 - **Description**:
 ```text
 No description provided.
 ```
 
 #### `points` (Function)
-- **Signature**: `const points = equityCurve.map((pt) => `
+- **Signature**: `const points = rawPoints.sort((a, b) => a.time - b.time)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `rawPoints` (Function)
+- **Signature**: `const rawPoints = equityCurve.map((pt) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `points` (Function)
+- **Signature**: `const points = rawPoints.sort((a, b) => a.time - b.time)`
 - **Description**:
 ```text
 No description provided.
