@@ -330,9 +330,11 @@ class TestCacheLayer(unittest.TestCase):
         self.assertEqual(len(candles_hit), 2)
         self.assertEqual(mock_get.call_count, 0)
 
+    @patch("v2.data_loader.HistoricalContractResolver.resolve")
     @patch("v2.data_loader.load_upstox_token")
     @patch("requests.get")
-    def test_option_loader_cache_miss_then_hit(self, mock_get, mock_token):
+    def test_option_loader_cache_miss_then_hit(self, mock_get, mock_token, mock_resolve):
+        mock_resolve.return_value = "NSE_FO|50973"
         mock_token.return_value = "mock_token"
         mock_resp = MagicMock()
         mock_resp.status_code = 200
@@ -351,7 +353,6 @@ class TestCacheLayer(unittest.TestCase):
         to_date = datetime(2026, 5, 25, 11, 0)
         
         # 1st call: Cache MISS
-        # Note: HistoricalContractResolver uses nifty_options.csv, which has NIFTY 27000 CE 2026-06-30
         candles_miss = loader.load_candles("NIFTY", 27000.0, "2026-06-30", "CE", "1m", from_date, to_date)
         self.assertEqual(len(candles_miss), 2)
         self.assertEqual(mock_get.call_count, 1)

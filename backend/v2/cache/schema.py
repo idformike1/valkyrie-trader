@@ -60,3 +60,40 @@ CREATE INDEX IF NOT EXISTS idx_option_candles_ts ON option_candles (timestamp);
 CREATE_INDEX_OPTION_CANDLES_KEY_TS = """
 CREATE INDEX IF NOT EXISTS idx_option_candles_key_ts ON option_candles (instrument_key, timestamp);
 """
+
+CREATE_HISTORICAL_CONTRACTS = """
+CREATE TABLE IF NOT EXISTS historical_contracts (
+    underlying TEXT NOT NULL,
+    expiry_date TEXT NOT NULL,
+    strike REAL NOT NULL,
+    option_type TEXT NOT NULL,
+    instrument_key TEXT NOT NULL,
+    exchange TEXT NOT NULL,
+    discovered_at TEXT NOT NULL,
+    source TEXT NOT NULL,
+    PRIMARY KEY (underlying, expiry_date, strike, option_type)
+);
+"""
+
+CREATE_HISTORICAL_EXPIRIES = """
+CREATE TABLE IF NOT EXISTS historical_expiries (
+    underlying TEXT NOT NULL,
+    expiry_date TEXT NOT NULL,
+    discovered_at TEXT NOT NULL,
+    source TEXT NOT NULL,
+    PRIMARY KEY (underlying, expiry_date)
+);
+"""
+
+CREATE_INDEX_HISTORICAL_CONTRACTS_UND_EXP = """
+CREATE INDEX IF NOT EXISTS idx_hist_contracts_und_exp ON historical_contracts (underlying, expiry_date);
+"""
+
+CREATE_INDEX_HISTORICAL_CONTRACTS_EXP = """
+CREATE INDEX IF NOT EXISTS idx_hist_contracts_exp ON historical_contracts (expiry_date);
+"""
+
+CREATE_INDEX_HISTORICAL_CONTRACTS_KEY = """
+CREATE INDEX IF NOT EXISTS idx_hist_contracts_key ON historical_contracts (instrument_key);
+"""
+

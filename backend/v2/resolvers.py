@@ -225,8 +225,6 @@ class ContractMasterCache:
         return val
 
 class HistoricalContractResolver:
-    CSV_PATH = "/Users/rajumaharjan/Documents/Anit Gravity Projects/Valkyrie/nifty_options.csv"
-
     @classmethod
     def resolve(
         cls, 
@@ -237,14 +235,9 @@ class HistoricalContractResolver:
         csv_path: Optional[str] = None
     ) -> str:
         """
-        Resolves the instrument_key using the optimized preloaded cache.
+        Resolves the instrument_key using the HistoricalContractProvider.
         """
-        cache = ContractMasterCache()
-        # Force reload if custom CSV path passed
-        if csv_path:
-            cache._is_loaded = False
-            cache.preload(csv_path)
-        elif not cache._is_loaded:
-            cache.preload(cls.CSV_PATH)
-            
-        return cache.lookup(index_name, strike_price, expiry_date, option_type)
+        from v2.expired_contract_provider import HistoricalContractProvider
+        provider = HistoricalContractProvider()
+        return provider.resolve_contract(index_name, expiry_date, strike_price, option_type)
+

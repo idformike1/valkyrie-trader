@@ -20,15 +20,17 @@
 - [backend/v2/config.py](#backendv2configpy)
 - [backend/v2/data_loader.py](#backendv2data_loaderpy)
 - [backend/v2/engine_v2.py](#backendv2engine_v2py)
+- [backend/v2/expired_contract_provider.py](#backendv2expired_contract_providerpy)
 - [backend/v2/reality_check.py](#backendv2reality_checkpy)
 - [backend/v2/resolvers.py](#backendv2resolverspy)
+- [backend/v2/run_expired_api_reality_check.py](#backendv2run_expired_api_reality_checkpy)
 - [backend/v2/signal_source.py](#backendv2signal_sourcepy)
 - [backend/v2/test_cache_layer.py](#backendv2test_cache_layerpy)
-- [backend/v2/test_premium.py](#backendv2test_premiumpy)
-- [backend/v2/test_spot.py](#backendv2test_spotpy)
+- [backend/v2/test_historical_contract_provider.py](#backendv2test_historical_contract_providerpy)
 - [backend/v2/test_v2.py](#backendv2test_v2py)
 - [backend/v2/types.py](#backendv2typespy)
 - [backend/v2/upstox_expired_loader.py](#backendv2upstox_expired_loaderpy)
+- [backend/v2/verify_contract_master.py](#backendv2verify_contract_masterpy)
 - [frontend/next-env.d.ts](#frontendnext-envdts)
 - [frontend/next.config.ts](#frontendnextconfigts)
 - [frontend/src/app/layout.tsx](#frontendsrcapplayouttsx)
@@ -768,6 +770,42 @@ Validates input using the Pydantic BacktestConfig schema.
 
 ---
 
+## backend/v2/expired_contract_provider.py
+*No description provided.*
+
+### Classes
+#### class `HistoricalContractProvider`
+No description provided.
+
+##### Methods:
+- **`__init__`**
+  *Signature*: `def __init__(self, db_path)`
+  *Description*: No description provided.
+
+- **`get_expiries`**
+  *Signature*: `def get_expiries(self, underlying)`
+  *Description*: Discovers and returns a sorted list of expiry dates for the given underlying index.
+Uses SQLite cache first. If cache is empty, calls Upstox Expired Instruments API
+with fallback to generated dates if token has no Plus plan or offline.
+
+- **`discover_expiries`**
+  *Signature*: `def discover_expiries(self, underlying)`
+  *Description*: Alias of get_expiries to satisfy TASK 6 interface.
+
+- **`get_option_contracts`**
+  *Signature*: `def get_option_contracts(self, underlying, expiry_date)`
+  *Description*: Discovers all expired option contracts for the given underlying index and expiry date.
+Uses SQLite cache first. If cache is empty, calls Upstox Expired Options API.
+
+- **`resolve_contract`**
+  *Signature*: `def resolve_contract(self, underlying, expiry_date, strike, option_type)`
+  *Description*: Main interface to resolve the unique instrument key of a historical option contract.
+Utilizes cache checking, API fetching, and fallback mechanisms under the hood.
+
+
+
+---
+
 ## backend/v2/reality_check.py
 *No description provided.*
 
@@ -874,7 +912,22 @@ No description provided.
 ##### Methods:
 - **`resolve`**
   *Signature*: `def resolve(cls, index_name, strike_price, expiry_date, option_type, csv_path)`
-  *Description*: Resolves the instrument_key using the optimized preloaded cache.
+  *Description*: Resolves the instrument_key using the HistoricalContractProvider.
+
+
+
+---
+
+## backend/v2/run_expired_api_reality_check.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `run_reality_check` (Function)
+- **Signature**: `def run_reality_check()`
+- **Description**:
+```text
+No description provided.
+```
 
 
 
@@ -1018,7 +1071,7 @@ No description provided.
   *Description*: No description provided.
 
 - **`test_option_loader_cache_miss_then_hit`**
-  *Signature*: `def test_option_loader_cache_miss_then_hit(self, mock_get, mock_token)`
+  *Signature*: `def test_option_loader_cache_miss_then_hit(self, mock_get, mock_token, mock_resolve)`
   *Description*: No description provided.
 
 - **`test_benchmarks`**
@@ -1029,14 +1082,110 @@ No description provided.
 
 ---
 
-## backend/v2/test_premium.py
+## backend/v2/test_historical_contract_provider.py
 *No description provided.*
 
+### Classes
+#### class `TestHistoricalContractProvider`
+No description provided.
 
----
+##### Methods:
+- **`setUp`**
+  *Signature*: `def setUp(self)`
+  *Description*: No description provided.
 
-## backend/v2/test_spot.py
-*No description provided.*
+- **`tearDown`**
+  *Signature*: `def tearDown(self)`
+  *Description*: No description provided.
+
+- **`test_01_init_db`**
+  *Signature*: `def test_01_init_db(self)`
+  *Description*: Verify DB tables are created successfully during initialization.
+
+- **`test_02_get_expiries_unsupported_underlying`**
+  *Signature*: `def test_02_get_expiries_unsupported_underlying(self)`
+  *Description*: Verify get_expiries raises ValueError for unsupported indices.
+
+- **`test_03_get_expiries_cache_hit`**
+  *Signature*: `def test_03_get_expiries_cache_hit(self)`
+  *Description*: Verify get_expiries retrieves values directly from the cache.
+
+- **`test_04_get_expiries_api_success`**
+  *Signature*: `def test_04_get_expiries_api_success(self, mock_get)`
+  *Description*: Verify get_expiries correctly saves and returns values on successful API response.
+
+- **`test_05_get_expiries_api_failure_fallback`**
+  *Signature*: `def test_05_get_expiries_api_failure_fallback(self, mock_get)`
+  *Description*: Verify get_expiries falls back to generator on API error.
+
+- **`test_06_discover_expiries_alias`**
+  *Signature*: `def test_06_discover_expiries_alias(self)`
+  *Description*: Verify discover_expiries alias exists and functions identically.
+
+- **`test_07_generate_fallback_expiries`**
+  *Signature*: `def test_07_generate_fallback_expiries(self)`
+  *Description*: Verify fallback expiries contain typical Thursday dates.
+
+- **`test_08_get_option_contracts_unsupported_underlying`**
+  *Signature*: `def test_08_get_option_contracts_unsupported_underlying(self)`
+  *Description*: Verify get_option_contracts raises ValueError for unsupported indices.
+
+- **`test_09_get_option_contracts_cache_hit`**
+  *Signature*: `def test_09_get_option_contracts_cache_hit(self)`
+  *Description*: Verify get_option_contracts serves directly from cache on HIT.
+
+- **`test_10_get_option_contracts_api_success`**
+  *Signature*: `def test_10_get_option_contracts_api_success(self, mock_get)`
+  *Description*: Verify get_option_contracts saves and returns API responses.
+
+- **`test_11_get_option_contracts_api_failure_fallback`**
+  *Signature*: `def test_11_get_option_contracts_api_failure_fallback(self, mock_get)`
+  *Description*: Verify fallback contracts are generated on API failure.
+
+- **`test_12_resolve_contract_success_from_cache`**
+  *Signature*: `def test_12_resolve_contract_success_from_cache(self)`
+  *Description*: Verify resolve_contract returns cached instrument keys.
+
+- **`test_13_resolve_contract_success_from_api`**
+  *Signature*: `def test_13_resolve_contract_success_from_api(self, mock_get)`
+  *Description*: Verify resolve_contract resolves keys by querying the API on cache miss.
+
+- **`test_14_resolve_contract_not_found_raises_error`**
+  *Signature*: `def test_14_resolve_contract_not_found_raises_error(self)`
+  *Description*: Verify resolve_contract raises ValueError if contract doesn't exist anywhere.
+
+- **`test_15_duplicate_prevention_on_expiries`**
+  *Signature*: `def test_15_duplicate_prevention_on_expiries(self)`
+  *Description*: Verify historical_expiries table UNIQUE index blocks duplicate inserts.
+
+- **`test_16_duplicate_prevention_on_contracts`**
+  *Signature*: `def test_16_duplicate_prevention_on_contracts(self)`
+  *Description*: Verify historical_contracts table UNIQUE index blocks duplicate inserts.
+
+- **`test_17_database_persistence_across_instances`**
+  *Signature*: `def test_17_database_persistence_across_instances(self)`
+  *Description*: Verify data saved by one provider instance persists for subsequent instances.
+
+- **`test_18_get_expiries_nifty`**
+  *Signature*: `def test_18_get_expiries_nifty(self)`
+  *Description*: Verify get_expiries returns a list of expiries for NIFTY.
+
+- **`test_19_get_expiries_banknifty`**
+  *Signature*: `def test_19_get_expiries_banknifty(self)`
+  *Description*: Verify get_expiries returns a list of expiries for BANKNIFTY.
+
+- **`test_20_get_option_contracts_nifty`**
+  *Signature*: `def test_20_get_option_contracts_nifty(self)`
+  *Description*: Verify NIFTY contracts load properly.
+
+- **`test_21_get_option_contracts_banknifty`**
+  *Signature*: `def test_21_get_option_contracts_banknifty(self)`
+  *Description*: Verify BANKNIFTY contracts load properly.
+
+- **`test_22_resolve_contract_nifty_fallback`**
+  *Signature*: `def test_22_resolve_contract_nifty_fallback(self)`
+  *Description*: Verify resolution of NIFTY 23300 CE option contract on 2025-04-17.
+
 
 
 ---
@@ -1158,6 +1307,21 @@ No description provided.
 ### Functions & Endpoints
 #### `load_upstox_token` (Function)
 - **Signature**: `def load_upstox_token(token_path)`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## backend/v2/verify_contract_master.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `run_contract_master_verification` (Function)
+- **Signature**: `def run_contract_master_verification()`
 - **Description**:
 ```text
 No description provided.
