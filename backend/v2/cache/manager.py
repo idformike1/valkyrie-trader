@@ -36,7 +36,8 @@ class HistoricalDataCacheManager:
         cache_from = parse_to_utc_naive(cached_from)
         cache_to = parse_to_utc_naive(cached_to)
 
-        if cache_from <= req_from and cache_to >= req_to:
+        from datetime import timedelta
+        if cache_from <= req_from + timedelta(minutes=5) and cache_to >= req_to - timedelta(minutes=5):
             return "FULL"
         elif cache_to < req_from or cache_from > req_to:
             return "MISSING"

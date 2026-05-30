@@ -131,6 +131,7 @@ class TestHistoricalStrikeResolver(unittest.TestCase):
 
 class TestHistoricalExpiryResolver(unittest.TestCase):
     def test_expiry_resolver_with_calendar_provider(self):
+        HistoricalExpiryResolver.set_provider(MockExpiryProvider())
         signal_time = datetime.fromisoformat("2026-05-25T10:00:00")
         expiry = HistoricalExpiryResolver.resolve("NIFTY", signal_time, ExpiryMode.CURRENT_WEEKLY)
         self.assertEqual(expiry, "2026-05-28")

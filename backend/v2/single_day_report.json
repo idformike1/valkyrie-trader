@@ -1,0 +1,186 @@
+{
+  "initial_capital": 100000.0,
+  "final_equity": 104046.41000000003,
+  "trade_stats": {
+    "total_trades": 11,
+    "winning_trades": 7,
+    "losing_trades": 4,
+    "breakeven_trades": 0,
+    "win_rate": 63.64,
+    "loss_rate": 36.36
+  },
+  "performance": {
+    "gross_profit": 4405.3,
+    "gross_loss": 358.89,
+    "net_profit": 4046.41,
+    "avg_trade": 367.86,
+    "avg_win": 629.33,
+    "avg_loss": 89.72,
+    "largest_win": 1910.72,
+    "largest_loss": -134.98,
+    "profit_factor": 12.27,
+    "expectancy": 367.86,
+    "payoff_ratio": 7.01,
+    "max_consecutive_wins": 3,
+    "max_consecutive_losses": 2,
+    "avg_hold_time_seconds": 1036.36,
+    "shortest_hold_time_seconds": 300.0,
+    "longest_hold_time_seconds": 3600.0,
+    "exposure_time_seconds": 11400.0
+  },
+  "equity_curve": [
+    {
+      "timestamp": "2025-04-15T09:34:59",
+      "equity_value": 100000.0,
+      "trade_id": null
+    },
+    {
+      "timestamp": "2025-04-15T09:55:00",
+      "equity_value": 100008.96,
+      "trade_id": "1dcaa9e3-799d-48ad-9879-c69d819ba699"
+    },
+    {
+      "timestamp": "2025-04-15T10:15:00",
+      "equity_value": 99913.92000000001,
+      "trade_id": "3402389a-e9e4-4bdc-872b-aab246ddc882"
+    },
+    {
+      "timestamp": "2025-04-15T10:30:00",
+      "equity_value": 100209.63000000002,
+      "trade_id": "2d872d61-8e96-4f99-8c44-f12e5ad9da0f"
+    },
+    {
+      "timestamp": "2025-04-15T10:50:00",
+      "equity_value": 100276.81000000001,
+      "trade_id": "632318dd-c8f0-47e8-ade0-eac1644b7627"
+    },
+    {
+      "timestamp": "2025-04-15T11:05:00",
+      "equity_value": 100141.83000000002,
+      "trade_id": "9a8eb1de-c1cf-4834-8ceb-d32c3220c45c"
+    },
+    {
+      "timestamp": "2025-04-15T11:40:00",
+      "equity_value": 100138.29000000002,
+      "trade_id": "b9644b51-f2eb-4305-834f-647c9ff70ebd"
+    },
+    {
+      "timestamp": "2025-04-15T12:50:00",
+      "equity_value": 101610.59000000003,
+      "trade_id": "11647fd4-bd93-4f44-8af3-72cbeb509da5"
+    },
+    {
+      "timestamp": "2025-04-15T13:10:00",
+      "equity_value": 101485.26000000002,
+      "trade_id": "6e30714c-5fd6-4313-a192-a706e7153379"
+    },
+    {
+      "timestamp": "2025-04-15T14:25:00",
+      "equity_value": 101816.73000000003,
+      "trade_id": "3b13be22-3cb2-4d11-814f-bc1af23206c9"
+    },
+    {
+      "timestamp": "2025-04-15T14:55:00",
+      "equity_value": 102135.69000000003,
+      "trade_id": "3923a336-dd78-4b89-a176-f4095421b64b"
+    },
+    {
+      "timestamp": "2025-04-15T15:25:00",
+      "equity_value": 104046.41000000003,
+      "trade_id": "770b2e93-eb7c-47a8-86af-e6ebcc85590d"
+    }
+  ],
+  "drawdown_curve": [
+    {
+      "timestamp": "2025-04-15T09:34:59",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 100000.0
+    },
+    {
+      "timestamp": "2025-04-15T09:55:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 100008.96
+    },
+    {
+      "timestamp": "2025-04-15T10:15:00",
+      "drawdown_value": 95.0399999999936,
+      "drawdown_pct": 0.09503148517892156,
+      "peak_value": 100008.96
+    },
+    {
+      "timestamp": "2025-04-15T10:30:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 100209.63000000002
+    },
+    {
+      "timestamp": "2025-04-15T10:50:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 100276.81000000001
+    },
+    {
+      "timestamp": "2025-04-15T11:05:00",
+      "drawdown_value": 134.97999999999593,
+      "drawdown_pct": 0.13460739327467228,
+      "peak_value": 100276.81000000001
+    },
+    {
+      "timestamp": "2025-04-15T11:40:00",
+      "drawdown_value": 138.51999999998952,
+      "drawdown_pct": 0.1381376212506057,
+      "peak_value": 100276.81000000001
+    },
+    {
+      "timestamp": "2025-04-15T12:50:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 101610.59000000003
+    },
+    {
+      "timestamp": "2025-04-15T13:10:00",
+      "drawdown_value": 125.33000000000175,
+      "drawdown_pct": 0.12334344284390211,
+      "peak_value": 101610.59000000003
+    },
+    {
+      "timestamp": "2025-04-15T14:25:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 101816.73000000003
+    },
+    {
+      "timestamp": "2025-04-15T14:55:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 102135.69000000003
+    },
+    {
+      "timestamp": "2025-04-15T15:25:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 104046.41000000003
+    }
+  ],
+  "max_drawdown": 138.52,
+  "max_drawdown_pct": 0.14,
+  "max_drawdown_duration_seconds": 6300.0,
+  "absolute_return_pct": 4.05,
+  "net_return_pct": 4.05,
+  "capital_growth_pct": 4.05,
+  "sharpe_ratio": 0.54,
+  "sortino_ratio": 5.89,
+  "grade": "A",
+  "scorecard": {
+    "total_trades": 11,
+    "win_rate_pct": 63.64,
+    "profit_factor": 12.27,
+    "expectancy_inr": 367.86,
+    "net_profit_inr": 4046.41,
+    "max_drawdown_pct": 0.14,
+    "sharpe_ratio": 0.54,
+    "sortino_ratio": 5.89
+  }
+}

@@ -69,7 +69,7 @@ class UpstoxExpiredOptionDownloader:
                 if resp.status_code == 200:
                     candles = self._parse_candles(resp.json())
                     break
-                elif resp.status_code in [400, 404] and ("UDAPI100011" in resp.text or "Invalid Instrument key" in resp.text):
+                elif resp.status_code in [400, 404] and ("UDAPI100011" in resp.text or "UDAPI1021" in resp.text or "invalid format" in resp.text.lower() or "invalid instrument key" in resp.text.lower()):
                     logger.info("Standard API returned expired instrument error. Redirecting to Expired Instruments API...")
                     is_expired_error = True
                     break

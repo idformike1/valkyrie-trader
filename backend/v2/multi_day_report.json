@@ -1,0 +1,2056 @@
+{
+  "initial_capital": 100000.0,
+  "final_equity": 246143.99999999988,
+  "trade_stats": {
+    "total_trades": 181,
+    "winning_trades": 125,
+    "losing_trades": 56,
+    "breakeven_trades": 0,
+    "win_rate": 69.06,
+    "loss_rate": 30.94
+  },
+  "performance": {
+    "gross_profit": 161204.7,
+    "gross_loss": 15060.7,
+    "net_profit": 146144.0,
+    "avg_trade": 807.43,
+    "avg_win": 1289.64,
+    "avg_loss": 268.94,
+    "largest_win": 26035.01,
+    "largest_loss": -2107.99,
+    "profit_factor": 10.7,
+    "expectancy": 807.43,
+    "payoff_ratio": 4.8,
+    "max_consecutive_wins": 9,
+    "max_consecutive_losses": 5,
+    "avg_hold_time_seconds": 1243.09,
+    "shortest_hold_time_seconds": 300.0,
+    "longest_hold_time_seconds": 8400.0,
+    "exposure_time_seconds": 225000.0
+  },
+  "equity_curve": [
+    {
+      "timestamp": "2025-04-15T09:34:59",
+      "equity_value": 100000.0,
+      "trade_id": null
+    },
+    {
+      "timestamp": "2025-04-15T09:55:00",
+      "equity_value": 100008.96,
+      "trade_id": "05658c03-0de1-4f49-a707-4d804cc42d20"
+    },
+    {
+      "timestamp": "2025-04-15T10:15:00",
+      "equity_value": 99913.92000000001,
+      "trade_id": "a4818aee-5d3f-47ac-836d-548c085279ef"
+    },
+    {
+      "timestamp": "2025-04-15T10:30:00",
+      "equity_value": 100209.63000000002,
+      "trade_id": "72e8f2bd-01ae-4625-b781-38f9b33d0d88"
+    },
+    {
+      "timestamp": "2025-04-15T10:50:00",
+      "equity_value": 100276.81000000001,
+      "trade_id": "423906e4-0aa6-4980-b014-7a5cb2311004"
+    },
+    {
+      "timestamp": "2025-04-15T11:05:00",
+      "equity_value": 100141.83000000002,
+      "trade_id": "dc2c2a2c-5f49-4ea9-8e7c-8a4fc12bf059"
+    },
+    {
+      "timestamp": "2025-04-15T11:40:00",
+      "equity_value": 100138.29000000002,
+      "trade_id": "610933e9-26a0-491e-89cc-41c0aa176762"
+    },
+    {
+      "timestamp": "2025-04-15T12:50:00",
+      "equity_value": 101610.59000000003,
+      "trade_id": "e354e1b5-f5ae-4e72-bc0c-546f0ca21577"
+    },
+    {
+      "timestamp": "2025-04-15T13:10:00",
+      "equity_value": 101485.26000000002,
+      "trade_id": "a193f4ee-d54a-43e0-b6e9-a5fb995da8ae"
+    },
+    {
+      "timestamp": "2025-04-15T14:25:00",
+      "equity_value": 101816.73000000003,
+      "trade_id": "87fabc5d-d1a1-4362-a424-d8ffd9ca327e"
+    },
+    {
+      "timestamp": "2025-04-15T14:55:00",
+      "equity_value": 102135.69000000003,
+      "trade_id": "726b2246-5242-4504-b747-21e108144146"
+    },
+    {
+      "timestamp": "2025-04-15T15:25:00",
+      "equity_value": 104046.41000000003,
+      "trade_id": "bce40522-50c3-4a26-995c-3bb9a6db6286"
+    },
+    {
+      "timestamp": "2025-04-16T10:10:00",
+      "equity_value": 105394.56000000003,
+      "trade_id": "b4862f40-ad39-482d-953c-056c9a601078"
+    },
+    {
+      "timestamp": "2025-04-16T10:50:00",
+      "equity_value": 105323.48000000003,
+      "trade_id": "217ca214-8aec-47a9-8eda-60bcfc142d4b"
+    },
+    {
+      "timestamp": "2025-04-16T11:35:00",
+      "equity_value": 106769.18000000002,
+      "trade_id": "a848afbc-cbf2-43ca-8084-3b82ed396f81"
+    },
+    {
+      "timestamp": "2025-04-16T11:55:00",
+      "equity_value": 107298.50000000003,
+      "trade_id": "a90a2a54-426c-4a32-9b2b-464925b301d0"
+    },
+    {
+      "timestamp": "2025-04-16T12:45:00",
+      "equity_value": 107719.03000000003,
+      "trade_id": "4ef3ca35-4a9f-40f1-aa9e-b1b23d78c3e9"
+    },
+    {
+      "timestamp": "2025-04-16T13:15:00",
+      "equity_value": 108046.39000000003,
+      "trade_id": "c147aff3-01fe-4876-a4a0-b3ae5c5f3aaf"
+    },
+    {
+      "timestamp": "2025-04-16T13:45:00",
+      "equity_value": 107896.75000000003,
+      "trade_id": "8b03a957-521c-4600-b0fb-f2c8e5a6dc5e"
+    },
+    {
+      "timestamp": "2025-04-16T14:30:00",
+      "equity_value": 113293.84000000003,
+      "trade_id": "9c81a7ec-1236-493f-80ef-c9b05652b9c5"
+    },
+    {
+      "timestamp": "2025-04-16T15:10:00",
+      "equity_value": 113483.25000000003,
+      "trade_id": "902c1739-8bb8-4c3e-bb37-385698aa4759"
+    },
+    {
+      "timestamp": "2025-04-16T15:25:00",
+      "equity_value": 113934.06000000003,
+      "trade_id": "7b7b7d56-b0b1-4301-ab16-2f5bfc016433"
+    },
+    {
+      "timestamp": "2025-04-17T10:00:00",
+      "equity_value": 116071.82000000002,
+      "trade_id": "75c138fa-5582-48b8-a63d-23e20877fba9"
+    },
+    {
+      "timestamp": "2025-04-17T10:55:00",
+      "equity_value": 118458.51000000002,
+      "trade_id": "9dcab469-3e6c-4435-95a9-60a193df16d8"
+    },
+    {
+      "timestamp": "2025-04-17T13:25:00",
+      "equity_value": 144493.52000000002,
+      "trade_id": "41eed86b-5dea-432b-9c5f-4aff803c85d7"
+    },
+    {
+      "timestamp": "2025-04-17T14:10:00",
+      "equity_value": 146339.52000000002,
+      "trade_id": "c457614c-619b-4342-9626-70d9d908777f"
+    },
+    {
+      "timestamp": "2025-04-17T14:50:00",
+      "equity_value": 147064.7,
+      "trade_id": "c6290fe9-154c-4189-aa0e-b4d51575e1be"
+    },
+    {
+      "timestamp": "2025-04-17T15:00:00",
+      "equity_value": 146961.48,
+      "trade_id": "1324e6df-6a28-4094-b771-bdb801a8a960"
+    },
+    {
+      "timestamp": "2025-04-21T10:10:00",
+      "equity_value": 150538.08000000002,
+      "trade_id": "436e00f4-7ffe-461e-bc8b-55a4fd3eb594"
+    },
+    {
+      "timestamp": "2025-04-21T11:30:00",
+      "equity_value": 153301.71000000002,
+      "trade_id": "247bfb63-ac6b-49eb-af38-2569d54ef4cd"
+    },
+    {
+      "timestamp": "2025-04-21T13:00:00",
+      "equity_value": 156121.96000000002,
+      "trade_id": "3c7b6d71-cbfb-4430-bc14-b9d8945055d4"
+    },
+    {
+      "timestamp": "2025-04-21T13:10:00",
+      "equity_value": 156301.03000000003,
+      "trade_id": "c1561023-5359-4f7e-9185-773a79db44f2"
+    },
+    {
+      "timestamp": "2025-04-21T14:10:00",
+      "equity_value": 156388.03000000003,
+      "trade_id": "5b07d990-78df-409b-b3d8-e23c210a9f65"
+    },
+    {
+      "timestamp": "2025-04-21T15:00:00",
+      "equity_value": 156058.24000000002,
+      "trade_id": "9ced6946-8869-4db9-aab4-ec68a473bed4"
+    },
+    {
+      "timestamp": "2025-04-21T15:25:00",
+      "equity_value": 155630.52000000002,
+      "trade_id": "f2de2ead-6939-4c5a-816f-90e7f6a76c73"
+    },
+    {
+      "timestamp": "2025-04-22T09:50:00",
+      "equity_value": 156812.85,
+      "trade_id": "2a0f3a34-e7e3-4280-9e30-0038b2b39867"
+    },
+    {
+      "timestamp": "2025-04-22T11:15:00",
+      "equity_value": 158434.80000000002,
+      "trade_id": "0b7ed2a3-0167-4809-9d32-0701437217ce"
+    },
+    {
+      "timestamp": "2025-04-22T12:05:00",
+      "equity_value": 158966.07,
+      "trade_id": "73c15e0e-1292-4353-86da-0f9bdb5f1645"
+    },
+    {
+      "timestamp": "2025-04-22T13:30:00",
+      "equity_value": 159127.37,
+      "trade_id": "7b679a13-2f1a-4e6d-8330-9bd7f54c7d6f"
+    },
+    {
+      "timestamp": "2025-04-22T14:10:00",
+      "equity_value": 159142.74,
+      "trade_id": "b29ad5b4-0e26-4449-bc6a-97757df33520"
+    },
+    {
+      "timestamp": "2025-04-22T14:30:00",
+      "equity_value": 159023.58,
+      "trade_id": "4f1017dc-3db9-4d8a-884f-2aeec530c198"
+    },
+    {
+      "timestamp": "2025-04-22T14:40:00",
+      "equity_value": 159212.41999999998,
+      "trade_id": "447c0e6b-bc37-4b17-9183-e8324429e1a8"
+    },
+    {
+      "timestamp": "2025-04-22T15:10:00",
+      "equity_value": 159378.96999999997,
+      "trade_id": "95566810-9a0a-411d-b2fe-b048a2ff5dac"
+    },
+    {
+      "timestamp": "2025-04-23T09:35:00",
+      "equity_value": 159055.07999999996,
+      "trade_id": "c92b29bf-1ae4-4531-8be6-b44e2d515ea0"
+    },
+    {
+      "timestamp": "2025-04-23T09:55:00",
+      "equity_value": 159356.73999999996,
+      "trade_id": "c878cf87-d656-4af2-94e6-60806db40313"
+    },
+    {
+      "timestamp": "2025-04-23T10:30:00",
+      "equity_value": 160419.87999999998,
+      "trade_id": "38bb29d8-8dd5-41e3-bacb-b9e95c0ac32d"
+    },
+    {
+      "timestamp": "2025-04-23T11:20:00",
+      "equity_value": 162325.52,
+      "trade_id": "d0ff5d96-cfdc-47e1-b54f-b971eb4fa2c1"
+    },
+    {
+      "timestamp": "2025-04-23T11:55:00",
+      "equity_value": 163274.46,
+      "trade_id": "97e7b921-68d0-43c8-b6c7-220871ac3d31"
+    },
+    {
+      "timestamp": "2025-04-23T12:15:00",
+      "equity_value": 163466.78999999998,
+      "trade_id": "c13b5580-2d6c-4e73-8bf6-200df6a870ab"
+    },
+    {
+      "timestamp": "2025-04-23T12:25:00",
+      "equity_value": 163546.62999999998,
+      "trade_id": "e9afd9fb-313c-411c-be81-1843717f116d"
+    },
+    {
+      "timestamp": "2025-04-23T13:10:00",
+      "equity_value": 165136.08,
+      "trade_id": "a9ad3109-70c1-4702-9791-e70ead2e5e88"
+    },
+    {
+      "timestamp": "2025-04-23T14:35:00",
+      "equity_value": 167682.00999999998,
+      "trade_id": "f9d92ca8-c2cb-4758-8af3-cbd3302a6fb4"
+    },
+    {
+      "timestamp": "2025-04-23T15:20:00",
+      "equity_value": 167280.34999999998,
+      "trade_id": "0ff0f8b6-9fcc-4464-bf8f-01e43b5f07b8"
+    },
+    {
+      "timestamp": "2025-04-24T09:40:00",
+      "equity_value": 167600.34999999998,
+      "trade_id": "58cf5863-d771-49f1-b6c0-aa35a3b11779"
+    },
+    {
+      "timestamp": "2025-04-24T09:55:00",
+      "equity_value": 168028.74,
+      "trade_id": "542c7b20-3bb6-434d-a039-3c2dc67413a7"
+    },
+    {
+      "timestamp": "2025-04-24T10:30:00",
+      "equity_value": 167940.28999999998,
+      "trade_id": "4324ed71-1350-4494-9dbb-6f24e77bce14"
+    },
+    {
+      "timestamp": "2025-04-24T11:15:00",
+      "equity_value": 167823.25999999998,
+      "trade_id": "966fdfda-6049-4a60-a4f7-8629aa0adfb3"
+    },
+    {
+      "timestamp": "2025-04-24T11:50:00",
+      "equity_value": 167663.96999999997,
+      "trade_id": "4daba7d8-63f4-4493-a667-e41386ad0398"
+    },
+    {
+      "timestamp": "2025-04-24T12:10:00",
+      "equity_value": 167513.09999999998,
+      "trade_id": "10fe04b8-c206-45cf-af0c-94a4c7120b67"
+    },
+    {
+      "timestamp": "2025-04-24T12:25:00",
+      "equity_value": 167332.81999999998,
+      "trade_id": "d9baad2c-1e40-4789-969d-f3cf11ce6b7c"
+    },
+    {
+      "timestamp": "2025-04-24T13:05:00",
+      "equity_value": 167343.86999999997,
+      "trade_id": "e81667c0-f4f6-47dd-befe-d761234ac32c"
+    },
+    {
+      "timestamp": "2025-04-24T14:10:00",
+      "equity_value": 166878.53999999998,
+      "trade_id": "155b45bc-6484-48c1-bdf5-3807637b053f"
+    },
+    {
+      "timestamp": "2025-04-24T14:25:00",
+      "equity_value": 166832.89999999997,
+      "trade_id": "acd75075-9141-47c4-9f40-5822d605b23e"
+    },
+    {
+      "timestamp": "2025-04-24T15:25:00",
+      "equity_value": 167514.38999999996,
+      "trade_id": "1512ac6e-b021-496f-9728-b54c2ad25031"
+    },
+    {
+      "timestamp": "2025-04-25T09:30:00",
+      "equity_value": 165406.39999999997,
+      "trade_id": "d783c05c-8f75-40db-aff3-8dc07d1a1327"
+    },
+    {
+      "timestamp": "2025-04-25T10:50:00",
+      "equity_value": 164887.21999999997,
+      "trade_id": "5e4d7c77-8e7b-42c1-a0b1-faab0d3948c8"
+    },
+    {
+      "timestamp": "2025-04-25T11:15:00",
+      "equity_value": 164360.02999999997,
+      "trade_id": "e7fb741c-c638-452c-8b96-db9645cf2ea7"
+    },
+    {
+      "timestamp": "2025-04-25T11:40:00",
+      "equity_value": 165072.46999999997,
+      "trade_id": "92ade452-92ae-4689-9f22-6e7c0416e4a8"
+    },
+    {
+      "timestamp": "2025-04-25T13:25:00",
+      "equity_value": 173238.75999999998,
+      "trade_id": "d1e9284f-4be4-42ce-9955-359de8be9b6e"
+    },
+    {
+      "timestamp": "2025-04-25T14:05:00",
+      "equity_value": 176662.69999999998,
+      "trade_id": "b2765e58-3314-44f2-bf3b-06543e2400a9"
+    },
+    {
+      "timestamp": "2025-04-25T14:25:00",
+      "equity_value": 176881.49,
+      "trade_id": "fa2d31fc-6cfa-4c79-9e9d-8608ef0b444c"
+    },
+    {
+      "timestamp": "2025-04-25T15:05:00",
+      "equity_value": 176898.28999999998,
+      "trade_id": "26a72f32-b1d4-4987-8f4d-8de57d6fa772"
+    },
+    {
+      "timestamp": "2025-04-28T10:40:00",
+      "equity_value": 176881.83999999997,
+      "trade_id": "0695bc29-d599-4b13-932a-8aa08e70cb59"
+    },
+    {
+      "timestamp": "2025-04-28T11:10:00",
+      "equity_value": 177000.26999999996,
+      "trade_id": "f454ca0f-00a6-4914-9f13-f3ada0bc7440"
+    },
+    {
+      "timestamp": "2025-04-28T12:45:00",
+      "equity_value": 182292.33999999997,
+      "trade_id": "a09ab736-2aaf-4878-ba99-54db5d31a8cd"
+    },
+    {
+      "timestamp": "2025-04-28T13:00:00",
+      "equity_value": 182914.29999999996,
+      "trade_id": "96520891-a1cc-401d-a335-22d70c560595"
+    },
+    {
+      "timestamp": "2025-04-28T13:15:00",
+      "equity_value": 182453.32999999996,
+      "trade_id": "0166370a-b7e8-49b8-b9ff-0f336226b131"
+    },
+    {
+      "timestamp": "2025-04-28T13:50:00",
+      "equity_value": 182671.59999999995,
+      "trade_id": "ae194598-249b-4312-b7d5-3aeabbca48bd"
+    },
+    {
+      "timestamp": "2025-04-28T14:15:00",
+      "equity_value": 182113.46999999994,
+      "trade_id": "6d6a891b-315f-4f4f-854a-53569bf61638"
+    },
+    {
+      "timestamp": "2025-04-28T15:25:00",
+      "equity_value": 183361.24999999994,
+      "trade_id": "1b21f531-9972-42bb-99ff-a3974ba62a3e"
+    },
+    {
+      "timestamp": "2025-04-29T09:35:00",
+      "equity_value": 183022.71999999994,
+      "trade_id": "bdc6bc76-74ff-4a33-ae87-0bfccc283ce4"
+    },
+    {
+      "timestamp": "2025-04-29T10:05:00",
+      "equity_value": 182696.69999999995,
+      "trade_id": "1892975c-b649-4792-af96-41ef0acf2fdb"
+    },
+    {
+      "timestamp": "2025-04-29T10:40:00",
+      "equity_value": 182434.61999999997,
+      "trade_id": "54180b4e-298a-46f2-a274-c36087d7b6b6"
+    },
+    {
+      "timestamp": "2025-04-29T11:15:00",
+      "equity_value": 182592.02999999997,
+      "trade_id": "89fc7c1e-8725-4f82-9669-1da363a051cc"
+    },
+    {
+      "timestamp": "2025-04-29T11:45:00",
+      "equity_value": 182958.57999999996,
+      "trade_id": "f213c38e-b7ad-4138-a88e-a580990c304b"
+    },
+    {
+      "timestamp": "2025-04-29T13:10:00",
+      "equity_value": 183518.67999999996,
+      "trade_id": "2058fd4c-71ac-41d5-aab7-b7da0d85fb6c"
+    },
+    {
+      "timestamp": "2025-04-29T13:40:00",
+      "equity_value": 183714.32999999996,
+      "trade_id": "aef821c4-94a0-4491-a801-dea3a9556d8c"
+    },
+    {
+      "timestamp": "2025-04-29T13:50:00",
+      "equity_value": 183947.90999999995,
+      "trade_id": "a83ea63a-79ff-4e0c-b3b6-2fded61e12d4"
+    },
+    {
+      "timestamp": "2025-04-29T14:15:00",
+      "equity_value": 183960.17999999993,
+      "trade_id": "84383315-c2c2-479f-af42-0a142a5841b8"
+    },
+    {
+      "timestamp": "2025-04-29T14:50:00",
+      "equity_value": 183875.69999999992,
+      "trade_id": "3805b862-a886-4a7d-8ce1-c8325e038048"
+    },
+    {
+      "timestamp": "2025-04-29T15:20:00",
+      "equity_value": 183957.79999999993,
+      "trade_id": "0bde77c7-6b04-433e-9085-4890b3d36a32"
+    },
+    {
+      "timestamp": "2025-04-30T10:00:00",
+      "equity_value": 187471.69999999992,
+      "trade_id": "ae1e81c8-9adc-4998-9981-80a6814ad861"
+    },
+    {
+      "timestamp": "2025-04-30T11:05:00",
+      "equity_value": 187857.17999999993,
+      "trade_id": "252a994c-326f-4707-ae93-1e6cab3d8614"
+    },
+    {
+      "timestamp": "2025-04-30T11:20:00",
+      "equity_value": 188402.77999999994,
+      "trade_id": "8430d069-dd5b-4acf-b5b5-add8a870d245"
+    },
+    {
+      "timestamp": "2025-04-30T12:45:00",
+      "equity_value": 188192.76999999993,
+      "trade_id": "e2a2de3a-1d96-49a7-9460-c5528e7b2453"
+    },
+    {
+      "timestamp": "2025-04-30T12:55:00",
+      "equity_value": 188079.26999999993,
+      "trade_id": "076d1ce3-b6c0-4996-8757-b9c41bfd885c"
+    },
+    {
+      "timestamp": "2025-04-30T13:50:00",
+      "equity_value": 188029.13999999993,
+      "trade_id": "61338e46-6509-4351-bf5c-57bc5e0c006d"
+    },
+    {
+      "timestamp": "2025-04-30T14:05:00",
+      "equity_value": 188069.14999999994,
+      "trade_id": "a706a2a0-ee30-48f2-b017-91c901ee4a46"
+    },
+    {
+      "timestamp": "2025-04-30T15:10:00",
+      "equity_value": 189483.80999999994,
+      "trade_id": "5f7455d8-6be5-46e7-8cbe-7b53513cc3f8"
+    },
+    {
+      "timestamp": "2025-05-02T12:00:00",
+      "equity_value": 190088.01999999993,
+      "trade_id": "cd59a8f6-6ce3-40a4-abfc-a7c03c2a73e2"
+    },
+    {
+      "timestamp": "2025-05-02T12:55:00",
+      "equity_value": 191222.95999999993,
+      "trade_id": "41bfb71b-341e-411f-9540-54107eec41eb"
+    },
+    {
+      "timestamp": "2025-05-02T13:55:00",
+      "equity_value": 194748.04999999993,
+      "trade_id": "1727aee4-5f4f-47d2-9d15-b7bcb474d22f"
+    },
+    {
+      "timestamp": "2025-05-02T14:10:00",
+      "equity_value": 195221.00999999992,
+      "trade_id": "01f6410c-a28d-43f2-bfcc-1441d8e6d34e"
+    },
+    {
+      "timestamp": "2025-05-02T15:05:00",
+      "equity_value": 196175.63999999993,
+      "trade_id": "9ed434f0-d5ef-4ee5-835e-78ee63b9b9bf"
+    },
+    {
+      "timestamp": "2025-05-02T15:15:00",
+      "equity_value": 194900.03999999992,
+      "trade_id": "3c072a48-9529-4d27-8dd7-c17e9ce13bce"
+    },
+    {
+      "timestamp": "2025-05-05T10:10:00",
+      "equity_value": 195878.41999999993,
+      "trade_id": "3e2ec2c1-91c6-45ea-a3da-47073f26ae24"
+    },
+    {
+      "timestamp": "2025-05-05T10:20:00",
+      "equity_value": 196387.68999999992,
+      "trade_id": "b2699779-a15b-4daf-ac6f-6c00fb0f030a"
+    },
+    {
+      "timestamp": "2025-05-05T10:50:00",
+      "equity_value": 197379.19999999992,
+      "trade_id": "676b47c9-55ff-4b89-a85d-cf68478262d9"
+    },
+    {
+      "timestamp": "2025-05-05T11:15:00",
+      "equity_value": 197432.4699999999,
+      "trade_id": "c16dfccb-d7d0-4514-b5ed-3a08aa577a6a"
+    },
+    {
+      "timestamp": "2025-05-05T11:25:00",
+      "equity_value": 197448.6799999999,
+      "trade_id": "6e26bd79-b714-41da-9ee7-4c4c0e244ce2"
+    },
+    {
+      "timestamp": "2025-05-05T12:15:00",
+      "equity_value": 197607.9999999999,
+      "trade_id": "7200b333-5bcc-4e00-816c-cc716622df72"
+    },
+    {
+      "timestamp": "2025-05-05T13:05:00",
+      "equity_value": 198621.75999999992,
+      "trade_id": "ca6c41c4-6f20-4b93-8b19-68bc00fa4993"
+    },
+    {
+      "timestamp": "2025-05-05T14:10:00",
+      "equity_value": 200504.94999999992,
+      "trade_id": "55244a67-8276-4f0a-bf6a-a56f4c042767"
+    },
+    {
+      "timestamp": "2025-05-05T14:55:00",
+      "equity_value": 200577.09999999992,
+      "trade_id": "6b5558ed-e6eb-43b8-8c29-feb8acff663e"
+    },
+    {
+      "timestamp": "2025-05-05T15:25:00",
+      "equity_value": 200574.2799999999,
+      "trade_id": "d7068b37-e57b-4b3c-b9e8-3796562570ae"
+    },
+    {
+      "timestamp": "2025-05-06T09:45:00",
+      "equity_value": 200321.3399999999,
+      "trade_id": "a52ea84d-fe58-492e-b18a-3b076f1b5e8d"
+    },
+    {
+      "timestamp": "2025-05-06T10:50:00",
+      "equity_value": 200151.8699999999,
+      "trade_id": "2ce7b566-a0c0-4caf-be58-6c6b78a9e339"
+    },
+    {
+      "timestamp": "2025-05-06T11:05:00",
+      "equity_value": 200012.3999999999,
+      "trade_id": "77c8bc00-aaf7-4879-b993-99768d524143"
+    },
+    {
+      "timestamp": "2025-05-06T12:30:00",
+      "equity_value": 200987.31999999992,
+      "trade_id": "e742e767-5a77-4322-8a6d-a7056e27aa51"
+    },
+    {
+      "timestamp": "2025-05-06T13:20:00",
+      "equity_value": 200853.06999999992,
+      "trade_id": "aba8ce29-707d-436a-93f7-a1486b3c476f"
+    },
+    {
+      "timestamp": "2025-05-06T14:00:00",
+      "equity_value": 201685.29999999993,
+      "trade_id": "9d86e43d-cb48-471b-986b-6635ac576b63"
+    },
+    {
+      "timestamp": "2025-05-06T14:45:00",
+      "equity_value": 201565.66999999993,
+      "trade_id": "8319eacc-cff4-41f8-bd6e-4be311b27706"
+    },
+    {
+      "timestamp": "2025-05-06T15:15:00",
+      "equity_value": 200941.14999999994,
+      "trade_id": "f1346803-732e-4bf5-9a9c-b48534db7901"
+    },
+    {
+      "timestamp": "2025-05-07T09:40:00",
+      "equity_value": 202215.89999999994,
+      "trade_id": "37fb0089-fe11-46c5-bd84-417f306c8c8f"
+    },
+    {
+      "timestamp": "2025-05-07T10:50:00",
+      "equity_value": 202984.74999999994,
+      "trade_id": "40aff071-891a-4319-844c-f216cd111a5d"
+    },
+    {
+      "timestamp": "2025-05-07T11:45:00",
+      "equity_value": 205052.51999999993,
+      "trade_id": "e7c1ca68-70c0-43b5-b62b-50e985534085"
+    },
+    {
+      "timestamp": "2025-05-07T12:55:00",
+      "equity_value": 205598.26999999993,
+      "trade_id": "48a9990b-fedd-4ad6-8c69-0ce95197acf4"
+    },
+    {
+      "timestamp": "2025-05-07T13:50:00",
+      "equity_value": 205344.44999999992,
+      "trade_id": "78d80a18-f7ad-49df-8109-9a123f24108e"
+    },
+    {
+      "timestamp": "2025-05-07T14:20:00",
+      "equity_value": 206139.08999999994,
+      "trade_id": "146a386b-a003-41be-ab76-4417949207aa"
+    },
+    {
+      "timestamp": "2025-05-07T14:50:00",
+      "equity_value": 206315.33999999994,
+      "trade_id": "0167e5e0-91f7-4f9e-a842-b0d4f799dc5f"
+    },
+    {
+      "timestamp": "2025-05-07T15:10:00",
+      "equity_value": 206153.54999999993,
+      "trade_id": "8c69c0cf-40fc-4116-986a-a79396253cdb"
+    },
+    {
+      "timestamp": "2025-05-07T15:25:00",
+      "equity_value": 205695.12999999992,
+      "trade_id": "5bd600ab-172b-478b-b1ad-01af25497f38"
+    },
+    {
+      "timestamp": "2025-05-08T09:25:00",
+      "equity_value": 205535.57999999993,
+      "trade_id": "5d259bd5-2a46-4be5-ba03-f09ce789ca24"
+    },
+    {
+      "timestamp": "2025-05-08T10:15:00",
+      "equity_value": 205565.23999999993,
+      "trade_id": "0bd324ba-65ae-4058-8b14-c42c6c008299"
+    },
+    {
+      "timestamp": "2025-05-08T10:35:00",
+      "equity_value": 205523.63999999993,
+      "trade_id": "fa8edc91-cb9b-473a-b682-203287585e80"
+    },
+    {
+      "timestamp": "2025-05-08T10:55:00",
+      "equity_value": 205485.9699999999,
+      "trade_id": "ea9248a4-eb9f-43d6-8053-e8fcf8cca7de"
+    },
+    {
+      "timestamp": "2025-05-08T11:10:00",
+      "equity_value": 205572.2099999999,
+      "trade_id": "df19f807-1d9d-4b34-a09a-1f9e4ec71469"
+    },
+    {
+      "timestamp": "2025-05-08T11:45:00",
+      "equity_value": 205583.5599999999,
+      "trade_id": "28a33226-ad3c-4dfb-a6fe-958ae5e3b8c6"
+    },
+    {
+      "timestamp": "2025-05-08T12:30:00",
+      "equity_value": 205606.2399999999,
+      "trade_id": "e70c003c-2935-4d44-bef0-17d177dc0659"
+    },
+    {
+      "timestamp": "2025-05-08T12:40:00",
+      "equity_value": 205571.90999999992,
+      "trade_id": "1c4bbd90-bb7a-42b6-b3b1-bdb3489d4ca0"
+    },
+    {
+      "timestamp": "2025-05-08T13:00:00",
+      "equity_value": 205531.65999999992,
+      "trade_id": "89c0c8ab-9f17-480b-a631-516685455b4b"
+    },
+    {
+      "timestamp": "2025-05-08T13:50:00",
+      "equity_value": 205827.6799999999,
+      "trade_id": "7e71a48c-184f-4b7e-8f10-3c21e5137225"
+    },
+    {
+      "timestamp": "2025-05-08T14:40:00",
+      "equity_value": 206131.4799999999,
+      "trade_id": "129017dc-1b41-48df-8651-3ab93de31934"
+    },
+    {
+      "timestamp": "2025-05-08T15:15:00",
+      "equity_value": 205882.2999999999,
+      "trade_id": "81200b3a-52e5-49ce-8daf-aac0d3a79a3e"
+    },
+    {
+      "timestamp": "2025-05-09T09:45:00",
+      "equity_value": 205617.1099999999,
+      "trade_id": "005b9487-e71e-4d00-bb0e-e018449efd36"
+    },
+    {
+      "timestamp": "2025-05-09T10:30:00",
+      "equity_value": 208479.5299999999,
+      "trade_id": "13c3aac1-005c-4d6a-bdd9-8cb56a8e7a00"
+    },
+    {
+      "timestamp": "2025-05-09T11:05:00",
+      "equity_value": 209170.2999999999,
+      "trade_id": "bdd0f744-d840-4eb5-86a0-50286e112095"
+    },
+    {
+      "timestamp": "2025-05-09T11:40:00",
+      "equity_value": 213433.4899999999,
+      "trade_id": "43159bde-e567-4f11-9539-ecd8a75b46eb"
+    },
+    {
+      "timestamp": "2025-05-09T12:00:00",
+      "equity_value": 213892.7799999999,
+      "trade_id": "5cca7aed-ea5d-4dd5-be2d-2a4ef8d56ac1"
+    },
+    {
+      "timestamp": "2025-05-09T12:15:00",
+      "equity_value": 214292.7399999999,
+      "trade_id": "2872dd1d-c4b9-4caf-a0c0-81f1fe234825"
+    },
+    {
+      "timestamp": "2025-05-09T13:00:00",
+      "equity_value": 214755.3899999999,
+      "trade_id": "f2594e92-ec97-49ee-96cb-24033423a058"
+    },
+    {
+      "timestamp": "2025-05-09T13:20:00",
+      "equity_value": 214574.7399999999,
+      "trade_id": "bf4681bb-762b-4bc7-ba4d-c6e55f13f9c6"
+    },
+    {
+      "timestamp": "2025-05-09T13:55:00",
+      "equity_value": 214867.93999999992,
+      "trade_id": "e397c21c-c447-40aa-b6db-09a74d0e35be"
+    },
+    {
+      "timestamp": "2025-05-09T14:20:00",
+      "equity_value": 215876.41999999993,
+      "trade_id": "92494353-78fc-4748-a8de-d5b918e4a3e5"
+    },
+    {
+      "timestamp": "2025-05-09T15:00:00",
+      "equity_value": 216551.91999999993,
+      "trade_id": "568443aa-04c8-497e-830e-e623a4ca4bc9"
+    },
+    {
+      "timestamp": "2025-05-09T15:25:00",
+      "equity_value": 216659.56999999992,
+      "trade_id": "1ff0367c-d4a1-40f3-b61e-057022f1ceca"
+    },
+    {
+      "timestamp": "2025-05-12T10:45:00",
+      "equity_value": 216535.85999999993,
+      "trade_id": "fcd2cc7c-258f-4c14-b236-bf83f2ceb0d0"
+    },
+    {
+      "timestamp": "2025-05-12T11:45:00",
+      "equity_value": 219179.68999999992,
+      "trade_id": "e33711a5-efc6-4f1c-8da1-974f4f972e63"
+    },
+    {
+      "timestamp": "2025-05-12T12:15:00",
+      "equity_value": 219457.82999999993,
+      "trade_id": "111f75a3-6161-4e0f-a352-cb3f4d2cf745"
+    },
+    {
+      "timestamp": "2025-05-12T12:50:00",
+      "equity_value": 221724.75999999992,
+      "trade_id": "c5dd6282-e743-4f3c-a425-74d07a678d73"
+    },
+    {
+      "timestamp": "2025-05-12T13:00:00",
+      "equity_value": 222332.03999999992,
+      "trade_id": "75d2449e-ddc1-43b9-898c-d5b4ff48443e"
+    },
+    {
+      "timestamp": "2025-05-12T13:50:00",
+      "equity_value": 225385.59999999992,
+      "trade_id": "12a50ec5-cb74-46c0-a125-615b0794cc20"
+    },
+    {
+      "timestamp": "2025-05-12T14:05:00",
+      "equity_value": 225209.98999999993,
+      "trade_id": "7c70ffb2-1bb8-402a-961e-4cd1eb4e61dc"
+    },
+    {
+      "timestamp": "2025-05-12T14:30:00",
+      "equity_value": 229935.50999999992,
+      "trade_id": "4f3f3538-98fe-43a3-bc2c-4f06f2fe545b"
+    },
+    {
+      "timestamp": "2025-05-12T15:25:00",
+      "equity_value": 232451.69999999992,
+      "trade_id": "26323f3f-1fdd-47bd-99e8-174b453e57cd"
+    },
+    {
+      "timestamp": "2025-05-13T09:40:00",
+      "equity_value": 232442.7499999999,
+      "trade_id": "6c3212b0-1a6c-43f0-86d6-af11ec13136e"
+    },
+    {
+      "timestamp": "2025-05-13T10:20:00",
+      "equity_value": 234442.00999999992,
+      "trade_id": "a444b2e0-0f9d-4a9a-b9c8-946e804a2e77"
+    },
+    {
+      "timestamp": "2025-05-13T11:10:00",
+      "equity_value": 234512.50999999992,
+      "trade_id": "fa7c821f-155d-413f-a567-bc5f15415a95"
+    },
+    {
+      "timestamp": "2025-05-13T11:20:00",
+      "equity_value": 235390.8399999999,
+      "trade_id": "ab050593-7b18-4eb4-ba56-4576466f84a3"
+    },
+    {
+      "timestamp": "2025-05-13T11:35:00",
+      "equity_value": 236193.2799999999,
+      "trade_id": "c0b94f12-988c-4f0b-9a35-a89e1a1bc922"
+    },
+    {
+      "timestamp": "2025-05-13T12:15:00",
+      "equity_value": 238043.59999999992,
+      "trade_id": "1a9ed1bc-98bc-4397-a15d-51876402d911"
+    },
+    {
+      "timestamp": "2025-05-13T13:15:00",
+      "equity_value": 238697.6199999999,
+      "trade_id": "74d1516c-1b29-4236-94ce-ff32a7cf8870"
+    },
+    {
+      "timestamp": "2025-05-13T13:50:00",
+      "equity_value": 238055.78999999992,
+      "trade_id": "5d99d878-3cf5-474f-bc02-125374f2ae47"
+    },
+    {
+      "timestamp": "2025-05-13T14:10:00",
+      "equity_value": 238357.8999999999,
+      "trade_id": "3e1810b6-8f9f-4bcd-8cb3-47cd278f4613"
+    },
+    {
+      "timestamp": "2025-05-13T15:00:00",
+      "equity_value": 238763.5299999999,
+      "trade_id": "8002b49d-d70d-4783-9a53-4eb77b88be66"
+    },
+    {
+      "timestamp": "2025-05-14T09:50:00",
+      "equity_value": 241529.7399999999,
+      "trade_id": "2fe1ef03-340c-4618-beb2-d67607e95949"
+    },
+    {
+      "timestamp": "2025-05-14T10:25:00",
+      "equity_value": 242549.1799999999,
+      "trade_id": "4ea87bf8-0cb0-4d76-b9d2-e549eb925b62"
+    },
+    {
+      "timestamp": "2025-05-14T11:35:00",
+      "equity_value": 242106.3299999999,
+      "trade_id": "9c349291-b2f2-4893-a364-5042684be503"
+    },
+    {
+      "timestamp": "2025-05-14T12:25:00",
+      "equity_value": 242116.5699999999,
+      "trade_id": "f7ddf252-9c81-4283-9c6e-e22b55af97ed"
+    },
+    {
+      "timestamp": "2025-05-14T13:35:00",
+      "equity_value": 243705.6599999999,
+      "trade_id": "e1f8da54-d67d-41be-ab88-d55f65071d8c"
+    },
+    {
+      "timestamp": "2025-05-14T14:25:00",
+      "equity_value": 244376.95999999988,
+      "trade_id": "81b72e85-36d0-4e6e-b834-ccb1b77e86ba"
+    },
+    {
+      "timestamp": "2025-05-14T15:25:00",
+      "equity_value": 246143.99999999988,
+      "trade_id": "cf94b289-77b8-4685-86ad-17bd33333555"
+    }
+  ],
+  "drawdown_curve": [
+    {
+      "timestamp": "2025-04-15T09:34:59",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 100000.0
+    },
+    {
+      "timestamp": "2025-04-15T09:55:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 100008.96
+    },
+    {
+      "timestamp": "2025-04-15T10:15:00",
+      "drawdown_value": 95.0399999999936,
+      "drawdown_pct": 0.09503148517892156,
+      "peak_value": 100008.96
+    },
+    {
+      "timestamp": "2025-04-15T10:30:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 100209.63000000002
+    },
+    {
+      "timestamp": "2025-04-15T10:50:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 100276.81000000001
+    },
+    {
+      "timestamp": "2025-04-15T11:05:00",
+      "drawdown_value": 134.97999999999593,
+      "drawdown_pct": 0.13460739327467228,
+      "peak_value": 100276.81000000001
+    },
+    {
+      "timestamp": "2025-04-15T11:40:00",
+      "drawdown_value": 138.51999999998952,
+      "drawdown_pct": 0.1381376212506057,
+      "peak_value": 100276.81000000001
+    },
+    {
+      "timestamp": "2025-04-15T12:50:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 101610.59000000003
+    },
+    {
+      "timestamp": "2025-04-15T13:10:00",
+      "drawdown_value": 125.33000000000175,
+      "drawdown_pct": 0.12334344284390211,
+      "peak_value": 101610.59000000003
+    },
+    {
+      "timestamp": "2025-04-15T14:25:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 101816.73000000003
+    },
+    {
+      "timestamp": "2025-04-15T14:55:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 102135.69000000003
+    },
+    {
+      "timestamp": "2025-04-15T15:25:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 104046.41000000003
+    },
+    {
+      "timestamp": "2025-04-16T10:10:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 105394.56000000003
+    },
+    {
+      "timestamp": "2025-04-16T10:50:00",
+      "drawdown_value": 71.08000000000175,
+      "drawdown_pct": 0.06744181103844613,
+      "peak_value": 105394.56000000003
+    },
+    {
+      "timestamp": "2025-04-16T11:35:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 106769.18000000002
+    },
+    {
+      "timestamp": "2025-04-16T11:55:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 107298.50000000003
+    },
+    {
+      "timestamp": "2025-04-16T12:45:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 107719.03000000003
+    },
+    {
+      "timestamp": "2025-04-16T13:15:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 108046.39000000003
+    },
+    {
+      "timestamp": "2025-04-16T13:45:00",
+      "drawdown_value": 149.63999999999942,
+      "drawdown_pct": 0.13849606636556702,
+      "peak_value": 108046.39000000003
+    },
+    {
+      "timestamp": "2025-04-16T14:30:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 113293.84000000003
+    },
+    {
+      "timestamp": "2025-04-16T15:10:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 113483.25000000003
+    },
+    {
+      "timestamp": "2025-04-16T15:25:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 113934.06000000003
+    },
+    {
+      "timestamp": "2025-04-17T10:00:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 116071.82000000002
+    },
+    {
+      "timestamp": "2025-04-17T10:55:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 118458.51000000002
+    },
+    {
+      "timestamp": "2025-04-17T13:25:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 144493.52000000002
+    },
+    {
+      "timestamp": "2025-04-17T14:10:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 146339.52000000002
+    },
+    {
+      "timestamp": "2025-04-17T14:50:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 147064.7
+    },
+    {
+      "timestamp": "2025-04-17T15:00:00",
+      "drawdown_value": 103.22000000000116,
+      "drawdown_pct": 0.07018679533565916,
+      "peak_value": 147064.7
+    },
+    {
+      "timestamp": "2025-04-21T10:10:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 150538.08000000002
+    },
+    {
+      "timestamp": "2025-04-21T11:30:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 153301.71000000002
+    },
+    {
+      "timestamp": "2025-04-21T13:00:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 156121.96000000002
+    },
+    {
+      "timestamp": "2025-04-21T13:10:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 156301.03000000003
+    },
+    {
+      "timestamp": "2025-04-21T14:10:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 156388.03000000003
+    },
+    {
+      "timestamp": "2025-04-21T15:00:00",
+      "drawdown_value": 329.79000000000815,
+      "drawdown_pct": 0.21087931090378728,
+      "peak_value": 156388.03000000003
+    },
+    {
+      "timestamp": "2025-04-21T15:25:00",
+      "drawdown_value": 757.5100000000093,
+      "drawdown_pct": 0.4843785039046845,
+      "peak_value": 156388.03000000003
+    },
+    {
+      "timestamp": "2025-04-22T09:50:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 156812.85
+    },
+    {
+      "timestamp": "2025-04-22T11:15:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 158434.80000000002
+    },
+    {
+      "timestamp": "2025-04-22T12:05:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 158966.07
+    },
+    {
+      "timestamp": "2025-04-22T13:30:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 159127.37
+    },
+    {
+      "timestamp": "2025-04-22T14:10:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 159142.74
+    },
+    {
+      "timestamp": "2025-04-22T14:30:00",
+      "drawdown_value": 119.16000000000349,
+      "drawdown_pct": 0.07487617719790643,
+      "peak_value": 159142.74
+    },
+    {
+      "timestamp": "2025-04-22T14:40:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 159212.41999999998
+    },
+    {
+      "timestamp": "2025-04-22T15:10:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 159378.96999999997
+    },
+    {
+      "timestamp": "2025-04-23T09:35:00",
+      "drawdown_value": 323.89000000001397,
+      "drawdown_pct": 0.20322003586797807,
+      "peak_value": 159378.96999999997
+    },
+    {
+      "timestamp": "2025-04-23T09:55:00",
+      "drawdown_value": 22.230000000010477,
+      "drawdown_pct": 0.013947887854972635,
+      "peak_value": 159378.96999999997
+    },
+    {
+      "timestamp": "2025-04-23T10:30:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 160419.87999999998
+    },
+    {
+      "timestamp": "2025-04-23T11:20:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 162325.52
+    },
+    {
+      "timestamp": "2025-04-23T11:55:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 163274.46
+    },
+    {
+      "timestamp": "2025-04-23T12:15:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 163466.78999999998
+    },
+    {
+      "timestamp": "2025-04-23T12:25:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 163546.62999999998
+    },
+    {
+      "timestamp": "2025-04-23T13:10:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 165136.08
+    },
+    {
+      "timestamp": "2025-04-23T14:35:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 167682.00999999998
+    },
+    {
+      "timestamp": "2025-04-23T15:20:00",
+      "drawdown_value": 401.6600000000035,
+      "drawdown_pct": 0.2395367278815441,
+      "peak_value": 167682.00999999998
+    },
+    {
+      "timestamp": "2025-04-24T09:40:00",
+      "drawdown_value": 81.66000000000349,
+      "drawdown_pct": 0.04869932081563401,
+      "peak_value": 167682.00999999998
+    },
+    {
+      "timestamp": "2025-04-24T09:55:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 168028.74
+    },
+    {
+      "timestamp": "2025-04-24T10:30:00",
+      "drawdown_value": 88.45000000001164,
+      "drawdown_pct": 0.05263980435728533,
+      "peak_value": 168028.74
+    },
+    {
+      "timestamp": "2025-04-24T11:15:00",
+      "drawdown_value": 205.48000000001048,
+      "drawdown_pct": 0.12228860372339309,
+      "peak_value": 168028.74
+    },
+    {
+      "timestamp": "2025-04-24T11:50:00",
+      "drawdown_value": 364.7700000000186,
+      "drawdown_pct": 0.21708786246925296,
+      "peak_value": 168028.74
+    },
+    {
+      "timestamp": "2025-04-24T12:10:00",
+      "drawdown_value": 515.640000000014,
+      "drawdown_pct": 0.3068760737002575,
+      "peak_value": 168028.74
+    },
+    {
+      "timestamp": "2025-04-24T12:25:00",
+      "drawdown_value": 695.9200000000128,
+      "drawdown_pct": 0.41416724305616576,
+      "peak_value": 168028.74
+    },
+    {
+      "timestamp": "2025-04-24T13:05:00",
+      "drawdown_value": 684.8700000000244,
+      "drawdown_pct": 0.40759098711329056,
+      "peak_value": 168028.74
+    },
+    {
+      "timestamp": "2025-04-24T14:10:00",
+      "drawdown_value": 1150.2000000000116,
+      "drawdown_pct": 0.6845257543441745,
+      "peak_value": 168028.74
+    },
+    {
+      "timestamp": "2025-04-24T14:25:00",
+      "drawdown_value": 1195.8400000000256,
+      "drawdown_pct": 0.7116877743652816,
+      "peak_value": 168028.74
+    },
+    {
+      "timestamp": "2025-04-24T15:25:00",
+      "drawdown_value": 514.3500000000349,
+      "drawdown_pct": 0.30610834789336333,
+      "peak_value": 168028.74
+    },
+    {
+      "timestamp": "2025-04-25T09:30:00",
+      "drawdown_value": 2622.3400000000256,
+      "drawdown_pct": 1.5606496840957242,
+      "peak_value": 168028.74
+    },
+    {
+      "timestamp": "2025-04-25T10:50:00",
+      "drawdown_value": 3141.5200000000186,
+      "drawdown_pct": 1.869632540242829,
+      "peak_value": 168028.74
+    },
+    {
+      "timestamp": "2025-04-25T11:15:00",
+      "drawdown_value": 3668.710000000021,
+      "drawdown_pct": 2.1833824380281737,
+      "peak_value": 168028.74
+    },
+    {
+      "timestamp": "2025-04-25T11:40:00",
+      "drawdown_value": 2956.2700000000186,
+      "drawdown_pct": 1.7593835435533345,
+      "peak_value": 168028.74
+    },
+    {
+      "timestamp": "2025-04-25T13:25:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 173238.75999999998
+    },
+    {
+      "timestamp": "2025-04-25T14:05:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 176662.69999999998
+    },
+    {
+      "timestamp": "2025-04-25T14:25:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 176881.49
+    },
+    {
+      "timestamp": "2025-04-25T15:05:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 176898.28999999998
+    },
+    {
+      "timestamp": "2025-04-28T10:40:00",
+      "drawdown_value": 16.45000000001164,
+      "drawdown_pct": 0.009299128894921281,
+      "peak_value": 176898.28999999998
+    },
+    {
+      "timestamp": "2025-04-28T11:10:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 177000.26999999996
+    },
+    {
+      "timestamp": "2025-04-28T12:45:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 182292.33999999997
+    },
+    {
+      "timestamp": "2025-04-28T13:00:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 182914.29999999996
+    },
+    {
+      "timestamp": "2025-04-28T13:15:00",
+      "drawdown_value": 460.97000000000116,
+      "drawdown_pct": 0.25201419462557123,
+      "peak_value": 182914.29999999996
+    },
+    {
+      "timestamp": "2025-04-28T13:50:00",
+      "drawdown_value": 242.70000000001164,
+      "drawdown_pct": 0.13268508804397014,
+      "peak_value": 182914.29999999996
+    },
+    {
+      "timestamp": "2025-04-28T14:15:00",
+      "drawdown_value": 800.8300000000163,
+      "drawdown_pct": 0.4378170542161091,
+      "peak_value": 182914.29999999996
+    },
+    {
+      "timestamp": "2025-04-28T15:25:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 183361.24999999994
+    },
+    {
+      "timestamp": "2025-04-29T09:35:00",
+      "drawdown_value": 338.52999999999884,
+      "drawdown_pct": 0.1846246139792344,
+      "peak_value": 183361.24999999994
+    },
+    {
+      "timestamp": "2025-04-29T10:05:00",
+      "drawdown_value": 664.5499999999884,
+      "drawdown_pct": 0.3624266304903509,
+      "peak_value": 183361.24999999994
+    },
+    {
+      "timestamp": "2025-04-29T10:40:00",
+      "drawdown_value": 926.6299999999756,
+      "drawdown_pct": 0.5053575932755562,
+      "peak_value": 183361.24999999994
+    },
+    {
+      "timestamp": "2025-04-29T11:15:00",
+      "drawdown_value": 769.2199999999721,
+      "drawdown_pct": 0.41951066542138665,
+      "peak_value": 183361.24999999994
+    },
+    {
+      "timestamp": "2025-04-29T11:45:00",
+      "drawdown_value": 402.6699999999837,
+      "drawdown_pct": 0.21960474200518584,
+      "peak_value": 183361.24999999994
+    },
+    {
+      "timestamp": "2025-04-29T13:10:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 183518.67999999996
+    },
+    {
+      "timestamp": "2025-04-29T13:40:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 183714.32999999996
+    },
+    {
+      "timestamp": "2025-04-29T13:50:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 183947.90999999995
+    },
+    {
+      "timestamp": "2025-04-29T14:15:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 183960.17999999993
+    },
+    {
+      "timestamp": "2025-04-29T14:50:00",
+      "drawdown_value": 84.48000000001048,
+      "drawdown_pct": 0.045922981810525794,
+      "peak_value": 183960.17999999993
+    },
+    {
+      "timestamp": "2025-04-29T15:20:00",
+      "drawdown_value": 2.3800000000046566,
+      "drawdown_pct": 0.0012937582470318617,
+      "peak_value": 183960.17999999993
+    },
+    {
+      "timestamp": "2025-04-30T10:00:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 187471.69999999992
+    },
+    {
+      "timestamp": "2025-04-30T11:05:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 187857.17999999993
+    },
+    {
+      "timestamp": "2025-04-30T11:20:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 188402.77999999994
+    },
+    {
+      "timestamp": "2025-04-30T12:45:00",
+      "drawdown_value": 210.0100000000093,
+      "drawdown_pct": 0.11146863119536209,
+      "peak_value": 188402.77999999994
+    },
+    {
+      "timestamp": "2025-04-30T12:55:00",
+      "drawdown_value": 323.5100000000093,
+      "drawdown_pct": 0.1717119036141661,
+      "peak_value": 188402.77999999994
+    },
+    {
+      "timestamp": "2025-04-30T13:50:00",
+      "drawdown_value": 373.64000000001397,
+      "drawdown_pct": 0.19831979124724916,
+      "peak_value": 188402.77999999994
+    },
+    {
+      "timestamp": "2025-04-30T14:05:00",
+      "drawdown_value": 333.63000000000466,
+      "drawdown_pct": 0.1770833742474526,
+      "peak_value": 188402.77999999994
+    },
+    {
+      "timestamp": "2025-04-30T15:10:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 189483.80999999994
+    },
+    {
+      "timestamp": "2025-05-02T12:00:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 190088.01999999993
+    },
+    {
+      "timestamp": "2025-05-02T12:55:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 191222.95999999993
+    },
+    {
+      "timestamp": "2025-05-02T13:55:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 194748.04999999993
+    },
+    {
+      "timestamp": "2025-05-02T14:10:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 195221.00999999992
+    },
+    {
+      "timestamp": "2025-05-02T15:05:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 196175.63999999993
+    },
+    {
+      "timestamp": "2025-05-02T15:15:00",
+      "drawdown_value": 1275.6000000000058,
+      "drawdown_pct": 0.6502336375709066,
+      "peak_value": 196175.63999999993
+    },
+    {
+      "timestamp": "2025-05-05T10:10:00",
+      "drawdown_value": 297.22000000000116,
+      "drawdown_pct": 0.15150708823990647,
+      "peak_value": 196175.63999999993
+    },
+    {
+      "timestamp": "2025-05-05T10:20:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 196387.68999999992
+    },
+    {
+      "timestamp": "2025-05-05T10:50:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 197379.19999999992
+    },
+    {
+      "timestamp": "2025-05-05T11:15:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 197432.4699999999
+    },
+    {
+      "timestamp": "2025-05-05T11:25:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 197448.6799999999
+    },
+    {
+      "timestamp": "2025-05-05T12:15:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 197607.9999999999
+    },
+    {
+      "timestamp": "2025-05-05T13:05:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 198621.75999999992
+    },
+    {
+      "timestamp": "2025-05-05T14:10:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 200504.94999999992
+    },
+    {
+      "timestamp": "2025-05-05T14:55:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 200577.09999999992
+    },
+    {
+      "timestamp": "2025-05-05T15:25:00",
+      "drawdown_value": 2.820000000006985,
+      "drawdown_pct": 0.0014059431510411637,
+      "peak_value": 200577.09999999992
+    },
+    {
+      "timestamp": "2025-05-06T09:45:00",
+      "drawdown_value": 255.7600000000093,
+      "drawdown_pct": 0.12751206393950726,
+      "peak_value": 200577.09999999992
+    },
+    {
+      "timestamp": "2025-05-06T10:50:00",
+      "drawdown_value": 425.2300000000105,
+      "drawdown_pct": 0.21200326458005958,
+      "peak_value": 200577.09999999992
+    },
+    {
+      "timestamp": "2025-05-06T11:05:00",
+      "drawdown_value": 564.7000000000116,
+      "drawdown_pct": 0.2815376231882961,
+      "peak_value": 200577.09999999992
+    },
+    {
+      "timestamp": "2025-05-06T12:30:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 200987.31999999992
+    },
+    {
+      "timestamp": "2025-05-06T13:20:00",
+      "drawdown_value": 134.25,
+      "drawdown_pct": 0.06679525852675684,
+      "peak_value": 200987.31999999992
+    },
+    {
+      "timestamp": "2025-05-06T14:00:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 201685.29999999993
+    },
+    {
+      "timestamp": "2025-05-06T14:45:00",
+      "drawdown_value": 119.63000000000466,
+      "drawdown_pct": 0.059315180630420114,
+      "peak_value": 201685.29999999993
+    },
+    {
+      "timestamp": "2025-05-06T15:15:00",
+      "drawdown_value": 744.1499999999942,
+      "drawdown_pct": 0.3689659087697489,
+      "peak_value": 201685.29999999993
+    },
+    {
+      "timestamp": "2025-05-07T09:40:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 202215.89999999994
+    },
+    {
+      "timestamp": "2025-05-07T10:50:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 202984.74999999994
+    },
+    {
+      "timestamp": "2025-05-07T11:45:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 205052.51999999993
+    },
+    {
+      "timestamp": "2025-05-07T12:55:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 205598.26999999993
+    },
+    {
+      "timestamp": "2025-05-07T13:50:00",
+      "drawdown_value": 253.82000000000698,
+      "drawdown_pct": 0.12345434618686582,
+      "peak_value": 205598.26999999993
+    },
+    {
+      "timestamp": "2025-05-07T14:20:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 206139.08999999994
+    },
+    {
+      "timestamp": "2025-05-07T14:50:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 206315.33999999994
+    },
+    {
+      "timestamp": "2025-05-07T15:10:00",
+      "drawdown_value": 161.79000000000815,
+      "drawdown_pct": 0.07841879328992608,
+      "peak_value": 206315.33999999994
+    },
+    {
+      "timestamp": "2025-05-07T15:25:00",
+      "drawdown_value": 620.210000000021,
+      "drawdown_pct": 0.30061264470204746,
+      "peak_value": 206315.33999999994
+    },
+    {
+      "timestamp": "2025-05-08T09:25:00",
+      "drawdown_value": 779.7600000000093,
+      "drawdown_pct": 0.37794572134093835,
+      "peak_value": 206315.33999999994
+    },
+    {
+      "timestamp": "2025-05-08T10:15:00",
+      "drawdown_value": 750.1000000000058,
+      "drawdown_pct": 0.36356966961351783,
+      "peak_value": 206315.33999999994
+    },
+    {
+      "timestamp": "2025-05-08T10:35:00",
+      "drawdown_value": 791.7000000000116,
+      "drawdown_pct": 0.38373297884685253,
+      "peak_value": 206315.33999999994
+    },
+    {
+      "timestamp": "2025-05-08T10:55:00",
+      "drawdown_value": 829.3700000000244,
+      "drawdown_pct": 0.40199143699156087,
+      "peak_value": 206315.33999999994
+    },
+    {
+      "timestamp": "2025-05-08T11:10:00",
+      "drawdown_value": 743.1300000000338,
+      "drawdown_pct": 0.3601913459270813,
+      "peak_value": 206315.33999999994
+    },
+    {
+      "timestamp": "2025-05-08T11:45:00",
+      "drawdown_value": 731.7800000000279,
+      "drawdown_pct": 0.35469005843192664,
+      "peak_value": 206315.33999999994
+    },
+    {
+      "timestamp": "2025-05-08T12:30:00",
+      "drawdown_value": 709.1000000000349,
+      "drawdown_pct": 0.34369717734029626,
+      "peak_value": 206315.33999999994
+    },
+    {
+      "timestamp": "2025-05-08T12:40:00",
+      "drawdown_value": 743.4300000000221,
+      "drawdown_pct": 0.36033675440712376,
+      "peak_value": 206315.33999999994
+    },
+    {
+      "timestamp": "2025-05-08T13:00:00",
+      "drawdown_value": 783.6800000000221,
+      "drawdown_pct": 0.3798457254802393,
+      "peak_value": 206315.33999999994
+    },
+    {
+      "timestamp": "2025-05-08T13:50:00",
+      "drawdown_value": 487.6600000000326,
+      "drawdown_pct": 0.23636633126748247,
+      "peak_value": 206315.33999999994
+    },
+    {
+      "timestamp": "2025-05-08T14:40:00",
+      "drawdown_value": 183.86000000004424,
+      "drawdown_pct": 0.08911601047214633,
+      "peak_value": 206315.33999999994
+    },
+    {
+      "timestamp": "2025-05-08T15:15:00",
+      "drawdown_value": 433.04000000003725,
+      "drawdown_pct": 0.20989229400006676,
+      "peak_value": 206315.33999999994
+    },
+    {
+      "timestamp": "2025-05-09T09:45:00",
+      "drawdown_value": 698.2300000000396,
+      "drawdown_pct": 0.3384285434132236,
+      "peak_value": 206315.33999999994
+    },
+    {
+      "timestamp": "2025-05-09T10:30:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 208479.5299999999
+    },
+    {
+      "timestamp": "2025-05-09T11:05:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 209170.2999999999
+    },
+    {
+      "timestamp": "2025-05-09T11:40:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 213433.4899999999
+    },
+    {
+      "timestamp": "2025-05-09T12:00:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 213892.7799999999
+    },
+    {
+      "timestamp": "2025-05-09T12:15:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 214292.7399999999
+    },
+    {
+      "timestamp": "2025-05-09T13:00:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 214755.3899999999
+    },
+    {
+      "timestamp": "2025-05-09T13:20:00",
+      "drawdown_value": 180.64999999999418,
+      "drawdown_pct": 0.08411895971504803,
+      "peak_value": 214755.3899999999
+    },
+    {
+      "timestamp": "2025-05-09T13:55:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 214867.93999999992
+    },
+    {
+      "timestamp": "2025-05-09T14:20:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 215876.41999999993
+    },
+    {
+      "timestamp": "2025-05-09T15:00:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 216551.91999999993
+    },
+    {
+      "timestamp": "2025-05-09T15:25:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 216659.56999999992
+    },
+    {
+      "timestamp": "2025-05-12T10:45:00",
+      "drawdown_value": 123.70999999999185,
+      "drawdown_pct": 0.05709879328201007,
+      "peak_value": 216659.56999999992
+    },
+    {
+      "timestamp": "2025-05-12T11:45:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 219179.68999999992
+    },
+    {
+      "timestamp": "2025-05-12T12:15:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 219457.82999999993
+    },
+    {
+      "timestamp": "2025-05-12T12:50:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 221724.75999999992
+    },
+    {
+      "timestamp": "2025-05-12T13:00:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 222332.03999999992
+    },
+    {
+      "timestamp": "2025-05-12T13:50:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 225385.59999999992
+    },
+    {
+      "timestamp": "2025-05-12T14:05:00",
+      "drawdown_value": 175.60999999998603,
+      "drawdown_pct": 0.07791535927760518,
+      "peak_value": 225385.59999999992
+    },
+    {
+      "timestamp": "2025-05-12T14:30:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 229935.50999999992
+    },
+    {
+      "timestamp": "2025-05-12T15:25:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 232451.69999999992
+    },
+    {
+      "timestamp": "2025-05-13T09:40:00",
+      "drawdown_value": 8.950000000011642,
+      "drawdown_pct": 0.0038502622265234646,
+      "peak_value": 232451.69999999992
+    },
+    {
+      "timestamp": "2025-05-13T10:20:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 234442.00999999992
+    },
+    {
+      "timestamp": "2025-05-13T11:10:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 234512.50999999992
+    },
+    {
+      "timestamp": "2025-05-13T11:20:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 235390.8399999999
+    },
+    {
+      "timestamp": "2025-05-13T11:35:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 236193.2799999999
+    },
+    {
+      "timestamp": "2025-05-13T12:15:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 238043.59999999992
+    },
+    {
+      "timestamp": "2025-05-13T13:15:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 238697.6199999999
+    },
+    {
+      "timestamp": "2025-05-13T13:50:00",
+      "drawdown_value": 641.8299999999872,
+      "drawdown_pct": 0.26888831149635567,
+      "peak_value": 238697.6199999999
+    },
+    {
+      "timestamp": "2025-05-13T14:10:00",
+      "drawdown_value": 339.72000000000116,
+      "drawdown_pct": 0.14232232395111494,
+      "peak_value": 238697.6199999999
+    },
+    {
+      "timestamp": "2025-05-13T15:00:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 238763.5299999999
+    },
+    {
+      "timestamp": "2025-05-14T09:50:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 241529.7399999999
+    },
+    {
+      "timestamp": "2025-05-14T10:25:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 242549.1799999999
+    },
+    {
+      "timestamp": "2025-05-14T11:35:00",
+      "drawdown_value": 442.8500000000058,
+      "drawdown_pct": 0.18258152841415748,
+      "peak_value": 242549.1799999999
+    },
+    {
+      "timestamp": "2025-05-14T12:25:00",
+      "drawdown_value": 432.61000000001513,
+      "drawdown_pct": 0.17835970420514935,
+      "peak_value": 242549.1799999999
+    },
+    {
+      "timestamp": "2025-05-14T13:35:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 243705.6599999999
+    },
+    {
+      "timestamp": "2025-05-14T14:25:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 244376.95999999988
+    },
+    {
+      "timestamp": "2025-05-14T15:25:00",
+      "drawdown_value": 0.0,
+      "drawdown_pct": 0.0,
+      "peak_value": 246143.99999999988
+    }
+  ],
+  "max_drawdown": 3668.71,
+  "max_drawdown_pct": 2.18,
+  "max_drawdown_duration_seconds": 328200.0,
+  "absolute_return_pct": 146.14,
+  "net_return_pct": 146.14,
+  "capital_growth_pct": 146.14,
+  "sharpe_ratio": 15.98,
+  "sortino_ratio": 0.0,
+  "grade": "A+",
+  "scorecard": {
+    "total_trades": 181,
+    "win_rate_pct": 69.06,
+    "profit_factor": 10.7,
+    "expectancy_inr": 807.43,
+    "net_profit_inr": 146144.0,
+    "max_drawdown_pct": 2.18,
+    "sharpe_ratio": 15.98,
+    "sortino_ratio": 0.0
+  }
+}

@@ -18,15 +18,32 @@
 - [backend/v2/cache/models.py](#backendv2cachemodelspy)
 - [backend/v2/cache/schema.py](#backendv2cacheschemapy)
 - [backend/v2/config.py](#backendv2configpy)
+- [backend/v2/cost_models.py](#backendv2cost_modelspy)
 - [backend/v2/data_loader.py](#backendv2data_loaderpy)
 - [backend/v2/engine_v2.py](#backendv2engine_v2py)
 - [backend/v2/expired_contract_provider.py](#backendv2expired_contract_providerpy)
+- [backend/v2/metrics_engine.py](#backendv2metrics_enginepy)
+- [backend/v2/metrics_models.py](#backendv2metrics_modelspy)
+- [backend/v2/pnl_engine.py](#backendv2pnl_enginepy)
+- [backend/v2/pnl_models.py](#backendv2pnl_modelspy)
+- [backend/v2/position_ledger.py](#backendv2position_ledgerpy)
+- [backend/v2/position_manager.py](#backendv2position_managerpy)
+- [backend/v2/position_models.py](#backendv2position_modelspy)
 - [backend/v2/reality_check.py](#backendv2reality_checkpy)
+- [backend/v2/replay_audit.py](#backendv2replay_auditpy)
+- [backend/v2/replay_engine.py](#backendv2replay_enginepy)
+- [backend/v2/replay_models.py](#backendv2replay_modelspy)
 - [backend/v2/resolvers.py](#backendv2resolverspy)
 - [backend/v2/run_expired_api_reality_check.py](#backendv2run_expired_api_reality_checkpy)
+- [backend/v2/run_replay_verification.py](#backendv2run_replay_verificationpy)
+- [backend/v2/signal_adapter.py](#backendv2signal_adapterpy)
 - [backend/v2/signal_source.py](#backendv2signal_sourcepy)
 - [backend/v2/test_cache_layer.py](#backendv2test_cache_layerpy)
 - [backend/v2/test_historical_contract_provider.py](#backendv2test_historical_contract_providerpy)
+- [backend/v2/test_metrics_engine.py](#backendv2test_metrics_enginepy)
+- [backend/v2/test_pnl_engine.py](#backendv2test_pnl_enginepy)
+- [backend/v2/test_position_manager.py](#backendv2test_position_managerpy)
+- [backend/v2/test_replay_engine.py](#backendv2test_replay_enginepy)
 - [backend/v2/test_v2.py](#backendv2test_v2py)
 - [backend/v2/types.py](#backendv2typespy)
 - [backend/v2/upstox_expired_loader.py](#backendv2upstox_expired_loaderpy)
@@ -717,6 +734,54 @@ No description provided.
 
 ---
 
+## backend/v2/cost_models.py
+*No description provided.*
+
+### Classes
+#### class `CostModel`
+No description provided.
+
+##### Methods:
+- **`calculate_charges`**
+  *Signature*: `def calculate_charges(self, position)`
+  *Description*: Calculates all charges and taxes for a given closed position.
+
+- **`calculate_brokerage`**
+  *Signature*: `def calculate_brokerage(self, position)`
+  *Description*: Calculates brokerage for both entry and exit.
+
+- **`calculate_taxes`**
+  *Signature*: `def calculate_taxes(self, position)`
+  *Description*: Calculates individual taxes and statutory fees (STT, Transaction charges, GST, SEBI, Stamp Duty).
+
+#### class `UpstoxCostModel`
+Upstox official NSE F&O Equity Option fee structure:
+- Brokerage: Flat ₹20 per executed order (Entry & Exit = ₹40 total).
+- STT (Securities Transaction Tax): 0.1% on the sell-side premium.
+- Exchange Transaction Charges: 0.03503% NSE transaction fee + 0.0005% IPFT fee (total 0.03553% on premium).
+- SEBI Turnover Fees: ₹10 per crore of premium (0.00001% of premium turnover on both sides).
+- Stamp Duty: 0.003% on buy-side premium.
+- GST: 18% of (Brokerage + Exchange Charges + SEBI charges).
+
+Verified Date: 2026-05-30
+
+##### Methods:
+- **`calculate_brokerage`**
+  *Signature*: `def calculate_brokerage(self, position)`
+  *Description*: No description provided.
+
+- **`calculate_taxes`**
+  *Signature*: `def calculate_taxes(self, position)`
+  *Description*: No description provided.
+
+- **`calculate_charges`**
+  *Signature*: `def calculate_charges(self, position)`
+  *Description*: No description provided.
+
+
+
+---
+
 ## backend/v2/data_loader.py
 *No description provided.*
 
@@ -806,6 +871,208 @@ Utilizes cache checking, API fetching, and fallback mechanisms under the hood.
 
 ---
 
+## backend/v2/metrics_engine.py
+*No description provided.*
+
+### Classes
+#### class `MetricsEngine`
+No description provided.
+
+##### Methods:
+- **`__init__`**
+  *Signature*: `def __init__(self, initial_capital, risk_free_rate_annual)`
+  *Description*: No description provided.
+
+- **`calculate_metrics`**
+  *Signature*: `def calculate_metrics(self, positions, trades)`
+  *Description*: No description provided.
+
+
+
+---
+
+## backend/v2/metrics_models.py
+*No description provided.*
+
+### Classes
+#### class `TradeStatistics`
+No description provided.
+
+#### class `PerformanceMetrics`
+No description provided.
+
+#### class `EquityPoint`
+No description provided.
+
+#### class `DrawdownPoint`
+No description provided.
+
+#### class `MetricsReport`
+No description provided.
+
+
+
+---
+
+## backend/v2/pnl_engine.py
+*No description provided.*
+
+### Classes
+#### class `PnLEngine`
+No description provided.
+
+##### Methods:
+- **`__init__`**
+  *Signature*: `def __init__(self, cost_model)`
+  *Description*: No description provided.
+
+- **`calculate_gross_pnl`**
+  *Signature*: `def calculate_gross_pnl(self, position)`
+  *Description*: No description provided.
+
+- **`calculate_pnl_and_charges`**
+  *Signature*: `def calculate_pnl_and_charges(self, position)`
+  *Description*: No description provided.
+
+- **`account_trade`**
+  *Signature*: `def account_trade(self, position)`
+  *Description*: No description provided.
+
+- **`generate_accounting_summary`**
+  *Signature*: `def generate_accounting_summary(self, positions)`
+  *Description*: No description provided.
+
+
+
+---
+
+## backend/v2/pnl_models.py
+*No description provided.*
+
+### Classes
+#### class `TradeCharges`
+No description provided.
+
+#### class `TradePnL`
+No description provided.
+
+#### class `TradeAccountingResult`
+No description provided.
+
+#### class `BacktestAccountingResult`
+No description provided.
+
+
+
+---
+
+## backend/v2/position_ledger.py
+*No description provided.*
+
+### Classes
+#### class `PositionLedger`
+No description provided.
+
+##### Methods:
+- **`__init__`**
+  *Signature*: `def __init__(self)`
+  *Description*: No description provided.
+
+- **`add_position`**
+  *Signature*: `def add_position(self, position)`
+  *Description*: No description provided.
+
+- **`add_event`**
+  *Signature*: `def add_event(self, event)`
+  *Description*: No description provided.
+
+- **`add_accounting_record`**
+  *Signature*: `def add_accounting_record(self, record)`
+  *Description*: No description provided.
+
+- **`get_open_positions`**
+  *Signature*: `def get_open_positions(self)`
+  *Description*: No description provided.
+
+- **`get_closed_positions`**
+  *Signature*: `def get_closed_positions(self)`
+  *Description*: No description provided.
+
+- **`get_position_history`**
+  *Signature*: `def get_position_history(self)`
+  *Description*: No description provided.
+
+- **`to_dict`**
+  *Signature*: `def to_dict(self)`
+  *Description*: No description provided.
+
+- **`clear`**
+  *Signature*: `def clear(self)`
+  *Description*: No description provided.
+
+
+
+---
+
+## backend/v2/position_manager.py
+*No description provided.*
+
+### Classes
+#### class `PositionManager`
+No description provided.
+
+##### Methods:
+- **`__init__`**
+  *Signature*: `def __init__(self, ledger)`
+  *Description*: No description provided.
+
+- **`handle_event`**
+  *Signature*: `def handle_event(self, event_type, data, timestamp)`
+  *Description*: Processes events (BUY_INTENT, SELL_INTENT, or HOLD)
+and transitions the active position state machine.
+
+- **`open_position`**
+  *Signature*: `def open_position(self, data, timestamp)`
+  *Description*: No description provided.
+
+- **`hold_position`**
+  *Signature*: `def hold_position(self, data, timestamp)`
+  *Description*: No description provided.
+
+- **`close_position`**
+  *Signature*: `def close_position(self, data, timestamp)`
+  *Description*: No description provided.
+
+
+
+---
+
+## backend/v2/position_models.py
+*No description provided.*
+
+### Classes
+#### class `PositionStatus`
+No description provided.
+
+#### class `Position`
+No description provided.
+
+#### class `PositionOpened`
+No description provided.
+
+#### class `PositionHeld`
+No description provided.
+
+#### class `PositionClosed`
+No description provided.
+
+#### class `PositionLedgerModel`
+No description provided.
+
+
+
+---
+
 ## backend/v2/reality_check.py
 *No description provided.*
 
@@ -826,6 +1093,78 @@ No description provided.
 ```text
 No description provided.
 ```
+
+
+
+---
+
+## backend/v2/replay_audit.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `log_replay_event` (Function)
+- **Signature**: `def log_replay_event(timestamp, signal, contract, premium, source)`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## backend/v2/replay_engine.py
+*No description provided.*
+
+### Classes
+#### class `HistoricalReplayEngine`
+No description provided.
+
+##### Methods:
+- **`__init__`**
+  *Signature*: `def __init__(self, db_path)`
+  *Description*: No description provided.
+
+- **`run`**
+  *Signature*: `def run(self, config)`
+  *Description*: No description provided.
+
+
+### Functions & Endpoints
+#### `get_index_short_name` (Function)
+- **Signature**: `def get_index_short_name(instrument_key)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `resample_candles` (Function)
+- **Signature**: `def resample_candles(candles, timeframe)`
+- **Description**:
+```text
+Resamples candles safely into the target timeframe without look-ahead leakage.
+If target timeframe is 1m, or if it's smaller than source, return as-is.
+```
+
+
+
+---
+
+## backend/v2/replay_models.py
+*No description provided.*
+
+### Classes
+#### class `ReplaySignalEvent`
+No description provided.
+
+#### class `ReplayContractEvent`
+No description provided.
+
+#### class `ReplayTradeIntent`
+No description provided.
+
+#### class `ReplayTimeline`
+No description provided.
 
 
 
@@ -928,6 +1267,57 @@ No description provided.
 ```text
 No description provided.
 ```
+
+
+
+---
+
+## backend/v2/run_replay_verification.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `run_verification` (Function)
+- **Signature**: `def run_verification()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## backend/v2/signal_adapter.py
+*No description provided.*
+
+### Classes
+#### class `EmaCrossoverStrategy`
+No description provided.
+
+##### Methods:
+- **`__init__`**
+  *Signature*: `def __init__(self, fast_period, slow_period, cut_off_time)`
+  *Description*: No description provided.
+
+- **`evaluate`**
+  *Signature*: `def evaluate(self, raw_df)`
+  *Description*: No description provided.
+
+#### class `SignalAdapter`
+No description provided.
+
+##### Methods:
+- **`__init__`**
+  *Signature*: `def __init__(self, strategy_name, strategy_params)`
+  *Description*: No description provided.
+
+- **`reset_state`**
+  *Signature*: `def reset_state(self)`
+  *Description*: No description provided.
+
+- **`evaluate`**
+  *Signature*: `def evaluate(self, candles)`
+  *Description*: No description provided.
 
 
 
@@ -1185,6 +1575,558 @@ No description provided.
 - **`test_22_resolve_contract_nifty_fallback`**
   *Signature*: `def test_22_resolve_contract_nifty_fallback(self)`
   *Description*: Verify resolution of NIFTY 23300 CE option contract on 2025-04-17.
+
+
+
+---
+
+## backend/v2/test_metrics_engine.py
+*No description provided.*
+
+### Classes
+#### class `TestMetricsEngine`
+No description provided.
+
+##### Methods:
+- **`setUp`**
+  *Signature*: `def setUp(self)`
+  *Description*: No description provided.
+
+- **`test_win_rate_calculation`**
+  *Signature*: `def test_win_rate_calculation(self)`
+  *Description*: No description provided.
+
+- **`test_win_rate_zero_wins`**
+  *Signature*: `def test_win_rate_zero_wins(self)`
+  *Description*: No description provided.
+
+- **`test_win_rate_zero_losses`**
+  *Signature*: `def test_win_rate_zero_losses(self)`
+  *Description*: No description provided.
+
+- **`test_win_rate_breakeven_only`**
+  *Signature*: `def test_win_rate_breakeven_only(self)`
+  *Description*: No description provided.
+
+- **`test_profit_factor_calculation`**
+  *Signature*: `def test_profit_factor_calculation(self)`
+  *Description*: No description provided.
+
+- **`test_profit_factor_no_losses`**
+  *Signature*: `def test_profit_factor_no_losses(self)`
+  *Description*: No description provided.
+
+- **`test_profit_factor_no_wins`**
+  *Signature*: `def test_profit_factor_no_wins(self)`
+  *Description*: No description provided.
+
+- **`test_expectancy_calculation`**
+  *Signature*: `def test_expectancy_calculation(self)`
+  *Description*: No description provided.
+
+- **`test_expectancy_losing_strategy`**
+  *Signature*: `def test_expectancy_losing_strategy(self)`
+  *Description*: No description provided.
+
+- **`test_payoff_ratio_calculation`**
+  *Signature*: `def test_payoff_ratio_calculation(self)`
+  *Description*: No description provided.
+
+- **`test_payoff_ratio_division_by_zero`**
+  *Signature*: `def test_payoff_ratio_division_by_zero(self)`
+  *Description*: No description provided.
+
+- **`test_streaks_calculation`**
+  *Signature*: `def test_streaks_calculation(self)`
+  *Description*: No description provided.
+
+- **`test_streaks_all_wins`**
+  *Signature*: `def test_streaks_all_wins(self)`
+  *Description*: No description provided.
+
+- **`test_streaks_all_losses`**
+  *Signature*: `def test_streaks_all_losses(self)`
+  *Description*: No description provided.
+
+- **`test_time_metrics_calculation`**
+  *Signature*: `def test_time_metrics_calculation(self)`
+  *Description*: No description provided.
+
+- **`test_time_metrics_empty`**
+  *Signature*: `def test_time_metrics_empty(self)`
+  *Description*: No description provided.
+
+- **`test_equity_curve_generation`**
+  *Signature*: `def test_equity_curve_generation(self)`
+  *Description*: No description provided.
+
+- **`test_drawdown_curve_generation`**
+  *Signature*: `def test_drawdown_curve_generation(self)`
+  *Description*: No description provided.
+
+- **`test_max_drawdown_calculation`**
+  *Signature*: `def test_max_drawdown_calculation(self)`
+  *Description*: No description provided.
+
+- **`test_max_drawdown_duration`**
+  *Signature*: `def test_max_drawdown_duration(self)`
+  *Description*: No description provided.
+
+- **`test_sharpe_ratio_single_day`**
+  *Signature*: `def test_sharpe_ratio_single_day(self)`
+  *Description*: No description provided.
+
+- **`test_sharpe_ratio_multi_day`**
+  *Signature*: `def test_sharpe_ratio_multi_day(self)`
+  *Description*: No description provided.
+
+- **`test_sharpe_ratio_zero_volatility`**
+  *Signature*: `def test_sharpe_ratio_zero_volatility(self)`
+  *Description*: No description provided.
+
+- **`test_sortino_ratio_single_day`**
+  *Signature*: `def test_sortino_ratio_single_day(self)`
+  *Description*: No description provided.
+
+- **`test_sortino_ratio_multi_day`**
+  *Signature*: `def test_sortino_ratio_multi_day(self)`
+  *Description*: No description provided.
+
+- **`test_sortino_ratio_zero_volatility`**
+  *Signature*: `def test_sortino_ratio_zero_volatility(self)`
+  *Description*: No description provided.
+
+- **`test_return_metrics`**
+  *Signature*: `def test_return_metrics(self)`
+  *Description*: No description provided.
+
+- **`test_scorecard_grade_aplus`**
+  *Signature*: `def test_scorecard_grade_aplus(self)`
+  *Description*: No description provided.
+
+- **`test_scorecard_grade_a`**
+  *Signature*: `def test_scorecard_grade_a(self)`
+  *Description*: No description provided.
+
+- **`test_scorecard_grade_b`**
+  *Signature*: `def test_scorecard_grade_b(self)`
+  *Description*: No description provided.
+
+- **`test_scorecard_grade_c`**
+  *Signature*: `def test_scorecard_grade_c(self)`
+  *Description*: No description provided.
+
+- **`test_scorecard_grade_d`**
+  *Signature*: `def test_scorecard_grade_d(self)`
+  *Description*: No description provided.
+
+- **`test_scorecard_grade_f`**
+  *Signature*: `def test_scorecard_grade_f(self)`
+  *Description*: No description provided.
+
+- **`test_single_trade_edge_case`**
+  *Signature*: `def test_single_trade_edge_case(self)`
+  *Description*: No description provided.
+
+- **`test_zero_trades_edge_case`**
+  *Signature*: `def test_zero_trades_edge_case(self)`
+  *Description*: No description provided.
+
+- **`test_pydantic_field_serialization`**
+  *Signature*: `def test_pydantic_field_serialization(self)`
+  *Description*: No description provided.
+
+
+
+---
+
+## backend/v2/test_pnl_engine.py
+*No description provided.*
+
+### Classes
+#### class `TestPnLEngine`
+No description provided.
+
+##### Methods:
+- **`setUp`**
+  *Signature*: `def setUp(self)`
+  *Description*: No description provided.
+
+- **`test_gross_pnl_positive`**
+  *Signature*: `def test_gross_pnl_positive(self)`
+  *Description*: No description provided.
+
+- **`test_gross_pnl_negative`**
+  *Signature*: `def test_gross_pnl_negative(self)`
+  *Description*: No description provided.
+
+- **`test_gross_pnl_breakeven`**
+  *Signature*: `def test_gross_pnl_breakeven(self)`
+  *Description*: No description provided.
+
+- **`test_gross_pnl_large_premium_move`**
+  *Signature*: `def test_gross_pnl_large_premium_move(self)`
+  *Description*: No description provided.
+
+- **`test_upstox_brokerage_is_fixed`**
+  *Signature*: `def test_upstox_brokerage_is_fixed(self)`
+  *Description*: No description provided.
+
+- **`test_upstox_stt_calculation`**
+  *Signature*: `def test_upstox_stt_calculation(self)`
+  *Description*: No description provided.
+
+- **`test_upstox_exchange_charges_calculation`**
+  *Signature*: `def test_upstox_exchange_charges_calculation(self)`
+  *Description*: No description provided.
+
+- **`test_upstox_sebi_charges_calculation`**
+  *Signature*: `def test_upstox_sebi_charges_calculation(self)`
+  *Description*: No description provided.
+
+- **`test_upstox_stamp_duty_calculation`**
+  *Signature*: `def test_upstox_stamp_duty_calculation(self)`
+  *Description*: No description provided.
+
+- **`test_upstox_gst_calculation`**
+  *Signature*: `def test_upstox_gst_calculation(self)`
+  *Description*: No description provided.
+
+- **`test_upstox_total_charges_sum`**
+  *Signature*: `def test_upstox_total_charges_sum(self)`
+  *Description*: No description provided.
+
+- **`test_calculate_charges_throws_for_open_position`**
+  *Signature*: `def test_calculate_charges_throws_for_open_position(self)`
+  *Description*: No description provided.
+
+- **`test_pnl_engine_positive_trade_accounting`**
+  *Signature*: `def test_pnl_engine_positive_trade_accounting(self)`
+  *Description*: No description provided.
+
+- **`test_pnl_engine_negative_trade_accounting`**
+  *Signature*: `def test_pnl_engine_negative_trade_accounting(self)`
+  *Description*: No description provided.
+
+- **`test_pnl_engine_breakeven_trade_accounting`**
+  *Signature*: `def test_pnl_engine_breakeven_trade_accounting(self)`
+  *Description*: No description provided.
+
+- **`test_nifty_lot_size_accounting`**
+  *Signature*: `def test_nifty_lot_size_accounting(self)`
+  *Description*: No description provided.
+
+- **`test_banknifty_lot_size_accounting`**
+  *Signature*: `def test_banknifty_lot_size_accounting(self)`
+  *Description*: No description provided.
+
+- **`test_finnifty_lot_size_accounting`**
+  *Signature*: `def test_finnifty_lot_size_accounting(self)`
+  *Description*: No description provided.
+
+- **`test_generate_accounting_summary_empty`**
+  *Signature*: `def test_generate_accounting_summary_empty(self)`
+  *Description*: No description provided.
+
+- **`test_generate_accounting_summary_multiple_trades`**
+  *Signature*: `def test_generate_accounting_summary_multiple_trades(self)`
+  *Description*: No description provided.
+
+- **`test_cost_model_interface_polymorphism`**
+  *Signature*: `def test_cost_model_interface_polymorphism(self)`
+  *Description*: No description provided.
+
+- **`test_trade_accounting_result_fields`**
+  *Signature*: `def test_trade_accounting_result_fields(self)`
+  *Description*: No description provided.
+
+- **`test_trade_charges_fields`**
+  *Signature*: `def test_trade_charges_fields(self)`
+  *Description*: No description provided.
+
+- **`test_backtest_accounting_result_fields`**
+  *Signature*: `def test_backtest_accounting_result_fields(self)`
+  *Description*: No description provided.
+
+- **`test_pnl_validation_with_actual_numbers_trade_1`**
+  *Signature*: `def test_pnl_validation_with_actual_numbers_trade_1(self)`
+  *Description*: No description provided.
+
+- **`test_pnl_validation_with_actual_numbers_trade_7`**
+  *Signature*: `def test_pnl_validation_with_actual_numbers_trade_7(self)`
+  *Description*: No description provided.
+
+- **`test_pnl_validation_with_actual_numbers_trade_11`**
+  *Signature*: `def test_pnl_validation_with_actual_numbers_trade_11(self)`
+  *Description*: No description provided.
+
+- **`test_stt_is_zero_on_buy`**
+  *Signature*: `def test_stt_is_zero_on_buy(self)`
+  *Description*: No description provided.
+
+- **`test_stamp_duty_is_zero_on_sell`**
+  *Signature*: `def test_stamp_duty_is_zero_on_sell(self)`
+  *Description*: No description provided.
+
+- **`test_gst_base_excludes_stt_and_stamp_duty`**
+  *Signature*: `def test_gst_base_excludes_stt_and_stamp_duty(self)`
+  *Description*: No description provided.
+
+- **`test_round_trip_charges_non_zero_quantum`**
+  *Signature*: `def test_round_trip_charges_non_zero_quantum(self)`
+  *Description*: No description provided.
+
+- **`test_large_quantity_charges`**
+  *Signature*: `def test_large_quantity_charges(self)`
+  *Description*: No description provided.
+
+
+
+---
+
+## backend/v2/test_position_manager.py
+*No description provided.*
+
+### Classes
+#### class `TestPositionStateMachine`
+No description provided.
+
+##### Methods:
+- **`setUp`**
+  *Signature*: `def setUp(self)`
+  *Description*: No description provided.
+
+- **`test_position_status_enum`**
+  *Signature*: `def test_position_status_enum(self)`
+  *Description*: No description provided.
+
+- **`test_position_model_fields`**
+  *Signature*: `def test_position_model_fields(self)`
+  *Description*: No description provided.
+
+- **`test_position_opened_event_fields`**
+  *Signature*: `def test_position_opened_event_fields(self)`
+  *Description*: No description provided.
+
+- **`test_position_held_event_fields`**
+  *Signature*: `def test_position_held_event_fields(self)`
+  *Description*: No description provided.
+
+- **`test_position_closed_event_fields`**
+  *Signature*: `def test_position_closed_event_fields(self)`
+  *Description*: No description provided.
+
+- **`test_position_ledger_initialization`**
+  *Signature*: `def test_position_ledger_initialization(self)`
+  *Description*: No description provided.
+
+- **`test_position_manager_initialization`**
+  *Signature*: `def test_position_manager_initialization(self)`
+  *Description*: No description provided.
+
+- **`test_open_position_flat`**
+  *Signature*: `def test_open_position_flat(self)`
+  *Description*: No description provided.
+
+- **`test_open_position_logs_event`**
+  *Signature*: `def test_open_position_logs_event(self)`
+  *Description*: No description provided.
+
+- **`test_reject_buy_while_long`**
+  *Signature*: `def test_reject_buy_while_long(self)`
+  *Description*: No description provided.
+
+- **`test_hold_position_while_long`**
+  *Signature*: `def test_hold_position_while_long(self)`
+  *Description*: No description provided.
+
+- **`test_hold_position_logs_event`**
+  *Signature*: `def test_hold_position_logs_event(self)`
+  *Description*: No description provided.
+
+- **`test_hold_position_while_flat_no_op`**
+  *Signature*: `def test_hold_position_while_flat_no_op(self)`
+  *Description*: No description provided.
+
+- **`test_close_position_while_long`**
+  *Signature*: `def test_close_position_while_long(self)`
+  *Description*: No description provided.
+
+- **`test_close_position_logs_event`**
+  *Signature*: `def test_close_position_logs_event(self)`
+  *Description*: No description provided.
+
+- **`test_reject_sell_while_flat`**
+  *Signature*: `def test_reject_sell_while_flat(self)`
+  *Description*: No description provided.
+
+- **`test_contract_immutability_on_hold`**
+  *Signature*: `def test_contract_immutability_on_hold(self)`
+  *Description*: No description provided.
+
+- **`test_contract_immutability_on_close`**
+  *Signature*: `def test_contract_immutability_on_close(self)`
+  *Description*: No description provided.
+
+- **`test_ledger_to_dict`**
+  *Signature*: `def test_ledger_to_dict(self)`
+  *Description*: No description provided.
+
+- **`test_ledger_clear`**
+  *Signature*: `def test_ledger_clear(self)`
+  *Description*: No description provided.
+
+- **`test_position_manager_handle_event`**
+  *Signature*: `def test_position_manager_handle_event(self)`
+  *Description*: No description provided.
+
+- **`test_multiple_alternating_trades`**
+  *Signature*: `def test_multiple_alternating_trades(self)`
+  *Description*: No description provided.
+
+- **`test_replay_integration_runs`**
+  *Signature*: `def test_replay_integration_runs(self)`
+  *Description*: No description provided.
+
+- **`test_replay_integration_open_hold_close`**
+  *Signature*: `def test_replay_integration_open_hold_close(self)`
+  *Description*: No description provided.
+
+- **`test_quantity_calculation_lot_sizes`**
+  *Signature*: `def test_quantity_calculation_lot_sizes(self)`
+  *Description*: No description provided.
+
+- **`test_multi_day_replay_ledger`**
+  *Signature*: `def test_multi_day_replay_ledger(self)`
+  *Description*: No description provided.
+
+- **`test_expiry_boundary_ledger`**
+  *Signature*: `def test_expiry_boundary_ledger(self)`
+  *Description*: No description provided.
+
+
+
+---
+
+## backend/v2/test_replay_engine.py
+*No description provided.*
+
+### Classes
+#### class `TestHistoricalReplayEngine`
+No description provided.
+
+##### Methods:
+- **`test_short_name_nifty`**
+  *Signature*: `def test_short_name_nifty(self)`
+  *Description*: No description provided.
+
+- **`test_short_name_banknifty`**
+  *Signature*: `def test_short_name_banknifty(self)`
+  *Description*: No description provided.
+
+- **`test_short_name_finnifty`**
+  *Signature*: `def test_short_name_finnifty(self)`
+  *Description*: No description provided.
+
+- **`test_short_name_midcpnifty`**
+  *Signature*: `def test_short_name_midcpnifty(self)`
+  *Description*: No description provided.
+
+- **`test_short_name_sensex`**
+  *Signature*: `def test_short_name_sensex(self)`
+  *Description*: No description provided.
+
+- **`test_short_name_bankex`**
+  *Signature*: `def test_short_name_bankex(self)`
+  *Description*: No description provided.
+
+- **`test_short_name_unknown`**
+  *Signature*: `def test_short_name_unknown(self)`
+  *Description*: No description provided.
+
+- **`test_resample_empty`**
+  *Signature*: `def test_resample_empty(self)`
+  *Description*: No description provided.
+
+- **`test_resample_smaller_tf_10s`**
+  *Signature*: `def test_resample_smaller_tf_10s(self)`
+  *Description*: No description provided.
+
+- **`test_resample_smaller_tf_30s`**
+  *Signature*: `def test_resample_smaller_tf_30s(self)`
+  *Description*: No description provided.
+
+- **`test_resample_1m_to_5m`**
+  *Signature*: `def test_resample_1m_to_5m(self)`
+  *Description*: No description provided.
+
+- **`test_resample_1m_to_15m`**
+  *Signature*: `def test_resample_1m_to_15m(self)`
+  *Description*: No description provided.
+
+- **`test_evaluation_history_growth`**
+  *Signature*: `def test_evaluation_history_growth(self)`
+  *Description*: No description provided.
+
+- **`test_adapter_invalid_strategy`**
+  *Signature*: `def test_adapter_invalid_strategy(self)`
+  *Description*: No description provided.
+
+- **`test_adapter_hold_on_empty`**
+  *Signature*: `def test_adapter_hold_on_empty(self)`
+  *Description*: No description provided.
+
+- **`test_ema_crossover_buy_and_sell_signals`**
+  *Signature*: `def test_ema_crossover_buy_and_sell_signals(self)`
+  *Description*: No description provided.
+
+- **`test_strike_resolution_atm`**
+  *Signature*: `def test_strike_resolution_atm(self)`
+  *Description*: No description provided.
+
+- **`test_expiry_resolution`**
+  *Signature*: `def test_expiry_resolution(self)`
+  *Description*: No description provided.
+
+- **`test_trade_intent_model`**
+  *Signature*: `def test_trade_intent_model(self)`
+  *Description*: No description provided.
+
+- **`test_timeline_model`**
+  *Signature*: `def test_timeline_model(self)`
+  *Description*: No description provided.
+
+- **`test_premium_lookup_match`**
+  *Signature*: `def test_premium_lookup_match(self, mock_load)`
+  *Description*: No description provided.
+
+- **`test_premium_lookup_no_match`**
+  *Signature*: `def test_premium_lookup_no_match(self, mock_load)`
+  *Description*: No description provided.
+
+- **`test_audit_logging_calls`**
+  *Signature*: `def test_audit_logging_calls(self, mock_log)`
+  *Description*: No description provided.
+
+- **`test_cache_manager_coverage_exact`**
+  *Signature*: `def test_cache_manager_coverage_exact(self)`
+  *Description*: No description provided.
+
+- **`test_cache_manager_coverage_with_tolerance`**
+  *Signature*: `def test_cache_manager_coverage_with_tolerance(self)`
+  *Description*: No description provided.
+
+- **`test_cache_manager_coverage_missing`**
+  *Signature*: `def test_cache_manager_coverage_missing(self)`
+  *Description*: No description provided.
+
+- **`test_cache_manager_coverage_partial`**
+  *Signature*: `def test_cache_manager_coverage_partial(self)`
+  *Description*: No description provided.
+
+- **`test_full_replay_run`**
+  *Signature*: `def test_full_replay_run(self, mock_underlying, mock_contract, mock_opt_candles)`
+  *Description*: No description provided.
 
 
 
