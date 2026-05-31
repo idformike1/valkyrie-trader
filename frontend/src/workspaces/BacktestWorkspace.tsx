@@ -376,18 +376,6 @@ export const BacktestMain: React.FC = () => {
               Run Backtest
             </button>
           )}
-          {/* Runtime Logs Tab */}
-          {activeTab === "runtime" && (
-            <div className="h-full overflow-y-auto font-mono text-[10px] text-slate-300">
-              {logs && logs.length > 0 ? (
-                logs.map((log, idx) => (
-                  <div key={idx}>{log}</div>
-                ))
-              ) : (
-                <div className="text-slate-500">No logs available.</div>
-              )}
-            </div>
-          )}
         </div>
       </div>
 
@@ -424,19 +412,20 @@ export const BacktestRight: React.FC = () => {
 
   return (
     <GlowingCard title="Backtest Parameters">
-      <div className="flex flex-col gap-3.5 h-full font-sans text-xs">
-        <div className="text-[10px] text-slate-500 border-b border-white/5 pb-1 select-none">
-          GLOBAL CONFIGURATION
+      <div className="flex flex-col gap-4 h-full font-sans text-xs select-none">
+        <div className="text-[10px] font-bold tracking-widest text-slate-400 uppercase border-b border-white/5 pb-1 flex items-center gap-1.5">
+          <Settings className="w-3.5 h-3.5 text-cyan-500/80" />
+          <span>Global Configuration</span>
         </div>
 
         {/* Global Configurations */}
-        <div className="grid grid-cols-2 gap-2 text-[10px]">
-          <div className="flex flex-col gap-1">
-            <span className="text-slate-500 font-semibold">Underlying Index</span>
+        <div className="grid grid-cols-2 gap-3 text-[10px]">
+          <div className="flex flex-col gap-1.5">
+            <span className="text-slate-400 font-semibold uppercase tracking-wider text-[8px]">Underlying Index</span>
             <select
               value={v2Config.underlying_instrument_key}
               onChange={(e) => setV2Config({ underlying_instrument_key: e.target.value })}
-              className="bg-slate-900 border border-white/10 rounded px-1.5 py-1 text-slate-300 focus:outline-none"
+              className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all cursor-pointer font-medium"
             >
               <option value="NSE_INDEX|Nifty 50">NIFTY 50</option>
               <option value="NSE_INDEX|Nifty Bank">BANKNIFTY</option>
@@ -444,24 +433,24 @@ export const BacktestRight: React.FC = () => {
             </select>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <span className="text-slate-500 font-semibold">Signal Source</span>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-slate-400 font-semibold uppercase tracking-wider text-[8px]">Signal Source</span>
             <select
               value={v2Config.signal_source}
               onChange={(e) => setV2Config({ signal_source: e.target.value })}
-              className="bg-slate-900 border border-white/10 rounded px-1.5 py-1 text-slate-300 focus:outline-none"
+              className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all cursor-pointer font-medium"
             >
               <option value="SPOT">Spot Price</option>
               <option value="FUTURES">Futures underlying</option>
             </select>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <span className="text-slate-500 font-semibold">Timeframe</span>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-slate-400 font-semibold uppercase tracking-wider text-[8px]">Timeframe</span>
             <select
               value={v2Config.timeframe}
               onChange={(e) => setV2Config({ timeframe: e.target.value })}
-              className="bg-slate-900 border border-white/10 rounded px-1.5 py-1 text-slate-300 focus:outline-none font-mono"
+              className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all cursor-pointer font-mono font-medium"
             >
               <option value="10s">10 seconds</option>
               <option value="30s">30 seconds</option>
@@ -474,12 +463,12 @@ export const BacktestRight: React.FC = () => {
             </select>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <span className="text-slate-500 font-semibold">Option Pref</span>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-slate-400 font-semibold uppercase tracking-wider text-[8px]">Option Pref</span>
             <select
               value={v2Config.option_type_preference}
               onChange={(e) => setV2Config({ option_type_preference: e.target.value })}
-              className="bg-slate-900 border border-white/10 rounded px-1.5 py-1 text-slate-300 focus:outline-none"
+              className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all cursor-pointer font-medium"
             >
               <option value="DYNAMIC">Dynamic CE/PE</option>
               <option value="CE_ONLY">Call Options Only</option>
@@ -487,12 +476,12 @@ export const BacktestRight: React.FC = () => {
             </select>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <span className="text-slate-500 font-semibold">Strike Mode</span>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-slate-400 font-semibold uppercase tracking-wider text-[8px]">Strike Mode</span>
             <select
               value={v2Config.strike_mode}
               onChange={(e) => setV2Config({ strike_mode: e.target.value })}
-              className="bg-slate-900 border border-white/10 rounded px-1.5 py-1 text-slate-300 focus:outline-none"
+              className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all cursor-pointer font-medium"
             >
               <option value="ATM">ATM (At-The-Money)</option>
               <option value="OTM_1">OTM +1 Strike</option>
@@ -504,12 +493,12 @@ export const BacktestRight: React.FC = () => {
             </select>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <span className="text-slate-500 font-semibold">Expiry Mode</span>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-slate-400 font-semibold uppercase tracking-wider text-[8px]">Expiry Mode</span>
             <select
               value={v2Config.expiry_mode}
               onChange={(e) => setV2Config({ expiry_mode: e.target.value })}
-              className="bg-slate-900 border border-white/10 rounded px-1.5 py-1 text-slate-300 focus:outline-none"
+              className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all cursor-pointer font-medium"
             >
               <option value="CURRENT_WEEKLY">Current Weekly</option>
               <option value="NEXT_WEEKLY">Next Weekly</option>
@@ -517,40 +506,41 @@ export const BacktestRight: React.FC = () => {
             </select>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <span className="text-slate-500 font-semibold">Initial Capital (₹)</span>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-slate-400 font-semibold uppercase tracking-wider text-[8px]">Initial Capital (₹)</span>
             <input
               type="number"
               value={v2Config.initial_capital}
               onChange={(e) => setV2Config({ initial_capital: Number(e.target.value) })}
-              className="bg-slate-900 border border-white/10 rounded px-1.5 py-1 text-slate-300 focus:outline-none font-mono"
+              className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium"
             />
           </div>
 
-          <div className="flex flex-col gap-1">
-            <span className="text-slate-500 font-semibold">Lot Multiplier</span>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-slate-400 font-semibold uppercase tracking-wider text-[8px]">Lot Multiplier</span>
             <input
               type="number"
               value={v2Config.lot_multiplier}
               onChange={(e) => setV2Config({ lot_multiplier: Number(e.target.value) })}
-              className="bg-slate-900 border border-white/10 rounded px-1.5 py-1 text-slate-300 focus:outline-none font-mono"
+              className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium"
             />
           </div>
         </div>
 
-        <div className="text-[10px] text-slate-500 border-b border-white/5 pb-1 mt-2 select-none">
-          STRATEGY PARAMETERS
+        <div className="text-[10px] font-bold tracking-widest text-slate-400 uppercase border-b border-white/5 pb-1 mt-1 flex items-center gap-1.5">
+          <SlidersHorizontal className="w-3.5 h-3.5 text-cyan-500/80" />
+          <span>Strategy Parameters</span>
         </div>
 
         {/* Strategy Specific Controls */}
         {selectedStrategy ? (
-          <div className="flex flex-col gap-3 flex-1 overflow-y-auto">
+          <div className="flex flex-col gap-4 flex-1 overflow-y-auto pr-0.5">
             {v2Config.strategy_name === "EMA" && (
               <>
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-2">
                   <div className="flex justify-between items-center text-[10px] text-slate-400">
-                    <span className="font-semibold">Fast EMA Period</span>
-                    <span className="font-mono text-cyan-400 font-bold bg-slate-900/60 px-1.5 py-0.5 rounded border border-white/5">
+                    <span className="font-semibold uppercase tracking-wider text-[8px]">Fast EMA Period</span>
+                    <span className="font-mono text-cyan-400 font-bold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/30">
                       {v2Config.strategy_params.fastEma || 2}
                     </span>
                   </div>
@@ -560,14 +550,14 @@ export const BacktestRight: React.FC = () => {
                     max="50"
                     value={v2Config.strategy_params.fastEma || 2}
                     onChange={(e) => handleParamChange("fastEma", Number(e.target.value))}
-                    className="w-full accent-cyan-400 bg-slate-900 cursor-pointer h-1.5 rounded-lg"
+                    className="w-full accent-cyan-400 bg-slate-900 cursor-pointer h-1.5 rounded-lg hover:accent-cyan-300 transition-all"
                   />
                 </div>
 
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-2">
                   <div className="flex justify-between items-center text-[10px] text-slate-400">
-                    <span className="font-semibold">Slow EMA Period</span>
-                    <span className="font-mono text-cyan-400 font-bold bg-slate-900/60 px-1.5 py-0.5 rounded border border-white/5">
+                    <span className="font-semibold uppercase tracking-wider text-[8px]">Slow EMA Period</span>
+                    <span className="font-mono text-cyan-400 font-bold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/30">
                       {v2Config.strategy_params.slowEma || 3}
                     </span>
                   </div>
@@ -577,7 +567,7 @@ export const BacktestRight: React.FC = () => {
                     max="100"
                     value={v2Config.strategy_params.slowEma || 3}
                     onChange={(e) => handleParamChange("slowEma", Number(e.target.value))}
-                    className="w-full accent-cyan-400 bg-slate-900 cursor-pointer h-1.5 rounded-lg"
+                    className="w-full accent-cyan-400 bg-slate-900 cursor-pointer h-1.5 rounded-lg hover:accent-cyan-300 transition-all"
                   />
                 </div>
               </>
@@ -585,10 +575,10 @@ export const BacktestRight: React.FC = () => {
 
             {v2Config.strategy_name === "five_ema_scalping" && (
               <>
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-2">
                   <div className="flex justify-between items-center text-[10px] text-slate-400">
-                    <span className="font-semibold">EMA Period</span>
-                    <span className="font-mono text-cyan-400 font-bold bg-slate-900/60 px-1.5 py-0.5 rounded border border-white/5">
+                    <span className="font-semibold uppercase tracking-wider text-[8px]">EMA Period</span>
+                    <span className="font-mono text-cyan-400 font-bold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/30">
                       {v2Config.strategy_params.five_ema_period || 5}
                     </span>
                   </div>
@@ -598,14 +588,14 @@ export const BacktestRight: React.FC = () => {
                     max="20"
                     value={v2Config.strategy_params.five_ema_period || 5}
                     onChange={(e) => handleParamChange("five_ema_period", Number(e.target.value))}
-                    className="w-full accent-cyan-400 bg-slate-900 cursor-pointer h-1.5 rounded-lg"
+                    className="w-full accent-cyan-400 bg-slate-900 cursor-pointer h-1.5 rounded-lg hover:accent-cyan-300 transition-all"
                   />
                 </div>
 
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-2">
                   <div className="flex justify-between items-center text-[10px] text-slate-400">
-                    <span className="font-semibold">Risk-Reward Ratio</span>
-                    <span className="font-mono text-cyan-400 font-bold bg-slate-900/60 px-1.5 py-0.5 rounded border border-white/5">
+                    <span className="font-semibold uppercase tracking-wider text-[8px]">Risk-Reward Ratio</span>
+                    <span className="font-mono text-cyan-400 font-bold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/30">
                       {v2Config.strategy_params.five_ema_rr || 3.0}
                     </span>
                   </div>
@@ -616,39 +606,40 @@ export const BacktestRight: React.FC = () => {
                     step="0.5"
                     value={v2Config.strategy_params.five_ema_rr || 3.0}
                     onChange={(e) => handleParamChange("five_ema_rr", Number(e.target.value))}
-                    className="w-full accent-cyan-400 bg-slate-900 cursor-pointer h-1.5 rounded-lg"
+                    className="w-full accent-cyan-400 bg-slate-900 cursor-pointer h-1.5 rounded-lg hover:accent-cyan-300 transition-all"
                   />
                 </div>
               </>
             )}
 
             {/* Commissions & Slippage inputs */}
-            <div className="grid grid-cols-2 gap-2 text-[10px] mt-2 pt-2.5 border-t border-white/5">
-              <div className="flex flex-col gap-1">
-                <span className="text-slate-500 font-semibold">Brokerage Flat (₹)</span>
+            <div className="grid grid-cols-2 gap-3 mt-1 pt-3.5 border-t border-white/5">
+              <div className="flex flex-col gap-1.5">
+                <span className="text-slate-400 font-semibold uppercase tracking-wider text-[8px]">Brokerage Flat (₹)</span>
                 <input
                   type="number"
                   value={v2Config.brokerage_flat}
                   onChange={(e) => setV2Config({ brokerage_flat: Number(e.target.value) })}
-                  className="bg-slate-900 border border-white/10 rounded px-1.5 py-0.5 text-slate-300 focus:outline-none font-mono"
+                  className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium"
                 />
               </div>
 
-              <div className="flex flex-col gap-1">
-                <span className="text-slate-500 font-semibold">Slippage (%)</span>
+              <div className="flex flex-col gap-1.5">
+                <span className="text-slate-400 font-semibold uppercase tracking-wider text-[8px]">Slippage (%)</span>
                 <input
                   type="number"
                   step="0.01"
                   value={v2Config.slippage_pct}
                   onChange={(e) => setV2Config({ slippage_pct: Number(e.target.value) })}
-                  className="bg-slate-900 border border-white/10 rounded px-1.5 py-0.5 text-slate-300 focus:outline-none font-mono"
+                  className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium"
                 />
               </div>
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex items-center justify-center text-slate-500 text-[10px] text-center px-4">
-            Select a strategy from the repository to configure parameter controls.
+          <div className="flex-1 flex flex-col items-center justify-center text-slate-500 text-[10px] text-center px-4 gap-2">
+            <AlertCircle className="w-5 h-5 text-slate-600 animate-pulse" />
+            <span>Select a strategy from the repository to configure parameter controls.</span>
           </div>
         )}
       </div>
@@ -660,7 +651,7 @@ export const BacktestRight: React.FC = () => {
 // 4. BOTTOM PANEL: TABBED ANALYSIS RESULTS
 // ==========================================
 export const BacktestBottom: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<"overview" | "trades" | "equity" | "drawdown" | "metrics" | "optimization">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "trades" | "equity" | "drawdown" | "metrics" | "optimization" | "runtime">("overview");
   const equityContainerRef = useRef<HTMLDivElement>(null);
   const drawdownContainerRef = useRef<HTMLDivElement>(null);
 
@@ -842,7 +833,7 @@ export const BacktestBottom: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-3 py-1.5 font-bold uppercase text-[10px] tracking-wider transition-all border-b-2 cursor-pointer ${
+              className={`px-3.5 py-2 font-bold uppercase text-[10px] tracking-wider transition-all border-b-2 cursor-pointer ${
                 activeTab === tab.id
                   ? "border-cyan-400 text-cyan-400 bg-slate-900/30"
                   : "border-transparent text-slate-500 hover:text-slate-300"
@@ -854,7 +845,7 @@ export const BacktestBottom: React.FC = () => {
         </div>
 
         {selectedInspectorParams && (
-          <div className="flex items-center gap-2 bg-cyan-950/40 border border-cyan-500/20 px-2 py-0.5 rounded text-[10px] font-mono text-cyan-300">
+          <div className="flex items-center gap-2 bg-cyan-950/40 border border-cyan-500/20 px-2 py-0.5 rounded text-[10px] font-mono text-cyan-300 animate-pulse">
             <Sliders className="w-3 h-3 text-cyan-400" />
             <span>INSPECTING: {JSON.stringify(selectedInspectorParams)}</span>
             <button
@@ -862,7 +853,7 @@ export const BacktestBottom: React.FC = () => {
                 setSelectedInspectorParams(null);
                 runV2Backtest(); // Reload original backtest
               }}
-              className="text-[9px] text-slate-500 hover:text-slate-300 font-bold ml-1 border-l border-white/10 pl-1 cursor-pointer"
+              className="text-[9px] text-slate-400 hover:text-slate-200 font-bold ml-1 border-l border-white/10 pl-1 cursor-pointer transition-colors"
             >
               Clear
             </button>
@@ -871,10 +862,10 @@ export const BacktestBottom: React.FC = () => {
       </div>
 
       {/* Tabs Container */}
-      <div className="flex-1 overflow-y-auto p-3 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent min-h-0">
+      <div className="flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent min-h-0">
         
         {!v2Result && activeTab !== "optimization" ? (
-          <div className="flex flex-col items-center justify-center h-full text-slate-500 py-6 select-none">
+          <div className="flex flex-col items-center justify-center h-full text-slate-500 py-8 select-none">
             <Activity className="w-8 h-8 text-slate-600 mb-2 animate-pulse" />
             <span>No V2 Backtest results loaded. Click "Run Backtest" to begin.</span>
           </div>
@@ -882,40 +873,40 @@ export const BacktestBottom: React.FC = () => {
           <>
             {/* Overview Tab */}
             {activeTab === "overview" && (
-              <div className="grid grid-cols-4 gap-3 max-w-4xl font-mono text-[10px] select-none">
-                <div className="bg-slate-900/20 border border-white/5 p-2 rounded">
-                  <span className="text-[8px] text-slate-500 uppercase block">Net Profit</span>
+              <div className="grid grid-cols-4 gap-3.5 max-w-4xl font-mono text-[10px] select-none">
+                <div className="bg-slate-900/10 border border-white/5 p-3 rounded shadow-sm hover:border-white/10 transition-all">
+                  <span className="text-[8px] text-slate-500 uppercase tracking-wider block mb-1">Net Profit</span>
                   <span className={`font-bold text-sm ${netProfit >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                     ₹{netProfit.toLocaleString("en-IN")}
                   </span>
                 </div>
-                <div className="bg-slate-900/20 border border-white/5 p-2 rounded">
-                  <span className="text-[8px] text-slate-500 uppercase block">Capital Return</span>
+                <div className="bg-slate-900/10 border border-white/5 p-3 rounded shadow-sm hover:border-white/10 transition-all">
+                  <span className="text-[8px] text-slate-500 uppercase tracking-wider block mb-1">Capital Return</span>
                   <span className="text-slate-200 font-bold text-sm">{returnPct.toFixed(2)}%</span>
                 </div>
-                <div className="bg-slate-900/20 border border-white/5 p-2 rounded">
-                  <span className="text-[8px] text-slate-500 uppercase block">Win Rate</span>
+                <div className="bg-slate-900/10 border border-white/5 p-3 rounded shadow-sm hover:border-white/10 transition-all">
+                  <span className="text-[8px] text-slate-500 uppercase tracking-wider block mb-1">Win Rate</span>
                   <span className="text-slate-200 font-bold text-sm">{winRate.toFixed(1)}%</span>
                 </div>
-                <div className="bg-slate-900/20 border border-white/5 p-2 rounded">
-                  <span className="text-[8px] text-slate-500 uppercase block">Sharpe Ratio</span>
+                <div className="bg-slate-900/10 border border-white/5 p-3 rounded shadow-sm hover:border-white/10 transition-all">
+                  <span className="text-[8px] text-slate-500 uppercase tracking-wider block mb-1">Sharpe Ratio</span>
                   <span className="text-cyan-400 font-bold text-sm">{sharpe.toFixed(2)}</span>
                 </div>
 
-                <div className="bg-slate-900/20 border border-white/5 p-2 rounded">
-                  <span className="text-[8px] text-slate-500 uppercase block">Profit Factor</span>
+                <div className="bg-slate-900/10 border border-white/5 p-3 rounded shadow-sm hover:border-white/10 transition-all">
+                  <span className="text-[8px] text-slate-500 uppercase tracking-wider block mb-1">Profit Factor</span>
                   <span className="text-slate-200 font-bold text-sm">{profitFactor.toFixed(2)}</span>
                 </div>
-                <div className="bg-slate-900/20 border border-white/5 p-2 rounded">
-                  <span className="text-[8px] text-slate-500 uppercase block">Total Trades</span>
+                <div className="bg-slate-900/10 border border-white/5 p-3 rounded shadow-sm hover:border-white/10 transition-all">
+                  <span className="text-[8px] text-slate-500 uppercase tracking-wider block mb-1">Total Trades</span>
                   <span className="text-slate-200 font-bold text-sm">{totalTrades}</span>
                 </div>
-                <div className="bg-slate-900/20 border border-white/5 p-2 rounded">
-                  <span className="text-[8px] text-slate-500 uppercase block">Max Drawdown</span>
+                <div className="bg-slate-900/10 border border-white/5 p-3 rounded shadow-sm hover:border-white/10 transition-all">
+                  <span className="text-[8px] text-slate-500 uppercase tracking-wider block mb-1">Max Drawdown</span>
                   <span className="text-rose-400 font-bold text-sm">-{maxDrawdown.toFixed(2)}%</span>
                 </div>
-                <div className="bg-slate-900/20 border border-white/5 p-2 rounded">
-                  <span className="text-[8px] text-slate-500 uppercase block">Score Rating</span>
+                <div className="bg-slate-900/10 border border-white/5 p-3 rounded shadow-sm hover:border-white/10 transition-all">
+                  <span className="text-[8px] text-slate-500 uppercase tracking-wider block mb-1">Score Rating</span>
                   <span className="text-cyan-400 font-bold text-sm">{report?.grade || "N/A"}</span>
                 </div>
               </div>
@@ -923,40 +914,42 @@ export const BacktestBottom: React.FC = () => {
 
             {/* Trade List Tab */}
             {activeTab === "trades" && (
-              <table className="w-full text-left font-mono text-[10px]">
-                <thead>
-                  <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-[8px] tracking-wider">
-                    <th className="py-1 pl-2">Contract Details</th>
-                    <th className="py-1">Entry Time</th>
-                    <th className="py-1">Exit Time</th>
-                    <th className="py-1 text-right">Entry Premium</th>
-                    <th className="py-1 text-right">Exit Premium</th>
-                    <th className="py-1 text-center">Qty</th>
-                    <th className="py-1 text-right">Gross PnL</th>
-                    <th className="py-1 text-right">Charges</th>
-                    <th className="py-1 text-right pr-2">Net PnL</th>
-                  </tr>
-                </thead>
-                <tbody className="text-slate-300">
-                  {v2Result?.trades.map((t) => (
-                    <tr key={t.position_id} className="border-b border-white/[0.02] hover:bg-white/[0.01]">
-                      <td className="py-1.5 pl-2 text-cyan-400">{t.contract}</td>
-                      <td className="py-1.5">{new Date(t.entry_time).toLocaleString("en-IN")}</td>
-                      <td className="py-1.5">{new Date(t.exit_time).toLocaleString("en-IN")}</td>
-                      <td className="py-1.5 text-right">₹{t.entry_premium.toFixed(2)}</td>
-                      <td className="py-1.5 text-right">₹{t.exit_premium.toFixed(2)}</td>
-                      <td className="py-1.5 text-center">{t.quantity}</td>
-                      <td className={`py-1.5 text-right font-bold ${t.gross_pnl > 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                        ₹{t.gross_pnl.toFixed(2)}
-                      </td>
-                      <td className="py-1.5 text-right text-slate-500">₹{t.charges.total_charges.toFixed(2)}</td>
-                      <td className={`py-1.5 text-right font-bold ${t.net_pnl > 0 ? "text-emerald-400" : "text-rose-400"} pr-2`}>
-                        ₹{t.net_pnl.toFixed(2)}
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left font-mono text-[10px] border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-[8px] tracking-wider bg-slate-950/20">
+                      <th className="py-2 pl-2">Contract Details</th>
+                      <th className="py-2">Entry Time</th>
+                      <th className="py-2">Exit Time</th>
+                      <th className="py-2 text-right">Entry Premium</th>
+                      <th className="py-2 text-right">Exit Premium</th>
+                      <th className="py-2 text-center">Qty</th>
+                      <th className="py-2 text-right">Gross PnL</th>
+                      <th className="py-2 text-right">Charges</th>
+                      <th className="py-2 text-right pr-2">Net PnL</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="text-slate-300">
+                    {v2Result?.trades.map((t) => (
+                      <tr key={t.position_id} className="border-b border-white/[0.02] even:bg-white/[0.01] hover:bg-white/[0.03] transition-colors">
+                        <td className="py-2 pl-2 text-cyan-400 font-bold">{t.contract}</td>
+                        <td className="py-2 text-slate-400">{new Date(t.entry_time).toLocaleString("en-IN")}</td>
+                        <td className="py-2 text-slate-400">{new Date(t.exit_time).toLocaleString("en-IN")}</td>
+                        <td className="py-2 text-right">₹{t.entry_premium.toFixed(2)}</td>
+                        <td className="py-2 text-right">₹{t.exit_premium.toFixed(2)}</td>
+                        <td className="py-2 text-center text-slate-200">{t.quantity}</td>
+                        <td className={`py-2 text-right font-bold ${t.gross_pnl > 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                          ₹{t.gross_pnl.toFixed(2)}
+                        </td>
+                        <td className="py-2 text-right text-slate-500">₹{t.charges.total_charges.toFixed(2)}</td>
+                        <td className={`py-2 text-right font-bold ${t.net_pnl > 0 ? "text-emerald-400" : "text-rose-400"} pr-2`}>
+                          ₹{t.net_pnl.toFixed(2)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
 
             {/* Equity Curve Tab */}
@@ -1022,6 +1015,19 @@ export const BacktestBottom: React.FC = () => {
                 </div>
               </div>
             )}
+
+            {/* Runtime Logs Tab */}
+            {activeTab === "runtime" && (
+              <div className="max-h-60 overflow-y-auto font-mono text-[10px] text-slate-300 bg-slate-950/40 border border-white/5 p-3 rounded scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
+                {logs && logs.length > 0 ? (
+                  logs.map((log, idx) => (
+                    <div key={idx} className="py-0.5 border-b border-white/[0.01] last:border-0">{log}</div>
+                  ))
+                ) : (
+                  <div className="text-slate-500 italic select-none">No logs available. Click "Run Backtest" or "Run Parameter Sweep" to begin.</div>
+                )}
+              </div>
+            )}
           </>
         )}
 
@@ -1029,11 +1035,11 @@ export const BacktestBottom: React.FC = () => {
         {activeTab === "optimization" && (
           <div className="flex flex-col h-full min-h-0 text-[10px] font-sans">
             {/* Tab navigation inside Optimization */}
-            <div className="flex gap-2 mb-3 border-b border-white/5 pb-1 select-none shrink-0">
+            <div className="flex gap-1.5 mb-3.5 border-b border-white/5 pb-1 select-none shrink-0">
               <button
                 onClick={() => setOptTab("setup")}
-                className={`px-3 py-1 font-bold rounded cursor-pointer ${
-                  optTab === "setup" ? "bg-slate-800 text-cyan-400" : "text-slate-500 hover:text-slate-300"
+                className={`px-3 py-1.5 font-bold uppercase tracking-wider text-[9px] rounded-t transition-all cursor-pointer ${
+                  optTab === "setup" ? "bg-slate-900/60 border-t border-x border-white/10 text-cyan-400" : "text-slate-500 hover:text-slate-300"
                 }`}
               >
                 Configuration
@@ -1041,8 +1047,8 @@ export const BacktestBottom: React.FC = () => {
               <button
                 onClick={() => setOptTab("ranked")}
                 disabled={!v2OptimizationReport}
-                className={`px-3 py-1 font-bold rounded cursor-pointer disabled:opacity-30 ${
-                  optTab === "ranked" ? "bg-slate-800 text-cyan-400" : "text-slate-500 hover:text-slate-300"
+                className={`px-3 py-1.5 font-bold uppercase tracking-wider text-[9px] rounded-t transition-all cursor-pointer disabled:opacity-30 ${
+                  optTab === "ranked" ? "bg-slate-900/60 border-t border-x border-white/10 text-cyan-400" : "text-slate-500 hover:text-slate-300"
                 }`}
               >
                 Ranked Combinations
@@ -1050,8 +1056,8 @@ export const BacktestBottom: React.FC = () => {
               <button
                 onClick={() => setOptTab("heatmap")}
                 disabled={!v2OptimizationReport}
-                className={`px-3 py-1 font-bold rounded cursor-pointer disabled:opacity-30 ${
-                  optTab === "heatmap" ? "bg-slate-800 text-cyan-400" : "text-slate-500 hover:text-slate-300"
+                className={`px-3 py-1.5 font-bold uppercase tracking-wider text-[9px] rounded-t transition-all cursor-pointer disabled:opacity-30 ${
+                  optTab === "heatmap" ? "bg-slate-900/60 border-t border-x border-white/10 text-cyan-400" : "text-slate-500 hover:text-slate-300"
                 }`}
               >
                 Heatmap Analytics
@@ -1061,91 +1067,93 @@ export const BacktestBottom: React.FC = () => {
             {/* Sweep setup panel */}
             {optTab === "setup" && (
               <div className="grid grid-cols-2 gap-4 max-w-2xl select-none">
-                <div className="flex flex-col gap-3.5 bg-slate-900/10 border border-white/5 p-3.5 rounded">
-                  <span className="text-cyan-400 font-bold uppercase tracking-wider block border-b border-white/5 pb-1 mb-1">
-                    Fast EMA Sweep Range
+                <div className="flex flex-col gap-3.5 bg-slate-900/10 border border-white/5 p-4 rounded shadow-sm">
+                  <span className="text-cyan-400 font-bold uppercase tracking-widest text-[8px] block border-b border-white/5 pb-1.5 mb-1.5 flex items-center gap-1.5">
+                    <SlidersHorizontal className="w-3.5 h-3.5 text-cyan-400/80" />
+                    <span>Fast EMA Sweep Range</span>
                   </span>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-slate-500">Min</span>
+                  <div className="grid grid-cols-3 gap-2.5">
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-slate-500 uppercase text-[8px] font-semibold tracking-wider">Min</span>
                       <input
                         type="number"
                         value={fastEmaStart}
                         onChange={(e) => setFastEmaStart(Number(e.target.value))}
-                        className="bg-slate-900 border border-white/10 rounded px-1.5 py-1 text-slate-300 focus:outline-none font-mono text-[11px]"
+                        className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium text-[11px]"
                       />
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-slate-500">Max</span>
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-slate-500 uppercase text-[8px] font-semibold tracking-wider">Max</span>
                       <input
                         type="number"
                         value={fastEmaEnd}
                         onChange={(e) => setFastEmaEnd(Number(e.target.value))}
-                        className="bg-slate-900 border border-white/10 rounded px-1.5 py-1 text-slate-300 focus:outline-none font-mono text-[11px]"
+                        className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium text-[11px]"
                       />
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-slate-500">Step</span>
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-slate-500 uppercase text-[8px] font-semibold tracking-wider">Step</span>
                       <input
                         type="number"
                         value={fastEmaStep}
                         onChange={(e) => setFastEmaStep(Number(e.target.value))}
-                        className="bg-slate-900 border border-white/10 rounded px-1.5 py-1 text-slate-300 focus:outline-none font-mono text-[11px]"
+                        className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium text-[11px]"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-3.5 bg-slate-900/10 border border-white/5 p-3.5 rounded">
-                  <span className="text-cyan-400 font-bold uppercase tracking-wider block border-b border-white/5 pb-1 mb-1">
-                    Slow EMA Sweep Range
+                <div className="flex flex-col gap-3.5 bg-slate-900/10 border border-white/5 p-4 rounded shadow-sm">
+                  <span className="text-cyan-400 font-bold uppercase tracking-widest text-[8px] block border-b border-white/5 pb-1.5 mb-1.5 flex items-center gap-1.5">
+                    <SlidersHorizontal className="w-3.5 h-3.5 text-cyan-400/80" />
+                    <span>Slow EMA Sweep Range</span>
                   </span>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-slate-500">Min</span>
+                  <div className="grid grid-cols-3 gap-2.5">
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-slate-500 uppercase text-[8px] font-semibold tracking-wider">Min</span>
                       <input
                         type="number"
                         value={slowEmaStart}
                         onChange={(e) => setSlowEmaStart(Number(e.target.value))}
-                        className="bg-slate-900 border border-white/10 rounded px-1.5 py-1 text-slate-300 focus:outline-none font-mono text-[11px]"
+                        className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium text-[11px]"
                       />
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-slate-500">Max</span>
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-slate-500 uppercase text-[8px] font-semibold tracking-wider">Max</span>
                       <input
                         type="number"
                         value={slowEmaEnd}
                         onChange={(e) => setSlowEmaEnd(Number(e.target.value))}
-                        className="bg-slate-900 border border-white/10 rounded px-1.5 py-1 text-slate-300 focus:outline-none font-mono text-[11px]"
+                        className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium text-[11px]"
                       />
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-slate-500">Step</span>
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-slate-500 uppercase text-[8px] font-semibold tracking-wider">Step</span>
                       <input
                         type="number"
                         value={slowEmaStep}
                         onChange={(e) => setSlowEmaStep(Number(e.target.value))}
-                        className="bg-slate-900 border border-white/10 rounded px-1.5 py-1 text-slate-300 focus:outline-none font-mono text-[11px]"
+                        className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium text-[11px]"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center bg-slate-900/10 border border-white/5 p-3.5 rounded col-span-2 mt-2">
+                <div className="flex justify-between items-center bg-slate-900/10 border border-white/5 p-4 rounded col-span-2 mt-2 shadow-sm">
                   <div className="flex items-center gap-2">
-                    <span className="text-slate-500 font-bold">Parallel Threads:</span>
+                    <span className="text-slate-400 font-bold uppercase tracking-wider text-[8px]">Parallel Threads:</span>
                     <input
                       type="number"
                       value={workerCount}
                       onChange={(e) => setWorkerCount(Number(e.target.value))}
-                      className="bg-slate-900 border border-white/10 rounded w-14 px-1.5 py-0.5 text-slate-300 focus:outline-none font-mono"
+                      className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded w-16 px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium"
                     />
                   </div>
 
                   <button
                     onClick={handleRunOptimization}
                     disabled={isOptimizationLoading}
-                    className="bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-950 font-bold px-4 py-1.5 rounded transition-all cursor-pointer tracking-wider uppercase text-[10px]"
+                    className="bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-950 font-bold px-5 py-2 rounded transition-all cursor-pointer tracking-wider uppercase text-[10px] shadow-lg shadow-cyan-500/15"
                   >
                     {isOptimizationLoading ? "Running Sweep..." : "Run Parameter Sweep"}
                   </button>
@@ -1156,16 +1164,16 @@ export const BacktestBottom: React.FC = () => {
             {/* Ranked combinations */}
             {optTab === "ranked" && v2OptimizationReport && (
               <div className="flex flex-col gap-3">
-                <div className="flex justify-between items-center select-none">
+                <div className="flex justify-between items-center select-none bg-slate-950/20 p-2 rounded border border-white/5">
                   <div className="flex gap-2">
                     {(["top10", "top25", "top50"] as const).map((f) => (
                       <button
                         key={f}
                         onClick={() => setRankedFilter(f)}
-                        className={`px-2 py-0.5 rounded border text-[9px] font-mono cursor-pointer ${
+                        className={`px-3 py-1 rounded border text-[9px] font-mono cursor-pointer font-bold tracking-wider transition-all ${
                           rankedFilter === f
                             ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400"
-                            : "bg-slate-900 border-white/5 text-slate-500"
+                            : "bg-slate-900 border-white/5 text-slate-500 hover:text-slate-400"
                         }`}
                       >
                         {f.toUpperCase()}
@@ -1173,81 +1181,83 @@ export const BacktestBottom: React.FC = () => {
                     ))}
                   </div>
                   <span className="text-slate-500 text-[9px] font-mono">
-                    Executed: {v2OptimizationReport.run_info.executed_combinations} runs | Skipped: {v2OptimizationReport.run_info.skipped_combinations}
+                    Executed: <span className="text-slate-300 font-bold">{v2OptimizationReport.run_info.executed_combinations}</span> runs | Skipped: <span className="text-slate-300 font-bold">{v2OptimizationReport.run_info.skipped_combinations}</span>
                   </span>
                 </div>
 
-                <table className="w-full text-left font-mono text-[10px]">
-                  <thead>
-                    <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-[8px] tracking-wider">
-                      <th className="py-1 pl-2">Rank</th>
-                      <th className="py-1">Parameters (Fast / Slow)</th>
-                      <th className="py-1 text-right">Net Profit</th>
-                      <th className="py-1 text-right">Profit Factor</th>
-                      <th className="py-1 text-right">Expectancy</th>
-                      <th className="py-1 text-right">Sharpe</th>
-                      <th className="py-1 text-right">Sortino</th>
-                      <th className="py-1 text-right">Max Drawdown</th>
-                      <th className="py-1 text-right">Score</th>
-                      <th className="py-1 text-center pr-2">Sensitivity</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-slate-300">
-                    {getRankedList().map((item, index) => {
-                      const paramsKey = JSON.stringify(item.combination.params);
-                      const isInspected = JSON.stringify(selectedInspectorParams) === paramsKey;
-                      const stability = v2OptimizationReport.stability_findings[paramsKey];
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left font-mono text-[10px] border-collapse">
+                    <thead>
+                      <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-[8px] tracking-wider bg-slate-950/20">
+                        <th className="py-2 pl-2">Rank</th>
+                        <th className="py-2">Parameters (Fast / Slow)</th>
+                        <th className="py-2 text-right">Net Profit</th>
+                        <th className="py-2 text-right">Profit Factor</th>
+                        <th className="py-2 text-right">Expectancy</th>
+                        <th className="py-2 text-right">Sharpe</th>
+                        <th className="py-2 text-right">Sortino</th>
+                        <th className="py-2 text-right">Max Drawdown</th>
+                        <th className="py-2 text-right">Score</th>
+                        <th className="py-2 text-center pr-2">Sensitivity</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-slate-300">
+                      {getRankedList().map((item, index) => {
+                        const paramsKey = JSON.stringify(item.combination.params);
+                        const isInspected = JSON.stringify(selectedInspectorParams) === paramsKey;
+                        const stability = v2OptimizationReport.stability_findings[paramsKey];
 
-                      return (
-                        <tr
-                          key={index}
-                          onClick={() => handleInspectParams(item.combination.params)}
-                          className={`border-b border-white/[0.02] hover:bg-white/[0.01] cursor-pointer ${
-                            isInspected ? "bg-cyan-500/10 border-cyan-500/20" : ""
-                          }`}
-                        >
-                          <td className="py-1.5 pl-2 text-slate-500">#{index + 1}</td>
-                          <td className="py-1.5 text-cyan-400 font-bold">
-                            Fast: {item.combination.params.fastEma || item.combination.params.fast_period} | Slow: {item.combination.params.slowEma || item.combination.params.slow_period}
-                          </td>
-                          <td className={`py-1.5 text-right font-bold ${item.net_profit > 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                            ₹{item.net_profit.toLocaleString("en-IN")}
-                          </td>
-                          <td className="py-1.5 text-right">{item.profit_factor.toFixed(2)}</td>
-                          <td className="py-1.5 text-right">₹{item.expectancy.toFixed(2)}</td>
-                          <td className="py-1.5 text-right text-cyan-400">{item.sharpe_ratio.toFixed(2)}</td>
-                          <td className="py-1.5 text-right">{item.sortino_ratio.toFixed(2)}</td>
-                          <td className="py-1.5 text-right text-rose-400">-{item.max_drawdown_pct.toFixed(2)}%</td>
-                          <td className="py-1.5 text-right text-cyan-300 font-bold">{item.composite_score}</td>
-                          <td className="py-1.5 text-center pr-2">
-                            {stability ? (
-                              <span className={`px-1 rounded text-[8px] font-sans font-bold ${
-                                stability.status === "STABLE" ? "bg-emerald-950/40 text-emerald-400" : "bg-rose-950/40 text-rose-400"
-                              }`}>
-                                {stability.status}
-                              </span>
-                            ) : (
-                              <span className="text-slate-600">-</span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                        return (
+                          <tr
+                            key={index}
+                            onClick={() => handleInspectParams(item.combination.params)}
+                            className={`border-b border-white/[0.02] even:bg-white/[0.005] hover:bg-white/[0.03] cursor-pointer transition-colors ${
+                              isInspected ? "bg-cyan-500/10 border-cyan-500/20" : ""
+                            }`}
+                          >
+                            <td className="py-2 pl-2 text-slate-500">#{index + 1}</td>
+                            <td className="py-2 text-cyan-400 font-bold">
+                              Fast: {item.combination.params.fastEma || item.combination.params.fast_period} | Slow: {item.combination.params.slowEma || item.combination.params.slow_period}
+                            </td>
+                            <td className={`py-2 text-right font-bold ${item.net_profit > 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                              ₹{item.net_profit.toLocaleString("en-IN")}
+                            </td>
+                            <td className="py-2 text-right text-slate-300">{item.profit_factor.toFixed(2)}</td>
+                            <td className="py-2 text-right text-slate-300">₹{item.expectancy.toFixed(2)}</td>
+                            <td className="py-2 text-right text-cyan-400 font-bold">{item.sharpe_ratio.toFixed(2)}</td>
+                            <td className="py-2 text-right text-slate-300">{item.sortino_ratio.toFixed(2)}</td>
+                            <td className="py-2 text-right text-rose-400 font-semibold">-{item.max_drawdown_pct.toFixed(2)}%</td>
+                            <td className="py-2 text-right text-cyan-300 font-bold">{item.composite_score}</td>
+                            <td className="py-2 text-center pr-2">
+                              {stability ? (
+                                <span className={`px-1.5 py-0.5 rounded text-[8px] font-sans font-bold tracking-wider ${
+                                  stability.status === "STABLE" ? "bg-emerald-950/40 text-emerald-400 border border-emerald-800/30" : "bg-rose-950/40 text-rose-400 border border-rose-800/30"
+                                }`}>
+                                  {stability.status}
+                                </span>
+                              ) : (
+                                <span className="text-slate-600">-</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
 
             {/* Heatmap visualization */}
             {optTab === "heatmap" && v2OptimizationReport && (
               <div className="flex flex-col gap-3 text-slate-400">
-                <div className="flex justify-between items-center select-none shrink-0">
+                <div className="flex justify-between items-center select-none shrink-0 bg-slate-950/20 p-2 rounded border border-white/5">
                   <div className="flex items-center gap-2">
-                    <span className="text-slate-500">Heatmap Parameter Metric:</span>
+                    <span className="text-slate-400 font-bold uppercase tracking-wider text-[8px]">Heatmap Parameter Metric:</span>
                     <select
                       value={heatmapMetric}
                       onChange={(e: any) => setHeatmapMetric(e.target.value)}
-                      className="bg-slate-900 border border-white/10 rounded px-1.5 py-0.5 text-slate-300 focus:outline-none"
+                      className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all cursor-pointer font-medium"
                     >
                       <option value="net_profit">Net Profit</option>
                       <option value="sharpe_ratio">Sharpe Ratio</option>
@@ -1259,14 +1269,14 @@ export const BacktestBottom: React.FC = () => {
 
                 <div className="flex gap-4">
                   {/* Heatmap Grid */}
-                  <div className="bg-slate-950/40 border border-white/5 p-3 rounded flex-1 overflow-x-auto">
+                  <div className="bg-slate-950/40 border border-white/5 p-4 rounded flex-1 overflow-x-auto">
                     <div className="flex flex-col gap-1.5 min-w-[300px]">
                       {/* X values label header */}
                       <div className="flex">
-                        <div className="w-16 font-mono text-[8px] text-slate-500 flex items-center justify-end pr-2 uppercase">
+                        <div className="w-16 font-mono text-[8px] text-slate-500 flex items-center justify-end pr-2.5 uppercase tracking-wider font-bold">
                           Slow \ Fast
                         </div>
-                        <div className="flex-1 flex gap-1">
+                        <div className="flex-1 flex gap-1.5">
                           {v2OptimizationReport.heatmap_data.x_values.map((xVal) => (
                             <div key={xVal} className="flex-1 text-center font-mono font-bold text-[8px] text-cyan-500/80">
                               F:{xVal}
@@ -1279,12 +1289,12 @@ export const BacktestBottom: React.FC = () => {
                       {v2OptimizationReport.heatmap_data.y_values.map((yVal, yIdx) => (
                         <div key={yVal} className="flex">
                           {/* Y Label */}
-                          <div className="w-16 font-mono font-bold text-[8px] text-slate-500 flex items-center justify-end pr-2">
+                          <div className="w-16 font-mono font-bold text-[8px] text-slate-500 flex items-center justify-end pr-2.5">
                             S:{yVal}
                           </div>
                           
                           {/* Cell row */}
-                          <div className="flex-1 flex gap-1">
+                          <div className="flex-1 flex gap-1.5">
                             {v2OptimizationReport.heatmap_data.x_values.map((xVal, xIdx) => {
                               // Find matching run inside report
                               const runItem = [...v2OptimizationReport.top_50, ...v2OptimizationReport.top_25, ...v2OptimizationReport.top_10].find(r => 
@@ -1298,7 +1308,7 @@ export const BacktestBottom: React.FC = () => {
                               }
 
                               // Coloring intensity
-                              let cellBg = "bg-slate-900/40";
+                              let cellBg = "bg-slate-900/40 border-white/5";
                               if (cellVal > 0) {
                                 const maxVal = Math.max(1, ...v2OptimizationReport.top_10.map(r => r[heatmapMetric] || 1));
                                 const pct = Math.min(1, cellVal / maxVal);
@@ -1328,18 +1338,18 @@ export const BacktestBottom: React.FC = () => {
                   </div>
 
                   {/* Inspector card right side */}
-                  <div className="w-56 flex flex-col gap-2.5">
-                    <div className="bg-slate-900/10 border border-white/5 p-3 rounded">
-                      <span className="text-slate-500 uppercase tracking-widest text-[8px] font-bold block mb-1">
+                  <div className="w-60 flex flex-col gap-2.5 shrink-0">
+                    <div className="bg-slate-900/10 border border-white/5 p-3.5 rounded shadow-sm">
+                      <span className="text-slate-400 uppercase tracking-widest text-[8px] font-bold block mb-2 border-b border-white/5 pb-1">
                         Cell Parameter Inspector
                       </span>
                       {selectedInspectorParams ? (
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-2.5">
                           <div className="font-mono text-cyan-400 font-bold border-b border-white/5 pb-1 select-text">
                             Fast: {selectedInspectorParams.fastEma} | Slow: {selectedInspectorParams.slowEma}
                           </div>
                           {report && (
-                            <div className="flex flex-col gap-1 select-none">
+                            <div className="flex flex-col gap-1.5 select-none">
                               <div className="flex justify-between">
                                 <span className="text-slate-500">Net Profit:</span>
                                 <span className="text-emerald-400 font-bold font-mono">₹{report.performance.net_profit.toLocaleString("en-IN")}</span>
