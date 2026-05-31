@@ -256,29 +256,23 @@ class HistoricalContractProvider:
         return contracts
 
     def _generate_fallback_contracts(self, underlying: str, expiry_date: str) -> List[Dict[str, Any]]:
-        base_price = 23000.0
-        step = 50
-        if underlying == "BANKNIFTY":
-            base_price = 48000.0
-            step = 100
-        elif underlying == "FINNIFTY":
-            base_price = 21000.0
-            step = 50
-        elif underlying == "MIDCPNIFTY":
-            base_price = 12000.0
-            step = 50
-        elif underlying == "SENSEX":
-            base_price = 75000.0
-            step = 100
-        elif underlying == "BANKEX":
-            base_price = 55000.0
-            step = 100
+        underlying = underlying.upper()
+        ranges = {
+            "NIFTY": (15000, 35000, 50),
+            "BANKNIFTY": (30000, 70000, 100),
+            "FINNIFTY": (15000, 30000, 50),
+            "MIDCPNIFTY": (8000, 20000, 50),
+            "SENSEX": (50000, 110000, 100),
+            "BANKEX": (40000, 85000, 100)
+        }
+        if underlying not in ranges:
+            min_strike, max_strike, step = 10000, 50000, 100
+        else:
+            min_strike, max_strike, step = ranges[underlying]
 
         now_str = datetime.now().isoformat()
         contracts = []
-        
-        for i in range(-25, 26):
-            strike = base_price + (i * step)
+        for strike in range(min_strike, max_strike + 1, step):
             for opt_type in ["CE", "PE"]:
                 h = hashlib.md5(f"{underlying}_{expiry_date}_{strike}_{opt_type}".encode()).hexdigest()
                 token_val = int(h[:6], 16)

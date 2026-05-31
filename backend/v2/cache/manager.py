@@ -44,11 +44,26 @@ class HistoricalDataCacheManager:
         else:
             return "PARTIAL"
 
-    def has_range(self, instrument_key: str, from_date: str, to_date: str) -> str:
+    def has_range(self, instrument_key: str, from_date: str, to_date: str, is_option: bool = False) -> str:
         metadata = self.get_metadata(instrument_key)
         if not metadata:
             return "MISSING"
-        return self.verify_coverage(from_date, to_date, metadata["cached_from"], metadata["cached_to"])
+        coverage = self.verify_coverage(from_date, to_date, metadata["cached_from"], metadata["cached_to"])
+        if coverage == "FULL":
+            conn = self._get_connection()
+            cursor = conn.cursor()
+            table = "option_candles" if is_option else "underlying_candles"
+            from_str = to_naive_iso(from_date)
+            to_str = to_naive_iso(to_date)
+            cursor.execute(
+                f"SELECT COUNT(*) FROM {table} WHERE instrument_key = ? AND timestamp >= ? AND timestamp <= ?",
+                (instrument_key, from_str, to_str)
+            )
+            count = cursor.fetchone()[0]
+            conn.close()
+            if count == 0:
+                return "MISSING"
+        return coverage
 
     def get_metadata(self, instrument_key: str) -> Optional[Dict[str, Any]]:
         conn = self._get_connection()

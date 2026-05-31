@@ -11,6 +11,7 @@ import {
 import { useTerminalStore } from "@/store/useTerminalStore";
 import { useEventStore } from "@/store/useEventStore";
 import { useBacktestStore, V2Config } from "@/store/useBacktestStore";
+import { useBackendTradingStore } from "@/services/tradingQueries";
 
 // Helper components for professional styling
 const GlowingCard: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ title, children, className = "" }) => (
@@ -177,6 +178,7 @@ export const BacktestLeft: React.FC = () => {
 // 2. MAIN PANEL: HISTORICAL CHART & RUN TOOLBAR
 // ==========================================
 export const BacktestMain: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<"overview" | "trades" | "equity" | "drawdown" | "metrics" | "optimization" | "runtime">("overview");
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -373,6 +375,18 @@ export const BacktestMain: React.FC = () => {
               <Play className="w-3 h-3 fill-slate-950" />
               Run Backtest
             </button>
+          )}
+          {/* Runtime Logs Tab */}
+          {activeTab === "runtime" && (
+            <div className="h-full overflow-y-auto font-mono text-[10px] text-slate-300">
+              {logs && logs.length > 0 ? (
+                logs.map((log, idx) => (
+                  <div key={idx}>{log}</div>
+                ))
+              ) : (
+                <div className="text-slate-500">No logs available.</div>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -662,6 +676,8 @@ export const BacktestBottom: React.FC = () => {
 
   // Optimization Parameter Ranges (Local Form State)
   const [fastEmaStart, setFastEmaStart] = useState(2);
+  // Telemetry logs from backend
+  const logs = useBackendTradingStore((state) => state.logs);
   const [fastEmaEnd, setFastEmaEnd] = useState(5);
   const [fastEmaStep, setFastEmaStep] = useState(1);
 
@@ -805,6 +821,7 @@ export const BacktestBottom: React.FC = () => {
     { id: "drawdown" as const, name: "Drawdown" },
     { id: "metrics" as const, name: "Performance Metrics" },
     { id: "optimization" as const, name: "Sweep & Optimization" },
+    { id: "runtime" as const, name: "Runtime Logs" },
   ];
 
   // Helper to extract parameters list from top ranking

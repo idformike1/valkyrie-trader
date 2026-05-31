@@ -70,6 +70,7 @@
 - [backend/v2/walk_forward/walk_forward_engine.py](#backendv2walk_forwardwalk_forward_enginepy)
 - [backend/v2/walk_forward/walk_forward_models.py](#backendv2walk_forwardwalk_forward_modelspy)
 - [backend/v2/walk_forward/walk_forward_report.py](#backendv2walk_forwardwalk_forward_reportpy)
+- [check_metadata.py](#check_metadatapy)
 - [frontend/next-env.d.ts](#frontendnext-envdts)
 - [frontend/next.config.ts](#frontendnextconfigts)
 - [frontend/src/app/layout.tsx](#frontendsrcapplayouttsx)
@@ -103,7 +104,10 @@
 - [frontend/src/workspaces/registry.ts](#frontendsrcworkspacesregistryts)
 - [frontend/src/workspaces/types.ts](#frontendsrcworkspacestypests)
 - [run_backtest_audit_query.py](#run_backtest_audit_querypy)
+- [run_january_test.py](#run_january_testpy)
 - [run_opt_sweep_query.py](#run_opt_sweep_querypy)
+- [test_january_loader.py](#test_january_loaderpy)
+- [test_upstox_auth.py](#test_upstox_authpy)
 
 ---
 
@@ -744,7 +748,7 @@ No description provided.
   *Description*: No description provided.
 
 - **`has_range`**
-  *Signature*: `def has_range(self, instrument_key, from_date, to_date)`
+  *Signature*: `def has_range(self, instrument_key, from_date, to_date, is_option)`
   *Description*: No description provided.
 
 - **`get_metadata`**
@@ -912,6 +916,10 @@ No description provided.
   *Signature*: `def load_candles(self, index_name, strike_price, expiry_date, option_type, timeframe, from_date, to_date)`
   *Description*: Cache-first historical loader for option premium candles.
 Resolves option contract key using nifty_options.csv and queries cache or downloads.
+
+- **`generate_synthetic_candles`**
+  *Signature*: `def generate_synthetic_candles(self, index_name, strike_price, expiry_date, option_type, timeframe, from_date, to_date, instrument_key)`
+  *Description*: No description provided.
 
 
 
@@ -3212,6 +3220,35 @@ metrics, the aggregated WalkForwardScore and a PASS/FAIL status.
 
 ---
 
+## check_metadata.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `normal_cdf` (Function)
+- **Signature**: `def normal_cdf(x)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `black_scholes_premium` (Function)
+- **Signature**: `def black_scholes_premium(spot, strike, days_to_expiry, option_type, iv, r)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `run` (Function)
+- **Signature**: `def run()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
 ## frontend/next-env.d.ts
 *TypeScript/JavaScript Source Component*
 
@@ -4039,6 +4076,14 @@ No description provided.
 No description provided.
 ```
 
+#### `logs` (Function)
+- **Signature**: `const logs = useBackendTradingStore((state) => state.logs)`
+- **Description**:
+```text
+Optimization Parameter Ranges (Local Form State)
+Telemetry logs from backend
+```
+
 #### `handleRunOptimization` (Function)
 - **Signature**: `const handleRunOptimization = async () => `
 - **Description**:
@@ -4818,12 +4863,67 @@ No description provided.
 
 ---
 
+## run_january_test.py
+*No description provided.*
+
+### Classes
+#### class `DateTimeEncoder`
+No description provided.
+
+##### Methods:
+- **`default`**
+  *Signature*: `def default(self, obj)`
+  *Description*: No description provided.
+
+
+### Functions & Endpoints
+#### `run_query` (Function)
+- **Signature**: `def run_query()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
 ## run_opt_sweep_query.py
 *No description provided.*
 
 ### Functions & Endpoints
 #### `run_opt_query` (Function)
 - **Signature**: `def run_opt_query()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## test_january_loader.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `test` (Function)
+- **Signature**: `def test()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## test_upstox_auth.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `test_api` (Function)
+- **Signature**: `def test_api()`
 - **Description**:
 ```text
 No description provided.

@@ -19,6 +19,8 @@ def load_upstox_token(token_path: str = "/Users/rajumaharjan/Documents/Anit Grav
         raise ValueError(f"Upstox token file missing at {token_path}")
 
 class UpstoxExpiredOptionDownloader:
+    _unauthorized = False
+
     def __init__(self, cache_manager: HistoricalDataCacheManager):
         self.cache_manager = cache_manager
 
@@ -35,7 +37,6 @@ class UpstoxExpiredOptionDownloader:
                 "close": float(c[4]),
                 "volume": int(c[5]) if len(c) > 5 else 0
             })
-        # Upstox returns candles in reverse chronological order. Reverse to chronological.
         return candles[::-1]
 
     def download_and_cache(
@@ -51,6 +52,9 @@ class UpstoxExpiredOptionDownloader:
         """
         Downloads option candles from Upstox (active or expired) and stores them in the cache.
         """
+        if UpstoxExpiredOptionDownloader._unauthorized:
+            raise ValueError("Upstox API token is marked as unauthorized. Skipping API requests.")
+
         logger.info(f"Downloading candles for option contract {instrument_key} from {from_date} to {to_date}")
         token = load_upstox_token()
         encoded_key = urllib.parse.quote(instrument_key)
@@ -69,6 +73,10 @@ class UpstoxExpiredOptionDownloader:
                 if resp.status_code == 200:
                     candles = self._parse_candles(resp.json())
                     break
+                elif resp.status_code == 401:
+                    logger.warning("Upstox API returned 401. Marking API as unauthorized.")
+                    UpstoxExpiredOptionDownloader._unauthorized = True
+                    raise ValueError("Upstox API returned 401 Unauthorized.")
                 elif resp.status_code in [400, 404] and ("UDAPI100011" in resp.text or "UDAPI1021" in resp.text or "invalid format" in resp.text.lower() or "invalid instrument key" in resp.text.lower()):
                     logger.info("Standard API returned expired instrument error. Redirecting to Expired Instruments API...")
                     is_expired_error = True
@@ -78,10 +86,12 @@ class UpstoxExpiredOptionDownloader:
                     time.sleep(1.5 * (retry + 1))
             except Exception as e:
                 logger.error(f"Error during standard API call: {e}")
+                if isinstance(e, ValueError) and "401" in str(e):
+                    raise e
                 time.sleep(1.5 * (retry + 1))
         
         # 2. Try Expired Instruments API if standard failed with expired contract code
-        if is_expired_error or not candles:
+        if not candles and not UpstoxExpiredOptionDownloader._unauthorized:
             expired_url = f"https://api.upstox.com/v2/expired-instruments/historical-candle/{encoded_key}/{interval}/{to_date.strftime('%Y-%m-%d')}/{from_date.strftime('%Y-%m-%d')}"
             for retry in range(3):
                 try:
@@ -90,11 +100,17 @@ class UpstoxExpiredOptionDownloader:
                     if resp.status_code == 200:
                         candles = self._parse_candles(resp.json())
                         break
+                    elif resp.status_code == 401:
+                        logger.warning("Upstox API returned 401. Marking API as unauthorized.")
+                        UpstoxExpiredOptionDownloader._unauthorized = True
+                        raise ValueError("Upstox API returned 401 Unauthorized.")
                     else:
                         logger.warning(f"Expired API returned status {resp.status_code}: {resp.text}. Retrying...")
                         time.sleep(1.5 * (retry + 1))
                 except Exception as e:
                     logger.error(f"Error during Expired API call: {e}")
+                    if isinstance(e, ValueError) and "401" in str(e):
+                        raise e
                     time.sleep(1.5 * (retry + 1))
 
         if not candles:

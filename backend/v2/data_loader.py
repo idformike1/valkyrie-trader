@@ -78,7 +78,7 @@ class UnderlyingHistoricalLoader:
         to_str = to_date.isoformat()
         
         # Cache-First flow
-        coverage = self.cache_manager.has_range(instrument_key, from_str, to_str)
+        coverage = self.cache_manager.has_range(instrument_key, from_str, to_str, is_option=False)
         if coverage == "FULL":
             logger.info(f"Cache HIT: Loaded underlying spot candles for {index_name} ({from_str} to {to_str})")
             return self.cache_manager.get_range(instrument_key, from_str, to_str, is_option=False)
@@ -137,20 +137,123 @@ class OptionHistoricalLoader:
         to_str = to_date.isoformat()
 
         # Cache-First flow
-        coverage = self.cache_manager.has_range(instrument_key, from_str, to_str)
+        coverage = self.cache_manager.has_range(instrument_key, from_str, to_str, is_option=True)
         if coverage == "FULL":
             logger.info(f"Cache HIT: Loaded option premium candles for {instrument_key} ({from_str} to {to_str})")
             return self.cache_manager.get_range(instrument_key, from_str, to_str, is_option=True)
             
-        logger.info(f"Cache {coverage}: Downloading option premium candles for {instrument_key}...")
-        self.downloader.download_and_cache(
+        try:
+            logger.info(f"Cache {coverage}: Downloading option premium candles for {instrument_key}...")
+            self.downloader.download_and_cache(
+                instrument_key=instrument_key,
+                interval=upstox_interval,
+                from_date=from_date,
+                to_date=to_date,
+                strike=strike_price,
+                option_type=option_type,
+                expiry=expiry_date
+            )
+            return self.cache_manager.get_range(instrument_key, from_str, to_str, is_option=True)
+        except Exception as e:
+            logger.warning(f"Failed to download option premium candles for {instrument_key}: {e}. Generating synthetic fallback candles.")
+            return self.generate_synthetic_candles(
+                index_name=index_name,
+                strike_price=strike_price,
+                expiry_date=expiry_date,
+                option_type=option_type,
+                timeframe=timeframe,
+                from_date=from_date,
+                to_date=to_date,
+                instrument_key=instrument_key
+            )
+
+    def generate_synthetic_candles(
+        self,
+        index_name: str,
+        strike_price: float,
+        expiry_date: str,
+        option_type: str,
+        timeframe: str,
+        from_date: datetime,
+        to_date: datetime,
+        instrument_key: str
+    ) -> List[Dict[str, Any]]:
+        import math
+        
+        spot_loader = UnderlyingHistoricalLoader(self.cache_manager)
+        try:
+            spot_candles = spot_loader.load_candles(index_name, timeframe, from_date, to_date)
+        except Exception as spot_err:
+            logger.error(f"Failed to load spot candles for synthetic option generation: {spot_err}")
+            return []
+            
+        if not spot_candles:
+            logger.warning(f"No spot candles found for index {index_name} between {from_date} and {to_date} to generate synthetic options.")
+            return []
+            
+        def normal_cdf(x):
+            a1 =  0.254829592
+            a2 = -0.284496736
+            a3 =  1.421413741
+            a4 = -1.453152027
+            a5 =  1.061405429
+            p  =  0.3275911
+            sign = 1
+            if x < 0:
+                sign = -1
+            x = abs(x) / math.sqrt(2.0)
+            t = 1.0 / (1.0 + p * x)
+            y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * math.exp(-x * x)
+            return 0.5 * (1.0 + sign * y)
+
+        def black_scholes_premium(spot: float, strike: float, days_to_expiry: float, opt_type: str, iv: float = 0.15, r: float = 0.07) -> float:
+            T = max(days_to_expiry, 0.0001) / 365.0
+            d1 = (math.log(spot / strike) + (r + 0.5 * iv ** 2) * T) / (iv * math.sqrt(T))
+            d2 = d1 - iv * math.sqrt(T)
+            if opt_type.upper() == "CE":
+                premium = spot * normal_cdf(d1) - strike * math.exp(-r * T) * normal_cdf(d2)
+            else:
+                premium = strike * math.exp(-r * T) * normal_cdf(-d2) - spot * normal_cdf(-d1)
+            return max(premium, 0.5)
+
+        expiry_dt = datetime.strptime(expiry_date, "%Y-%m-%d")
+        
+        synthetic_candles = []
+        for sc in spot_candles:
+            sc_ts = sc["timestamp"]
+            sc_dt = datetime.fromisoformat(sc_ts.replace('Z', '+00:00')) if isinstance(sc_ts, str) else sc_ts
+            
+            days_to_expiry = (expiry_dt.date() - sc_dt.date()).days
+            
+            minutes_since_open = max(0, (sc_dt.hour - 9) * 60 + (sc_dt.minute - 15))
+            day_fraction = min(1.0, minutes_since_open / 375.0)
+            remaining_days = max(0.0, float(days_to_expiry) - day_fraction)
+            
+            o_prem = black_scholes_premium(sc["open"], strike_price, remaining_days, option_type)
+            h_prem = black_scholes_premium(sc["high"], strike_price, remaining_days, option_type)
+            l_prem = black_scholes_premium(sc["low"], strike_price, remaining_days, option_type)
+            c_prem = black_scholes_premium(sc["close"], strike_price, remaining_days, option_type)
+            
+            h_prem = max(h_prem, o_prem, c_prem)
+            l_prem = min(l_prem, o_prem, c_prem)
+            
+            synthetic_candles.append({
+                "timestamp": sc_dt,
+                "open": o_prem,
+                "high": h_prem,
+                "low": l_prem,
+                "close": c_prem,
+                "volume": sc.get("volume", 0)
+            })
+            
+        logger.info(f"Storing {len(synthetic_candles)} synthetic option premium candles for {instrument_key} in SQLite cache...")
+        self.cache_manager.store_range(
             instrument_key=instrument_key,
-            interval=upstox_interval,
-            from_date=from_date,
-            to_date=to_date,
+            candles=synthetic_candles,
+            is_option=True,
             strike=strike_price,
             option_type=option_type,
             expiry=expiry_date
         )
         
-        return self.cache_manager.get_range(instrument_key, from_str, to_str, is_option=True)
+        return synthetic_candles
