@@ -798,27 +798,59 @@ def fetch_historical_candles(instrument_key, interval, from_date, to_date):
     token = load_upstox_token()
     if not token:
         raise Exception("Access token missing in token.txt")
+    
     encoded_key = urllib.parse.quote(instrument_key)
-    url = f"https://api.upstox.com/v2/historical-candle/{encoded_key}/{interval}/{to_date.strftime('%Y-%m-%d')}/{from_date.strftime('%Y-%m-%d')}"
-    headers = {"Accept": "application/json", "Authorization": f"Bearer {token}"}
-    resp = requests.get(url, headers=headers)
-    if resp.status_code != 200:
-        if "Invalid Instrument key" in resp.text or "UDAPI100011" in resp.text:
-            raise Exception("Option contract is expired or invalid. Historical candles not supported for expired contracts.")
-        raise Exception(f"API error {resp.status_code}: {resp.text}")
-    data = resp.json()
-    candles_data = data.get('data', {}).get('candles', [])
     candles = []
-    for c in candles_data:
-        ts = datetime.fromisoformat(c[0].replace('Z', '+00:00'))
-        candles.append({
-            'timestamp': ts,
-            'open': float(c[1]),
-            'high': float(c[2]),
-            'low': float(c[3]),
-            'close': float(c[4])
-        })
-    return candles[::-1]
+    headers = {"Accept": "application/json", "Authorization": f"Bearer {token}"}
+    
+    # 1. Fetch live intraday candles (includes today's current day candles)
+    url_intra = f"https://api.upstox.com/v2/historical-candle-intraday/{encoded_key}/{interval}"
+    try:
+        resp = requests.get(url_intra, headers=headers, timeout=5)
+        if resp.status_code == 200:
+            data = resp.json()
+            candles_data = data.get('data', {}).get('candles', [])
+            for c in candles_data:
+                ts = datetime.fromisoformat(c[0].replace('Z', '+00:00'))
+                candles.append({
+                    'timestamp': ts,
+                    'open': float(c[1]),
+                    'high': float(c[2]),
+                    'low': float(c[3]),
+                    'close': float(c[4]),
+                    'volume': float(c[5]) if len(c) > 5 else 0.0
+                })
+    except Exception as e:
+        log_event(f"Intraday candle fetch failed: {e}", "WARNING")
+
+    # 2. Fetch historical candles for past days
+    url_hist = f"https://api.upstox.com/v2/historical-candle/{encoded_key}/{interval}/{to_date.strftime('%Y-%m-%d')}/{from_date.strftime('%Y-%m-%d')}"
+    try:
+        resp = requests.get(url_hist, headers=headers, timeout=5)
+        if resp.status_code == 200:
+            data = resp.json()
+            candles_data = data.get('data', {}).get('candles', [])
+            for c in candles_data:
+                ts = datetime.fromisoformat(c[0].replace('Z', '+00:00'))
+                # Avoid duplicates
+                if not any(x['timestamp'] == ts for x in candles):
+                    candles.append({
+                        'timestamp': ts,
+                        'open': float(c[1]),
+                        'high': float(c[2]),
+                        'low': float(c[3]),
+                        'close': float(c[4]),
+                        'volume': float(c[5]) if len(c) > 5 else 0.0
+                    })
+        else:
+            if "Invalid Instrument key" in resp.text or "UDAPI100011" in resp.text:
+                log_event("Historical candles not supported for expired/invalid contract.", "WARNING")
+    except Exception as e:
+        log_event(f"Historical candle fetch failed: {e}", "WARNING")
+
+    # Sort candles ascending by timestamp
+    candles = sorted(candles, key=lambda x: x['timestamp'])
+    return candles
 
 def resample_candles(candles, target_interval):
     if target_interval not in ['5minute', '15minute']:
@@ -827,12 +859,15 @@ def resample_candles(candles, target_interval):
     rule = rule_map[target_interval]
     df = pd.DataFrame(candles)
     df.set_index('timestamp', inplace=True)
-    ohlc = df.resample(rule).agg({
+    agg_dict = {
         'open': 'first',
         'high': 'max',
         'low': 'min',
         'close': 'last'
-    }).dropna()
+    }
+    if 'volume' in df.columns:
+        agg_dict['volume'] = 'sum'
+    ohlc = df.resample(rule).agg(agg_dict).dropna()
     ohlc.reset_index(inplace=True)
     return ohlc.to_dict('records')
 
@@ -1012,7 +1047,8 @@ def rebuild_telemetry_candles():
                     'open': round(float(row['open']), 2),
                     'high': round(float(row['high']), 2),
                     'low': round(float(row['low']), 2),
-                    'close': round(float(row['close']), 2)
+                    'close': round(float(row['close']), 2),
+                    'volume': float(row.get('volume', 0.0))
                 })
             HEIKIN_ASHI_CANDLES = new_candles
         except Exception as e:
@@ -1026,7 +1062,8 @@ def rebuild_telemetry_candles():
                 'open': round(float(c['open']), 2),
                 'high': round(float(c['high']), 2),
                 'low': round(float(c['low']), 2),
-                'close': round(float(c['close']), 2)
+                'close': round(float(c['close']), 2),
+                'volume': float(c.get('volume', 0.0))
             })
 
 current_feed = None
@@ -1144,6 +1181,468 @@ def get_options_metadata(exchange: str = 'NSE', index: str = 'NIFTY'):
         "atm_strike": atm_strike,
         "strikes": strikes
     }
+
+@app.get('/api/options/chain')
+def get_options_chain(expiry: str, index: str = 'NIFTY', exchange: str = 'NSE'):
+    sync_nifty_options_csv()
+    if not os.path.exists(CSV_PATH):
+        raise HTTPException(status_code=404, detail="CSV file missing")
+        
+    df = pd.read_csv(CSV_PATH)
+    segment = "NSE_FO" if exchange == "NSE" else "BSE_FO"
+    
+    sub_df = df[
+        (df['segment'] == segment) & 
+        (df['name'] == index)
+    ].copy()
+    if sub_df.empty:
+        return {"spot_price": 0.0, "strikes": []}
+        
+    sub_df['expiry_date'] = pd.to_datetime(sub_df['expiry'], unit='ms').dt.strftime('%Y-%m-%d')
+    filtered = sub_df[sub_df['expiry_date'] == expiry]
+    if filtered.empty:
+        return {"spot_price": 0.0, "strikes": []}
+        
+    underlying_keys_map = {
+        "NIFTY": "NSE_INDEX|Nifty 50",
+        "BANKNIFTY": "NSE_INDEX|Nifty Bank",
+        "FINNIFTY": "NSE_INDEX|Nifty Fin Service",
+        "MIDCPNIFTY": "NSE_INDEX|NIFTY MID SELECT",
+        "SENSEX": "BSE_INDEX|SENSEX",
+        "BANKEX": "BSE_INDEX|BANKEX"
+    }
+    underlying_key = underlying_keys_map.get(index, "NSE_INDEX|Nifty 50")
+    spot_price = get_index_spot_price(underlying_key)
+    
+    all_strikes = sorted(filtered['strike_price'].dropna().unique())
+    if not all_strikes:
+        return {"spot_price": spot_price, "strikes": []}
+        
+    if spot_price > 0:
+        closest_strike = min(all_strikes, key=lambda x: abs(x - spot_price))
+        idx = all_strikes.index(closest_strike)
+        start_idx = max(0, idx - 8)
+        end_idx = min(len(all_strikes), idx + 9)
+        selected_strikes = all_strikes[start_idx:end_idx]
+    else:
+        selected_strikes = all_strikes[:15]
+        
+    keys_to_fetch = []
+    strike_data = {}
+    for s in selected_strikes:
+        strike_data[s] = {"strike": s, "ce_ltp": 0.0, "pe_ltp": 0.0, "ce_key": None, "pe_key": None, "ce_symbol": None, "pe_symbol": None}
+        
+    for _, row in filtered.iterrows():
+        s = row['strike_price']
+        if s in strike_data:
+            itype = row['instrument_type']
+            key = row['instrument_key']
+            sym = row['trading_symbol']
+            if itype == 'CE':
+                strike_data[s]['ce_key'] = key
+                strike_data[s]['ce_symbol'] = sym
+                keys_to_fetch.append(key)
+            elif itype == 'PE':
+                strike_data[s]['pe_key'] = key
+                strike_data[s]['pe_symbol'] = sym
+                keys_to_fetch.append(key)
+                
+    token = load_upstox_token()
+    if token and keys_to_fetch:
+        encoded_keys = ",".join(keys_to_fetch)
+        url = f"https://api.upstox.com/v2/market-quote/ltp?instrument_key={urllib.parse.quote(encoded_keys)}"
+        headers = {"Accept": "application/json", "Authorization": f"Bearer {token}"}
+        try:
+            resp = requests.get(url, headers=headers, timeout=10)
+            if resp.status_code == 200:
+                ltp_data = resp.json().get("data", {})
+                token_to_ltp = {}
+                for k, v in ltp_data.items():
+                    tok = v.get("instrument_token")
+                    if tok:
+                        token_to_ltp[tok] = float(v.get("last_price", 0.0))
+                for s, data in strike_data.items():
+                    ce_k = data['ce_key']
+                    pe_k = data['pe_key']
+                    if ce_k in token_to_ltp:
+                        data['ce_ltp'] = token_to_ltp[ce_k]
+                    if pe_k in token_to_ltp:
+                        data['pe_ltp'] = token_to_ltp[pe_k]
+        except Exception as e:
+            log_event(f"Error fetching option chain LTPs: {e}", "ERROR")
+            
+    atm_strike = 0.0
+    if spot_price > 0:
+        step = 100
+        if index in ["NIFTY", "MIDCPNIFTY"]:
+            step = 50
+        elif index in ["FINNIFTY", "BANKEX"]:
+            step = 100
+        elif index in ["BANKNIFTY", "SENSEX"]:
+            step = 100
+        else:
+            if spot_price < 200:
+                step = 2.5
+            elif spot_price < 500:
+                step = 5
+            elif spot_price < 1000:
+                step = 10
+            elif spot_price < 2500:
+                step = 20
+            else:
+                step = 50
+        atm_strike = round(spot_price / step) * step
+
+    return {
+        "spot_price": spot_price,
+        "atm_strike": atm_strike,
+        "strikes": [strike_data[s] for s in selected_strikes]
+    }
+
+@app.get('/api/broker/profile')
+def get_broker_profile():
+    token = load_upstox_token()
+    if not token:
+        raise HTTPException(status_code=401, detail="Token Expired: No upstox token found.")
+    
+    url = "https://api.upstox.com/v2/user/profile"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json"
+    }
+    try:
+        resp = requests.get(url, headers=headers, timeout=10)
+        if resp.status_code != 200:
+            try:
+                err_detail = resp.json()
+            except:
+                err_detail = resp.text
+            raise HTTPException(status_code=resp.status_code, detail=str(err_detail))
+        return resp.json()
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=503, detail=f"Upstox connection failed: {e}")
+
+@app.get('/api/broker/funds')
+def get_broker_funds():
+    token = load_upstox_token()
+    if not token:
+        raise HTTPException(status_code=401, detail="Token Expired: No upstox token found.")
+    
+    url = "https://api.upstox.com/v2/user/get-funds-and-margin?segment=SEC"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json"
+    }
+    try:
+        resp = requests.get(url, headers=headers, timeout=10)
+        if resp.status_code != 200:
+            try:
+                err_detail = resp.json()
+            except:
+                err_detail = resp.text
+            raise HTTPException(status_code=resp.status_code, detail=str(err_detail))
+        return resp.json()
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=503, detail=f"Upstox connection failed: {e}")
+
+@app.get('/api/broker/positions')
+def get_broker_positions():
+    token = load_upstox_token()
+    if not token:
+        raise HTTPException(status_code=401, detail="Token Expired: No upstox token found.")
+    
+    url = "https://api.upstox.com/v2/portfolio/short-term-positions"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json"
+    }
+    try:
+        resp = requests.get(url, headers=headers, timeout=10)
+        if resp.status_code != 200:
+            try:
+                err_detail = resp.json()
+            except:
+                err_detail = resp.text
+            raise HTTPException(status_code=resp.status_code, detail=str(err_detail))
+        return resp.json()
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=503, detail=f"Upstox connection failed: {e}")
+
+@app.get('/api/broker/orders')
+def get_broker_orders():
+    token = load_upstox_token()
+    if not token:
+        raise HTTPException(status_code=401, detail="Token Expired: No upstox token found.")
+    
+    url = "https://api.upstox.com/v2/order/retrieve-all"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json"
+    }
+    try:
+        resp = requests.get(url, headers=headers, timeout=10)
+        if resp.status_code != 200:
+            try:
+                err_detail = resp.json()
+            except:
+                err_detail = resp.text
+            raise HTTPException(status_code=resp.status_code, detail=str(err_detail))
+        return resp.json()
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=503, detail=f"Upstox connection failed: {e}")
+
+@app.get('/api/broker/trades')
+def get_broker_trades():
+    token = load_upstox_token()
+    if not token:
+        raise HTTPException(status_code=401, detail="Token Expired: No upstox token found.")
+    
+    url = "https://api.upstox.com/v2/order/trades/get-trades-for-day"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json"
+    }
+    try:
+        resp = requests.get(url, headers=headers, timeout=10)
+        if resp.status_code != 200:
+            try:
+                err_detail = resp.json()
+            except:
+                err_detail = resp.text
+            raise HTTPException(status_code=resp.status_code, detail=str(err_detail))
+        return resp.json()
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=503, detail=f"Upstox connection failed: {e}")
+
+@app.get('/api/broker/holdings')
+def get_broker_holdings():
+    token = load_upstox_token()
+    if not token:
+        raise HTTPException(status_code=401, detail="Token Expired: No upstox token found.")
+    
+    url = "https://api.upstox.com/v2/portfolio/long-term-holdings"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json"
+    }
+    try:
+        resp = requests.get(url, headers=headers, timeout=10)
+        if resp.status_code != 200:
+            try:
+                err_detail = resp.json()
+            except:
+                err_detail = resp.text
+            raise HTTPException(status_code=resp.status_code, detail=str(err_detail))
+        return resp.json()
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=503, detail=f"Upstox connection failed: {e}")
+
+class MarginRequestModel(BaseModel):
+    instrument_key: str
+    quantity: int
+    transaction_type: str
+    product: str
+
+class BrokerOrderModel(BaseModel):
+    instrument_key: str
+    quantity: int
+    transaction_type: str  # BUY or SELL
+    order_type: str         # MARKET or LIMIT
+    product: str            # MIS, NRML, CNC
+    price: float = 0.0      # 0 for MARKET
+    trigger_price: float = 0.0
+    validity: str = "DAY"
+    tag: str = "valkyrie_manual"
+
+@app.post('/api/broker/place_order')
+def place_broker_order(req: BrokerOrderModel):
+    token = load_upstox_token()
+    if not token:
+        raise HTTPException(status_code=401, detail="Token Expired: No upstox token found.")
+
+    # Map product codes to Upstox format
+    prod_map = {"MIS": "I", "NRML": "D", "CNC": "D"}
+    upstox_product = prod_map.get(req.product, req.product)
+
+    url = "https://api.upstox.com/v2/order/place"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    }
+    payload = {
+        "instrument_token": req.instrument_key,
+        "quantity": req.quantity,
+        "transaction_type": req.transaction_type,
+        "order_type": req.order_type,
+        "product": upstox_product,
+        "price": req.price,
+        "trigger_price": req.trigger_price,
+        "validity": req.validity,
+        "tag": req.tag,
+        "is_amo": False,
+        "slice": False
+    }
+    log_event(f"Placing broker order: {payload}", "INFO")
+    try:
+        resp = requests.post(url, json=payload, headers=headers, timeout=15)
+        resp_json = resp.json()
+        if resp.status_code != 200:
+            log_event(f"Broker order failed: {resp_json}", "ERROR")
+            raise HTTPException(status_code=resp.status_code, detail=str(resp_json))
+        log_event(f"Broker order placed: {resp_json}", "INFO")
+        return resp_json
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=503, detail=f"Upstox connection failed: {e}")
+
+
+
+@app.post('/api/broker/margin')
+def get_broker_order_margin(req: MarginRequestModel):
+    token = load_upstox_token()
+    if not token:
+        raise HTTPException(status_code=401, detail="Token Expired: No upstox token found.")
+    
+    url = "https://api.upstox.com/v2/charges/margin"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    }
+    
+    prod = req.product
+    if prod == "MIS":
+        upstox_product = "I"
+    elif prod in ["NRML", "CNC"]:
+        upstox_product = "D"
+    else:
+        upstox_product = req.product
+        
+    payload = {
+        "instruments": [
+            {
+                "instrument_key": req.instrument_key,
+                "quantity": req.quantity,
+                "transaction_type": req.transaction_type,
+                "product": upstox_product
+            }
+        ]
+    }
+    
+    try:
+        resp = requests.post(url, json=payload, headers=headers, timeout=10)
+        if resp.status_code != 200:
+            try:
+                err_detail = resp.json()
+            except:
+                err_detail = resp.text
+            raise HTTPException(status_code=resp.status_code, detail=str(err_detail))
+        return resp.json()
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=503, detail=f"Upstox connection failed: {e}")
+
+TF_TO_UPSTOX = {
+    "1m": "1minute",
+    "3m": "1minute",    # fetch 1m then resample to 3m
+    "5m": "30minute",   # closest; resample to 5m  
+    "15m": "30minute",  # resample to 15m
+    "1h": "30minute",   # resample to 60m
+    "1d": "day"
+}
+TF_RESAMPLE = {
+    "3m": "3min", "5m": "5min", "15m": "15min", "1h": "60min"
+}
+
+@app.get('/api/broker/candles')
+def get_broker_candles(instrument_key: str, timeframe: str = "1m", days: int = 3):
+    token = load_upstox_token()
+    if not token:
+        raise HTTPException(status_code=401, detail="Token Expired: No upstox token found.")
+    upstox_tf = TF_TO_UPSTOX.get(timeframe, "1minute")
+    to_date = datetime.now()
+    from_date = to_date - timedelta(days=max(days, 1))
+    try:
+        candles = fetch_historical_candles(instrument_key, upstox_tf, from_date, to_date)
+        if timeframe in TF_RESAMPLE and candles:
+            import pandas as pd
+            df = pd.DataFrame(candles)
+            df.set_index("timestamp", inplace=True)
+            agg = {"open": "first", "high": "max", "low": "min", "close": "last", "volume": "sum"}
+            df = df.resample(TF_RESAMPLE[timeframe]).agg({k: v for k, v in agg.items() if k in df.columns}).dropna()
+            df.reset_index(inplace=True)
+            candles = df.to_dict("records")
+        formatted = []
+        for c in candles:
+            ts = c["timestamp"]
+            if hasattr(ts, "timestamp"):
+                epoch = int(ts.timestamp())
+            else:
+                epoch = int(ts)
+            formatted.append({
+                "time": epoch,
+                "open": float(c["open"]),
+                "high": float(c["high"]),
+                "low": float(c["low"]),
+                "close": float(c["close"]),
+                "volume": float(c.get("volume", 0))
+            })
+        return {"status": "success", "data": formatted, "count": len(formatted)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get('/api/broker/instrument_info')
+def get_broker_instrument_info(instrument_key: str):
+    # Try looking up in nifty_options.csv
+    try:
+        if os.path.exists(CSV_PATH):
+            df = pd.read_csv(CSV_PATH)
+            matches = df[df['instrument_key'] == instrument_key]
+            if not matches.empty:
+                row = matches.iloc[0]
+                lot_size = int(row.get('lot_size', 1))
+                if pd.isna(lot_size):
+                    lot_size = 1
+                return {"status": "success", "lot_size": lot_size, "trading_symbol": row.get("trading_symbol")}
+    except Exception as e:
+        pass
+        
+    # Standard index/contract fallbacks
+    key_upper = instrument_key.upper()
+    if "BANK" in key_upper:
+        return {"status": "success", "lot_size": 15}
+    elif "FIN" in key_upper:
+        return {"status": "success", "lot_size": 40}
+    elif "MID" in key_upper:
+        return {"status": "success", "lot_size": 75}
+    elif "NIFTY" in key_upper:
+        return {"status": "success", "lot_size": 75}
+    # Equities / stocks
+    return {"status": "success", "lot_size": 1}
+
+
+@app.get('/api/broker/quotes')
+
+def get_broker_quotes(instrument_key: str):
+    token = load_upstox_token()
+    if not token:
+        raise HTTPException(status_code=401, detail="Token Expired: No upstox token found.")
+    
+    url = f"https://api.upstox.com/v2/market-quote/quotes?instrument_key={urllib.parse.quote(instrument_key)}"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json"
+    }
+    try:
+        resp = requests.get(url, headers=headers, timeout=10)
+        if resp.status_code != 200:
+            try:
+                err_detail = resp.json()
+            except:
+                err_detail = resp.text
+            raise HTTPException(status_code=resp.status_code, detail=str(err_detail))
+        return resp.json()
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=503, detail=f"Upstox connection failed: {e}")
 
 class ChartConfigModel(BaseModel):
     interval: str = "1minute"

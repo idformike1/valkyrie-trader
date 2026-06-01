@@ -149,11 +149,19 @@ interface BacktestStoreState {
   isBacktestLoading: boolean;
   isOptimizationLoading: boolean;
   selectedInspectorParams: Record<string, any> | null;
+  selectedTradeId: string | null;
+  isReplayMode: boolean;
+  replayTradeId: string | null;
+  replayCurrentTime: number | null;
 
   setV2Config: (config: Partial<V2Config>) => void;
   runV2Backtest: (overrideConfig?: Partial<V2Config>) => Promise<boolean>;
   runV2Optimization: (ranges: any[], maxWorkers?: number) => Promise<boolean>;
   setSelectedInspectorParams: (params: Record<string, any> | null) => void;
+  setSelectedTradeId: (id: string | null) => void;
+  setIsReplayMode: (active: boolean) => void;
+  setReplayTradeId: (id: string | null) => void;
+  setReplayCurrentTime: (time: number | null) => void;
   resetResult: () => void;
 }
 
@@ -182,6 +190,10 @@ export const useBacktestStore = create<BacktestStoreState>((set, get) => ({
   isBacktestLoading: false,
   isOptimizationLoading: false,
   selectedInspectorParams: null,
+  selectedTradeId: null,
+  isReplayMode: false,
+  replayTradeId: null,
+  replayCurrentTime: null,
 
   setV2Config: (config) => {
     set((state) => ({
@@ -256,6 +268,17 @@ export const useBacktestStore = create<BacktestStoreState>((set, get) => ({
   },
 
   setSelectedInspectorParams: (params) => set({ selectedInspectorParams: params }),
+  setSelectedTradeId: (id) => set({ selectedTradeId: id }),
+  setIsReplayMode: (active) => set({ isReplayMode: active }),
+  setReplayTradeId: (id) => set({ replayTradeId: id }),
+  setReplayCurrentTime: (time) => set({ replayCurrentTime: time }),
   
-  resetResult: () => set({ v2BacktestResult: null, selectedInspectorParams: null })
+  resetResult: () => set({ 
+    v2BacktestResult: null, 
+    selectedInspectorParams: null, 
+    selectedTradeId: null, 
+    isReplayMode: false, 
+    replayTradeId: null, 
+    replayCurrentTime: null 
+  })
 }));

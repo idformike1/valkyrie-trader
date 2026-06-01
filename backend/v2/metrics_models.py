@@ -53,6 +53,7 @@ class MetricsReport(BaseModel):
     absolute_return_pct: float = Field(..., description="Absolute return percentage of capital")
     net_return_pct: float = Field(..., description="Net return percentage of capital")
     capital_growth_pct: float = Field(..., description="Capital growth percentage")
+    cagr: float = Field(..., description="Compound Annual Growth Rate (%)")
     sharpe_ratio: float = Field(..., description="Sharpe ratio")
     sortino_ratio: float = Field(..., description="Sortino ratio")
     grade: str = Field(..., description="Performance grade (A+, A, B, C, D, F)")

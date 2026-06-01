@@ -8,10 +8,16 @@ import CommandPalette from "@/components/shell/CommandPalette";
 import WorkspaceHost from "@/components/workspace/WorkspaceHost";
 import { useSidebarStore } from "@/store/useSidebarStore";
 import { useEventStore } from "@/store/useEventStore";
+import { useThemeStore } from "@/store/useThemeStore";
 
 export default function ValkyrieCommandRoom() {
   const isCollapsed = useSidebarStore((state) => state.isCollapsed);
   const addEvent = useEventStore((state) => state.addEvent);
+  const theme = useThemeStore((state) => state.theme);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
 
   // Dispatch an initialization event on load
   useEffect(() => {
@@ -23,29 +29,23 @@ export default function ValkyrieCommandRoom() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen w-full bg-bg-deep text-text-main font-sans overflow-hidden">
-      {/* Top Fixed Header */}
-      <Header />
+    <div className="flex flex-row min-h-screen w-full bg-bg-deep text-text-main font-sans overflow-hidden">
+      {/* Collapsible Left Sidebar (Full Height Column) */}
+      <Sidebar />
 
-      {/* Main Layout Area */}
-      <div className="flex-1 flex flex-row w-full pt-11 pb-6 min-h-0 relative">
-        {/* Collapsible Left Sidebar */}
-        <Sidebar />
+      {/* Main Right Side Content Container */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen relative">
+        {/* Top Fixed Header inside Right Content Area */}
+        <Header />
 
         {/* Dynamic Workspace Container */}
-        <main
-          style={{
-            paddingLeft: isCollapsed ? "56px" : "220px",
-            transition: "padding-left 0.2s ease-in-out",
-          }}
-          className="flex-1 flex flex-col min-w-0 h-full overflow-hidden"
-        >
+        <main className="flex-1 flex flex-col min-w-0 overflow-hidden pt-10 pb-6">
           <WorkspaceHost />
         </main>
-      </div>
 
-      {/* Bottom Fixed Event Bar */}
-      <EventBar />
+        {/* Bottom Fixed Event Bar inside Right Content Area */}
+        <EventBar />
+      </div>
 
       {/* Global Command Palette Overlay (Ctrl + K) */}
       <CommandPalette />

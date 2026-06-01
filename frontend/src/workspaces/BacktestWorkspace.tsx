@@ -3,22 +3,24 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createChart, IChartApi, ISeriesApi, UTCTimestamp, CandlestickSeries, AreaSeries, createSeriesMarkers } from "lightweight-charts";
 import { 
-  Play, Activity, Terminal, Shield, Cpu, RefreshCw, BarChart2,
+  Play, Pause, RotateCcw, ChevronLeft, ChevronRight, Activity, Terminal, Shield, Cpu, RefreshCw, BarChart2,
   TrendingUp, Layers, Server, Settings, Zap, ArrowUpRight, ArrowDownRight,
   Sliders, Search, Plus, Trash2, SlidersHorizontal, Lock, CheckCircle2, 
-  AlertTriangle, Filter, Calendar, DollarSign, Percent, ChevronRight, Grid, AlertCircle
+  AlertTriangle, Filter, Calendar, DollarSign, Percent, Grid, AlertCircle,
+  X
 } from "lucide-react";
 import { useTerminalStore } from "@/store/useTerminalStore";
 import { useEventStore } from "@/store/useEventStore";
 import { useBacktestStore, V2Config } from "@/store/useBacktestStore";
 import { useBackendTradingStore } from "@/services/tradingQueries";
+import { useThemeStore } from "@/store/useThemeStore";
 
 // Helper components for professional styling
 const GlowingCard: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ title, children, className = "" }) => (
-  <div className={`p-3 flex flex-col h-full bg-slate-950/40 border border-white/5 rounded-lg hover:border-cyan-500/10 transition-all ${className}`}>
-    <h3 className="text-[10px] font-bold tracking-widest text-cyan-400 uppercase border-b border-white/5 pb-1.5 mb-2.5 flex items-center justify-between">
+  <div className={`p-3 flex flex-col h-full card ${className}`}>
+    <h3 className="text-[10px] font-bold tracking-widest text-cyan-neon uppercase border-b border-white/5 pb-1.5 mb-2.5 flex items-center justify-between">
       <span>{title}</span>
-      <span className="w-1 h-1 rounded-full bg-cyan-400 animate-pulse" />
+      <span className="w-1.5 h-1.5 rounded-full bg-cyan-neon animate-pulse" />
     </h3>
     <div className="flex-1 overflow-y-auto min-h-0">{children}</div>
   </div>
@@ -178,10 +180,13 @@ export const BacktestLeft: React.FC = () => {
 // 2. MAIN PANEL: HISTORICAL CHART & RUN TOOLBAR
 // ==========================================
 export const BacktestMain: React.FC = () => {
+  const theme = useThemeStore((state) => state.theme);
   const [activeTab, setActiveTab] = useState<"overview" | "trades" | "equity" | "drawdown" | "metrics" | "optimization" | "runtime">("overview");
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
+  const tradeHighlightSeriesRef = useRef<ISeriesApi<"Area"> | null>(null);
+  const tradeMarkersPluginRef = useRef<any>(null);
 
   const selectedStrategy = useTerminalStore((state) => state.selectedStrategy);
   const addEvent = useEventStore((state) => state.addEvent);
@@ -192,6 +197,9 @@ export const BacktestMain: React.FC = () => {
   const v2BacktestResult = useBacktestStore((state) => state.v2BacktestResult);
   const v2Status = useBacktestStore((state) => state.v2Status);
   const isBacktestLoading = useBacktestStore((state) => state.isBacktestLoading);
+  const selectedTradeId = useBacktestStore((state) => state.selectedTradeId);
+  const isReplayMode = useBacktestStore((state) => state.isReplayMode);
+  const replayCurrentTime = useBacktestStore((state) => state.replayCurrentTime);
 
   const handleRunBacktest = async () => {
     if (!selectedStrategy) return;
@@ -229,11 +237,16 @@ export const BacktestMain: React.FC = () => {
       chartRef.current = null;
     }
 
+    const rootStyle = typeof window !== "undefined" ? getComputedStyle(document.documentElement) : null;
+    const bgDeep = rootStyle?.getPropertyValue("--bg-card").trim() || "#0F172A";
+    const textMute = rootStyle?.getPropertyValue("--text-mute").trim() || "#94a3b8";
+    const borderSubtle = rootStyle?.getPropertyValue("--border-subtle").trim() || "rgba(255,255,255,0.05)";
+
     const themeColors = {
-      background: "#020617",
-      text: "#94a3b8",
-      grid: "#1e293b",
-      border: "#334155",
+      background: bgDeep,
+      text: textMute,
+      grid: borderSubtle,
+      border: borderSubtle,
       emerald: "#10b981",
       rose: "#ef4444",
     };
@@ -255,10 +268,43 @@ export const BacktestMain: React.FC = () => {
         borderColor: themeColors.border,
         textColor: themeColors.text,
       },
+      localization: {
+        timeFormatter: (timestamp: number) => {
+          return new Date(timestamp * 1000).toLocaleString("en-IN", {
+            timeZone: "Asia/Kolkata",
+            hour12: false,
+          });
+        },
+      },
       timeScale: {
         borderColor: themeColors.border,
         timeVisible: true,
+        tickMarkFormatter: (time: number, tickMarkType: number, locale: string) => {
+          const date = new Date(time * 1000);
+          const options: Intl.DateTimeFormatOptions = {
+            timeZone: "Asia/Kolkata",
+            hour12: false,
+          };
+          if (tickMarkType <= 2) {
+            options.day = "numeric";
+            options.month = "short";
+          } else {
+            options.hour = "2-digit";
+            options.minute = "2-digit";
+          }
+          return date.toLocaleString("en-IN", options);
+        },
       },
+    });
+
+    const tradeHighlightSeries = chart.addSeries(AreaSeries, {
+      topColor: "rgba(6, 182, 212, 0.15)",
+      bottomColor: "rgba(6, 182, 212, 0.01)",
+      lineColor: "rgba(6, 182, 212, 0.5)",
+      lineWidth: 2,
+      priceLineVisible: false,
+      lastValueVisible: false,
+      crosshairMarkerVisible: false,
     });
 
     const candleSeries = chart.addSeries(CandlestickSeries, {
@@ -281,27 +327,15 @@ export const BacktestMain: React.FC = () => {
         }))
         .sort((a, b) => a.time - b.time);
       candleSeries.setData(priceData);
-
-      // Render actual execution trade markers
-      if (v2BacktestResult.chart_trades) {
-        const markers = v2BacktestResult.chart_trades.map((t) => {
-          const tradeTime = Math.floor(new Date(t.timestamp).getTime() / 1000) as UTCTimestamp;
-          return {
-            time: tradeTime,
-            position: t.type === "BUY" ? ("belowBar" as const) : ("aboveBar" as const),
-            color: t.type === "BUY" ? "#10b981" : "#ef4444",
-            shape: t.type === "BUY" ? ("arrowUp" as const) : ("arrowDown" as const),
-            text: `${t.type} (${t.strike} CE)`,
-          };
-        });
-        markers.sort((a, b) => (a.time as number) - (b.time as number));
-        createSeriesMarkers(candleSeries, markers);
-      }
       chart.timeScale().fitContent();
     }
 
     chartRef.current = chart;
     candleSeriesRef.current = candleSeries;
+    tradeHighlightSeriesRef.current = tradeHighlightSeries;
+
+    const tradeMarkersPlugin = createSeriesMarkers(candleSeries, []);
+    tradeMarkersPluginRef.current = tradeMarkersPlugin;
 
     const observer = new ResizeObserver((entries) => {
       if (entries[0] && chartRef.current) {
@@ -320,11 +354,133 @@ export const BacktestMain: React.FC = () => {
     };
   }, [v2BacktestResult]);
 
+  // Synchronize selected trade highlighting and zoom
+  useEffect(() => {
+    if (!chartRef.current || !candleSeriesRef.current || !v2BacktestResult) return;
+
+    // 1. Handle progressive candle visibility in Replay Mode
+    if (isReplayMode && replayCurrentTime) {
+      const filteredPriceData = v2BacktestResult.candles
+        .filter(c => c.time <= replayCurrentTime)
+        .map((c) => ({
+          time: c.time as UTCTimestamp,
+          open: c.open,
+          high: c.high,
+          low: c.low,
+          close: c.close,
+        }))
+        .sort((a, b) => a.time - b.time);
+      candleSeriesRef.current.setData(filteredPriceData);
+    } else {
+      // Revert to all candles if we exit replay mode
+      if (v2BacktestResult.candles) {
+        const priceData = v2BacktestResult.candles
+          .map((c) => ({
+            time: c.time as UTCTimestamp,
+            open: c.open,
+            high: c.high,
+            low: c.low,
+            close: c.close,
+          }))
+          .sort((a, b) => a.time - b.time);
+        candleSeriesRef.current.setData(priceData);
+      }
+    }
+
+    // 2. Handle progressive marker visibility and descriptive labels
+    if (v2BacktestResult.chart_trades) {
+      const markers = v2BacktestResult.chart_trades
+        .filter((t) => {
+          if (isReplayMode && replayCurrentTime) {
+            const tradeTime = Math.floor(new Date(t.timestamp).getTime() / 1000);
+            return tradeTime <= replayCurrentTime;
+          }
+          return true;
+        })
+        .map((t) => {
+          const tradeTime = Math.floor(new Date(t.timestamp).getTime() / 1000) as UTCTimestamp;
+          const isSelectedEntry = selectedTradeId && t.id === `${selectedTradeId}_entry`;
+          const isSelectedExit = selectedTradeId && t.id === `${selectedTradeId}_exit`;
+          const isSelected = isSelectedEntry || isSelectedExit;
+
+          let markerText = "";
+          if (isSelected) {
+            const selectedTrade = v2BacktestResult.trades.find(x => x.position_id === selectedTradeId);
+            if (t.type === "BUY") {
+              markerText = `🎯 ENTRY ₹${selectedTrade?.entry_premium?.toFixed(2) ?? "0.00"}`;
+            } else {
+              markerText = `🎯 EXIT ₹${selectedTrade?.exit_premium?.toFixed(2) ?? "0.00"} (${(selectedTrade?.net_pnl ?? 0) >= 0 ? "+" : ""}₹${selectedTrade?.net_pnl?.toFixed(2) ?? "0.00"})`;
+            }
+          } else {
+            markerText = `${t.type} (${t.strike} CE)`;
+          }
+
+          return {
+            time: tradeTime,
+            position: t.type === "BUY" ? ("belowBar" as const) : ("aboveBar" as const),
+            color: isSelected 
+              ? "#06b6d4" // Bright Cyan for selected trade
+              : t.type === "BUY" ? "#10b981" : "#ef4444",
+            shape: t.type === "BUY" ? ("arrowUp" as const) : ("arrowDown" as const),
+            text: markerText,
+          };
+        });
+      markers.sort((a, b) => (a.time as number) - (b.time as number));
+      tradeMarkersPluginRef.current?.setMarkers(markers);
+    }
+
+    // 3. Handle Chart Zoom and Auto-scroll behavior
+    if (selectedTradeId && v2BacktestResult.trades) {
+      const selectedTrade = v2BacktestResult.trades.find(t => t.position_id === selectedTradeId);
+      if (selectedTrade) {
+        const entryTime = Math.floor(new Date(selectedTrade.entry_time).getTime() / 1000);
+        const exitTime = Math.floor(new Date(selectedTrade.exit_time).getTime() / 1000);
+
+        try {
+          if (isReplayMode && replayCurrentTime) {
+            // Replay Mode: Auto-scroll & keep current candle focused near the center
+            const visibleWindow = 40; // show 40 candles total
+            const timeStep = 60; // 1-minute steps
+            chartRef.current.timeScale().setVisibleRange({
+              from: (replayCurrentTime - visibleWindow * timeStep) as UTCTimestamp,
+              to: (replayCurrentTime + 10 * timeStep) as UTCTimestamp,
+            });
+          } else {
+            // Standard Mode: Fit entire trade with padding
+            const duration = exitTime - entryTime;
+            const padding = Math.max(duration * 3, 3600); // at least 1 hour padding or 3x duration
+            chartRef.current.timeScale().setVisibleRange({
+              from: (entryTime - padding) as UTCTimestamp,
+              to: (exitTime + padding) as UTCTimestamp,
+            });
+          }
+        } catch (err) {
+          console.warn("Timescale setVisibleRange deferred due to uninitialized state:", err);
+        }
+
+        // 4. Set active period area shading dynamically (grows with replayCurrentTime in replay mode)
+        if (v2BacktestResult.candles && tradeHighlightSeriesRef.current) {
+          const highlightLimit = (isReplayMode && replayCurrentTime) ? replayCurrentTime : exitTime;
+          const highlightData = v2BacktestResult.candles
+            .filter(c => c.time >= entryTime && c.time <= highlightLimit)
+            .map(c => ({
+              time: c.time as UTCTimestamp,
+              value: c.close
+            }))
+            .sort((a, b) => a.time - b.time);
+          tradeHighlightSeriesRef.current.setData(highlightData);
+        }
+      }
+    } else {
+      tradeHighlightSeriesRef.current?.setData([]);
+    }
+  }, [selectedTradeId, v2BacktestResult, isReplayMode, replayCurrentTime, theme]);
+
   return (
-    <div className="flex flex-col h-full bg-slate-950/60 border border-white/5 rounded-lg overflow-hidden font-sans text-xs">
+    <div className="flex flex-col h-full panel overflow-hidden font-sans text-xs">
       
       {/* Run Parameter Toolbar */}
-      <div className="flex items-center justify-between px-3 py-2 bg-slate-900/50 border-b border-white/5 select-none shrink-0 flex-wrap gap-2">
+      <div className="flex items-center justify-between px-3 py-2 bg-card-hover border-b border-subtle select-none shrink-0 flex-wrap gap-2">
         <div className="flex items-center gap-3">
           <div className="flex flex-col gap-0.5">
             <span className="text-[8px] text-slate-500 font-bold uppercase">Active Strategy</span>
@@ -333,7 +489,7 @@ export const BacktestMain: React.FC = () => {
             </span>
           </div>
 
-          <div className="h-6 w-px bg-white/5" />
+          <div className="h-6 w-px border-l border-subtle" />
 
           {/* Date Picker */}
           <div className="flex flex-col gap-0.5">
@@ -342,7 +498,7 @@ export const BacktestMain: React.FC = () => {
               type="date"
               value={v2Config.start_date}
               onChange={(e) => setV2Config({ start_date: e.target.value })}
-              className="bg-slate-900/80 border border-white/10 rounded px-1.5 py-0.5 text-[10px] text-slate-300 focus:outline-none font-mono"
+              className="input font-mono rounded px-1.5 py-0.5 text-[10px] bg-deep"
             />
           </div>
 
@@ -352,7 +508,7 @@ export const BacktestMain: React.FC = () => {
               type="date"
               value={v2Config.end_date}
               onChange={(e) => setV2Config({ end_date: e.target.value })}
-              className="bg-slate-900/80 border border-white/10 rounded px-1.5 py-0.5 text-[10px] text-slate-300 focus:outline-none font-mono"
+              className="input font-mono rounded px-1.5 py-0.5 text-[10px] bg-deep"
             />
           </div>
         </div>
@@ -362,17 +518,17 @@ export const BacktestMain: React.FC = () => {
           {isBacktestLoading ? (
             <div className="flex items-center gap-2">
               <div className="w-20 bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                <div style={{ width: `${v2Status.progress}%` }} className="bg-cyan-400 h-full transition-all duration-300" />
+                <div style={{ width: `${v2Status.progress}%` }} className="bg-cyan-neon h-full transition-all duration-300" />
               </div>
-              <span className="text-[9px] font-mono text-cyan-400 font-bold">{v2Status.progress}%</span>
+              <span className="text-[9px] font-mono text-cyan-neon font-bold">{v2Status.progress}%</span>
             </div>
           ) : (
             <button
               onClick={handleRunBacktest}
               disabled={!selectedStrategy}
-              className="bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-950 font-bold px-3 py-1 rounded transition-all cursor-pointer text-center flex items-center gap-1.5 tracking-wider uppercase text-[10px]"
+              className="button-primary disabled:opacity-50 px-3 py-1 rounded text-center flex items-center gap-1.5 tracking-wider uppercase text-[10px]"
             >
-              <Play className="w-3 h-3 fill-slate-950" />
+              <Play className="w-3 h-3 fill-current" />
               Run Backtest
             </button>
           )}
@@ -425,7 +581,7 @@ export const BacktestRight: React.FC = () => {
             <select
               value={v2Config.underlying_instrument_key}
               onChange={(e) => setV2Config({ underlying_instrument_key: e.target.value })}
-              className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all cursor-pointer font-medium"
+              className="input cursor-pointer font-medium"
             >
               <option value="NSE_INDEX|Nifty 50">NIFTY 50</option>
               <option value="NSE_INDEX|Nifty Bank">BANKNIFTY</option>
@@ -438,7 +594,7 @@ export const BacktestRight: React.FC = () => {
             <select
               value={v2Config.signal_source}
               onChange={(e) => setV2Config({ signal_source: e.target.value })}
-              className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all cursor-pointer font-medium"
+              className="input cursor-pointer font-medium"
             >
               <option value="SPOT">Spot Price</option>
               <option value="FUTURES">Futures underlying</option>
@@ -450,7 +606,7 @@ export const BacktestRight: React.FC = () => {
             <select
               value={v2Config.timeframe}
               onChange={(e) => setV2Config({ timeframe: e.target.value })}
-              className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all cursor-pointer font-mono font-medium"
+              className="input cursor-pointer font-mono font-medium"
             >
               <option value="10s">10 seconds</option>
               <option value="30s">30 seconds</option>
@@ -468,7 +624,7 @@ export const BacktestRight: React.FC = () => {
             <select
               value={v2Config.option_type_preference}
               onChange={(e) => setV2Config({ option_type_preference: e.target.value })}
-              className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all cursor-pointer font-medium"
+              className="input cursor-pointer font-medium"
             >
               <option value="DYNAMIC">Dynamic CE/PE</option>
               <option value="CE_ONLY">Call Options Only</option>
@@ -481,7 +637,7 @@ export const BacktestRight: React.FC = () => {
             <select
               value={v2Config.strike_mode}
               onChange={(e) => setV2Config({ strike_mode: e.target.value })}
-              className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all cursor-pointer font-medium"
+              className="input cursor-pointer font-medium"
             >
               <option value="ATM">ATM (At-The-Money)</option>
               <option value="OTM_1">OTM +1 Strike</option>
@@ -498,7 +654,7 @@ export const BacktestRight: React.FC = () => {
             <select
               value={v2Config.expiry_mode}
               onChange={(e) => setV2Config({ expiry_mode: e.target.value })}
-              className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all cursor-pointer font-medium"
+              className="input cursor-pointer font-medium"
             >
               <option value="CURRENT_WEEKLY">Current Weekly</option>
               <option value="NEXT_WEEKLY">Next Weekly</option>
@@ -512,7 +668,7 @@ export const BacktestRight: React.FC = () => {
               type="number"
               value={v2Config.initial_capital}
               onChange={(e) => setV2Config({ initial_capital: Number(e.target.value) })}
-              className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium"
+              className="input font-mono font-medium"
             />
           </div>
 
@@ -522,7 +678,7 @@ export const BacktestRight: React.FC = () => {
               type="number"
               value={v2Config.lot_multiplier}
               onChange={(e) => setV2Config({ lot_multiplier: Number(e.target.value) })}
-              className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium"
+              className="input font-mono font-medium"
             />
           </div>
         </div>
@@ -620,7 +776,7 @@ export const BacktestRight: React.FC = () => {
                   type="number"
                   value={v2Config.brokerage_flat}
                   onChange={(e) => setV2Config({ brokerage_flat: Number(e.target.value) })}
-                  className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium"
+                  className="input font-mono font-medium"
                 />
               </div>
 
@@ -631,7 +787,7 @@ export const BacktestRight: React.FC = () => {
                   step="0.01"
                   value={v2Config.slippage_pct}
                   onChange={(e) => setV2Config({ slippage_pct: Number(e.target.value) })}
-                  className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium"
+                  className="input font-mono font-medium"
                 />
               </div>
             </div>
@@ -664,6 +820,54 @@ export const BacktestBottom: React.FC = () => {
   const v2Config = useBacktestStore((state) => state.v2Config);
   const selectedInspectorParams = useBacktestStore((state) => state.selectedInspectorParams);
   const setSelectedInspectorParams = useBacktestStore((state) => state.setSelectedInspectorParams);
+  const selectedTradeId = useBacktestStore((state) => state.selectedTradeId);
+  const setSelectedTradeId = useBacktestStore((state) => state.setSelectedTradeId);
+  const isReplayMode = useBacktestStore((state) => state.isReplayMode);
+  const setIsReplayMode = useBacktestStore((state) => state.setIsReplayMode);
+  const setReplayTradeId = useBacktestStore((state) => state.setReplayTradeId);
+  const replayCurrentTime = useBacktestStore((state) => state.replayCurrentTime);
+  const setReplayCurrentTime = useBacktestStore((state) => state.setReplayCurrentTime);
+
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [playSpeed, setPlaySpeed] = useState<1 | 2 | 5 | 10>(1);
+
+  // Compute trade candles & replay timeline dynamically
+  const replayTrade = React.useMemo(() => {
+    return v2Result?.trades.find(t => t.position_id === selectedTradeId);
+  }, [v2Result, selectedTradeId]);
+
+  const replayTimeline = React.useMemo(() => {
+    if (!replayTrade || !v2Result?.candles) return [];
+    const entryTime = Math.floor(new Date(replayTrade.entry_time).getTime() / 1000);
+    const exitTime = Math.floor(new Date(replayTrade.exit_time).getTime() / 1000);
+    return v2Result.candles
+      .filter(c => c.time >= entryTime && c.time <= exitTime)
+      .map(c => c.time)
+      .sort((a, b) => a - b);
+  }, [replayTrade, v2Result]);
+
+  // Replay interval timer
+  useEffect(() => {
+    if (!isPlaying || !isReplayMode || !replayTimeline.length) return;
+
+    const intervalMs = playSpeed === 1 ? 1000 : playSpeed === 2 ? 500 : playSpeed === 5 ? 200 : 100;
+
+    const timer = setInterval(() => {
+      const prev = useBacktestStore.getState().replayCurrentTime;
+      if (prev === null) {
+        if (replayTimeline.length > 0) setReplayCurrentTime(replayTimeline[0]);
+      } else {
+        const idx = replayTimeline.indexOf(prev);
+        if (idx < replayTimeline.length - 1) {
+          setReplayCurrentTime(replayTimeline[idx + 1]);
+        } else {
+          setIsPlaying(false);
+        }
+      }
+    }, intervalMs);
+
+    return () => clearInterval(timer);
+  }, [isPlaying, playSpeed, isReplayMode, replayTimeline, setReplayCurrentTime]);
 
   // Optimization Parameter Ranges (Local Form State)
   const [fastEmaStart, setFastEmaStart] = useState(2);
@@ -680,6 +884,15 @@ export const BacktestBottom: React.FC = () => {
   const [heatmapMetric, setHeatmapMetric] = useState<"net_profit" | "sharpe_ratio" | "profit_factor" | "composite_score">("net_profit");
   const [optTab, setOptTab] = useState<"setup" | "ranked" | "heatmap">("setup");
   const [rankedFilter, setRankedFilter] = useState<"top10" | "top25" | "top50">("top10");
+
+  const getHoldingDuration = (entry: string, exit: string) => {
+    const diffMs = new Date(exit).getTime() - new Date(entry).getTime();
+    const diffSecs = Math.floor(diffMs / 1000);
+    const minutes = Math.floor(diffSecs / 60);
+    const seconds = diffSecs % 60;
+    if (minutes > 0) return `${minutes}m ${seconds}s`;
+    return `${seconds}s`;
+  };
 
   const report = v2Result?.report;
   const netProfit = report?.performance?.net_profit || 0;
@@ -733,6 +946,32 @@ export const BacktestBottom: React.FC = () => {
         vertLines: { color: "rgba(255,255,255,0.02)" },
         horzLines: { color: "rgba(255,255,255,0.02)" },
       },
+      localization: {
+        timeFormatter: (timestamp: number) => {
+          return new Date(timestamp * 1000).toLocaleString("en-IN", {
+            timeZone: "Asia/Kolkata",
+            hour12: false,
+          });
+        },
+      },
+      timeScale: {
+        timeVisible: true,
+        tickMarkFormatter: (time: number, tickMarkType: number, locale: string) => {
+          const date = new Date(time * 1000);
+          const options: Intl.DateTimeFormatOptions = {
+            timeZone: "Asia/Kolkata",
+            hour12: false,
+          };
+          if (tickMarkType <= 2) {
+            options.day = "numeric";
+            options.month = "short";
+          } else {
+            options.hour = "2-digit";
+            options.minute = "2-digit";
+          }
+          return date.toLocaleString("en-IN", options);
+        },
+      },
     });
 
     const series = chart.addSeries(AreaSeries, {
@@ -777,6 +1016,32 @@ export const BacktestBottom: React.FC = () => {
       grid: {
         vertLines: { color: "rgba(255,255,255,0.02)" },
         horzLines: { color: "rgba(255,255,255,0.02)" },
+      },
+      localization: {
+        timeFormatter: (timestamp: number) => {
+          return new Date(timestamp * 1000).toLocaleString("en-IN", {
+            timeZone: "Asia/Kolkata",
+            hour12: false,
+          });
+        },
+      },
+      timeScale: {
+        timeVisible: true,
+        tickMarkFormatter: (time: number, tickMarkType: number, locale: string) => {
+          const date = new Date(time * 1000);
+          const options: Intl.DateTimeFormatOptions = {
+            timeZone: "Asia/Kolkata",
+            hour12: false,
+          };
+          if (tickMarkType <= 2) {
+            options.day = "numeric";
+            options.month = "short";
+          } else {
+            options.hour = "2-digit";
+            options.minute = "2-digit";
+          }
+          return date.toLocaleString("en-IN", options);
+        },
       },
     });
 
@@ -826,23 +1091,348 @@ export const BacktestBottom: React.FC = () => {
   return (
     <div className="flex flex-col h-full overflow-hidden text-xs font-sans">
       
-      {/* Tabs selectors */}
-      <div className="flex items-center justify-between border-b border-white/5 bg-slate-950/20 px-2 shrink-0 select-none">
-        <div className="flex items-center gap-1">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-3.5 py-2 font-bold uppercase text-[10px] tracking-wider transition-all border-b-2 cursor-pointer ${
-                activeTab === tab.id
-                  ? "border-cyan-400 text-cyan-400 bg-slate-900/30"
-                  : "border-transparent text-slate-500 hover:text-slate-300"
-              }`}
-            >
-              {tab.name}
-            </button>
-          ))}
-        </div>
+      {/* 0. Trade Forensic Replay Cockpit Layer */}
+      {(() => {
+        if (!isReplayMode || !replayTrade || !v2Result) return null;
+
+        const totalSteps = replayTimeline.length;
+        const currentIndex = replayTimeline.indexOf(replayCurrentTime || 0);
+        const currentCandleTime = replayTimeline[currentIndex] || 0;
+
+        // Calculations for progressive variables
+        let livePremium = 0;
+        let livePnL = 0;
+        let maxRunUp = 0;
+        let maxDrawdown = 0;
+        let liveSpot = 0;
+        let liveSpotDelta = 0;
+        let liveSpotDeltaPct = 0;
+        let elapsedMinutes = 0;
+
+        if (v2Result.candles) {
+          const entryTime = Math.floor(new Date(replayTrade.entry_time).getTime() / 1000);
+          const exitTime = Math.floor(new Date(replayTrade.exit_time).getTime() / 1000);
+          const tradeCandles = v2Result.candles
+            .filter(c => c.time >= entryTime && c.time <= exitTime)
+            .sort((a, b) => a.time - b.time);
+
+          if (tradeCandles.length > 0) {
+            const entrySpot = tradeCandles[0].close;
+            const exitSpot = tradeCandles[tradeCandles.length - 1].close;
+            const spotMove = exitSpot - entrySpot;
+            const premiumMove = replayTrade.exit_premium - replayTrade.entry_premium;
+            const tradeDelta = spotMove !== 0 ? (premiumMove / spotMove) : 0.5;
+
+            const currentCandle = tradeCandles[currentIndex] || tradeCandles[0];
+            liveSpot = currentCandle?.close || 0;
+            liveSpotDelta = liveSpot - entrySpot;
+            liveSpotDeltaPct = entrySpot !== 0 ? (liveSpotDelta / entrySpot) * 100 : 0;
+            
+            // Holding duration calculation in minutes
+            const diffSecs = (currentCandleTime > 0 && entryTime > 0) ? (currentCandleTime - entryTime) : 0;
+            elapsedMinutes = Math.floor(diffSecs / 60);
+
+            if (currentIndex === totalSteps - 1) {
+              livePremium = replayTrade.exit_premium;
+              livePnL = replayTrade.gross_pnl;
+            } else {
+              livePremium = replayTrade.entry_premium + (liveSpot - entrySpot) * tradeDelta;
+              livePnL = (livePremium - replayTrade.entry_premium) * replayTrade.quantity;
+            }
+
+            // Calculate Adverse/Favorable excursions dynamically
+            for (let i = 0; i <= currentIndex; i++) {
+              const c = tradeCandles[i];
+              let stepPrem = 0;
+              if (i === totalSteps - 1) {
+                stepPrem = replayTrade.exit_premium;
+              } else {
+                stepPrem = replayTrade.entry_premium + (c.close - entrySpot) * tradeDelta;
+              }
+              const stepPnL = (stepPrem - replayTrade.entry_premium) * replayTrade.quantity;
+              if (stepPnL > maxRunUp) maxRunUp = stepPnL;
+              if (stepPnL < maxDrawdown) maxDrawdown = stepPnL;
+            }
+          }
+        }
+
+        const isWinner = replayTrade.net_pnl > 0;
+        const reachedExit = currentIndex === totalSteps - 1;
+
+        return (
+          <div className="flex flex-col h-full bg-slate-950/80 border border-white/5 p-4 rounded shadow-2xl relative min-h-[300px]">
+            {/* HUD Status Header */}
+            <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-3.5 select-none">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isPlaying ? "bg-amber-400" : "bg-cyan-400"}`}></span>
+                  <span className={`relative inline-flex rounded-full h-2 w-2 ${isPlaying ? "bg-amber-500" : "bg-cyan-500"}`}></span>
+                </span>
+                <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-slate-200">
+                  Trade Forensic Replay Cockpit
+                </span>
+                <span className="px-2 py-0.5 rounded text-[8px] font-mono font-bold bg-slate-900 border border-white/10 text-cyan-400 select-text">
+                  {replayTrade.contract}
+                </span>
+              </div>
+
+              <button
+                onClick={() => {
+                  setIsPlaying(false);
+                  setIsReplayMode(false);
+                }}
+                className="px-2.5 py-1 bg-rose-950/30 hover:bg-rose-900/40 text-rose-400 font-bold uppercase tracking-wider text-[9px] rounded border border-rose-800/30 transition-all cursor-pointer"
+              >
+                Exit Replay
+              </button>
+            </div>
+
+            {/* Main HUD Body */}
+            <div className="grid grid-cols-12 gap-4 flex-1">
+              
+              {/* COL 1: Playback Console & Control Deck (4 cols) */}
+              <div className="col-span-4 bg-slate-900/40 border border-white/5 rounded p-3 flex flex-col justify-between select-none">
+                <div>
+                  <span className="text-[8px] text-slate-500 uppercase tracking-wider font-bold block mb-2">Control Deck</span>
+                  
+                  {/* VCR Playback Controls */}
+                  <div className="flex items-center gap-2 mb-4">
+                    <button
+                      onClick={() => {
+                        setIsPlaying(false);
+                        if (totalSteps > 0) setReplayCurrentTime(replayTimeline[0]);
+                      }}
+                      className="p-2 bg-slate-950 border border-white/5 hover:border-white/20 active:bg-slate-900 rounded text-slate-300 hover:text-white transition-all cursor-pointer"
+                      title="Restart Replay"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        setIsPlaying(false);
+                        const idx = replayTimeline.indexOf(replayCurrentTime || 0);
+                        if (idx > 0) setReplayCurrentTime(replayTimeline[idx - 1]);
+                      }}
+                      className="p-2 bg-slate-950 border border-white/5 hover:border-white/20 active:bg-slate-900 rounded text-slate-300 hover:text-white transition-all cursor-pointer"
+                      title="Previous Candle"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </button>
+
+                    <button
+                      onClick={() => setIsPlaying(!isPlaying)}
+                      className={`px-4 py-2 rounded text-slate-950 font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                        isPlaying ? "bg-amber-400 hover:bg-amber-300" : "bg-cyan-400 hover:bg-cyan-300"
+                      }`}
+                      title={isPlaying ? "Pause Playback" : "Start Playback"}
+                    >
+                      {isPlaying ? (
+                        <>
+                          <Pause className="w-3.5 h-3.5 fill-current" />
+                          <span>PAUSE</span>
+                        </>
+                      ) : (
+                        <>
+                          <Play className="w-3.5 h-3.5 fill-current" />
+                          <span>PLAY</span>
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setIsPlaying(false);
+                        const idx = replayTimeline.indexOf(replayCurrentTime || 0);
+                        if (idx < totalSteps - 1) setReplayCurrentTime(replayTimeline[idx + 1]);
+                      }}
+                      className="p-2 bg-slate-950 border border-white/5 hover:border-white/20 active:bg-slate-900 rounded text-slate-300 hover:text-white transition-all cursor-pointer"
+                      title="Next Candle"
+                    >
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  {/* Playback Speed Deck */}
+                  <span className="text-[8px] text-slate-500 uppercase tracking-wider font-bold block mb-1.5">Speed Multiplier</span>
+                  <div className="flex gap-1.5 mb-4">
+                    {([1, 2, 5, 10] as const).map((speed) => (
+                      <button
+                        key={speed}
+                        onClick={() => setPlaySpeed(speed)}
+                        className={`px-3 py-1 font-mono text-[9px] font-bold rounded border transition-all cursor-pointer ${
+                          playSpeed === speed 
+                            ? "bg-cyan-950 text-cyan-400 border-cyan-500/30" 
+                            : "bg-slate-950 text-slate-500 border-white/5 hover:text-slate-300 hover:border-white/10"
+                        }`}
+                      >
+                        {speed}x
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Step / Timeline Progress Indicator */}
+                <div className="border-t border-white/5 pt-3">
+                  <div className="flex justify-between items-center text-[9px] font-mono text-slate-400 mb-1.5">
+                    <span>TIMELINE INDEX</span>
+                    <span className="font-bold text-slate-200">
+                      STEP {currentIndex + 1} / {totalSteps}
+                    </span>
+                  </div>
+                  <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-white/5">
+                    <div 
+                      className="h-full bg-cyan-400 rounded-full transition-all duration-150"
+                      style={{ width: `${totalSteps > 0 ? ((currentIndex + 1) / totalSteps) * 100 : 0}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* COL 2: Live Trade Analytics HUD (5 cols) */}
+              <div className="col-span-5 bg-slate-900/20 border border-white/5 rounded p-3 flex flex-col justify-between">
+                <div>
+                  <span className="text-[8px] text-slate-500 uppercase tracking-wider font-bold block mb-2 select-none">Live Telemetry HUD</span>
+                  
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div className="bg-slate-950/40 p-2.5 rounded border border-white/5">
+                      <span className="text-[8px] text-slate-500 uppercase tracking-wider font-bold block mb-0.5 select-none">Entry Premium</span>
+                      <span className="font-mono text-slate-200 font-bold text-sm">₹{replayTrade.entry_premium.toFixed(2)}</span>
+                    </div>
+
+                    <div className={`p-2.5 rounded border transition-all duration-300 ${
+                      livePnL >= 0 ? "bg-emerald-950/20 border-emerald-500/20" : "bg-rose-950/20 border-rose-500/20"
+                    }`}>
+                      <span className="text-[8px] text-slate-500 uppercase tracking-wider font-bold block mb-0.5 select-none">Current Premium</span>
+                      <span className={`font-mono font-bold text-sm ${livePnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                        ₹{livePremium.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div className="bg-slate-950/40 p-2.5 rounded border border-white/5">
+                      <span className="text-[8px] text-slate-500 uppercase tracking-wider font-bold block mb-0.5 select-none">Holding Duration</span>
+                      <span className="font-mono text-slate-200 font-bold text-sm">{elapsedMinutes} mins</span>
+                    </div>
+
+                    <div className="bg-slate-950/40 p-2.5 rounded border border-white/5">
+                      <span className="text-[8px] text-slate-500 uppercase tracking-wider font-bold block mb-0.5 select-none">Spot Index Delta</span>
+                      <span className={`font-mono font-bold text-sm flex items-center gap-1 ${liveSpotDelta >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                        {liveSpotDelta >= 0 ? "+" : ""}{liveSpotDelta.toFixed(2)} ({liveSpotDeltaPct.toFixed(2)}%)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Big Unrealized PnL Board */}
+                <div className={`p-3 rounded border flex items-center justify-between transition-all duration-300 ${
+                  livePnL >= 0 ? "bg-emerald-950/30 border-emerald-500/30 shadow-emerald-950/20" : "bg-rose-950/30 border-rose-500/30 shadow-rose-950/20"
+                } shadow-md`}>
+                  <div className="flex flex-col">
+                    <span className="text-[8px] text-slate-400 uppercase tracking-wider font-bold select-none">UNREALIZED PROFIT / LOSS</span>
+                    <span className={`font-mono text-lg font-extrabold ${livePnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                      {livePnL >= 0 ? "+" : ""}₹{livePnL.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  {livePnL >= 0 ? (
+                    <ArrowUpRight className="w-6 h-6 text-emerald-400" />
+                  ) : (
+                    <ArrowDownRight className="w-6 h-6 text-rose-400" />
+                  )}
+                </div>
+              </div>
+
+              {/* COL 3: Trade Timeline & Replay Summary (3 cols) */}
+              <div className="col-span-3 bg-slate-900/40 border border-white/5 rounded p-3 flex flex-col justify-between font-mono">
+                <div>
+                  <span className="text-[8px] text-slate-500 uppercase tracking-wider font-bold block mb-2 select-none">Execution Details</span>
+                  
+                  <div className="flex flex-col gap-1 text-[10px] text-slate-400 border-b border-white/5 pb-2.5 mb-2.5">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Entry Time:</span>
+                      <span className="text-slate-300">{new Date(replayTrade.entry_time).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })} IST</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Current Play:</span>
+                      <span className="text-cyan-400 font-bold">{currentCandleTime > 0 ? new Date(currentCandleTime * 1000).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) : "--:--:--"} IST</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Exit Time:</span>
+                      <span className="text-slate-300">{new Date(replayTrade.exit_time).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })} IST</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Replay Summary Container */}
+                <div className="flex-1 flex flex-col justify-end">
+                  {!reachedExit ? (
+                    <div className="bg-slate-950/60 border border-subtle p-3 rounded flex flex-col items-center justify-center h-24 select-none animate-pulse">
+                      <Activity className="w-4 h-4 text-slate-600 mb-1" />
+                      <span className="text-[8px] text-slate-500 uppercase tracking-widest font-bold">REPLAY RUNNING</span>
+                      <span className="text-[9px] text-slate-500">Awaiting exit candle...</span>
+                    </div>
+                  ) : (
+                    <div className="bg-slate-950 border border-white/10 p-2.5 rounded flex flex-col gap-1.5 animate-fadeIn">
+                      <div className="flex justify-between items-center border-b border-white/5 pb-1">
+                        <span className="text-[8px] text-slate-500 uppercase font-bold">REPLAY SUMMARY</span>
+                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${
+                          isWinner ? "bg-emerald-950/40 text-emerald-400 border border-emerald-800/30" : "bg-rose-950/40 text-rose-400 border border-rose-800/30"
+                        }`}>
+                          {isWinner ? "WINNER" : "LOSER"}
+                        </span>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[9px] text-slate-400">
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">Net Profit:</span>
+                          <span className={`font-bold ${isWinner ? "text-emerald-400" : "text-rose-400"}`}>₹{replayTrade.net_pnl.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">Charges:</span>
+                          <span className="text-rose-400">₹{replayTrade.charges.total_charges.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">Max Excurs (MFE):</span>
+                          <span className="text-emerald-400 font-bold">₹{maxRunUp.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">Max Advers (MAE):</span>
+                          <span className="text-rose-400 font-bold">₹{maxDrawdown.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
+
+      {!isReplayMode && <div className="contents">
+          {/* Tabs selectors with high legibility title */}
+          <div className="flex items-center justify-between border-b border-subtle bg-deep/50 px-4 py-2 shrink-0 select-none font-sans">
+            <div className="flex items-center gap-6">
+              <span className="text-[11px] text-slate-350 font-black uppercase tracking-wider">Backtest Ledger & Analytics</span>
+              
+              <div className="flex items-center gap-1">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`px-3 py-1 rounded transition-all cursor-pointer font-bold text-[10px] uppercase tracking-wider ${
+                      activeTab === tab.id
+                        ? "bg-card border border-subtle shadow-sm text-cyan-neon font-black"
+                        : "bg-transparent border border-transparent text-slate-500 hover:text-slate-200"
+                    }`}
+                  >
+                    {tab.name}
+                  </button>
+                ))}
+              </div>
+            </div>
 
         {selectedInspectorParams && (
           <div className="flex items-center gap-2 bg-cyan-950/40 border border-cyan-500/20 px-2 py-0.5 rounded text-[10px] font-mono text-cyan-300 animate-pulse">
@@ -863,157 +1453,500 @@ export const BacktestBottom: React.FC = () => {
 
       {/* Tabs Container */}
       <div className="flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent min-h-0">
-        
-        {!v2Result && activeTab !== "optimization" ? (
-          <div className="flex flex-col items-center justify-center h-full text-slate-500 py-8 select-none">
-            <Activity className="w-8 h-8 text-slate-600 mb-2 animate-pulse" />
-            <span>No V2 Backtest results loaded. Click "Run Backtest" to begin.</span>
-          </div>
-        ) : (
-          <>
             {/* Overview Tab */}
             {activeTab === "overview" && (
-              <div className="grid grid-cols-4 gap-3.5 max-w-4xl font-mono text-[10px] select-none">
-                <div className="bg-slate-900/10 border border-white/5 p-3 rounded shadow-sm hover:border-white/10 transition-all">
-                  <span className="text-[8px] text-slate-500 uppercase tracking-wider block mb-1">Net Profit</span>
-                  <span className={`font-bold text-sm ${netProfit >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                    ₹{netProfit.toLocaleString("en-IN")}
-                  </span>
-                </div>
-                <div className="bg-slate-900/10 border border-white/5 p-3 rounded shadow-sm hover:border-white/10 transition-all">
-                  <span className="text-[8px] text-slate-500 uppercase tracking-wider block mb-1">Capital Return</span>
-                  <span className="text-slate-200 font-bold text-sm">{returnPct.toFixed(2)}%</span>
-                </div>
-                <div className="bg-slate-900/10 border border-white/5 p-3 rounded shadow-sm hover:border-white/10 transition-all">
-                  <span className="text-[8px] text-slate-500 uppercase tracking-wider block mb-1">Win Rate</span>
-                  <span className="text-slate-200 font-bold text-sm">{winRate.toFixed(1)}%</span>
-                </div>
-                <div className="bg-slate-900/10 border border-white/5 p-3 rounded shadow-sm hover:border-white/10 transition-all">
-                  <span className="text-[8px] text-slate-500 uppercase tracking-wider block mb-1">Sharpe Ratio</span>
-                  <span className="text-cyan-400 font-bold text-sm">{sharpe.toFixed(2)}</span>
+              <div className="flex flex-col gap-6 select-none w-full">
+                {/* Top Grid: Cards + Equity Curve Chart */}
+                <div className="grid grid-cols-12 gap-5 w-full">
+                  {/* Grid of 8 Metrics Cards */}
+                  <div className="col-span-8 grid grid-cols-4 gap-3">
+                    {/* Net Profit Card */}
+                    <div className="bg-[#111625] border border-subtle p-4 rounded-md flex flex-col gap-1.5 justify-center shadow-sm">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Net Profit</span>
+                      <span className={`font-mono text-xl font-black ${netProfit >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                        ₹{netProfit.toLocaleString("en-IN")}
+                      </span>
+                    </div>
+
+                    {/* Capital Return Card */}
+                    <div className="bg-[#111625] border border-subtle p-4 rounded-md flex flex-col gap-1.5 justify-center shadow-sm">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Capital Return</span>
+                      <span className="text-slate-100 font-mono text-xl font-black">{returnPct.toFixed(2)}%</span>
+                    </div>
+
+                    {/* Win Rate Card */}
+                    <div className="bg-[#111625] border border-subtle p-4 rounded-md flex flex-col gap-1.5 justify-center shadow-sm">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Win Rate</span>
+                      <span className="text-slate-100 font-mono text-xl font-black">{winRate.toFixed(1)}%</span>
+                    </div>
+
+                    {/* Sharpe Ratio Card */}
+                    <div className="bg-[#111625] border border-subtle p-4 rounded-md flex flex-col gap-1.5 justify-center shadow-sm">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Sharpe Ratio</span>
+                      <span className="text-cyan-neon font-mono text-xl font-black">{sharpe.toFixed(2)}</span>
+                    </div>
+
+                    {/* Profit Factor Card */}
+                    <div className="bg-[#111625] border border-subtle p-4 rounded-md flex flex-col gap-1.5 justify-center shadow-sm">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Profit Factor</span>
+                      <span className="text-slate-100 font-mono text-xl font-black">{profitFactor.toFixed(2)}</span>
+                    </div>
+
+                    {/* Total Trades Card */}
+                    <div className="bg-[#111625] border border-subtle p-4 rounded-md flex flex-col gap-1.5 justify-center shadow-sm">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Trades</span>
+                      <span className="text-slate-100 font-mono text-xl font-black">{totalTrades}</span>
+                    </div>
+
+                    {/* Max Drawdown Card */}
+                    <div className="bg-[#111625] border border-subtle p-4 rounded-md flex flex-col gap-1.5 justify-center shadow-sm">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Max Drawdown</span>
+                      <span className="text-rose-400 font-mono text-xl font-black">-{maxDrawdown.toFixed(2)}%</span>
+                    </div>
+
+                    {/* Score Rating Card */}
+                    <div className="bg-[#111625] border border-subtle p-4 rounded-md flex flex-col gap-1.5 justify-center shadow-sm">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Score Rating</span>
+                      <span className="text-cyan-neon font-mono text-xl font-black">{report?.grade || "N/A"}</span>
+                    </div>
+                  </div>
+
+                  {/* Equity Curve Visual Card */}
+                  <div className="col-span-4 bg-[#111625] border border-subtle p-4 rounded-md flex flex-col justify-between shadow-sm min-h-[170px]">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Equity Curve</span>
+                      <span className="text-[8px] font-mono text-slate-500">Compounding growth</span>
+                    </div>
+                    
+                    {/* Glowing Compound curve SVG representation */}
+                    <div className="flex-1 flex items-center justify-center">
+                      <svg className="w-full h-full min-h-[110px]" viewBox="0 0 500 150">
+                        <defs>
+                          <linearGradient id="equityGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.25"/>
+                            <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.0"/>
+                          </linearGradient>
+                        </defs>
+                        {/* Grid lines */}
+                        <line x1="0" y1="30" x2="500" y2="30" stroke="rgba(255,255,255,0.02)" strokeWidth="1" />
+                        <line x1="0" y1="75" x2="500" y2="75" stroke="rgba(255,255,255,0.02)" strokeWidth="1" />
+                        <line x1="0" y1="120" x2="500" y2="120" stroke="rgba(255,255,255,0.02)" strokeWidth="1" />
+                        
+                        {/* Trend path */}
+                        <path
+                          d="M 0 135 C 40 138, 80 115, 120 120 C 160 125, 200 95, 240 85 C 280 75, 320 65, 360 62 C 400 58, 440 40, 500 20"
+                          fill="none"
+                          stroke="#3B82F6"
+                          strokeWidth="2.5"
+                        />
+                        <path
+                          d="M 0 135 C 40 138, 80 115, 120 120 C 160 125, 200 95, 240 85 C 280 75, 320 65, 360 62 C 400 58, 440 40, 500 20 L 500 150 L 0 150 Z"
+                          fill="url(#equityGradient)"
+                        />
+                        <circle cx="500" cy="20" r="3.5" fill="#3B82F6" className="animate-pulse" />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="bg-slate-900/10 border border-white/5 p-3 rounded shadow-sm hover:border-white/10 transition-all">
-                  <span className="text-[8px] text-slate-500 uppercase tracking-wider block mb-1">Profit Factor</span>
-                  <span className="text-slate-200 font-bold text-sm">{profitFactor.toFixed(2)}</span>
-                </div>
-                <div className="bg-slate-900/10 border border-white/5 p-3 rounded shadow-sm hover:border-white/10 transition-all">
-                  <span className="text-[8px] text-slate-500 uppercase tracking-wider block mb-1">Total Trades</span>
-                  <span className="text-slate-200 font-bold text-sm">{totalTrades}</span>
-                </div>
-                <div className="bg-slate-900/10 border border-white/5 p-3 rounded shadow-sm hover:border-white/10 transition-all">
-                  <span className="text-[8px] text-slate-500 uppercase tracking-wider block mb-1">Max Drawdown</span>
-                  <span className="text-rose-400 font-bold text-sm">-{maxDrawdown.toFixed(2)}%</span>
-                </div>
-                <div className="bg-slate-900/10 border border-white/5 p-3 rounded shadow-sm hover:border-white/10 transition-all">
-                  <span className="text-[8px] text-slate-500 uppercase tracking-wider block mb-1">Score Rating</span>
-                  <span className="text-cyan-400 font-bold text-sm">{report?.grade || "N/A"}</span>
+                {/* Bottom Row: Recent Trades Section */}
+                <div className="flex flex-col gap-3.5 bg-[#111625] border border-subtle p-4 rounded-md shadow-sm w-full">
+                  <div className="flex justify-between items-center border-b border-subtle pb-2">
+                    <span className="text-[11px] text-slate-350 font-bold uppercase tracking-wider">Recent Trades</span>
+                    <button 
+                      onClick={() => setActiveTab("trades")}
+                      className="text-[10px] text-cyan-neon font-bold hover:text-white transition-colors cursor-pointer"
+                    >
+                      View full trade ledger &rarr;
+                    </button>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left font-mono text-[11px] border-collapse">
+                      <thead>
+                        <tr className="text-slate-400 uppercase text-[9px] tracking-wider font-semibold border-b border-subtle bg-[#0E1320]/40 font-sans">
+                          <th className="py-2.5 pl-3">Time</th>
+                          <th className="py-2.5">Type</th>
+                          <th className="py-2.5">Instrument</th>
+                          <th className="py-2.5 text-center">Strike</th>
+                          <th className="py-2.5">Expiry</th>
+                          <th className="py-2.5 text-center">Qty</th>
+                          <th className="py-2.5 text-right">Entry Price</th>
+                          <th className="py-2.5 text-right">Exit Price</th>
+                          <th className="py-2.5 text-right">P&amp;L (&amp;INR;)</th>
+                          <th className="py-2.5 text-right">P&amp;L (%)</th>
+                          <th className="py-2.5 text-center pr-3">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-slate-200">
+                        {v2Result?.trades.slice(0, 5).map((t, idx) => {
+                          const isProfit = t.net_pnl >= 0;
+                          const strikeMatch = t.contract.match(new RegExp("\\\\d{5}"));
+                          const strike = strikeMatch ? strikeMatch[0] : "-";
+                          
+                          // Format instrument name (extract underlying symbol)
+                          const symbol = t.contract.split(" ")[0] || t.contract;
+                          const type = t.contract.includes("PE") ? "SELL" : "BUY";
+                          
+                          // Format entry date time beautifully
+                          const timeStr = new Date(t.entry_time).toLocaleTimeString("en-IN", { 
+                            hour: "2-digit", 
+                            minute: "2-digit", 
+                            second: "2-digit",
+                            timeZone: "Asia/Kolkata"
+                          });
+                          
+                          const expiryDate = t.contract.split(" ")[1] || "-";
+
+                          return (
+                            <tr key={idx} className="border-b border-subtle hover:bg-card-hover/40 transition-all h-[34px]">
+                              <td className="py-2 pl-3 text-slate-400">{timeStr}</td>
+                              <td className="py-2">
+                                <span className={`px-1.5 py-0.5 rounded-sm text-[8px] font-bold font-sans uppercase ${
+                                  type === "BUY" ? "bg-emerald-950/40 text-emerald-400 border border-emerald-900/40" : "bg-rose-950/40 text-rose-400 border border-rose-900/40"
+                                }`}>
+                                  {type}
+                                </span>
+                              </td>
+                              <td className="py-2 font-sans font-bold text-slate-300">{symbol}</td>
+                              <td className="py-2 text-center">{strike}</td>
+                              <td className="py-2 text-slate-400 font-sans">{expiryDate}</td>
+                              <td className="py-2 text-center text-slate-300">{t.quantity}</td>
+                              <td className="py-2 text-right">₹{t.entry_premium.toFixed(2)}</td>
+                              <td className="py-2 text-right">₹{t.exit_premium.toFixed(2)}</td>
+                              <td className={`py-2 text-right font-bold ${isProfit ? "text-emerald-400" : "text-rose-455"}`}>
+                                {isProfit ? "+" : ""}₹{t.net_pnl.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </td>
+                              <td className={`py-2 text-right font-bold ${isProfit ? "text-emerald-400" : "text-rose-455"}`}>
+                                {isProfit ? "+" : ""}{((t.net_pnl / (t.entry_premium * t.quantity)) * 100).toFixed(2)}%
+                              </td>
+                              <td className="py-2 text-center pr-3">
+                                <span className={`px-1.5 py-0.5 rounded-sm text-[9px] font-sans font-bold uppercase ${
+                                  isProfit ? "bg-emerald-950/40 text-emerald-400" : "bg-rose-950/40 text-rose-455"
+                                }`}>
+                                  Closed
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                        {(!v2Result || v2Result.trades.length === 0) && (
+                          <tr>
+                            <td colSpan={11} className="py-6 text-center text-slate-500 font-sans">
+                              No recent trades executed in this backtest.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             )}
 
             {/* Trade List Tab */}
             {activeTab === "trades" && (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left font-mono text-[10px] border-collapse">
-                  <thead>
-                    <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-[8px] tracking-wider bg-slate-950/20">
-                      <th className="py-2 pl-2">Contract Details</th>
-                      <th className="py-2">Entry Time</th>
-                      <th className="py-2">Exit Time</th>
-                      <th className="py-2 text-right">Entry Premium</th>
-                      <th className="py-2 text-right">Exit Premium</th>
-                      <th className="py-2 text-center">Qty</th>
-                      <th className="py-2 text-right">Gross PnL</th>
-                      <th className="py-2 text-right">Charges</th>
-                      <th className="py-2 text-right pr-2">Net PnL</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-slate-300">
-                    {v2Result?.trades.map((t) => (
-                      <tr key={t.position_id} className="border-b border-white/[0.02] even:bg-white/[0.01] hover:bg-white/[0.03] transition-colors">
-                        <td className="py-2 pl-2 text-cyan-400 font-bold">{t.contract}</td>
-                        <td className="py-2 text-slate-400">{new Date(t.entry_time).toLocaleString("en-IN")}</td>
-                        <td className="py-2 text-slate-400">{new Date(t.exit_time).toLocaleString("en-IN")}</td>
-                        <td className="py-2 text-right">₹{t.entry_premium.toFixed(2)}</td>
-                        <td className="py-2 text-right">₹{t.exit_premium.toFixed(2)}</td>
-                        <td className="py-2 text-center text-slate-200">{t.quantity}</td>
-                        <td className={`py-2 text-right font-bold ${t.gross_pnl > 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                          ₹{t.gross_pnl.toFixed(2)}
-                        </td>
-                        <td className="py-2 text-right text-slate-500">₹{t.charges.total_charges.toFixed(2)}</td>
-                        <td className={`py-2 text-right font-bold ${t.net_pnl > 0 ? "text-emerald-400" : "text-rose-400"} pr-2`}>
-                          ₹{t.net_pnl.toFixed(2)}
-                        </td>
+              <div className="flex gap-4 h-full min-h-[300px]">
+                <div className="flex-1 overflow-x-auto">
+                  <table className="w-full text-left font-mono text-[10px] border-collapse">
+                    <thead>
+                      <tr className="border-b border-subtle text-slate-500 uppercase select-none text-[8px] tracking-wider bg-card-hover font-sans">
+                        <th className="py-3.5 pl-3">Contract Details</th>
+                        <th className="py-3.5">Entry Time</th>
+                        <th className="py-3.5">Exit Time</th>
+                        <th className="py-3.5 text-right">Entry Premium</th>
+                        <th className="py-3.5 text-right">Exit Premium</th>
+                        <th className="py-3.5 text-center">Qty</th>
+                        <th className="py-3.5 text-right">Gross PnL</th>
+                        <th className="py-3.5 text-right">Charges</th>
+                        <th className="py-3.5 text-right pr-3">Net PnL</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="text-main">
+                      {v2Result?.trades.map((t) => (
+                        <tr 
+                          key={t.position_id} 
+                          onClick={() => setSelectedTradeId(t.position_id)}
+                          className={`table-row transition-colors cursor-pointer ${
+                            selectedTradeId === t.position_id ? "bg-cyan-neon/10" : ""
+                          }`}
+                        >
+                          <td className="py-3 pl-3 text-cyan-neon font-bold">{t.contract}</td>
+                          <td className="py-3 text-slate-400 font-sans">{new Date(t.entry_time).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST</td>
+                          <td className="py-3 text-slate-400 font-sans">{new Date(t.exit_time).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST</td>
+                          <td className="py-3 text-right">₹{t.entry_premium.toFixed(2)}</td>
+                          <td className="py-3 text-right">₹{t.exit_premium.toFixed(2)}</td>
+                          <td className="py-3 text-center text-main">{t.quantity}</td>
+                          <td className={`py-3 text-right font-bold ${t.gross_pnl > 0 ? "text-emerald-400" : "text-rose-455"}`}>
+                            ₹{t.gross_pnl.toFixed(2)}
+                          </td>
+                          <td className="py-3 text-right text-slate-500">₹{t.charges.total_charges.toFixed(2)}</td>
+                          <td className={`py-3 text-right font-bold ${t.net_pnl > 0 ? "text-emerald-400" : "text-rose-455"} pr-3`}>
+                            ₹{t.net_pnl.toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                      {(!v2Result || v2Result.trades.length === 0) && (
+                        <tr>
+                          <td colSpan={9} className="py-12 text-center text-slate-500 font-sans text-xs select-none">
+                            No backtest dataset loaded. Click "Run Backtest" in the parameter cockpit to run simulation.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Trade Inspector Panel */}
+                {(() => {
+                  if (!selectedTradeId) return null;
+                  const selectedTrade = v2Result?.trades.find(t => t.position_id === selectedTradeId);
+                  if (!selectedTrade) return null;
+                  
+                  const tradeIndex = v2Result?.trades.findIndex(t => t.position_id === selectedTradeId) ?? -1;
+                  const isWinner = selectedTrade.net_pnl > 0;
+                  
+                  const entryMarker = v2Result?.chart_trades?.find(x => x.id === `${selectedTrade.position_id}_entry`);
+                  const exitMarker = v2Result?.chart_trades?.find(x => x.id === `${selectedTrade.position_id}_exit`);
+
+                  const strike = entryMarker?.strike || "N/A";
+                  const expiry = entryMarker?.expiry || "N/A";
+                  const optionType = entryMarker?.option_type || "N/A";
+                  const buyReason = entryMarker?.reason || "Signal reason not yet recorded";
+                  const sellReason = exitMarker?.reason || "Signal reason not yet recorded";
+                  const strategyName = v2Config.strategy_name || "EMA Crossover Strategy";
+
+                  return (
+                    <div className="w-80 bg-slate-950/40 border border-white/5 p-3.5 rounded shadow-lg shrink-0 flex flex-col gap-3 relative min-h-[300px]">
+                      {/* Close Button */}
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedTradeId(null);
+                        }}
+                        className="absolute top-2.5 right-2.5 text-slate-500 hover:text-slate-300 cursor-pointer"
+                        title="Close Inspector"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+
+                      {/* Inspector Header */}
+                      <div className="text-slate-400 font-bold uppercase tracking-widest text-[8px] block mb-1 border-b border-white/5 pb-1 flex items-center justify-between">
+                        <span>Trade #{tradeIndex + 1} Inspector</span>
+                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${
+                          isWinner ? "bg-emerald-950/40 text-emerald-400 border border-emerald-800/30" : "bg-rose-950/40 text-rose-400 border border-rose-800/30"
+                        }`}>
+                          {isWinner ? "WINNER" : "LOSER"}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[12px] font-bold text-slate-100">{selectedTrade.contract}</span>
+                        <span className={`text-[11px] font-mono font-bold ${isWinner ? "text-emerald-400" : "text-rose-400"}`}>
+                          {isWinner ? "+" : ""}₹{selectedTrade.net_pnl.toFixed(2)} Net PnL
+                        </span>
+                      </div>
+
+                      {/* Scrollable details container */}
+                      <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-2.5 max-h-[340px] scrollbar-thin scrollbar-thumb-white/5">
+                        {/* Position Details Group */}
+                        <div className="bg-slate-900/30 p-2 rounded border border-white/5 flex flex-col gap-1.5">
+                          <span className="text-cyan-400/80 font-bold text-[8px] uppercase tracking-wider">Position Details</span>
+                          <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px]">
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Strike:</span>
+                              <span className="text-slate-300 font-mono">{strike}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Expiry:</span>
+                              <span className="text-slate-300 font-mono">{expiry}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Type:</span>
+                              <span className="text-slate-300 font-mono font-bold text-cyan-400">{optionType}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Qty:</span>
+                              <span className="text-slate-300 font-mono">{selectedTrade.quantity}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Entry:</span>
+                              <span className="text-slate-300 font-mono">₹{selectedTrade.entry_premium.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Exit:</span>
+                              <span className="text-slate-300 font-mono">₹{selectedTrade.exit_premium.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Gross:</span>
+                              <span className={`font-mono font-bold ${selectedTrade.gross_pnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                                ₹{selectedTrade.gross_pnl.toFixed(2)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Charges:</span>
+                              <span className="text-rose-400 font-mono">₹{selectedTrade.charges.total_charges.toFixed(2)}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Execution Timing Group */}
+                        <div className="bg-slate-900/30 p-2 rounded border border-white/5 flex flex-col gap-1.5">
+                          <span className="text-cyan-400/80 font-bold text-[8px] uppercase tracking-wider">Execution Timing</span>
+                          <div className="flex flex-col gap-1 text-[10px]">
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Entry Time:</span>
+                              <span className="text-slate-300 font-mono">{new Date(selectedTrade.entry_time).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Exit Time:</span>
+                              <span className="text-slate-300 font-mono">{new Date(selectedTrade.exit_time).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Duration:</span>
+                              <span className="text-amber-400 font-mono font-bold">{getHoldingDuration(selectedTrade.entry_time, selectedTrade.exit_time)}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Signals Group */}
+                        <div className="bg-slate-900/30 p-2 rounded border border-white/5 flex flex-col gap-1.5">
+                          <span className="text-cyan-400/80 font-bold text-[8px] uppercase tracking-wider">Signal Information</span>
+                          <div className="flex flex-col gap-1.5 text-[10px]">
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Strategy:</span>
+                              <span className="text-slate-300 font-bold">{strategyName}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Signal Type:</span>
+                              <span className="text-slate-300 font-mono">{optionType}</span>
+                            </div>
+                            <div className="flex flex-col gap-0.5 border-t border-subtle pt-1 mt-0.5">
+                              <span className="text-slate-500 text-[9px] font-bold">Buy Reason:</span>
+                              <span className="text-slate-400 italic text-[9px] bg-slate-950/40 p-1.5 rounded mt-0.5 select-text leading-normal">
+                                {buyReason}
+                              </span>
+                            </div>
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-slate-500 text-[9px] font-bold">Sell Reason:</span>
+                              <span className="text-slate-400 italic text-[9px] bg-slate-950/40 p-1.5 rounded mt-0.5 select-text leading-normal">
+                                {sellReason}
+                              </span>
+                            </div>
+                            <div className="flex justify-between border-t border-subtle pt-1 mt-0.5">
+                              <span className="text-slate-500">Entry Signal Time:</span>
+                              <span className="text-slate-300 font-mono text-[9px]">
+                                {entryMarker?.timestamp ? new Date(entryMarker.timestamp).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) + " IST" : "Signal reason not yet recorded"}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Exit Signal Time:</span>
+                              <span className="text-slate-300 font-mono text-[9px]">
+                                {exitMarker?.timestamp ? new Date(exitMarker.timestamp).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) + " IST" : "Signal reason not yet recorded"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        {/* Dynamic Trade Replay CTA */}
+                        <button
+                          onClick={() => {
+                            setIsReplayMode(true);
+                            setReplayTradeId(selectedTradeId);
+                            const entryTime = Math.floor(new Date(selectedTrade.entry_time).getTime() / 1000);
+                            setReplayCurrentTime(entryTime);
+                          }}
+                          className="w-full bg-cyan-500 hover:bg-cyan-400 active:bg-cyan-600 text-slate-950 font-bold uppercase tracking-wider py-2 rounded text-[10px] flex items-center justify-center gap-1.5 transition-all shadow-md mt-2 cursor-pointer transition-colors"
+                        >
+                          <Play className="w-3.5 h-3.5 fill-current" />
+                          Replay Trade
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             )}
 
             {/* Equity Curve Tab */}
             {activeTab === "equity" && (
               <div className="w-full h-36 relative">
-                <div ref={equityContainerRef} className="w-full h-full" />
+                {v2Result ? (
+                  <div ref={equityContainerRef} className="w-full h-full" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-slate-500 font-sans text-xs select-none">
+                    No active equity curve. Click "Run Backtest" to plot compounding curve.
+                  </div>
+                )}
               </div>
             )}
 
             {/* Drawdown Tab */}
             {activeTab === "drawdown" && (
               <div className="w-full h-36 relative">
-                <div ref={drawdownContainerRef} className="w-full h-full" />
+                {v2Result ? (
+                  <div ref={drawdownContainerRef} className="w-full h-full" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-slate-500 font-sans text-xs select-none">
+                    No active drawdown curve. Click "Run Backtest" to plot drawdowns.
+                  </div>
+                )}
               </div>
             )}
 
             {/* Metrics Tab */}
-            {activeTab === "metrics" && report && (
-              <div className="grid grid-cols-2 gap-4 max-w-3xl font-mono text-[10px] select-none">
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex justify-between border-b border-white/5 py-1">
-                    <span className="text-slate-500">NET PROFIT:</span>
-                    <span className="text-emerald-400 font-bold">₹{report.performance.net_profit.toLocaleString("en-IN")}</span>
+            {activeTab === "metrics" && (
+              !report ? (
+                <div className="py-8 text-center text-slate-500 font-sans text-xs select-none">
+                  No metrics calculated. Click "Run Backtest" in the parameter cockpit to run simulation.
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-4 max-w-3xl font-mono text-[10px] select-none">
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex justify-between border-b border-white/5 py-1">
+                      <span className="text-slate-500">NET PROFIT:</span>
+                      <span className="text-emerald-400 font-bold">₹{report.performance.net_profit.toLocaleString("en-IN")}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-white/5 py-1">
+                      <span className="text-slate-500">GROSS PROFIT:</span>
+                      <span className="text-slate-300 font-bold">₹{report.performance.gross_profit.toLocaleString("en-IN")}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-white/5 py-1">
+                      <span className="text-slate-500">GROSS LOSS:</span>
+                      <span className="text-rose-400 font-bold">₹{report.performance.gross_loss.toLocaleString("en-IN")}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-white/5 py-1">
+                      <span className="text-slate-500">PROFIT FACTOR:</span>
+                      <span className="text-slate-300 font-bold">{report.performance.profit_factor.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-white/5 py-1">
+                      <span className="text-slate-500">EXPECTANCY:</span>
+                      <span className="text-slate-300 font-bold">₹{report.performance.expectancy.toFixed(2)}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between border-b border-white/5 py-1">
-                    <span className="text-slate-500">GROSS PROFIT:</span>
-                    <span className="text-slate-300 font-bold">₹{report.performance.gross_profit.toLocaleString("en-IN")}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-white/5 py-1">
-                    <span className="text-slate-500">GROSS LOSS:</span>
-                    <span className="text-rose-400 font-bold">₹{report.performance.gross_loss.toLocaleString("en-IN")}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-white/5 py-1">
-                    <span className="text-slate-500">PROFIT FACTOR:</span>
-                    <span className="text-slate-300 font-bold">{report.performance.profit_factor.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-white/5 py-1">
-                    <span className="text-slate-500">EXPECTANCY:</span>
-                    <span className="text-slate-300 font-bold">₹{report.performance.expectancy.toFixed(2)}</span>
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex justify-between border-b border-white/5 py-1">
+                      <span className="text-slate-500">SHARPE RATIO:</span>
+                      <span className="text-cyan-400 font-bold">{report.sharpe_ratio.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-white/5 py-1">
+                      <span className="text-slate-500">SORTINO RATIO:</span>
+                      <span className="text-cyan-400 font-bold">{report.sortino_ratio.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-white/5 py-1">
+                      <span className="text-slate-500">MAX DRAWDOWN:</span>
+                      <span className="text-rose-400 font-bold">-{report.max_drawdown_pct.toFixed(2)}%</span>
+                    </div>
+                    <div className="flex justify-between border-b border-white/5 py-1">
+                      <span className="text-slate-500">WIN RATE / LOSS RATE:</span>
+                      <span className="text-slate-300 font-bold">{report.trade_stats.win_rate.toFixed(1)}% / {report.trade_stats.loss_rate.toFixed(1)}%</span>
+                    </div>
+                    <div className="flex justify-between border-b border-white/5 py-1">
+                      <span className="text-slate-500">STREAK WINS / LOSSES:</span>
+                      <span className="text-slate-300 font-bold">{report.performance.max_consecutive_wins} wins / {report.performance.max_consecutive_losses} losses</span>
+                    </div>
                   </div>
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex justify-between border-b border-white/5 py-1">
-                    <span className="text-slate-500">SHARPE RATIO:</span>
-                    <span className="text-cyan-400 font-bold">{report.sharpe_ratio.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-white/5 py-1">
-                    <span className="text-slate-500">SORTINO RATIO:</span>
-                    <span className="text-cyan-400 font-bold">{report.sortino_ratio.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-white/5 py-1">
-                    <span className="text-slate-500">MAX DRAWDOWN:</span>
-                    <span className="text-rose-400 font-bold">-{report.max_drawdown_pct.toFixed(2)}%</span>
-                  </div>
-                  <div className="flex justify-between border-b border-white/5 py-1">
-                    <span className="text-slate-500">WIN RATE / LOSS RATE:</span>
-                    <span className="text-slate-300 font-bold">{report.trade_stats.win_rate.toFixed(1)}% / {report.trade_stats.loss_rate.toFixed(1)}%</span>
-                  </div>
-                  <div className="flex justify-between border-b border-white/5 py-1">
-                    <span className="text-slate-500">STREAK WINS / LOSSES:</span>
-                    <span className="text-slate-300 font-bold">{report.performance.max_consecutive_wins} wins / {report.performance.max_consecutive_losses} losses</span>
-                  </div>
-                </div>
-              </div>
+              )
             )}
 
             {/* Runtime Logs Tab */}
@@ -1021,15 +1954,13 @@ export const BacktestBottom: React.FC = () => {
               <div className="max-h-60 overflow-y-auto font-mono text-[10px] text-slate-300 bg-slate-950/40 border border-white/5 p-3 rounded scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
                 {logs && logs.length > 0 ? (
                   logs.map((log, idx) => (
-                    <div key={idx} className="py-0.5 border-b border-white/[0.01] last:border-0">{log}</div>
+                    <div key={idx} className="py-0.5 border-b border-subtle/40 last:border-0">{log}</div>
                   ))
                 ) : (
                   <div className="text-slate-500 italic select-none">No logs available. Click "Run Backtest" or "Run Parameter Sweep" to begin.</div>
                 )}
               </div>
             )}
-          </>
-        )}
 
         {/* Optimization Tab */}
         {activeTab === "optimization" && (
@@ -1211,7 +2142,7 @@ export const BacktestBottom: React.FC = () => {
                           <tr
                             key={index}
                             onClick={() => handleInspectParams(item.combination.params)}
-                            className={`border-b border-white/[0.02] even:bg-white/[0.005] hover:bg-white/[0.03] cursor-pointer transition-colors ${
+                            className={`border-b border-subtle even:bg-slate-900/10 hover:bg-card-hover cursor-pointer transition-colors ${
                               isInspected ? "bg-cyan-500/10 border-cyan-500/20" : ""
                             }`}
                           >
@@ -1381,8 +2312,9 @@ export const BacktestBottom: React.FC = () => {
             )}
           </div>
         )}
-
       </div>
     </div>
-  );
+  }
+</div>
+);
 };

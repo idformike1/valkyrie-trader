@@ -223,10 +223,10 @@ class TestMetricsEngine(unittest.TestCase):
         trades = [
             self._make_trade("t1", 0, 10, 1000.0), # exit 10m. Peak=101k
             self._make_trade("t2", 20, 30, -500.0), # exit 30m. Equity=100.5k
-            self._make_trade("t3", 40, 50, 1000.0) # exit 50m. Equity=101.5k. Peak. Duration = 20m (1200s)
+            self._make_trade("t3", 40, 50, 1000.0) # exit 50m. Equity=101.5k. Peak. Duration = 40m (2400s)
         ]
         report = self.engine.calculate_metrics([], trades)
-        self.assertEqual(report.max_drawdown_duration_seconds, 1200.0)
+        self.assertEqual(report.max_drawdown_duration_seconds, 2400.0)
 
     # 21. Sharpe Ratio Single Day (Trade-level)
     def test_sharpe_ratio_single_day(self):
@@ -356,6 +356,59 @@ class TestMetricsEngine(unittest.TestCase):
         data = report.model_dump()
         self.assertEqual(data["initial_capital"], 100000.0)
         self.assertEqual(len(data["equity_curve"]), 2)
+
+    # 37. Deterministic CAGR Calculation
+    def test_cagr_calculation_deterministic(self):
+        # Create a multi-day trade set spanning 10 days (14400 minutes)
+        t1 = self._make_trade("t1", 0, 10, 5000.0)
+        t2 = self._make_trade("t2", 14400, 14410, 5000.0) # exit 10 days later
+        report = self.engine.calculate_metrics([], [t1, t2])
+        
+        # Manually verify calculation
+        duration_days = (t2.exit_time - t1.entry_time).total_seconds() / 86400.0
+        years = duration_days / 365.25
+        expected_cagr = ((110000.0 / 100000.0) ** (1.0 / years) - 1.0) * 100.0
+        
+        self.assertEqual(report.cagr, round(expected_cagr, 2))
+        self.assertEqual(report.scorecard["cagr_pct"], round(expected_cagr, 2))
+
+    # 38. Exposure Time with Overlapping Positions (Multi-leg option simulation)
+    def test_exposure_time_overlapping_positions(self):
+        # Two positions that overlap: pos1 (0 to 30m) and pos2 (15 to 45m)
+        pos1 = self._make_position(0, 30)
+        pos2 = self._make_position(15, 45)
+        pos2.position_id = "pos2"
+        
+        report = self.engine.calculate_metrics([pos1, pos2], [])
+        # Expected exposure: 45 minutes = 2700 seconds (instead of sum of hold times 3600 seconds)
+        self.assertEqual(report.performance.exposure_time_seconds, 2700.0)
+        # Verify hold times statistics are still individual
+        self.assertEqual(report.performance.avg_hold_time_seconds, 1800.0)
+        self.assertEqual(report.performance.shortest_hold_time_seconds, 1800.0)
+        self.assertEqual(report.performance.longest_hold_time_seconds, 1800.0)
+
+    # 39. Position Ledger Closed-Only Filtering
+    def test_closed_trades_only_filtering(self):
+        from v2.position_models import PositionStatus
+        # 1 closed position and 1 open position
+        pos_closed = self._make_position(0, 10)
+        pos_open = self._make_position(20, 30)
+        pos_open.status = PositionStatus.LONG
+        pos_open.exit_time = None
+        pos_open.exit_premium = None
+        
+        # 1 completed trade and 1 uncompleted trade
+        trade_closed = self._make_trade("t1", 0, 10, 100.0)
+        trade_open = self._make_trade("t2", 20, 30, 200.0)
+        trade_open.exit_time = None
+        
+        report = self.engine.calculate_metrics([pos_closed, pos_open], [trade_closed, trade_open])
+        
+        # Only the closed position/completed trade should be processed
+        self.assertEqual(report.trade_stats.total_trades, 1)
+        self.assertEqual(report.final_equity, 100100.0)
+        self.assertEqual(report.performance.avg_hold_time_seconds, 600.0)
+        self.assertEqual(report.performance.exposure_time_seconds, 600.0)
 
 if __name__ == "__main__":
     unittest.main()

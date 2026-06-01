@@ -48,7 +48,7 @@ const DEFAULT_ACCOUNT: Account = {
 };
 
 const DEFAULT_INSTRUMENT: Instrument = {
-  instrumentKey: "NSE_INDEX|NIFTY_50",
+  instrumentKey: "NSE_INDEX|Nifty 50",
   symbol: "NIFTY 50",
   exchange: "NSE",
 };

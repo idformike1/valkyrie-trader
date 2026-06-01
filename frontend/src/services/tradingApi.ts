@@ -62,4 +62,39 @@ export const tradingApi = {
       method: "POST",
       body: JSON.stringify(payload),
     }),
+
+  getBrokerProfile: () => request<any>("/api/broker/profile"),
+  getBrokerFunds: () => request<any>("/api/broker/funds"),
+  getBrokerPositions: () => request<any>("/api/broker/positions"),
+  getBrokerOrders: () => request<any>("/api/broker/orders"),
+  getBrokerTrades: () => request<any>("/api/broker/trades"),
+  getBrokerHoldings: () => request<any>("/api/broker/holdings"),
+  getBrokerMargin: (payload: { instrument_key: string; quantity: number; transaction_type: string; product: string }) =>
+    request<any>("/api/broker/margin", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  getBrokerQuotes: (instrumentKey: string) =>
+    request<any>(`/api/broker/quotes?instrument_key=${encodeURIComponent(instrumentKey)}`),
+
+  getBrokerCandles: (instrumentKey: string, timeframe = "1m", days = 3) =>
+    request<any>(`/api/broker/candles?instrument_key=${encodeURIComponent(instrumentKey)}&timeframe=${timeframe}&days=${days}`),
+
+  getBrokerInstrumentInfo: (instrumentKey: string) =>
+    request<any>(`/api/broker/instrument_info?instrument_key=${encodeURIComponent(instrumentKey)}`),
+
+
+  placeBrokerOrder: (payload: {
+    instrument_key: string;
+    quantity: number;
+    transaction_type: "BUY" | "SELL";
+    order_type: "MARKET" | "LIMIT";
+    product: string;
+    price?: number;
+    trigger_price?: number;
+  }) =>
+    request<any>("/api/broker/place_order", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
 };

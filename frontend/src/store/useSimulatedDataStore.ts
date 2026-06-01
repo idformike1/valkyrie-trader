@@ -94,7 +94,7 @@ export const useSimulatedDataStore = create<SimulatedDataState>((set, get) => ({
   brokerage: 120.00,
 
   placeOrder: ({ symbol, side, type, qty, price, productType }) => {
-    const timestamp = new Date().toLocaleTimeString();
+    const timestamp = new Date().toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata" });
     const orderId = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
     const tradeId = `TRD-${Math.floor(100000 + Math.random() * 900000)}`;
 

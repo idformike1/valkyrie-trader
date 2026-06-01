@@ -19,6 +19,8 @@ def calculate_heikin_ashi(df: pd.DataFrame) -> pd.DataFrame:
     ha_df['high'] = np.maximum.reduce([df['high'].values, ha_df['open'].values, ha_df['close'].values])
     ha_df['low'] = np.minimum.reduce([df['low'].values, ha_df['open'].values, ha_df['close'].values])
     ha_df['raw_open'] = df['open']
+    if 'volume' in df.columns:
+        ha_df['volume'] = df['volume']
     return ha_df
 
 class Strategy:

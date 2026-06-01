@@ -7,6 +7,7 @@
 ## Table of Contents
 - [backend/app.py](#backendapppy)
 - [backend/auth.py](#backendauthpy)
+- [backend/auth_audit.py](#backendauth_auditpy)
 - [backend/database.py](#backenddatabasepy)
 - [backend/run_fast_audit.py](#backendrun_fast_auditpy)
 - [backend/strategy_heikin_ashi_gar.py](#backendstrategy_heikin_ashi_garpy)
@@ -14,6 +15,7 @@
 - [backend/test_heikin_ashi_gar.py](#backendtest_heikin_ashi_garpy)
 - [backend/test_token.py](#backendtest_tokenpy)
 - [backend/v2/__init__.py](#backendv2__init__py)
+- [backend/v2/backtest_runner.py](#backendv2backtest_runnerpy)
 - [backend/v2/cache/database.py](#backendv2cachedatabasepy)
 - [backend/v2/cache/manager.py](#backendv2cachemanagerpy)
 - [backend/v2/cache/models.py](#backendv2cachemodelspy)
@@ -54,6 +56,7 @@
 - [backend/v2/strategy_builder/strategy_definition.py](#backendv2strategy_builderstrategy_definitionpy)
 - [backend/v2/strategy_builder/strategy_validator.py](#backendv2strategy_builderstrategy_validatorpy)
 - [backend/v2/strategy_builder/test_strategy_builder.py](#backendv2strategy_buildertest_strategy_builderpy)
+- [backend/v2/test_backtest_runner.py](#backendv2test_backtest_runnerpy)
 - [backend/v2/test_cache_layer.py](#backendv2test_cache_layerpy)
 - [backend/v2/test_historical_contract_provider.py](#backendv2test_historical_contract_providerpy)
 - [backend/v2/test_metrics_engine.py](#backendv2test_metrics_enginepy)
@@ -106,8 +109,9 @@
 - [run_backtest_audit_query.py](#run_backtest_audit_querypy)
 - [run_january_test.py](#run_january_testpy)
 - [run_opt_sweep_query.py](#run_opt_sweep_querypy)
+- [scratch/check_margin.py](#scratchcheck_marginpy)
+- [scratch/check_quotes.py](#scratchcheck_quotespy)
 - [test_january_loader.py](#test_january_loaderpy)
-- [test_upstox_auth.py](#test_upstox_authpy)
 
 ---
 
@@ -170,6 +174,12 @@ No description provided.
 - **`stop`**
   *Signature*: `def stop(self)`
   *Description*: No description provided.
+
+#### class `MarginRequestModel`
+No description provided.
+
+#### class `BrokerOrderModel`
+No description provided.
 
 #### class `ChartConfigModel`
 No description provided.
@@ -328,6 +338,90 @@ No description provided.
 
 #### `get_options_metadata` (Function)
 - **Signature**: `def get_options_metadata(exchange, index)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `get_options_chain` (Function)
+- **Signature**: `def get_options_chain(expiry, index, exchange)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `get_broker_profile` (Function)
+- **Signature**: `def get_broker_profile()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `get_broker_funds` (Function)
+- **Signature**: `def get_broker_funds()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `get_broker_positions` (Function)
+- **Signature**: `def get_broker_positions()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `get_broker_orders` (Function)
+- **Signature**: `def get_broker_orders()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `get_broker_trades` (Function)
+- **Signature**: `def get_broker_trades()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `get_broker_holdings` (Function)
+- **Signature**: `def get_broker_holdings()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `place_broker_order` (Function)
+- **Signature**: `def place_broker_order(req)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `get_broker_order_margin` (Function)
+- **Signature**: `def get_broker_order_margin(req)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `get_broker_candles` (Function)
+- **Signature**: `def get_broker_candles(instrument_key, timeframe, days)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `get_broker_instrument_info` (Function)
+- **Signature**: `def get_broker_instrument_info(instrument_key)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `get_broker_quotes` (Function)
+- **Signature**: `def get_broker_quotes(instrument_key)`
 - **Description**:
 ```text
 No description provided.
@@ -511,6 +605,32 @@ No description provided.
 ### Functions & Endpoints
 #### `get_access_token` (Function)
 - **Signature**: `def get_access_token(auth_code)`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## backend/auth_audit.py
+*TOKEN AUTHENTICATION REALITY AUDIT
+Uses the exact same code path as app.py:
+  - load_upstox_token() -> reads from token.txt
+  - requests.get() with Authorization: Bearer {token}
+  - No proxies (per audit scope)*
+
+### Functions & Endpoints
+#### `load_upstox_token` (Function)
+- **Signature**: `def load_upstox_token()`
+- **Description**:
+```text
+Exact replica of app.py load_upstox_token()
+```
+
+#### `call_upstox` (Function)
+- **Signature**: `def call_upstox(endpoint, token)`
 - **Description**:
 ```text
 No description provided.
@@ -705,6 +825,27 @@ No description provided.
 
 ## backend/v2/__init__.py
 *No description provided.*
+
+
+---
+
+## backend/v2/backtest_runner.py
+*No description provided.*
+
+### Classes
+#### class `BacktestResult`
+Unified result schema representing a completed V2 Option backtest.
+Contains the full trade audit records, position lifecycles, replay timelines,
+performance statistics, and run metadata.
+
+#### class `BacktestRunner`
+Production-grade orchestrator for executing high-fidelity historical backtests.
+
+##### Methods:
+- **`run`**
+  *Signature*: `def run(config)`
+  *Description*: No description provided.
+
 
 
 ---
@@ -933,8 +1074,8 @@ Resolves option contract key using nifty_options.csv and queries cache or downlo
 - **Signature**: `def run_backtest_v2(config_dict)`
 - **Description**:
 ```text
-V2 Engine placeholder entry point.
-Validates input using the Pydantic BacktestConfig schema.
+V2 Engine entry point.
+Executes a high-fidelity option backtest using the BacktestRunner.
 ```
 
 
@@ -2007,6 +2148,34 @@ No description provided.
 
 ---
 
+## backend/v2/test_backtest_runner.py
+*No description provided.*
+
+### Classes
+#### class `TestBacktestRunner`
+No description provided.
+
+##### Methods:
+- **`setUp`**
+  *Signature*: `def setUp(self)`
+  *Description*: No description provided.
+
+- **`test_backtest_runner_flow`**
+  *Signature*: `def test_backtest_runner_flow(self)`
+  *Description*: No description provided.
+
+- **`test_backtest_runner_determinism`**
+  *Signature*: `def test_backtest_runner_determinism(self)`
+  *Description*: No description provided.
+
+- **`test_empty_backtest_graceful_handling`**
+  *Signature*: `def test_empty_backtest_graceful_handling(self)`
+  *Description*: No description provided.
+
+
+
+---
+
 ## backend/v2/test_cache_layer.py
 *No description provided.*
 
@@ -2385,6 +2554,18 @@ No description provided.
 
 - **`test_pydantic_field_serialization`**
   *Signature*: `def test_pydantic_field_serialization(self)`
+  *Description*: No description provided.
+
+- **`test_cagr_calculation_deterministic`**
+  *Signature*: `def test_cagr_calculation_deterministic(self)`
+  *Description*: No description provided.
+
+- **`test_exposure_time_overlapping_positions`**
+  *Signature*: `def test_exposure_time_overlapping_positions(self)`
+  *Description*: No description provided.
+
+- **`test_closed_trades_only_filtering`**
+  *Signature*: `def test_closed_trades_only_filtering(self)`
   *Description*: No description provided.
 
 
@@ -3421,6 +3602,13 @@ No description provided.
 No description provided.
 ```
 
+#### `theme` (Function)
+- **Signature**: `const theme = useThemeStore((state) => state.theme)`
+- **Description**:
+```text
+No description provided.
+```
+
 
 
 ---
@@ -3849,7 +4037,7 @@ No description provided.
 
 ### Functions & Endpoints
 #### `useThemeStore` (React Hook)
-- **Signature**: `export const useThemeStore = create<ThemeState>(() => (`
+- **Signature**: `export const useThemeStore = create<ThemeState>((set) => (`
 - **Description**:
 ```text
 No description provided.
@@ -3913,6 +4101,15 @@ No description provided.
 No description provided.
 ```
 
+#### `theme` (Function)
+- **Signature**: `const theme = useThemeStore((state) => state.theme)`
+- **Description**:
+```text
+==========================================
+2. MAIN PANEL: HISTORICAL CHART & RUN TOOLBAR
+==========================================
+```
+
 #### `selectedStrategy` (Function)
 - **Signature**: `const selectedStrategy = useTerminalStore((state) => state.selectedStrategy)`
 - **Description**:
@@ -3969,6 +4166,27 @@ No description provided.
 No description provided.
 ```
 
+#### `selectedTradeId` (Function)
+- **Signature**: `const selectedTradeId = useBacktestStore((state) => state.selectedTradeId)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `isReplayMode` (Function)
+- **Signature**: `const isReplayMode = useBacktestStore((state) => state.isReplayMode)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `replayCurrentTime` (Function)
+- **Signature**: `const replayCurrentTime = useBacktestStore((state) => state.replayCurrentTime)`
+- **Description**:
+```text
+No description provided.
+```
+
 #### `handleRunBacktest` (Function)
 - **Signature**: `const handleRunBacktest = async () => `
 - **Description**:
@@ -3976,18 +4194,25 @@ No description provided.
 No description provided.
 ```
 
-#### `markers` (Function)
-- **Signature**: `const markers = v2BacktestResult.chart_trades.map((t) => `
-- **Description**:
-```text
-Render actual execution trade markers
-```
-
 #### `observer` (Function)
 - **Signature**: `const observer = new ResizeObserver((entries) => `
 - **Description**:
 ```text
 No description provided.
+```
+
+#### `selectedTrade` (Function)
+- **Signature**: `const selectedTrade = v2BacktestResult.trades.find(x => x.position_id === selectedTradeId)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `selectedTrade` (Function)
+- **Signature**: `const selectedTrade = v2BacktestResult.trades.find(t => t.position_id === selectedTradeId)`
+- **Description**:
+```text
+3. Handle Chart Zoom and Auto-scroll behavior
 ```
 
 #### `selectedStrategy` (Function)
@@ -4076,12 +4301,89 @@ No description provided.
 No description provided.
 ```
 
+#### `selectedTradeId` (Function)
+- **Signature**: `const selectedTradeId = useBacktestStore((state) => state.selectedTradeId)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `setSelectedTradeId` (Function)
+- **Signature**: `const setSelectedTradeId = useBacktestStore((state) => state.setSelectedTradeId)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `isReplayMode` (Function)
+- **Signature**: `const isReplayMode = useBacktestStore((state) => state.isReplayMode)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `setIsReplayMode` (Function)
+- **Signature**: `const setIsReplayMode = useBacktestStore((state) => state.setIsReplayMode)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `setReplayTradeId` (Function)
+- **Signature**: `const setReplayTradeId = useBacktestStore((state) => state.setReplayTradeId)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `replayCurrentTime` (Function)
+- **Signature**: `const replayCurrentTime = useBacktestStore((state) => state.replayCurrentTime)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `setReplayCurrentTime` (Function)
+- **Signature**: `const setReplayCurrentTime = useBacktestStore((state) => state.setReplayCurrentTime)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `replayTrade` (Function)
+- **Signature**: `const replayTrade = React.useMemo(() => `
+- **Description**:
+```text
+Compute trade candles & replay timeline dynamically
+```
+
+#### `replayTimeline` (Function)
+- **Signature**: `const replayTimeline = React.useMemo(() => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `timer` (Function)
+- **Signature**: `const timer = setInterval(() => `
+- **Description**:
+```text
+No description provided.
+```
+
 #### `logs` (Function)
 - **Signature**: `const logs = useBackendTradingStore((state) => state.logs)`
 - **Description**:
 ```text
 Optimization Parameter Ranges (Local Form State)
 Telemetry logs from backend
+```
+
+#### `getHoldingDuration` (Function)
+- **Signature**: `const getHoldingDuration = (entry: string, exit: string) => `
+- **Description**:
+```text
+No description provided.
 ```
 
 #### `handleRunOptimization` (Function)
@@ -4131,6 +4433,34 @@ No description provided.
 - **Description**:
 ```text
 Helper to extract parameters list from top ranking
+```
+
+#### `selectedTrade` (Function)
+- **Signature**: `const selectedTrade = v2Result?.trades.find(t => t.position_id === selectedTradeId)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `tradeIndex` (Function)
+- **Signature**: `const tradeIndex = v2Result?.trades.findIndex(t => t.position_id === selectedTradeId) ?? -1`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `entryMarker` (Function)
+- **Signature**: `const entryMarker = v2Result?.chart_trades?.find(x => x.id === `${selectedTrade.position_id}_entry`)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `exitMarker` (Function)
+- **Signature**: `const exitMarker = v2Result?.chart_trades?.find(x => x.id === `${selectedTrade.position_id}_exit`)`
+- **Description**:
+```text
+No description provided.
 ```
 
 #### `runItem` (Function)
@@ -4236,20 +4566,11 @@ No description provided.
 - **Signature**: `const currentInstrument = useTerminalStore((state) => state.selectedInstrument)`
 - **Description**:
 ```text
-==========================================
-1. LEFT PANEL: WATCHLIST
-==========================================
+No description provided.
 ```
 
 #### `setInstrument` (Function)
 - **Signature**: `const setInstrument = useTerminalStore((state) => state.setInstrument)`
-- **Description**:
-```text
-No description provided.
-```
-
-#### `status` (Function)
-- **Signature**: `const status = useBackendTradingStore((state) => state.status)`
 - **Description**:
 ```text
 No description provided.
@@ -4269,6 +4590,27 @@ No description provided.
 No description provided.
 ```
 
+#### `saveWatchlist` (Function)
+- **Signature**: `const saveWatchlist = (list: Instrument[]) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `fetchWatchlistQuotes` (Function)
+- **Signature**: `const fetchWatchlistQuotes = async () => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `keys` (Function)
+- **Signature**: `const keys = watchlist.map((ins) => ins.instrumentKey).join(",")`
+- **Description**:
+```text
+No description provided.
+```
+
 #### `togglePin` (Function)
 - **Signature**: `const togglePin = (sym: string, e: React.MouseEvent) => `
 - **Description**:
@@ -4276,8 +4618,43 @@ No description provided.
 No description provided.
 ```
 
-#### `filtered` (Function)
-- **Signature**: `const filtered = AVAILABLE_INSTRUMENTS.filter((ins) =>`
+#### `handleAddSymbol` (Function)
+- **Signature**: `const handleAddSymbol = (ins: Instrument) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleDeleteSymbol` (Function)
+- **Signature**: `const handleDeleteSymbol = (symbol: string, e: React.MouseEvent) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `updated` (Function)
+- **Signature**: `const updated = watchlist.filter((w) => w.symbol !== symbol)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleMoveUp` (Function)
+- **Signature**: `const handleMoveUp = (index: number, e: React.MouseEvent) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleMoveDown` (Function)
+- **Signature**: `const handleMoveDown = (index: number, e: React.MouseEvent) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `filteredWatchlist` (Function)
+- **Signature**: `const filteredWatchlist = watchlist.filter((ins) =>`
 - **Description**:
 ```text
 No description provided.
@@ -4311,11 +4688,25 @@ No description provided.
 No description provided.
 ```
 
-#### `generateInitialData` (Function)
-- **Signature**: `const generateInitialData = (symbol: string) => `
+#### `calcVWAP` (Function)
+- **Signature**: `const calcVWAP = (candles: any[]) => `
 - **Description**:
 ```text
-Generate realistic candles based on selected symbol
+--- Indicator calculation helpers ---
+```
+
+#### `calcEMA` (Function)
+- **Signature**: `const calcEMA = (candles: any[], period: number) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `applyIndicators` (Function)
+- **Signature**: `const applyIndicators = (candles: any[], indicators: string[]) => `
+- **Description**:
+```text
+Apply / remove indicator overlays
 ```
 
 #### `observer` (Function)
@@ -4323,13 +4714,6 @@ Generate realistic candles based on selected symbol
 - **Description**:
 ```text
 Handle resizing dynamically using ResizeObserver
-```
-
-#### `candles` (Function)
-- **Signature**: `const candles = useBackendTradingStore((state) => state.candles)`
-- **Description**:
-```text
-No description provided.
 ```
 
 #### `status` (Function)
@@ -4346,18 +4730,18 @@ No description provided.
 No description provided.
 ```
 
-#### `formattedCandles` (Function)
-- **Signature**: `const formattedCandles = candles.map((c) => (`
+#### `load` (Function)
+- **Signature**: `const load = async () => `
 - **Description**:
 ```text
-Convert BackendCandle to the format expected by lightweight-charts (with a 'time' property)
+Bug #2 fix — fetch real candles from Upstox whenever instrument or timeframe changes
 ```
 
-#### `volumeData` (Function)
-- **Signature**: `const volumeData = formattedCandles.map((c) => (`
+#### `fmtCandles` (Function)
+- **Signature**: `const fmtCandles = res.data.map((c: any) => ({ ...c, time: c.time as UTCTimestamp }))`
 - **Description**:
 ```text
-Populate volume series matched to candles
+No description provided.
 ```
 
 #### `toggleIndicator` (Function)
@@ -4369,6 +4753,27 @@ No description provided.
 
 #### `matched` (Function)
 - **Signature**: `const matched = AVAILABLE_INSTRUMENTS.find((i) => i.symbol === e.target.value)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `fetchData` (Function)
+- **Signature**: `const fetchData = async () => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `formatCurrency` (Function)
+- **Signature**: `const formatCurrency = (val: any) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `parseInstrument` (Function)
+- **Signature**: `const parseInstrument = (symbol: string): OptionDetails => `
 - **Description**:
 ```text
 No description provided.
@@ -4404,57 +4809,43 @@ No description provided.
 No description provided.
 ```
 
-#### `status` (Function)
-- **Signature**: `const status = useBackendTradingStore((state) => state.status)`
+#### `fetchLotSize` (Function)
+- **Signature**: `const fetchLotSize = async () => `
+- **Description**:
+```text
+Dynamic lot size engine
+```
+
+#### `fetchAvailableMargin` (Function)
+- **Signature**: `const fetchAvailableMargin = async () => `
+- **Description**:
+```text
+Fetch available margin
+```
+
+#### `fetchPositions` (Function)
+- **Signature**: `const fetchPositions = async () => `
+- **Description**:
+```text
+Fetch broker positions
+```
+
+#### `fetchQuote` (Function)
+- **Signature**: `const fetchQuote = async () => `
 - **Description**:
 ```text
 No description provided.
 ```
 
-#### `isLoading` (Function)
-- **Signature**: `const isLoading = useBackendTradingStore((state) => state.isLoading)`
+#### `interval` (Function)
+- **Signature**: `const interval = setInterval(() => `
 - **Description**:
 ```text
-No description provided.
+Sync margin, funds, and positions periodically
 ```
 
-#### `actionError` (Function)
-- **Signature**: `const actionError = useBackendTradingStore((state) => state.actionError)`
-- **Description**:
-```text
-No description provided.
-```
-
-#### `successMessage` (Function)
-- **Signature**: `const successMessage = useBackendTradingStore((state) => state.successMessage)`
-- **Description**:
-```text
-No description provided.
-```
-
-#### `buyAction` (Function)
-- **Signature**: `const buyAction = useBackendTradingStore((state) => state.buy)`
-- **Description**:
-```text
-No description provided.
-```
-
-#### `sellAction` (Function)
-- **Signature**: `const sellAction = useBackendTradingStore((state) => state.sell)`
-- **Description**:
-```text
-No description provided.
-```
-
-#### `createGttAction` (Function)
-- **Signature**: `const createGttAction = useBackendTradingStore((state) => state.createGtt)`
-- **Description**:
-```text
-No description provided.
-```
-
-#### `clearMessages` (Function)
-- **Signature**: `const clearMessages = useBackendTradingStore((state) => state.clearMessages)`
+#### `fetchMarginReq` (Function)
+- **Signature**: `const fetchMarginReq = async () => `
 - **Description**:
 ```text
 No description provided.
@@ -4474,64 +4865,101 @@ No description provided.
 No description provided.
 ```
 
-#### `status` (Function)
-- **Signature**: `const status = useBackendTradingStore((state) => state.status)`
+#### `currentInstrument` (Function)
+- **Signature**: `const currentInstrument = useTerminalStore((state) => state.selectedInstrument)`
+- **Description**:
+```text
+==========================================
+OPTION CONTRACT SELECTOR & CHAIN PANEL
+==========================================
+```
+
+#### `setInstrument` (Function)
+- **Signature**: `const setInstrument = useTerminalStore((state) => state.setInstrument)`
 - **Description**:
 ```text
 No description provided.
 ```
 
-#### `tradesList` (Function)
-- **Signature**: `const tradesList = useBackendTradingStore((state) => state.trades)`
+#### `fetchMetadata` (Function)
+- **Signature**: `const fetchMetadata = async () => `
 - **Description**:
 ```text
 No description provided.
 ```
 
-#### `gttOrdersList` (Function)
-- **Signature**: `const gttOrdersList = useBackendTradingStore((state) => state.gttOrders)`
+#### `fetchChain` (Function)
+- **Signature**: `const fetchChain = async () => `
 - **Description**:
 ```text
 No description provided.
 ```
 
-#### `cancelGttAction` (Function)
-- **Signature**: `const cancelGttAction = useBackendTradingStore((state) => state.cancelGtt)`
+#### `atmRow` (Function)
+- **Signature**: `const atmRow = strikes.find((s: any) => Number(s.strike) === Number(data.atm_strike)) || strikes[Math.floor(strikes.length / 2)]`
+- **Description**:
+```text
+Auto ATM CE selection workflow
+```
+
+#### `timer` (Function)
+- **Signature**: `const timer = setInterval(() => `
 - **Description**:
 ```text
 No description provided.
 ```
 
-#### `sellAction` (Function)
-- **Signature**: `const sellAction = useBackendTradingStore((state) => state.sell)`
+#### `handleSelectContract` (Function)
+- **Signature**: `const handleSelectContract = async (strike: number, type: "CE" | "PE", key: string, symbol: string) => `
 - **Description**:
 ```text
 No description provided.
 ```
 
-#### `trades` (Function)
-- **Signature**: `const trades = tradesList.map((t) => (`
-- **Description**:
-```text
-Trades mapped from real trade logs
-```
-
-#### `orders` (Function)
-- **Signature**: `const orders = gttOrdersList.map((o) => (`
-- **Description**:
-```text
-GTT orders mapped to orders tab
-```
-
-#### `closePosition` (Function)
-- **Signature**: `const closePosition = async () => `
+#### `fetchPositions` (Function)
+- **Signature**: `const fetchPositions = async () => `
 - **Description**:
 ```text
 No description provided.
 ```
 
-#### `cancelOrder` (Function)
-- **Signature**: `const cancelOrder = async (id: string) => `
+#### `fetchOrders` (Function)
+- **Signature**: `const fetchOrders = async () => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `fetchTrades` (Function)
+- **Signature**: `const fetchTrades = async () => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `fetchHoldings` (Function)
+- **Signature**: `const fetchHoldings = async () => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `interval` (Function)
+- **Signature**: `const interval = setInterval(() => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `realizedPnL` (Function)
+- **Signature**: `const realizedPnL = brokerPositions.reduce((acc, pos) => acc + Number(pos.realised || 0), 0)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `unrealizedPnL` (Function)
+- **Signature**: `const unrealizedPnL = brokerPositions.reduce((acc, pos) => acc + Number(pos.unrealised || 0), 0)`
 - **Description**:
 ```text
 No description provided.
@@ -4903,27 +5331,24 @@ No description provided.
 
 ---
 
+## scratch/check_margin.py
+*No description provided.*
+
+
+---
+
+## scratch/check_quotes.py
+*No description provided.*
+
+
+---
+
 ## test_january_loader.py
 *No description provided.*
 
 ### Functions & Endpoints
 #### `test` (Function)
 - **Signature**: `def test()`
-- **Description**:
-```text
-No description provided.
-```
-
-
-
----
-
-## test_upstox_auth.py
-*No description provided.*
-
-### Functions & Endpoints
-#### `test_api` (Function)
-- **Signature**: `def test_api()`
 - **Description**:
 ```text
 No description provided.

@@ -3,7 +3,7 @@ import statistics
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
 
-from v2.position_models import Position
+from v2.position_models import Position, PositionStatus
 from v2.pnl_models import TradeAccountingResult
 from v2.metrics_models import (
     TradeStatistics,
@@ -19,8 +19,12 @@ class MetricsEngine:
         self.risk_free_rate_annual = risk_free_rate_annual
 
     def calculate_metrics(self, positions: List[Position], trades: List[TradeAccountingResult]) -> MetricsReport:
+        # Filter to closed positions and completed trades
+        closed_positions = [pos for pos in positions if pos.status == PositionStatus.CLOSED]
+        closed_trades = [t for t in trades if t.exit_time is not None]
+        
         # Sort trades by exit time
-        sorted_trades = sorted(trades, key=lambda t: t.exit_time)
+        sorted_trades = sorted(closed_trades, key=lambda t: t.exit_time)
         
         # 1. Basic Trade Statistics
         total_trades = len(sorted_trades)
@@ -74,17 +78,32 @@ class MetricsEngine:
                 current_win_streak = 0
                 current_loss_streak = 0
 
-        # 7. Time Metrics
+        # 7. Time Metrics & Exposure Time (Interval Merging to avoid double counting overlaps)
         hold_times = []
-        for pos in positions:
-            if pos.exit_time is not None:
+        intervals = []
+        for pos in closed_positions:
+            if pos.entry_time and pos.exit_time:
                 duration = (pos.exit_time - pos.entry_time).total_seconds()
                 hold_times.append(duration)
+                intervals.append((pos.entry_time, pos.exit_time))
                 
         avg_hold_time = statistics.mean(hold_times) if hold_times else 0.0
         shortest_hold_time = min(hold_times, default=0.0)
         longest_hold_time = max(hold_times, default=0.0)
-        exposure_time = sum(hold_times)
+        
+        exposure_time = 0.0
+        if intervals:
+            intervals.sort(key=lambda x: x[0])
+            merged = []
+            current_start, current_end = intervals[0]
+            for start, end in intervals[1:]:
+                if start <= current_end:
+                    current_end = max(current_end, end)
+                else:
+                    merged.append((current_start, current_end))
+                    current_start, current_end = start, end
+            merged.append((current_start, current_end))
+            exposure_time = sum((end - start).total_seconds() for start, end in merged)
 
         # 8. Equity Curve Builder
         equity_curve = []
@@ -102,30 +121,26 @@ class MetricsEngine:
         if not equity_curve:
             equity_curve.append(EquityPoint(timestamp=datetime.now(), equity_value=self.initial_capital, trade_id=None))
 
-        # 9. Drawdown Engine
+        # 9. Drawdown Engine (Peak-to-recovery duration)
         drawdown_curve = []
         running_peak = self.initial_capital
+        peak_timestamp = equity_curve[0].timestamp if equity_curve else datetime.now()
         max_drawdown = 0.0
         max_drawdown_pct = 0.0
-        
-        drawdown_start_ts = None
         max_drawdown_duration = 0.0
         
         for ep in equity_curve:
+            # Duration since current peak was reached (drawdown duration up to this point/recovery)
+            duration = (ep.timestamp - peak_timestamp).total_seconds()
+            max_drawdown_duration = max(max_drawdown_duration, duration)
+
             if ep.equity_value > running_peak:
-                # We reached a new peak. If we were in drawdown, compute recovery duration.
-                if drawdown_start_ts is not None:
-                    duration = (ep.timestamp - drawdown_start_ts).total_seconds()
-                    max_drawdown_duration = max(max_drawdown_duration, duration)
-                    drawdown_start_ts = None
                 running_peak = ep.equity_value
+                peak_timestamp = ep.timestamp
                 
             dd = running_peak - ep.equity_value
             dd_pct = (dd / running_peak * 100.0) if running_peak > 0 else 0.0
             
-            if dd > 0 and drawdown_start_ts is None:
-                drawdown_start_ts = ep.timestamp
-                
             max_drawdown = max(max_drawdown, dd)
             max_drawdown_pct = max(max_drawdown_pct, dd_pct)
             
@@ -135,17 +150,27 @@ class MetricsEngine:
                 drawdown_pct=dd_pct,
                 peak_value=running_peak
             ))
-            
-        # If still in drawdown at the end, compute current duration
-        if drawdown_start_ts is not None and len(equity_curve) > 1:
-            duration = (equity_curve[-1].timestamp - drawdown_start_ts).total_seconds()
-            max_drawdown_duration = max(max_drawdown_duration, duration)
 
-        # 10. Return Metrics
+        # 10. Return Metrics & CAGR
         final_equity = running_equity
         absolute_return_pct = ((final_equity - self.initial_capital) / self.initial_capital) * 100.0
         net_return_pct = absolute_return_pct
         capital_growth_pct = absolute_return_pct
+        
+        if total_trades > 0:
+            start_time = min(t.entry_time for t in sorted_trades)
+            end_time = max(t.exit_time for t in sorted_trades)
+            duration_days = (end_time - start_time).total_seconds() / 86400.0
+            years = duration_days / 365.25
+            
+            if final_equity <= 0:
+                cagr = -100.0
+            elif years >= (1.0 / 365.25):  # At least 1 day duration to annualize CAGR
+                cagr = ((final_equity / self.initial_capital) ** (1.0 / years) - 1.0) * 100.0
+            else:
+                cagr = absolute_return_pct
+        else:
+            cagr = 0.0
 
         # 11. Sharpe & Sortino Calculations
         # Group net trade PnLs by day
@@ -157,8 +182,19 @@ class MetricsEngine:
         unique_days = sorted(list(daily_pnls.keys()))
         
         if len(unique_days) > 1:
-            # Multi-day Sharpe and Sortino (annualized daily method)
-            daily_returns = [daily_pnls[day] / self.initial_capital for day in unique_days]
+            # Multi-day Sharpe and Sortino (annualized daily method over weekdays to include flat days)
+            start_date = min(t.entry_time for t in sorted_trades).date()
+            end_date = max(t.exit_time for t in sorted_trades).date()
+            
+            all_days_pnls = []
+            curr_date = start_date
+            while curr_date <= end_date:
+                if curr_date.weekday() < 5:  # Monday to Friday
+                    day_str = curr_date.strftime("%Y-%m-%d")
+                    all_days_pnls.append(daily_pnls.get(day_str, 0.0))
+                curr_date += timedelta(days=1)
+                
+            daily_returns = [pnl / self.initial_capital for pnl in all_days_pnls]
             avg_daily_ret = statistics.mean(daily_returns)
             std_daily_ret = statistics.stdev(daily_returns) if len(daily_returns) > 1 else 0.0
             
@@ -232,6 +268,7 @@ class MetricsEngine:
             "expectancy_inr": round(expectancy, 2),
             "net_profit_inr": round(net_profit, 2),
             "max_drawdown_pct": round(max_drawdown_pct, 2),
+            "cagr_pct": round(cagr, 2),
             "sharpe_ratio": round(sharpe_ratio, 2),
             "sortino_ratio": round(sortino_ratio, 2)
         }
@@ -275,6 +312,7 @@ class MetricsEngine:
             absolute_return_pct=round(absolute_return_pct, 2),
             net_return_pct=round(net_return_pct, 2),
             capital_growth_pct=round(capital_growth_pct, 2),
+            cagr=round(cagr, 2),
             sharpe_ratio=round(sharpe_ratio, 2),
             sortino_ratio=round(sortino_ratio, 2),
             grade=grade,

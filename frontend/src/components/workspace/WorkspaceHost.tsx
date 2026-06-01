@@ -73,7 +73,7 @@ export const WorkspaceHost: React.FC = () => {
   };
 
   return (
-    <div ref={containerRef} className="flex-1 flex flex-col overflow-hidden h-full p-2 gap-2 select-none">
+    <div ref={containerRef} className="flex-1 flex flex-col overflow-hidden min-h-0 p-2 gap-2 select-none">
       {/* Top Section: Left + Main + Right Panels */}
       <div className="flex-1 flex flex-row overflow-hidden min-h-0 gap-2 relative">
         {/* Left Panel */}
@@ -189,9 +189,9 @@ const DevContextHUD: React.FC = () => {
 
   const simulateInstrumentCycle = () => {
     const instruments = [
-      { instrumentKey: "NSE_INDEX|NIFTY_50", symbol: "NIFTY 50", exchange: "NSE" as const },
-      { instrumentKey: "NSE_INDEX|BANKNIFTY", symbol: "BANKNIFTY", exchange: "NSE" as const },
-      { instrumentKey: "NSE_EQ|RELIANCE", symbol: "RELIANCE", exchange: "NSE" as const },
+      { instrumentKey: "NSE_INDEX|Nifty 50", symbol: "NIFTY 50", exchange: "NSE" as const },
+      { instrumentKey: "NSE_INDEX|Nifty Bank", symbol: "BANKNIFTY", exchange: "NSE" as const },
+      { instrumentKey: "NSE_EQ|INE002A01018", symbol: "RELIANCE", exchange: "NSE" as const },
     ];
     const currentIdx = instruments.findIndex(i => i.symbol === context.selectedInstrument?.symbol);
     const nextIdx = (currentIdx + 1) % instruments.length;
