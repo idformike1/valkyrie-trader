@@ -141,6 +141,35 @@ export interface V2OptimizationReport {
   }>;
 }
 
+export interface StrategyParameterMetadata {
+  name: string;
+  type: string;
+  default: any;
+  description: string;
+}
+
+export interface StrategyMetadata {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  market_type: string;
+  recommended_timeframes: string[];
+  risk_level: string;
+  expected_trade_frequency: string;
+  entry_logic: string;
+  exit_logic: string;
+  strike_selection_logic: string;
+  expiry_selection_logic: string;
+  stop_loss_logic: string;
+  target_logic: string;
+  supported_parameters: StrategyParameterMetadata[];
+  strengths: string[];
+  weaknesses: string[];
+  best_market_conditions: string;
+  worst_market_conditions: string;
+}
+
 interface BacktestStoreState {
   v2Config: V2Config;
   v2BacktestResult: V2BacktestResult | null;
@@ -153,6 +182,8 @@ interface BacktestStoreState {
   isReplayMode: boolean;
   replayTradeId: string | null;
   replayCurrentTime: number | null;
+  strategiesMetadata: StrategyMetadata[];
+  activeStrategyMetadata: StrategyMetadata | null;
 
   setV2Config: (config: Partial<V2Config>) => void;
   runV2Backtest: (overrideConfig?: Partial<V2Config>) => Promise<boolean>;
@@ -163,6 +194,8 @@ interface BacktestStoreState {
   setReplayTradeId: (id: string | null) => void;
   setReplayCurrentTime: (time: number | null) => void;
   resetResult: () => void;
+  fetchStrategiesMetadata: () => Promise<void>;
+  updateActiveStrategyMetadata: (strategyName: string) => void;
 }
 
 const DEFAULT_CONFIG: V2Config = {
@@ -194,11 +227,19 @@ export const useBacktestStore = create<BacktestStoreState>((set, get) => ({
   isReplayMode: false,
   replayTradeId: null,
   replayCurrentTime: null,
+  strategiesMetadata: [],
+  activeStrategyMetadata: null,
 
   setV2Config: (config) => {
-    set((state) => ({
-      v2Config: { ...state.v2Config, ...config }
-    }));
+    set((state) => {
+      const nextConfig = { ...state.v2Config, ...config };
+      if (config.strategy_name) {
+        setTimeout(() => {
+          get().updateActiveStrategyMetadata(config.strategy_name!);
+        }, 0);
+      }
+      return { v2Config: nextConfig };
+    });
   },
 
   runV2Backtest: async (overrideConfig) => {
@@ -280,5 +321,30 @@ export const useBacktestStore = create<BacktestStoreState>((set, get) => ({
     isReplayMode: false, 
     replayTradeId: null, 
     replayCurrentTime: null 
-  })
+  }),
+
+  fetchStrategiesMetadata: async () => {
+    try {
+      const res = await fetch("http://localhost:8081/api/v2/strategies");
+      if (res.ok) {
+        const data = await res.json();
+        set({ strategiesMetadata: data });
+        get().updateActiveStrategyMetadata(get().v2Config.strategy_name);
+      }
+    } catch (err) {
+      console.error("Failed to fetch strategies metadata:", err);
+    }
+  },
+
+  updateActiveStrategyMetadata: (strategyName: string) => {
+    const list = get().strategiesMetadata;
+    const nameLower = strategyName.toLowerCase();
+    let targetId = nameLower;
+    if (nameLower === "five_ema_scalping") targetId = "five_ema";
+    if (nameLower === "heikin_ashi_gar") targetId = "heikin_ashi";
+    if (nameLower === "ema_crossover") targetId = "ema";
+    
+    const found = list.find((s) => s.id === targetId);
+    set({ activeStrategyMetadata: found || null });
+  }
 }));

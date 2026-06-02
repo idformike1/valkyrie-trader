@@ -75,9 +75,15 @@ export const BacktestLeft: React.FC = () => {
   const setStrategy = useTerminalStore((state) => state.setStrategy);
   const v2Config = useBacktestStore((state) => state.v2Config);
   const setV2Config = useBacktestStore((state) => state.setV2Config);
+  const fetchStrategiesMetadata = useBacktestStore((state) => state.fetchStrategiesMetadata);
+  const activeStrategyMetadata = useBacktestStore((state) => state.activeStrategyMetadata);
   
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<string>("All");
+
+  useEffect(() => {
+    fetchStrategiesMetadata();
+  }, [fetchStrategiesMetadata]);
 
   const handleSelect = (item: StrategyRepoItem) => {
     setStrategy({
@@ -104,75 +110,226 @@ export const BacktestLeft: React.FC = () => {
   });
 
   return (
-    <GlowingCard title="Strategy Repository">
-      <div className="flex flex-col gap-2 h-full font-sans text-xs">
-        {/* Search */}
-        <div className="relative shrink-0">
-          <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-500" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search strategies..."
-            className="w-full bg-slate-900/60 border border-white/5 rounded pl-8 pr-3 py-1.5 text-[11px] text-slate-300 focus:outline-none focus:border-cyan-500/40"
-          />
-        </div>
+    <div className="flex flex-col gap-3 h-full overflow-y-auto pr-1 pb-4 scrollbar-thin scrollbar-thumb-white/5">
+      <GlowingCard title="Strategy Repository" className="shrink-0">
+        <div className="flex flex-col gap-2 font-sans text-xs">
+          {/* Search */}
+          <div className="relative shrink-0">
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-500" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search strategies..."
+              className="w-full bg-slate-900/60 border border-white/5 rounded pl-8 pr-3 py-1.5 text-[11px] text-slate-300 focus:outline-none focus:border-cyan-500/40"
+            />
+          </div>
 
-        {/* Filter buttons grid */}
-        <div className="grid grid-cols-2 gap-1.5 shrink-0 select-none">
-          {["All", "Validated", "Testing", "Draft"].map((status) => (
-            <button
-              key={status}
-              onClick={() => setActiveFilter(status)}
-              className={`py-1 rounded text-[10px] font-bold transition-all cursor-pointer text-center border ${
-                activeFilter === status
-                  ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400"
-                  : "bg-slate-900 border-white/5 text-slate-500 hover:text-slate-300"
-              }`}
-            >
-              {status}
-            </button>
-          ))}
-        </div>
-
-        {/* Repository List */}
-        <div className="flex-1 overflow-y-auto flex flex-col gap-1.5 mt-2 pr-1 scrollbar-thin scrollbar-thumb-white/5">
-          {filtered.map((item) => {
-            const isSelected = selectedStrategy?.strategyId === item.id;
-            return (
-              <div
-                key={item.id}
-                onClick={() => handleSelect(item)}
-                className={`p-2.5 rounded border transition-all cursor-pointer flex flex-col gap-1.5 relative ${
-                  isSelected
+          {/* Filter buttons grid */}
+          <div className="grid grid-cols-2 gap-1.5 shrink-0 select-none">
+            {["All", "Validated", "Testing", "Draft"].map((status) => (
+              <button
+                key={status}
+                onClick={() => setActiveFilter(status)}
+                className={`py-1 rounded text-[10px] font-bold transition-all cursor-pointer text-center border ${
+                  activeFilter === status
                     ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400"
-                    : "bg-slate-950/20 border-white/5 hover:bg-white/5 text-slate-300"
+                    : "bg-slate-900 border-white/5 text-slate-500 hover:text-slate-300"
                 }`}
               >
-                <div className="flex justify-between items-start">
-                  <span className="font-bold uppercase tracking-wider text-[11px] truncate mr-2">
-                    {item.name}
-                  </span>
-                  <span className="font-mono text-[9px] text-slate-500 font-bold bg-slate-900 px-1 border border-white/5 rounded">
-                    {item.version}
+                {status}
+              </button>
+            ))}
+          </div>
+
+          {/* Repository List */}
+          <div className="max-h-[160px] overflow-y-auto flex flex-col gap-1.5 mt-2 pr-1 scrollbar-thin scrollbar-thumb-white/5">
+            {filtered.map((item) => {
+              const isSelected = selectedStrategy?.strategyId === item.id;
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => handleSelect(item)}
+                  className={`p-2.5 rounded border transition-all cursor-pointer flex flex-col gap-1.5 relative ${
+                    isSelected
+                      ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400"
+                      : "bg-slate-950/20 border-white/5 hover:bg-white/5 text-slate-300"
+                  }`}
+                >
+                  <div className="flex justify-between items-start">
+                    <span className="font-bold uppercase tracking-wider text-[11px] truncate mr-2">
+                      {item.name}
+                    </span>
+                    <span className="font-mono text-[9px] text-slate-500 font-bold bg-slate-900 px-1 border border-white/5 rounded">
+                      {item.version}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center text-[10px] text-slate-500 select-none">
+                    <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${
+                      item.status === "Validated" ? "bg-emerald-950/40 text-emerald-400" :
+                      item.status === "Testing" ? "bg-amber-950/40 text-amber-400" : "bg-slate-900 text-slate-400"
+                    }`}>
+                      {item.promotionState}
+                    </span>
+                    <span className="text-[9px] font-mono">Run: {item.lastRun}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </GlowingCard>
+
+      <GlowingCard title="Strategy Details" className="flex-1">
+        {activeStrategyMetadata ? (
+          <div className="flex flex-col gap-4 text-slate-300 font-sans text-[11px] pb-2">
+            {/* General Specs */}
+            <div className="bg-slate-900/40 border border-white/5 rounded p-3 flex flex-col gap-2.5">
+              <div className="flex justify-between items-start gap-1">
+                <div>
+                  <h4 className="text-[12px] font-bold text-cyan-400 uppercase tracking-wider">{activeStrategyMetadata.name}</h4>
+                  <span className="text-[9px] text-slate-400 font-medium bg-slate-950 px-1.5 py-0.5 border border-white/5 rounded mt-1 inline-block">
+                    {activeStrategyMetadata.category}
                   </span>
                 </div>
-
-                <div className="flex justify-between items-center text-[10px] text-slate-500 select-none">
-                  <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${
-                    item.status === "Validated" ? "bg-emerald-950/40 text-emerald-400" :
-                    item.status === "Testing" ? "bg-amber-950/40 text-amber-400" : "bg-slate-900 text-slate-400"
-                  }`}>
-                    {item.promotionState}
-                  </span>
-                  <span className="text-[9px] font-mono">Run: {item.lastRun}</span>
+                <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider shrink-0 ${
+                  activeStrategyMetadata.risk_level === "High" ? "bg-rose-950/40 text-rose-400 border border-rose-800/20" :
+                  activeStrategyMetadata.risk_level === "Medium" ? "bg-amber-950/40 text-amber-400 border border-amber-800/20" :
+                  "bg-emerald-950/40 text-emerald-400 border border-emerald-800/20"
+                }`}>
+                  {activeStrategyMetadata.risk_level} Risk
+                </span>
+              </div>
+              
+              <p className="text-slate-400 leading-relaxed">{activeStrategyMetadata.description}</p>
+              
+              <div className="grid grid-cols-2 gap-2 border-t border-white/5 pt-2.5 text-[10px]">
+                <div className="flex flex-col">
+                  <span className="text-slate-500 font-semibold uppercase tracking-wider text-[8px]">Market Regime</span>
+                  <span className="text-slate-300 mt-0.5 font-medium">{activeStrategyMetadata.market_type}</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-slate-500 font-semibold uppercase tracking-wider text-[8px]">Trade Frequency</span>
+                  <span className="text-slate-300 mt-0.5 font-medium">{activeStrategyMetadata.expected_trade_frequency}</span>
+                </div>
+                <div className="flex flex-col col-span-2">
+                  <span className="text-slate-500 font-semibold uppercase tracking-wider text-[8px]">Recommended Timeframes</span>
+                  <div className="flex gap-1.5 mt-1">
+                    {activeStrategyMetadata.recommended_timeframes.map((tf) => (
+                      <span key={tf} className="font-mono text-[9px] font-bold text-cyan-400 bg-cyan-950/30 px-2 py-0.5 rounded border border-cyan-800/20">
+                        {tf}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
-            );
-          })}
-        </div>
-      </div>
-    </GlowingCard>
+            </div>
+
+            {/* Entry / Exit Rules */}
+            <div className="bg-slate-900/40 border border-white/5 rounded p-3 flex flex-col gap-3">
+              <h5 className="text-[9px] font-bold uppercase tracking-widest text-slate-400 border-b border-white/5 pb-1 flex items-center gap-1.5">
+                <TrendingUp className="w-3.5 h-3.5 text-cyan-500/80" />
+                <span>Execution & Signal Rules</span>
+              </h5>
+              <div className="flex flex-col gap-3">
+                <div>
+                  <span className="text-cyan-400/80 font-bold uppercase tracking-wider text-[8px] block">Entry Trigger</span>
+                  <p className="text-slate-400 mt-0.5 leading-relaxed">{activeStrategyMetadata.entry_logic}</p>
+                </div>
+                <div>
+                  <span className="text-cyan-400/80 font-bold uppercase tracking-wider text-[8px] block">Exit Rules</span>
+                  <p className="text-slate-400 mt-0.5 leading-relaxed">{activeStrategyMetadata.exit_logic}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-3 border-t border-white/5 pt-2">
+                  <div>
+                    <span className="text-slate-500 font-semibold uppercase tracking-wider text-[8px] block">Strike Selection</span>
+                    <p className="text-slate-400 mt-0.5 leading-snug">{activeStrategyMetadata.strike_selection_logic}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 font-semibold uppercase tracking-wider text-[8px] block">Expiry Selection</span>
+                    <p className="text-slate-400 mt-0.5 leading-snug">{activeStrategyMetadata.expiry_selection_logic}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3 border-t border-white/5 pt-2">
+                  <div>
+                    <span className="text-slate-500 font-semibold uppercase tracking-wider text-[8px] block">Stop Loss Logic</span>
+                    <p className="text-slate-400 mt-0.5 leading-snug">{activeStrategyMetadata.stop_loss_logic}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 font-semibold uppercase tracking-wider text-[8px] block">Target Profit Logic</span>
+                    <p className="text-slate-400 mt-0.5 leading-snug">{activeStrategyMetadata.target_logic}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Parameters Specification */}
+            <div className="bg-slate-900/40 border border-white/5 rounded p-3 flex flex-col gap-2.5">
+              <h5 className="text-[9px] font-bold uppercase tracking-widest text-slate-400 border-b border-white/5 pb-1 flex items-center gap-1.5">
+                <Settings className="w-3.5 h-3.5 text-cyan-500/80" />
+                <span>Supported Parameters</span>
+              </h5>
+              <div className="flex flex-col gap-2">
+                {activeStrategyMetadata.supported_parameters.map((param) => (
+                  <div key={param.name} className="p-2 bg-slate-950/60 border border-white/5 rounded flex flex-col gap-1">
+                    <div className="flex justify-between items-center font-mono">
+                      <span className="font-bold text-cyan-400">{param.name}</span>
+                      <div className="flex gap-1.5 text-[8px] font-bold">
+                        <span className="bg-slate-900 text-slate-400 px-1 py-0.5 rounded border border-white/5">
+                          {param.type}
+                        </span>
+                        <span className="bg-cyan-950/30 text-cyan-300 px-1 py-0.5 rounded border border-cyan-800/20">
+                          Def: {String(param.default)}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-slate-500 leading-normal text-[10px]">{param.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Market Conditions */}
+            <div className="grid grid-cols-2 gap-2 bg-slate-900/40 border border-white/5 rounded p-3">
+              <div>
+                <span className="text-emerald-400 font-bold uppercase tracking-wider text-[8px] block">Best Conditions</span>
+                <p className="text-slate-400 mt-0.5 leading-normal">{activeStrategyMetadata.best_market_conditions}</p>
+              </div>
+              <div>
+                <span className="text-rose-400 font-bold uppercase tracking-wider text-[8px] block">Worst Conditions</span>
+                <p className="text-slate-400 mt-0.5 leading-normal">{activeStrategyMetadata.worst_market_conditions}</p>
+              </div>
+            </div>
+
+            {/* Strengths & Weaknesses */}
+            <div className="grid grid-cols-2 gap-2.5">
+              <div className="bg-slate-900/40 border border-white/5 rounded p-3 flex flex-col">
+                <span className="text-emerald-400 font-bold uppercase tracking-wider text-[8px] block mb-1.5 border-b border-emerald-900/20 pb-0.5">Strengths</span>
+                <ul className="list-disc pl-3 text-slate-400 space-y-1 leading-relaxed text-[10px]">
+                  {activeStrategyMetadata.strengths.map((str, idx) => (
+                    <li key={idx}>{str}</li>
+                  ))}
+                </ul>
+              </div>
+              <div className="bg-slate-900/40 border border-white/5 rounded p-3 flex flex-col">
+                <span className="text-rose-400 font-bold uppercase tracking-wider text-[8px] block mb-1.5 border-b border-rose-900/20 pb-0.5">Weaknesses</span>
+                <ul className="list-disc pl-3 text-slate-400 space-y-1 leading-relaxed text-[10px]">
+                  {activeStrategyMetadata.weaknesses.map((weak, idx) => (
+                    <li key={idx}>{weak}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center text-slate-500 text-[10px] py-12 text-center px-4 gap-2">
+            <AlertCircle className="w-5 h-5 text-slate-600 animate-pulse" />
+            <span>Select a strategy from the repository list above to view technical details.</span>
+          </div>
+        )}
+      </GlowingCard>
+    </div>
   );
 };
 

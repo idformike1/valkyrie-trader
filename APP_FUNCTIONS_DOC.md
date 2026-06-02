@@ -56,6 +56,7 @@
 - [backend/v2/strategy_builder/strategy_definition.py](#backendv2strategy_builderstrategy_definitionpy)
 - [backend/v2/strategy_builder/strategy_validator.py](#backendv2strategy_builderstrategy_validatorpy)
 - [backend/v2/strategy_builder/test_strategy_builder.py](#backendv2strategy_buildertest_strategy_builderpy)
+- [backend/v2/strategy_registry.py](#backendv2strategy_registrypy)
 - [backend/v2/test_backtest_runner.py](#backendv2test_backtest_runnerpy)
 - [backend/v2/test_cache_layer.py](#backendv2test_cache_layerpy)
 - [backend/v2/test_historical_contract_provider.py](#backendv2test_historical_contract_providerpy)
@@ -64,6 +65,8 @@
 - [backend/v2/test_pnl_engine.py](#backendv2test_pnl_enginepy)
 - [backend/v2/test_position_manager.py](#backendv2test_position_managerpy)
 - [backend/v2/test_replay_engine.py](#backendv2test_replay_enginepy)
+- [backend/v2/test_strategy_api.py](#backendv2test_strategy_apipy)
+- [backend/v2/test_strategy_registry.py](#backendv2test_strategy_registrypy)
 - [backend/v2/test_v2.py](#backendv2test_v2py)
 - [backend/v2/types.py](#backendv2typespy)
 - [backend/v2/upstox_expired_loader.py](#backendv2upstox_expired_loaderpy)
@@ -111,6 +114,7 @@
 - [run_opt_sweep_query.py](#run_opt_sweep_querypy)
 - [scratch/check_margin.py](#scratchcheck_marginpy)
 - [scratch/check_quotes.py](#scratchcheck_quotespy)
+- [scratch/test_upstox_candles.py](#scratchtest_upstox_candlespy)
 - [test_january_loader.py](#test_january_loaderpy)
 
 ---
@@ -583,6 +587,20 @@ No description provided.
 
 #### `get_v2_backtest_drawdown` (Function)
 - **Signature**: `def get_v2_backtest_drawdown()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `get_v2_strategies` (Function)
+- **Signature**: `def get_v2_strategies()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `get_v2_strategy_by_id` (Function)
+- **Signature**: `def get_v2_strategy_by_id(strategy_id)`
 - **Description**:
 ```text
 No description provided.
@@ -2148,6 +2166,36 @@ No description provided.
 
 ---
 
+## backend/v2/strategy_registry.py
+*No description provided.*
+
+### Classes
+#### class `StrategyParameterMetadata`
+No description provided.
+
+#### class `StrategyMetadata`
+No description provided.
+
+
+### Functions & Endpoints
+#### `get_strategy_metadata` (Function)
+- **Signature**: `def get_strategy_metadata(strategy_id)`
+- **Description**:
+```text
+Get detailed strategy metadata by ID or alias.
+```
+
+#### `get_all_strategy_metadata` (Function)
+- **Signature**: `def get_all_strategy_metadata()`
+- **Description**:
+```text
+Get a list of all registered strategies.
+```
+
+
+
+---
+
 ## backend/v2/test_backtest_runner.py
 *No description provided.*
 
@@ -3148,6 +3196,66 @@ No description provided.
 
 ---
 
+## backend/v2/test_strategy_api.py
+*No description provided.*
+
+### Classes
+#### class `TestStrategyApiEndpoints`
+No description provided.
+
+##### Methods:
+- **`setUp`**
+  *Signature*: `def setUp(self)`
+  *Description*: No description provided.
+
+- **`test_get_all_strategies_endpoint`**
+  *Signature*: `def test_get_all_strategies_endpoint(self)`
+  *Description*: No description provided.
+
+- **`test_get_strategy_by_id_endpoint_success`**
+  *Signature*: `def test_get_strategy_by_id_endpoint_success(self)`
+  *Description*: No description provided.
+
+- **`test_get_strategy_by_id_endpoint_not_found`**
+  *Signature*: `def test_get_strategy_by_id_endpoint_not_found(self)`
+  *Description*: No description provided.
+
+
+
+---
+
+## backend/v2/test_strategy_registry.py
+*No description provided.*
+
+### Classes
+#### class `TestStrategyRegistry`
+No description provided.
+
+##### Methods:
+- **`test_get_all_strategy_metadata`**
+  *Signature*: `def test_get_all_strategy_metadata(self)`
+  *Description*: No description provided.
+
+- **`test_get_strategy_metadata_direct`**
+  *Signature*: `def test_get_strategy_metadata_direct(self)`
+  *Description*: No description provided.
+
+- **`test_get_strategy_metadata_alias`**
+  *Signature*: `def test_get_strategy_metadata_alias(self)`
+  *Description*: No description provided.
+
+- **`test_get_strategy_metadata_invalid`**
+  *Signature*: `def test_get_strategy_metadata_invalid(self)`
+  *Description*: No description provided.
+
+- **`test_schema_types`**
+  *Signature*: `def test_schema_types(self)`
+  *Description*: No description provided.
+
+
+
+---
+
 ## backend/v2/test_v2.py
 *No description provided.*
 
@@ -3944,6 +4052,13 @@ No description provided.
 No description provided.
 ```
 
+#### `found` (Function)
+- **Signature**: `const found = list.find((s) => s.id === targetId)`
+- **Description**:
+```text
+No description provided.
+```
+
 
 
 ---
@@ -4082,6 +4197,20 @@ No description provided.
 
 #### `setV2Config` (Function)
 - **Signature**: `const setV2Config = useBacktestStore((state) => state.setV2Config)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `fetchStrategiesMetadata` (Function)
+- **Signature**: `const fetchStrategiesMetadata = useBacktestStore((state) => state.fetchStrategiesMetadata)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `activeStrategyMetadata` (Function)
+- **Signature**: `const activeStrategyMetadata = useBacktestStore((state) => state.activeStrategyMetadata)`
 - **Description**:
 ```text
 No description provided.
@@ -5339,6 +5468,21 @@ No description provided.
 
 ## scratch/check_quotes.py
 *No description provided.*
+
+
+---
+
+## scratch/test_upstox_candles.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `test` (Function)
+- **Signature**: `def test()`
+- **Description**:
+```text
+No description provided.
+```
+
 
 
 ---

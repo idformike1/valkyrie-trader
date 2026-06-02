@@ -804,7 +804,7 @@ def fetch_historical_candles(instrument_key, interval, from_date, to_date):
     headers = {"Accept": "application/json", "Authorization": f"Bearer {token}"}
     
     # 1. Fetch live intraday candles (includes today's current day candles)
-    url_intra = f"https://api.upstox.com/v2/historical-candle-intraday/{encoded_key}/{interval}"
+    url_intra = f"https://api.upstox.com/v2/historical-candle/intraday/{encoded_key}/{interval}"
     try:
         resp = requests.get(url_intra, headers=headers, timeout=5)
         if resp.status_code == 200:
@@ -1544,9 +1544,9 @@ def get_broker_order_margin(req: MarginRequestModel):
 TF_TO_UPSTOX = {
     "1m": "1minute",
     "3m": "1minute",    # fetch 1m then resample to 3m
-    "5m": "30minute",   # closest; resample to 5m  
-    "15m": "30minute",  # resample to 15m
-    "1h": "30minute",   # resample to 60m
+    "5m": "1minute",    # fetch 1m then resample to 5m
+    "15m": "1minute",   # fetch 1m then resample to 15m
+    "1h": "1minute",    # fetch 1m then resample to 1h
     "1d": "day"
 }
 TF_RESAMPLE = {
@@ -1554,7 +1554,7 @@ TF_RESAMPLE = {
 }
 
 @app.get('/api/broker/candles')
-def get_broker_candles(instrument_key: str, timeframe: str = "1m", days: int = 3):
+def get_broker_candles(instrument_key: str, timeframe: str = "1m", days: int = 10):
     token = load_upstox_token()
     if not token:
         raise HTTPException(status_code=401, detail="Token Expired: No upstox token found.")
@@ -2844,6 +2844,19 @@ def get_v2_backtest_drawdown():
     if not LATEST_V2_BACKTEST_RESULT:
         raise HTTPException(status_code=404, detail="No backtest results available.")
     return LATEST_V2_BACKTEST_RESULT["report"]["drawdown_curve"]
+
+@app.get("/api/v2/strategies")
+def get_v2_strategies():
+    from v2.strategy_registry import get_all_strategy_metadata
+    return get_all_strategy_metadata()
+
+@app.get("/api/v2/strategies/{strategy_id}")
+def get_v2_strategy_by_id(strategy_id: str):
+    from v2.strategy_registry import get_strategy_metadata
+    meta = get_strategy_metadata(strategy_id)
+    if not meta:
+        raise HTTPException(status_code=404, detail=f"Strategy '{strategy_id}' not found.")
+    return meta
 
 @app.on_event("startup")
 async def startup_event():
