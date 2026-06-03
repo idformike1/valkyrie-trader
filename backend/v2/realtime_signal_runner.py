@@ -163,10 +163,32 @@ class RealtimeSignalRunner:
                     {"spot": spot_price, "timestamp": current_ts.isoformat()}
                 )
                 
+                prev_ema = spot_price
+                curr_ema = spot_price
+                try:
+                    close_prices = [float(c['close']) for c in self.candle_buffer]
+                    if len(close_prices) >= 7:
+                        import pandas as pd
+                        ema_series = pd.Series(close_prices).ewm(span=5, adjust=False).mean()
+                        prev_ema = float(ema_series.iloc[-2])
+                        curr_ema = float(ema_series.iloc[-1])
+                except Exception as e:
+                    logger.debug(f"Failed to calculate EMA for trade explanation: {e}")
+
+                from v2.trade_explainer import TradeExplainer
+                entry_reason = TradeExplainer.explain_entry(
+                    strategy_name=self.strategy_name,
+                    prev_ema=prev_ema,
+                    curr_ema=curr_ema,
+                    spot_price=spot_price,
+                    condition="Bullish Breakout"
+                )
+
                 pos_data = self.execution_adapter.execute_buy(
                     underlying=self.config.underlying_instrument_key,
                     spot_price=spot_price,
-                    timestamp=current_ts
+                    timestamp=current_ts,
+                    entry_reason=entry_reason
                 )
                 
                 self.entry_index = len(self.candle_buffer) - 1

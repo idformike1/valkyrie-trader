@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { 
   Play, Pause, Square, Activity, Server, Zap, Shield, AlertTriangle, 
   Search, Sliders, CheckCircle2, ChevronRight, BarChart2, Cpu, 
-  Database, RefreshCw, Terminal, TrendingUp, HelpCircle
+  Database, RefreshCw, Terminal, TrendingUp, HelpCircle, Info
 } from "lucide-react";
 import { useTerminalStore } from "@/store/useTerminalStore";
 import { useEventStore } from "@/store/useEventStore";
@@ -165,7 +165,7 @@ export const PaperMain: React.FC = () => {
   const [sessionStartTimeStr, setSessionStartTimeStr] = useState<string>("N/A");
 
   // Determine running state based on telemetry status
-  const isEngineRunning = status?.engine === "v2" && status?.state && status?.state !== "IDLE";
+  const isEngineRunning = status?.engine === "v2" && !!status?.state && status?.state !== "IDLE";
   const isEnginePaused = status?.engine === "v2" && status?.state === "PAUSED";
   const displayStatus = isEngineRunning
     ? (isEnginePaused ? "Paused" : (status?.state === "DISCONNECTED" ? "Disconnected" : "Running"))
@@ -636,6 +636,17 @@ export const PaperMain: React.FC = () => {
                           <span className="font-mono text-slate-200 font-semibold">{lastTrade.quantity} unit(s)</span>
                         </div>
                         <div className="flex justify-between border-t border-white/[0.03] pt-1 mt-1">
+                          <span className="text-slate-500">Execution Source:</span>
+                          <span className="font-mono text-slate-200">
+                            {(() => {
+                              const src = lastTrade.execution_source || "SYNTHETIC_MODEL";
+                              if (src === "LIVE_QUOTE") return <span className="text-cyan-400 font-bold">LIVE_QUOTE ✓</span>;
+                              if (src === "HISTORICAL_CACHE") return <span className="text-blue-400 font-bold">HISTORICAL_CACHE</span>;
+                              return <span className="text-amber-500 font-bold">⚠ SYNTHETIC_MODEL</span>;
+                            })()}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
                           <span className="text-slate-500">Trigger Reason:</span>
                           <span className="text-slate-300 font-bold italic truncate max-w-[100px]">{lastTrade.reason || "Strategy Signal"}</span>
                         </div>
@@ -833,6 +844,10 @@ export const PaperMain: React.FC = () => {
                       SL: ₹{status.position.stop_loss.toFixed(2)} | Target: ₹{status.position.target_price.toFixed(2)} | Net PnL: ₹{(status.position.pnl ?? 0).toFixed(2)}
                     </span>
                   </div>
+                  <div className="flex justify-between items-center py-1 border-t border-white/[0.02]">
+                    <span>Entry Source</span>
+                    <span className="text-cyan-400 font-bold uppercase">{status.position.execution_source || "LIVE_QUOTE"}</span>
+                  </div>
                 </>
               ) : (
                 <div className="text-slate-500 text-center py-2 font-sans select-none">No active position exposure.</div>
@@ -925,14 +940,18 @@ export const PaperRight: React.FC = () => {
 // 4. BOTTOM PANEL: LEDGERS & PROMOTION CHECKER
 // ==========================================
 export const PaperBottom: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<"positions" | "trades" | "logs" | "events" | "promotion">("positions");
+  const [activeTab, setActiveTab] = useState<"positions" | "trades" | "logs" | "events" | "promotion" | "chain">("positions");
+  const [selectedTradeId, setSelectedTradeId] = useState<number | string | null>(null);
   const status = useBackendTradingStore((state) => state.status);
   const trades = useBackendTradingStore((state) => state.trades) || [];
   const logs = useBackendTradingStore((state) => state.logs) || [];
+  
+  const selectedTrade = trades.find((t, i) => (t.id === selectedTradeId || `TRD_${i}` === selectedTradeId)) || null;
 
   const tabs = [
     { id: "positions" as const, name: "Positions" },
     { id: "trades" as const, name: "Trades List" },
+    { id: "chain" as const, name: "Live Chain & Quote Health" },
     { id: "logs" as const, name: "Strategy Logs" },
     { id: "events" as const, name: "Events Ticker" },
     { id: "promotion" as const, name: "Promotion Readiness" },
@@ -971,6 +990,7 @@ export const PaperBottom: React.FC = () => {
                 <th className="py-1 text-center">Net Qty</th>
                 <th className="py-1 text-right">Avg Entry</th>
                 <th className="py-1 text-right">LTP</th>
+                <th className="py-1 text-center">Entry Source</th>
                 <th className="py-1 text-right pr-2">PnL</th>
               </tr>
             </thead>
@@ -982,13 +1002,40 @@ export const PaperBottom: React.FC = () => {
                   <td className="py-1.5 text-center">{status.position.qty ?? 0}</td>
                   <td className="py-1.5 text-right">₹{status.position.entry_price.toFixed(2)}</td>
                   <td className="py-1.5 text-right">₹{(status.position.ltp ?? 0).toFixed(2)}</td>
+                  <td className="py-1.5 text-center">
+                    {(() => {
+                      const getSourceBadge = (src?: string) => {
+                        const s = (src || "SYNTHETIC_MODEL").toUpperCase();
+                        if (s.includes("LIVE")) {
+                          return (
+                            <span className="px-1.5 py-0.5 rounded text-[8px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-sans uppercase font-bold tracking-wider">
+                              LIVE_QUOTE
+                            </span>
+                          );
+                        }
+                        if (s.includes("CACHE")) {
+                          return (
+                            <span className="px-1.5 py-0.5 rounded text-[8px] bg-blue-500/10 text-blue-400 border border-blue-500/20 font-sans uppercase font-bold tracking-wider">
+                              HISTORICAL_CACHE
+                            </span>
+                          );
+                        }
+                        return (
+                          <span className="px-1.5 py-0.5 rounded text-[8px] bg-amber-500/10 text-amber-500 border border-amber-500/20 font-sans uppercase font-bold tracking-wider">
+                            SYNTHETIC_MODEL
+                          </span>
+                        );
+                      };
+                      return getSourceBadge(status.position.execution_source);
+                    })()}
+                  </td>
                   <td className={`py-1.5 text-right pr-2 font-bold ${(status.position.pnl ?? 0) >= 0 ? "text-emerald-400" : "text-rose-450"}`}>
                     {(status.position.pnl ?? 0) >= 0 ? "+" : ""}₹{(status.position.pnl ?? 0).toFixed(2)}
                   </td>
                 </tr>
               ) : (
                 <tr>
-                  <td colSpan={6} className="py-4 text-center text-slate-500 font-sans select-none">No active position exposure.</td>
+                  <td colSpan={7} className="py-4 text-center text-slate-500 font-sans select-none">No active position exposure.</td>
                 </tr>
               )}
             </tbody>
@@ -997,41 +1044,162 @@ export const PaperBottom: React.FC = () => {
 
         {/* Trades list tab */}
         {activeTab === "trades" && (
-          <table className="w-full text-left font-mono text-[10px]">
-            <thead>
-              <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-[8px]">
-                <th className="py-1 pl-2">Trade ID</th>
-                <th className="py-1">Instrument</th>
-                <th className="py-1">Side</th>
-                <th className="py-1 text-right">Price</th>
-                <th className="py-1 text-center">Qty</th>
-                <th className="py-1 text-right">PnL</th>
-                <th className="py-1 text-right pr-2">Execution Time</th>
-              </tr>
-            </thead>
-            <tbody className="text-slate-300">
-              {trades.map((trade, idx) => (
-                <tr key={idx} className="border-b border-white/[0.02] hover:bg-white/[0.02]">
-                  <td className="py-1.5 pl-2 text-slate-500 truncate max-w-[100px]">{trade.id || `TRD_${idx}`}</td>
-                  <td className="py-1.5 text-slate-200">{trade.trading_symbol || trade.instrument_key}</td>
-                  <td className={`py-1.5 font-bold ${trade.type === "BUY" ? "text-emerald-400" : "text-rose-500"}`}>{trade.type}</td>
-                  <td className="py-1.5 text-right">₹{trade.price.toFixed(2)}</td>
-                  <td className="py-1.5 text-center">{trade.quantity}</td>
-                  <td className={`py-1.5 text-right font-bold ${trade.pnl >= 0 ? "text-emerald-400" : "text-rose-500"}`}>
-                    {trade.type === "EXIT" ? `${trade.pnl >= 0 ? "+" : ""}₹${trade.pnl.toFixed(2)}` : "-"}
-                  </td>
-                  <td className="py-1.5 text-right pr-2 text-slate-500">
-                    {new Date(trade.timestamp).toLocaleTimeString()}
-                  </td>
-                </tr>
-              ))}
-              {trades.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="py-4 text-center text-slate-500 font-sans select-none">No trades executed in this session.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+          <div className="flex flex-col gap-3">
+            <div className="max-h-[220px] overflow-y-auto border border-white/5 rounded">
+              <table className="w-full text-left font-mono text-[10px]">
+                <thead>
+                  <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-[8px] bg-slate-950/20">
+                    <th className="py-1 pl-2">Trade ID</th>
+                    <th className="py-1">Instrument</th>
+                    <th className="py-1">Side</th>
+                    <th className="py-1 text-right">Price</th>
+                    <th className="py-1 text-center">Qty</th>
+                    <th className="py-1 text-right">PnL</th>
+                    <th className="py-1 text-center">Source</th>
+                    <th className="py-1 text-right pr-2">Execution Time</th>
+                  </tr>
+                </thead>
+                <tbody className="text-slate-300">
+                  {trades.map((trade, idx) => {
+                    const getSourceBadge = (src?: string) => {
+                      const s = (src || "SYNTHETIC_MODEL").toUpperCase();
+                      if (s.includes("LIVE")) {
+                        return (
+                          <span className="px-1.5 py-0.5 rounded text-[8px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-sans uppercase font-bold tracking-wider">
+                            LIVE_QUOTE
+                          </span>
+                        );
+                      }
+                      if (s.includes("CACHE")) {
+                        return (
+                          <span className="px-1.5 py-0.5 rounded text-[8px] bg-blue-500/10 text-blue-400 border border-blue-500/20 font-sans uppercase font-bold tracking-wider">
+                            HISTORICAL_CACHE
+                          </span>
+                        );
+                      }
+                      return (
+                        <span className="px-1.5 py-0.5 rounded text-[8px] bg-amber-500/10 text-amber-500 border border-amber-500/20 font-sans uppercase font-bold tracking-wider">
+                          SYNTHETIC_MODEL
+                        </span>
+                      );
+                    };
+
+                    const isSelected = selectedTradeId === (trade.id || `TRD_${idx}`);
+
+                    return (
+                      <tr 
+                        key={idx} 
+                        onClick={() => setSelectedTradeId(trade.id || `TRD_${idx}`)}
+                        className={`border-b border-white/[0.02] hover:bg-cyan-500/5 cursor-pointer transition-all ${
+                          isSelected ? "bg-cyan-500/10 border-cyan-500/20" : ""
+                        }`}
+                      >
+                        <td className="py-1.5 pl-2 text-slate-500 truncate max-w-[100px]">{trade.id || `TRD_${idx}`}</td>
+                        <td className="py-1.5 text-slate-200">{trade.trading_symbol || trade.instrument_key}</td>
+                        <td className={`py-1.5 font-bold ${trade.type === "BUY" ? "text-emerald-400" : "text-rose-500"}`}>{trade.type}</td>
+                        <td className="py-1.5 text-right">₹{trade.price.toFixed(2)}</td>
+                        <td className="py-1.5 text-center">{trade.quantity}</td>
+                        <td className={`py-1.5 text-right font-bold ${trade.pnl >= 0 ? "text-emerald-400" : "text-rose-500"}`}>
+                          {trade.type === "EXIT" ? `${trade.pnl >= 0 ? "+" : ""}₹${trade.pnl.toFixed(2)}` : "-"}
+                        </td>
+                        <td className="py-1.5 text-center">
+                          {getSourceBadge(trade.execution_source)}
+                        </td>
+                        <td className="py-1.5 text-right pr-2 text-slate-500">
+                          {new Date(trade.timestamp).toLocaleTimeString()}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {trades.length === 0 && (
+                    <tr>
+                      <td colSpan={8} className="py-4 text-center text-slate-500 font-sans select-none">No trades executed in this session.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Trade Inspector Panel */}
+            {selectedTrade ? (
+              <div className="bg-slate-950/60 border border-cyan-500/20 rounded p-3.5 flex flex-col gap-2.5 font-sans text-slate-300">
+                <div className="flex justify-between items-center border-b border-white/10 pb-1.5">
+                  <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest flex items-center gap-1.5">
+                    <Info className="w-3.5 h-3.5" />
+                    Trade Explainer & Causality Diagnostics
+                  </span>
+                  <button 
+                    onClick={() => setSelectedTradeId(null)}
+                    className="text-[8px] uppercase tracking-wider text-slate-400 hover:text-slate-200 bg-slate-900 border border-white/10 px-2 py-0.5 rounded cursor-pointer transition-colors"
+                  >
+                    Clear Inspector
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[10px] leading-relaxed">
+                  {/* Left Column: Core Trade Reasons */}
+                  <div className="bg-slate-900/40 p-2.5 rounded border border-white/5 flex flex-col gap-2.5">
+                    <div>
+                      <span className="text-slate-500 font-semibold block uppercase text-[8px] tracking-wider mb-1">Entry Logic / Reason</span>
+                      <pre className="text-slate-200 font-mono text-[9px] whitespace-pre-wrap leading-tight bg-slate-950/40 p-2 rounded border border-white/5">
+                        {selectedTrade.entry_reason || selectedTrade.reason || "Strategy entry crossover or threshold met."}
+                      </pre>
+                    </div>
+                    {selectedTrade.type === "EXIT" && (
+                      <div>
+                        <span className="text-slate-500 font-semibold block uppercase text-[8px] tracking-wider mb-1">Exit Logic / Reason</span>
+                        <pre className="text-rose-450 font-mono text-[9px] whitespace-pre-wrap leading-tight bg-slate-950/40 p-2 rounded border border-white/5">
+                          {selectedTrade.exit_reason || selectedTrade.reason || "Target, stop-loss, or trailing trigger executed."}
+                        </pre>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right Column: Execution Source & Quote Quality */}
+                  <div className="bg-slate-900/40 p-2.5 rounded border border-white/5 flex flex-col gap-2.5">
+                    <div className="flex justify-between items-center py-1 border-b border-white/[0.02] text-[10px]">
+                      <span className="text-slate-500 font-semibold uppercase text-[8px] tracking-wider">Execution Source:</span>
+                      <span className="font-mono text-cyan-400 font-bold uppercase">{selectedTrade.execution_source || "SYNTHETIC_MODEL"}</span>
+                    </div>
+
+                    <div>
+                      <span className="text-slate-500 font-semibold block uppercase text-[8px] tracking-wider mb-1.5">Quote Quality Diagnostics</span>
+                      {selectedTrade.quote_quality ? (
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 font-mono text-slate-350 bg-slate-950/40 p-2 rounded border border-white/5 text-[9px]">
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">Bid:</span>
+                            <span className="text-slate-200">₹{selectedTrade.quote_quality.bid?.toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">Ask:</span>
+                            <span className="text-slate-200">₹{selectedTrade.quote_quality.ask?.toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">Spread:</span>
+                            <span className="text-slate-200">₹{selectedTrade.quote_quality.spread?.toFixed(2)}</span>
+                          </div>
+                           <div className="flex justify-between">
+                            <span className="text-slate-500">Tick Age:</span>
+                            <span className={`${(selectedTrade.quote_quality.tick_age_ms ?? 0) > 1500 ? "text-rose-450 font-bold" : "text-cyan-400 font-bold"}`}>
+                              {selectedTrade.quote_quality.tick_age_ms ?? 0}ms
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-slate-500 italic p-2 text-center bg-slate-950/20 rounded border border-dashed border-white/5 font-sans leading-normal">
+                          Quote quality parameters not available. Fills generated via model pricing.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-slate-900/10 border border-dashed border-white/5 rounded py-2.5 text-center text-slate-500 font-sans select-none text-[9px]">
+                Click on any row in the Trades list above to inspect entry/exit causality details.
+              </div>
+            )}
+          </div>
         )}
 
         {/* Strategy Logs tab */}
@@ -1096,6 +1264,117 @@ export const PaperBottom: React.FC = () => {
               <span className="text-[10px] text-slate-500">
                 Strategy needs to accumulate more trading days to satisfy the 14-day live paper test policy before production promotion is unlocked.
               </span>
+            </div>
+          </div>
+        )}
+
+        {/* Live Option Chain & Quote Health Tab */}
+        {activeTab === "chain" && (
+          <div className="flex flex-col lg:flex-row gap-4 w-full h-full min-h-[250px]">
+            {/* Left Side: Option Chain Table */}
+            <div className="flex-1 bg-slate-950/40 p-3 rounded border border-white/5 flex flex-col gap-2">
+              <div className="text-[10px] text-slate-500 uppercase tracking-widest font-bold border-b border-white/5 pb-1 flex justify-between items-center">
+                <span>ATM±2 Option Chain</span>
+                <span className="text-cyan-400 font-mono text-[9px] lowercase font-normal">rolling dynamically</span>
+              </div>
+              <table className="w-full text-left font-mono text-[10px]">
+                <thead>
+                  <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-[8px]">
+                    <th className="py-1 pl-2">CE LTP</th>
+                    <th className="py-1 text-center">Age (ms)</th>
+                    <th className="py-1 text-center">Strike</th>
+                    <th className="py-1 text-center">Age (ms)</th>
+                    <th className="py-1 text-right pr-2">PE LTP</th>
+                  </tr>
+                </thead>
+                <tbody className="text-slate-300">
+                  {status?.option_chain && status.option_chain.length > 0 ? (
+                    status.option_chain.map((row, idx) => {
+                      const ceAgeColor = row.ce_age_ms > 1500 ? "text-rose-450 font-bold" : "text-slate-500";
+                      const peAgeColor = row.pe_age_ms > 1500 ? "text-rose-450 font-bold" : "text-slate-500";
+                      return (
+                        <tr key={idx} className="border-b border-white/[0.02] hover:bg-white/[0.02]">
+                          <td className="py-1.5 pl-2 text-cyan-400 font-bold">₹{row.ce_ltp.toFixed(2)}</td>
+                          <td className={`py-1.5 text-center ${ceAgeColor}`}>{row.ce_age_ms}ms</td>
+                          <td className="py-1.5 text-center text-slate-100 font-bold bg-white/[0.02]">{row.strike}</td>
+                          <td className={`py-1.5 text-center ${peAgeColor}`}>{row.pe_age_ms}ms</td>
+                          <td className="py-1.5 text-right pr-2 text-cyan-400 font-bold">₹{row.pe_ltp.toFixed(2)}</td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="py-8 text-center text-slate-500 font-sans select-none">
+                        No active option chain data. Ensure the paper session is running.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Right Side: Quote Health & Telemetry Metrics */}
+            <div className="w-full lg:w-[350px] flex flex-col gap-3">
+              <div className="bg-slate-950/40 p-3 rounded border border-white/5 flex flex-col gap-2.5">
+                <div className="text-[10px] text-slate-500 uppercase tracking-widest font-bold border-b border-white/5 pb-1">
+                  Quote Health Diagnostics
+                </div>
+                
+                <div className="flex flex-col gap-1.5 font-mono text-[10px]">
+                  <div className="flex justify-between items-center py-1 border-b border-white/[0.02]">
+                    <span className="text-slate-400">Subscribed Contracts:</span>
+                    <span className="text-slate-200 font-bold">{status?.quote_health?.subscribed_contracts ?? 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-white/[0.02]">
+                    <span className="text-slate-400">Live Quotes (Cache):</span>
+                    <span className="text-emerald-400 font-bold">{status?.quote_health?.live_quotes ?? 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-white/[0.02]">
+                    <span className="text-slate-400">Stale Quotes (&gt;1.5s):</span>
+                    <span className={`font-bold ${(status?.quote_health?.stale_quotes ?? 0) > 0 ? "text-rose-400" : "text-slate-300"}`}>
+                      {status?.quote_health?.stale_quotes ?? 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-white/[0.02]">
+                    <span className="text-slate-400">Feed Hit Rate:</span>
+                    <span className={`font-bold ${(status?.quote_health?.hit_rate ?? 0) > 0.9 ? "text-cyan-400" : "text-amber-400"}`}>
+                      {((status?.quote_health?.hit_rate ?? 0) * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-white/[0.02]">
+                    <span className="text-slate-400">Feed Miss Rate:</span>
+                    <span className={`font-bold ${(status?.quote_health?.miss_rate ?? 0) > 0.1 ? "text-rose-450" : "text-slate-300"}`}>
+                      {((status?.quote_health?.miss_rate ?? 0) * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 pt-2 border-t border-white/5">
+                    <span className="text-slate-400 font-bold">Synthetic Fallbacks:</span>
+                    <span className={`font-bold ${(status?.quote_health?.synthetic_fills ?? 0) > 0 ? "text-amber-500 animate-pulse" : "text-emerald-400"}`}>
+                      {status?.quote_health?.synthetic_fills ?? 0} fills
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status Indicator */}
+              <div className="bg-slate-900/40 p-2.5 rounded border border-white/5 flex flex-col gap-1 font-sans">
+                <div className="flex items-center gap-1.5 font-bold text-[10px]">
+                  {((status?.quote_health?.hit_rate ?? 0) > 0.9 && (status?.quote_health?.stale_quotes ?? 0) === 0) ? (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
+                      <span className="text-cyan-400">PIPELINE: LIVE OPTION EXECUTION ACTIVE</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                      <span className="text-amber-400">PIPELINE: HYBRID BACKUP / MODEL FILLS</span>
+                    </>
+                  )}
+                </div>
+                <span className="text-[9px] text-slate-500">
+                  Real-time option quote engine automatically rolls NIFTY option subscriptions dynamically as index spot price changes to ensure 100% quote-driven fills.
+                </span>
+              </div>
             </div>
           </div>
         )}

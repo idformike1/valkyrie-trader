@@ -1,7 +1,7 @@
 # Strategy Builder Fast Reality Audit Report
 
-Generated on: 2026-05-30 20:32:17
-Status: PASSED
+Generated on: 2026-06-03 14:41:05
+Status: FAILED
 
 This audit verifies the functional correctness, execution parity, and backward compatibility of the data-driven **Strategy Builder Engine** in Valkyrie V2.
 
@@ -12,7 +12,7 @@ This audit verifies the functional correctness, execution parity, and backward c
 | Task 2 | Signal Parity Audit | **PASS** |
 | Task 3 | Trade Parity Audit | **PASS** |
 | Task 4 | Heikin Ashi Green After Red Test | **PASS** |
-| Task 5 | Complex Strategy Test (EMA + RSI + Volume) | **PASS** |
+| Task 5 | Complex Strategy Test (EMA + RSI + Volume) | **FAIL** |
 | Task 6 | Risk Engine Audit | **PASS** |
 | Task 7 | Strategy Validator Audit | **PASS** |
 | Task 8 | Backward Compatibility | **PASS** |
@@ -27,7 +27,7 @@ Comparison of legacy EMA (Fast=2, Slow=12) vs StrategyDefinition EMA (Fast=2, Sl
 | Trade Count | 93 | 93 | Yes |
 | Net Profit | INR 95,972.15 | INR 95,972.15 | Yes |
 | Profit Factor | 7.86 | 7.86 | Yes |
-| Sharpe Ratio | 11.03 | 11.03 | Yes |
+| Sharpe Ratio | 10.30 | 10.30 | Yes |
 | Max Drawdown | INR 2,333.58 | INR 2,333.58 | Yes |
 | Entry Count | 93 | 93 | Yes |
 | Exit Count | 93 | 93 | Yes |
@@ -66,10 +66,10 @@ Sample trade parameters:
 ---
 
 ## 5. Complex Strategy Results (EMA + RSI + Volume)
-- **Status**: **PASS**
-- **Trades Executed**: 210
-- **Net Profit**: INR -9,325.21
-- **Win Rate**: 32.38%
+- **Status**: **FAIL**
+- **Trades Executed**: 0
+- **Net Profit**: INR 0.00
+- **Win Rate**: 0.00%
 
 The multi-indicator setup successfully computed the intersection of EMA crossover, RSI > 60 boundary, and Volume Spike ratios on the fly.
 
@@ -80,9 +80,9 @@ Exit triggers evaluated by the `RiskEngine` on options premiums:
 
 | Exit Type | Trades Closed | Example Trade |
 |---|---|---|
-| Stop Loss | 55 | GAR Trade #93 (Net PnL: -518.62) |
-| Take Profit | 71 | GAR Trade #12 (Net PnL: 1520.41) |
-| Trailing SL | 100 | Complex Trade #1 (Net PnL: -277.15) |
+| Stop Loss | 2 | Trade #93 (Net PnL: -518.62) |
+| Take Profit | 30 | Trade #12 (Net PnL: 1520.41) |
+| Trailing SL | 0 | N/A |
 
 ---
 
@@ -121,6 +121,6 @@ Verification that legacy strategy classes run without modifications or errors:
 ---
 
 ## Conclusion
-Final Verification Status: **PASS**
+Final Verification Status: **FAIL**
 
 ### **STRATEGY_BUILDER_V1_CANDIDATE**

@@ -13,6 +13,7 @@ export interface BackendPosition {
   ltp?: number;
   pnl?: number;
   side?: string;
+  execution_source?: string;
 }
 
 export interface BackendSystemStatus {
@@ -47,6 +48,21 @@ export interface BackendSystemStatus {
   scalper_option_type: string | null;
   scalper_strike: number | null;
   scalper_spot_price: number;
+  option_chain?: Array<{
+    strike: number;
+    ce_ltp: number;
+    ce_age_ms: number;
+    pe_ltp: number;
+    pe_age_ms: number;
+  }>;
+  quote_health?: {
+    subscribed_contracts: number;
+    live_quotes: number;
+    stale_quotes: number;
+    hit_rate: number;
+    miss_rate: number;
+    synthetic_fills: number;
+  };
   sharpe_ratio?: number;
   engine?: string;
 }
@@ -65,6 +81,15 @@ export interface BackendTrade {
   pnl: number;
   timestamp: string;
   upstox_order_id?: string;
+  execution_source?: string;
+  entry_reason?: string | null;
+  exit_reason?: string | null;
+  quote_quality?: {
+    bid?: number;
+    ask?: number;
+    spread?: number;
+    tick_age_ms?: number;
+  } | null;
 }
 
 export interface BackendCandle {

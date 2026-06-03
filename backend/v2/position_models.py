@@ -27,6 +27,9 @@ class Position(BaseModel):
     broker: str
     entry_signal: str
     exit_signal: Optional[str] = None
+    execution_source: Optional[str] = "SYNTHETIC_MODEL"
+    entry_reason: Optional[str] = None
+    exit_reason: Optional[str] = None
     metadata: Dict[str, Any] = {}
 
 class PositionOpened(BaseModel):
@@ -39,6 +42,7 @@ class PositionOpened(BaseModel):
     instrument_key: str
     entry_premium: float
     quantity: int
+    execution_source: Optional[str] = "SYNTHETIC_MODEL"
 
 class PositionHeld(BaseModel):
     timestamp: datetime
@@ -60,6 +64,7 @@ class PositionClosed(BaseModel):
     instrument_key: str
     exit_premium: float
     quantity: int
+    execution_source: Optional[str] = "SYNTHETIC_MODEL"
 
 class PositionLedgerModel(BaseModel):
     positions: List[Position] = []

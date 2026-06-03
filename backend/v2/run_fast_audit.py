@@ -195,8 +195,8 @@ def run_fast_audit():
             abs(t_leg.entry_premium - t_dyn.entry_premium) < 1e-4 and
             t_leg.exit_time == t_dyn.exit_time and
             abs(t_leg.exit_premium - t_dyn.exit_premium) < 1e-4 and
-            abs(t_leg.pnl - t_dyn.pnl) < 1e-4 and
-            abs(t_leg.charges - t_dyn.charges) < 1e-4 and
+            abs(t_leg.net_pnl - t_dyn.net_pnl) < 1e-4 and
+            abs(t_leg.charges.total_charges - t_dyn.charges.total_charges) < 1e-4 and
             abs(t_leg.net_pnl - t_dyn.net_pnl) < 1e-4
         )
         
@@ -314,7 +314,7 @@ def run_fast_audit():
                 "ema_fast": { "type": "EMA", "params": { "period": 9, "source": "close" } },
                 "ema_slow": { "type": "EMA", "params": { "period": 21, "source": "close" } },
                 "rsi": { "type": "RSI", "params": { "period": 14, "source": "close" } },
-                "vol_ratio": { "type": "VolumeSpike", "params": { "period": 20 } }
+                "vol_ratio": { "type": "volume_spike", "params": { "period": 20 } }
             },
             "entry_condition": {
                 "operator": "AND",
@@ -395,7 +395,7 @@ def run_fast_audit():
         # Match with position metadata for exit reasons
         for p in gar_engine.ledger.positions:
             if p.position_id == t.position_id:
-                reason = p.exit_metadata.get("exit_reason") if p.exit_metadata else None
+                reason = p.metadata.get("exit_reason") if p.metadata else None
                 if reason == "STOP_LOSS":
                     sl_exits.append(t)
                 elif reason == "TAKE_PROFIT":
@@ -408,7 +408,7 @@ def run_fast_audit():
     for t in complex_summary.trades:
         for p in complex_engine.ledger.positions:
             if p.position_id == t.position_id:
-                reason = p.exit_metadata.get("exit_reason") if p.exit_metadata else None
+                reason = p.metadata.get("exit_reason") if p.metadata else None
                 if reason == "STOP_LOSS":
                     sl_exits.append(t)
                 elif reason == "TAKE_PROFIT":

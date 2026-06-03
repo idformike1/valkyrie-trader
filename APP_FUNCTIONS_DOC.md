@@ -10,6 +10,7 @@
 - [backend/auth_audit.py](#backendauth_auditpy)
 - [backend/database.py](#backenddatabasepy)
 - [backend/run_fast_audit.py](#backendrun_fast_auditpy)
+- [backend/scratch/test_transparency.py](#backendscratchtest_transparencypy)
 - [backend/strategy_heikin_ashi_gar.py](#backendstrategy_heikin_ashi_garpy)
 - [backend/test_backend.py](#backendtest_backendpy)
 - [backend/test_heikin_ashi_gar.py](#backendtest_heikin_ashi_garpy)
@@ -32,6 +33,7 @@
 - [backend/v2/monte_carlo/run_monte_carlo_audit.py](#backendv2monte_carlorun_monte_carlo_auditpy)
 - [backend/v2/optimization_engine.py](#backendv2optimization_enginepy)
 - [backend/v2/optimization_models.py](#backendv2optimization_modelspy)
+- [backend/v2/option_chain_manager.py](#backendv2option_chain_managerpy)
 - [backend/v2/option_quote_cache.py](#backendv2option_quote_cachepy)
 - [backend/v2/paper_execution_adapter.py](#backendv2paper_execution_adapterpy)
 - [backend/v2/pnl_engine.py](#backendv2pnl_enginepy)
@@ -40,6 +42,7 @@
 - [backend/v2/position_manager.py](#backendv2position_managerpy)
 - [backend/v2/position_models.py](#backendv2position_modelspy)
 - [backend/v2/preset_manager.py](#backendv2preset_managerpy)
+- [backend/v2/quote_health.py](#backendv2quote_healthpy)
 - [backend/v2/reality_check.py](#backendv2reality_checkpy)
 - [backend/v2/realtime_signal_runner.py](#backendv2realtime_signal_runnerpy)
 - [backend/v2/replay_audit.py](#backendv2replay_auditpy)
@@ -48,6 +51,7 @@
 - [backend/v2/resolvers.py](#backendv2resolverspy)
 - [backend/v2/run_expired_api_reality_check.py](#backendv2run_expired_api_reality_checkpy)
 - [backend/v2/run_fast_audit.py](#backendv2run_fast_auditpy)
+- [backend/v2/run_real_websocket_certification.py](#backendv2run_real_websocket_certificationpy)
 - [backend/v2/run_replay_verification.py](#backendv2run_replay_verificationpy)
 - [backend/v2/scratch/check_ema_crossover.py](#backendv2scratchcheck_ema_crossoverpy)
 - [backend/v2/scratch/test_telemetry_foundation.py](#backendv2scratchtest_telemetry_foundationpy)
@@ -69,6 +73,7 @@
 - [backend/v2/test_livefeed_v2_integration.py](#backendv2test_livefeed_v2_integrationpy)
 - [backend/v2/test_metrics_engine.py](#backendv2test_metrics_enginepy)
 - [backend/v2/test_optimization_engine.py](#backendv2test_optimization_enginepy)
+- [backend/v2/test_option_quote_pipeline.py](#backendv2test_option_quote_pipelinepy)
 - [backend/v2/test_pnl_engine.py](#backendv2test_pnl_enginepy)
 - [backend/v2/test_position_manager.py](#backendv2test_position_managerpy)
 - [backend/v2/test_preset_api.py](#backendv2test_preset_apipy)
@@ -78,6 +83,7 @@
 - [backend/v2/test_strategy_api.py](#backendv2test_strategy_apipy)
 - [backend/v2/test_strategy_registry.py](#backendv2test_strategy_registrypy)
 - [backend/v2/test_v2.py](#backendv2test_v2py)
+- [backend/v2/trade_explainer.py](#backendv2trade_explainerpy)
 - [backend/v2/types.py](#backendv2typespy)
 - [backend/v2/upstox_expired_loader.py](#backendv2upstox_expired_loaderpy)
 - [backend/v2/verify_contract_master.py](#backendv2verify_contract_masterpy)
@@ -189,6 +195,10 @@ V1 strategy evaluation, so they should be fast and non-blocking.
 
 - **`subscribe_to_keys`**
   *Signature*: `async def subscribe_to_keys(self, keys_list)`
+  *Description*: No description provided.
+
+- **`unsubscribe_from_keys`**
+  *Signature*: `async def unsubscribe_from_keys(self, keys_list)`
   *Description*: No description provided.
 
 - **`process_message`**
@@ -830,7 +840,7 @@ No description provided.
 ```
 
 #### `log_trade` (Function)
-- **Signature**: `def log_trade(session_id, instrument_key, trading_symbol, trade_type, price, quantity, stop_loss, target_price, reason, pnl, upstox_order_id, timestamp, db_path)`
+- **Signature**: `def log_trade(session_id, instrument_key, trading_symbol, trade_type, price, quantity, stop_loss, target_price, reason, pnl, upstox_order_id, timestamp, execution_source, entry_reason, exit_reason, quote_quality, db_path)`
 - **Description**:
 ```text
 No description provided.
@@ -867,6 +877,21 @@ No description provided.
 ### Functions & Endpoints
 #### `run_fast_audit` (Function)
 - **Signature**: `def run_fast_audit()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## backend/scratch/test_transparency.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `main` (Function)
+- **Signature**: `def main()`
 - **Description**:
 ```text
 No description provided.
@@ -1537,6 +1562,26 @@ No description provided.
 
 ---
 
+## backend/v2/option_chain_manager.py
+*No description provided.*
+
+### Classes
+#### class `OptionChainManager`
+No description provided.
+
+##### Methods:
+- **`get_active_contracts`**
+  *Signature*: `def get_active_contracts(self)`
+  *Description*: Returns a list of all currently active/subscribed option contract keys across all indices.
+
+- **`on_spot_update`**
+  *Signature*: `def on_spot_update(self, instrument_key, spot_price)`
+  *Description*: No description provided.
+
+
+
+---
+
 ## backend/v2/option_quote_cache.py
 *No description provided.*
 
@@ -1557,8 +1602,16 @@ received from the Upstox Market Stream WebSocket client.
   *Signature*: `def get(cls, instrument_key)`
   *Description*: No description provided.
 
+- **`get_all_quotes`**
+  *Signature*: `def get_all_quotes(cls)`
+  *Description*: No description provided.
+
 - **`is_feed_available`**
   *Signature*: `def is_feed_available(cls)`
+  *Description*: No description provided.
+
+- **`remove`**
+  *Signature*: `def remove(cls, instrument_key)`
   *Description*: No description provided.
 
 - **`clear`**
@@ -1567,11 +1620,25 @@ received from the Upstox Market Stream WebSocket client.
 
 
 ### Functions & Endpoints
+#### `get_subscribed_keys` (Function)
+- **Signature**: `def get_subscribed_keys()`
+- **Description**:
+```text
+No description provided.
+```
+
 #### `subscribe_option_contract` (Function)
 - **Signature**: `def subscribe_option_contract(instrument_key)`
 - **Description**:
 ```text
 Cross-thread binding that registers a key subscription on the active Upstox WebSocket thread.
+```
+
+#### `unsubscribe_option_contracts` (Function)
+- **Signature**: `def unsubscribe_option_contracts(instrument_keys)`
+- **Description**:
+```text
+Cross-thread binding that unsubscribes keys from the active Upstox WebSocket thread.
 ```
 
 
@@ -1583,17 +1650,12 @@ Cross-thread binding that registers a key subscription on the active Upstox WebS
 
 ### Classes
 #### class `PaperExecutionAdapter`
-Responsibilities:
-- Fill BUY instantly at ask price (fallback to LTP).
-- Fill SELL instantly at bid price (fallback to LTP).
-- Resolve option details (strike, expiry, contract key, lot sizes).
-- Checks live OptionQuoteCache for market option premiums.
-- Cascades gracefully through fallback hierarchies (Live quote -> DB cache -> Synthetic).
-- Trigger PositionManager state updates and V2 accounting logs.
+Simulates live paper trade execution. Resolves strikes and weekly expiry dates,
+estimates filled premium based on live feeds or synthetic fallbacks, and manages positions.
 
 ##### Methods:
 - **`__init__`**
-  *Signature*: `def __init__(self, position_manager, config, db_path)`
+  *Signature*: `def __init__(self)`
   *Description*: No description provided.
 
 - **`estimate_premium`**
@@ -1604,7 +1666,7 @@ Responsibilities:
 3. Synthetic Analytical Option Pricing fallback.
 
 - **`execute_buy`**
-  *Signature*: `def execute_buy(self, underlying, spot_price, timestamp)`
+  *Signature*: `def execute_buy(self, underlying, spot_price, timestamp, entry_reason)`
   *Description*: Fills a BUY paper order instantly at ask price (or LTP), resolved ATM/OTM options, and opens position.
 
 - **`execute_sell`**
@@ -1812,6 +1874,42 @@ No description provided.
 - **`duplicate_preset`**
   *Signature*: `def duplicate_preset(self, preset_id, new_name)`
   *Description*: No description provided.
+
+
+
+---
+
+## backend/v2/quote_health.py
+*No description provided.*
+
+### Classes
+#### class `QuoteHealthTracker`
+No description provided.
+
+##### Methods:
+- **`record_hit`**
+  *Signature*: `def record_hit(cls)`
+  *Description*: No description provided.
+
+- **`record_miss`**
+  *Signature*: `def record_miss(cls)`
+  *Description*: No description provided.
+
+- **`record_synthetic_fill`**
+  *Signature*: `def record_synthetic_fill(cls)`
+  *Description*: No description provided.
+
+- **`reset`**
+  *Signature*: `def reset(cls)`
+  *Description*: No description provided.
+
+- **`get_stats`**
+  *Signature*: `def get_stats(cls)`
+  *Description*: No description provided.
+
+- **`get_health_metrics`**
+  *Signature*: `def get_health_metrics(cls)`
+  *Description*: Retrieves options quote health metrics for V2 operational certification.
 
 
 
@@ -2053,6 +2151,21 @@ No description provided.
 ### Functions & Endpoints
 #### `run_fast_audit` (Function)
 - **Signature**: `def run_fast_audit()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## backend/v2/run_real_websocket_certification.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `test_live_websocket_certification` (Function)
+- **Signature**: `async def test_live_websocket_certification()`
 - **Description**:
 ```text
 No description provided.
@@ -3302,6 +3415,34 @@ No description provided.
 
 ---
 
+## backend/v2/test_option_quote_pipeline.py
+*No description provided.*
+
+### Classes
+#### class `TestOptionQuotePipeline`
+No description provided.
+
+##### Methods:
+- **`setUp`**
+  *Signature*: `def setUp(self)`
+  *Description*: No description provided.
+
+- **`tearDown`**
+  *Signature*: `def tearDown(self)`
+  *Description*: No description provided.
+
+- **`test_pipeline_flow`**
+  *Signature*: `def test_pipeline_flow(self)`
+  *Description*: No description provided.
+
+- **`test_dynamic_chain_rolling`**
+  *Signature*: `def test_dynamic_chain_rolling(self)`
+  *Description*: No description provided.
+
+
+
+---
+
 ## backend/v2/test_pnl_engine.py
 *No description provided.*
 
@@ -3931,6 +4072,27 @@ No description provided.
 ##### Methods:
 - **`test_routing_v2`**
   *Signature*: `def test_routing_v2(self)`
+  *Description*: No description provided.
+
+
+
+---
+
+## backend/v2/trade_explainer.py
+*No description provided.*
+
+### Classes
+#### class `TradeExplainer`
+Formulates structured human-readable trade entry/exit explanations
+to be displayed directly in the trading desk UI and stored in SQLite.
+
+##### Methods:
+- **`explain_entry`**
+  *Signature*: `def explain_entry(strategy_name, prev_ema, curr_ema, spot_price, condition)`
+  *Description*: No description provided.
+
+- **`explain_exit`**
+  *Signature*: `def explain_exit(reason_type, entry_premium, exit_premium)`
   *Description*: No description provided.
 
 
@@ -6167,6 +6329,20 @@ No description provided.
 
 #### `logs` (Function)
 - **Signature**: `const logs = useBackendTradingStore((state) => state.logs) || []`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `selectedTrade` (Function)
+- **Signature**: `const selectedTrade = trades.find((t, i) => (t.id === selectedTradeId || `TRD_${i}` === selectedTradeId)) || null`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `getSourceBadge` (Function)
+- **Signature**: `const getSourceBadge = (src?: string) => `
 - **Description**:
 ```text
 No description provided.

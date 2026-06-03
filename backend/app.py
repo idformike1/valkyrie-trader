@@ -100,6 +100,15 @@ SYSTEM_STATUS = {
     "scalper_option_type": None,
     "scalper_strike": None,
     "scalper_spot_price": 0.0,
+    "option_chain": [],
+    "quote_health": {
+        "subscribed_contracts": 0,
+        "live_quotes": 0,
+        "stale_quotes": 0,
+        "hit_rate": 100.0,
+        "miss_rate": 0.0,
+        "synthetic_fills": 0
+    }
 }
 
 TRADE_LOGS = []
@@ -136,6 +145,67 @@ async def broadcast_telemetry():
         return
     
     update_telemetry_metrics()
+    
+    # Dynamically inject Option Chain and Quote Health info
+    try:
+        from v2.option_quote_cache import OptionQuoteCache
+        from v2.quote_health import QuoteHealthTracker
+        from v2.option_chain_manager import OptionChainManager
+        import time
+        
+        chain_mgr = OptionChainManager()
+        active_index = SYSTEM_STATUS.get("index_name", "NIFTY")
+        
+        live_chain = []
+        if active_index in chain_mgr.current_atms:
+            atm_strike = chain_mgr.current_atms[active_index]
+            step = chain_mgr.STRIKE_STEPS.get(active_index, 100)
+            strikes = [atm_strike + (offset * step) for offset in range(-2, 3)]
+            
+            from v2.resolvers import HistoricalExpiryResolver
+            expiry_date = HistoricalExpiryResolver.resolve(active_index, datetime.now(), chain_mgr.expiry_mode)
+            
+            from v2.expired_contract_provider import HistoricalContractProvider
+            provider = HistoricalContractProvider()
+            
+            now_ms = int(time.time() * 1000)
+            
+            for strike in strikes:
+                ce_ltp = 0.0
+                ce_age_ms = 0
+                try:
+                    ce_key = provider.resolve_contract(active_index, expiry_date, strike, "CE")
+                    ce_quote = OptionQuoteCache.get(ce_key)
+                    if ce_quote:
+                        ce_ltp = ce_quote.ltp
+                        ce_age_ms = max(0, now_ms - ce_quote.last_update_ms)
+                except Exception:
+                    pass
+                
+                pe_ltp = 0.0
+                pe_age_ms = 0
+                try:
+                    pe_key = provider.resolve_contract(active_index, expiry_date, strike, "PE")
+                    pe_quote = OptionQuoteCache.get(pe_key)
+                    if pe_quote:
+                        pe_ltp = pe_quote.ltp
+                        pe_age_ms = max(0, now_ms - pe_quote.last_update_ms)
+                except Exception:
+                    pass
+                
+                live_chain.append({
+                    "strike": float(strike),
+                    "ce_ltp": float(ce_ltp),
+                    "ce_age_ms": int(ce_age_ms),
+                    "pe_ltp": float(pe_ltp),
+                    "pe_age_ms": int(pe_age_ms)
+                })
+                
+        SYSTEM_STATUS["option_chain"] = live_chain
+        SYSTEM_STATUS["quote_health"] = QuoteHealthTracker.get_stats()
+    except Exception as e:
+        print(f"[Telemetry Warning] Option chain or quote health compute error: {e}")
+
     payload = {
       "status": SYSTEM_STATUS,
       "trades": TRADE_LOGS,
@@ -726,6 +796,19 @@ class LiveFeed:
         else:
             log_event(f"Cannot subscribe to keys {keys_list}: WebSocket is closed or not initialized.", "WARNING")
 
+    async def unsubscribe_from_keys(self, keys_list):
+        if self.ws and self.ws.state.name == 'OPEN':
+            unsubscribe_msg = {
+                "guid": "valkyrie_heikin_ashi_gar",
+                "method": "unsub",
+                "data": {"mode": "full", "instrumentKeys": keys_list}
+            }
+            await self.ws.send(json.dumps(unsubscribe_msg).encode('utf-8'))
+            log_event(f"Unsubscribed dynamically from market feeds: {keys_list}", "WS")
+        else:
+            log_event(f"Cannot unsubscribe from keys {keys_list}: WebSocket is closed or not initialized.", "WARNING")
+
+
     async def process_message(self, raw_message):
         try:
             feed = pb.FeedResponse()
@@ -790,6 +873,11 @@ class LiveFeed:
                     if key == self.instrument_key:
                         SYSTEM_STATUS["spot_price"] = price
                         self.on_tick(price, datetime.now())
+                        try:
+                            from v2.option_chain_manager import OptionChainManager
+                            OptionChainManager().on_spot_update(key, price)
+                        except Exception as e:
+                            log_event(f"OptionChainManager spot update error: {e}", "WARNING")
                     if key == self.scalper_key:
                         SYSTEM_STATUS["scalper_spot_price"] = price
                         self.on_scalper_tick(price, datetime.now())

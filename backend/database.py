@@ -41,10 +41,21 @@ def init_db(db_path=DEFAULT_DB_PATH):
         pnl REAL,
         timestamp TEXT NOT NULL,
         upstox_order_id TEXT,
+        execution_source TEXT,
+        entry_reason TEXT,
+        exit_reason TEXT,
+        quote_quality TEXT,
         FOREIGN KEY (session_id) REFERENCES trade_sessions(id)
     )
     """)
     
+    # Run migrations for execution_source, entry_reason, exit_reason, quote_quality
+    for col in ["execution_source", "entry_reason", "exit_reason", "quote_quality"]:
+        try:
+            cursor.execute(f"ALTER TABLE trade_logs ADD COLUMN {col} TEXT")
+        except sqlite3.OperationalError:
+            pass # already exists
+        
     conn.commit()
     conn.close()
 
@@ -72,7 +83,7 @@ def close_session(session_id, final_balance, db_path=DEFAULT_DB_PATH):
     conn.commit()
     conn.close()
 
-def log_trade(session_id, instrument_key, trading_symbol, trade_type, price, quantity, stop_loss, target_price, reason, pnl, upstox_order_id=None, timestamp=None, db_path=DEFAULT_DB_PATH):
+def log_trade(session_id, instrument_key, trading_symbol, trade_type, price, quantity, stop_loss, target_price, reason, pnl, upstox_order_id=None, timestamp=None, execution_source=None, entry_reason=None, exit_reason=None, quote_quality=None, db_path=DEFAULT_DB_PATH):
     conn = get_db_connection(db_path)
     cursor = conn.cursor()
     if not timestamp:
@@ -82,10 +93,15 @@ def log_trade(session_id, instrument_key, trading_symbol, trade_type, price, qua
     else:
         timestamp = str(timestamp)
         
+    # Serialize quote_quality to JSON if dict
+    import json
+    if isinstance(quote_quality, dict):
+        quote_quality = json.dumps(quote_quality)
+        
     cursor.execute("""
-    INSERT INTO trade_logs (session_id, instrument_key, trading_symbol, type, price, quantity, stop_loss, target_price, reason, pnl, timestamp, upstox_order_id)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (session_id, instrument_key, trading_symbol, trade_type, price, quantity, stop_loss, target_price, reason, pnl, timestamp, upstox_order_id))
+    INSERT INTO trade_logs (session_id, instrument_key, trading_symbol, type, price, quantity, stop_loss, target_price, reason, pnl, timestamp, upstox_order_id, execution_source, entry_reason, exit_reason, quote_quality)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (session_id, instrument_key, trading_symbol, trade_type, price, quantity, stop_loss, target_price, reason, pnl, timestamp, upstox_order_id, execution_source, entry_reason, exit_reason, quote_quality))
     conn.commit()
     conn.close()
 
@@ -98,6 +114,36 @@ def get_session_trades(session_id, db_path=DEFAULT_DB_PATH):
     
     trades = []
     for r in rows:
+        # Check if execution_source is present in the database row keys
+        exec_src = "SYNTHETIC_MODEL"
+        try:
+            if "execution_source" in r.keys() and r["execution_source"] is not None:
+                exec_src = r["execution_source"]
+        except Exception:
+            pass
+            
+        entry_r = None
+        try:
+            if "entry_reason" in r.keys():
+                entry_r = r["entry_reason"]
+        except Exception:
+            pass
+            
+        exit_r = None
+        try:
+            if "exit_reason" in r.keys():
+                exit_r = r["exit_reason"]
+        except Exception:
+            pass
+            
+        qq = None
+        try:
+            if "quote_quality" in r.keys() and r["quote_quality"] is not None:
+                import json
+                qq = json.loads(r["quote_quality"])
+        except Exception:
+            pass
+            
         trades.append({
             "id": r["id"],
             "session_id": r["session_id"],
@@ -111,7 +157,11 @@ def get_session_trades(session_id, db_path=DEFAULT_DB_PATH):
             "reason": r["reason"] or "",
             "pnl": r["pnl"] if r["pnl"] is not None else 0.0,
             "timestamp": r["timestamp"],
-            "upstox_order_id": r["upstox_order_id"] or ""
+            "upstox_order_id": r["upstox_order_id"] or "",
+            "execution_source": exec_src,
+            "entry_reason": entry_r,
+            "exit_reason": exit_r,
+            "quote_quality": qq
         })
     return trades
 

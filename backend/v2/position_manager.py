@@ -31,6 +31,7 @@ class PositionManager:
         quantity = data.get("quantity", lot_size)
         entry_premium = data["premium_price"]
         entry_value = entry_premium * quantity
+        execution_source = data.get("execution_source", "SYNTHETIC_MODEL")
 
         pos = Position(
             position_id=position_id,
@@ -47,6 +48,9 @@ class PositionManager:
             entry_value=entry_value,
             broker="Upstox",
             entry_signal=data.get("signal", "BUY_INTENT"),
+            execution_source=execution_source,
+            entry_reason=data.get("entry_reason"),
+            exit_reason=data.get("exit_reason"),
             metadata=data.get("metadata", {})
         )
 
@@ -63,7 +67,8 @@ class PositionManager:
             option_type=pos.option_type,
             instrument_key=pos.instrument_key,
             entry_premium=entry_premium,
-            quantity=quantity
+            quantity=quantity,
+            execution_source=execution_source
         )
         self.ledger.add_event(opened_event)
 
@@ -94,12 +99,15 @@ class PositionManager:
         pos = self.active_position
         exit_premium = data["premium_price"]
         exit_value = exit_premium * pos.quantity
+        execution_source = data.get("execution_source", "SYNTHETIC_MODEL")
 
         # Update position fields (ensuring contract details remain immutable)
         pos.exit_time = timestamp
         pos.exit_premium = exit_premium
         pos.exit_value = exit_value
         pos.exit_signal = data.get("signal", "SELL_INTENT")
+        pos.execution_source = execution_source
+        pos.exit_reason = data.get("exit_reason")
         pos.status = PositionStatus.CLOSED
         if "metadata" in data and data["metadata"]:
             pos.metadata.update(data["metadata"])
@@ -114,7 +122,8 @@ class PositionManager:
             option_type=pos.option_type,
             instrument_key=pos.instrument_key,
             exit_premium=exit_premium,
-            quantity=pos.quantity
+            quantity=pos.quantity,
+            execution_source=execution_source
         )
         self.ledger.add_event(closed_event)
 
