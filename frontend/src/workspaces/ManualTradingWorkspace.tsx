@@ -139,9 +139,25 @@ export const TradingLeft: React.FC = () => {
 
   useEffect(() => {
     fetchWatchlistQuotes();
-    const interval = setInterval(fetchWatchlistQuotes, 5000);
+    const interval = setInterval(fetchWatchlistQuotes, 2000);
     return () => clearInterval(interval);
   }, [watchlist]);
+
+  // Listen for option chain contract selections and auto-add them to the watchlist
+  useEffect(() => {
+    const handleAddFromChain = (e: Event) => {
+      const ins = (e as CustomEvent).detail as Instrument;
+      if (!ins?.instrumentKey || !ins?.symbol) return;
+      setWatchlist((prev) => {
+        if (prev.some((w) => w.instrumentKey === ins.instrumentKey)) return prev;
+        const updated = [...prev, ins];
+        localStorage.setItem("valkyrie_watchlist", JSON.stringify(updated));
+        return updated;
+      });
+    };
+    window.addEventListener("valkyrie-add-to-watchlist", handleAddFromChain);
+    return () => window.removeEventListener("valkyrie-add-to-watchlist", handleAddFromChain);
+  }, []);
 
   const togglePin = (sym: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -348,6 +364,26 @@ export const TradingMain: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [currentLtp, setCurrentLtp] = useState<number>(0);
   const [chartLoading, setChartLoading] = useState(false);
+  const [panicSubmitting, setPanicSubmitting] = useState(false);
+
+  const handlePanicExit = async () => {
+    if (!window.confirm("ARE YOU SURE YOU WANT TO TRIGGER AN EMERGENCY PANIC EXIT? This will instantly cancel all open broker orders and exit all active option positions at market price.")) {
+      return;
+    }
+    
+    setPanicSubmitting(true);
+    try {
+      console.log("[Panic Switch] Dispatching real-broker square-off command...");
+      const res = await tradingApi.brokerPanicExit();
+      alert(`Panic Exit Executed Successfully:\n${res.message || "All orders cancelled and positions closed."}`);
+      window.dispatchEvent(new Event("valkyrie-portfolio-refresh"));
+    } catch (err: any) {
+      console.error("[Panic Switch] Square-off command failed:", err);
+      alert(`Panic Exit Failed: ${err.message || "An unknown error occurred during square-off."}`);
+    } finally {
+      setPanicSubmitting(false);
+    }
+  };
 
   // --- Indicator calculation helpers ---
   const calcVWAP = (candles: any[]) => {
@@ -449,10 +485,33 @@ export const TradingMain: React.FC = () => {
         borderColor: themeColors.border,
         textColor: themeColors.text,
       },
+      localization: {
+        timeFormatter: (timestamp: number) => {
+          return new Date(timestamp * 1000).toLocaleString("en-IN", {
+            timeZone: "Asia/Kolkata",
+            hour12: false,
+          });
+        },
+      },
       timeScale: {
         borderColor: themeColors.border,
         timeVisible: true,
         secondsVisible: false,
+        tickMarkFormatter: (time: number, tickMarkType: number, locale: string) => {
+          const date = new Date(time * 1000);
+          const options: Intl.DateTimeFormatOptions = {
+            timeZone: "Asia/Kolkata",
+            hour12: false,
+          };
+          if (tickMarkType <= 2) {
+            options.day = "numeric";
+            options.month = "short";
+          } else {
+            options.hour = "2-digit";
+            options.minute = "2-digit";
+          }
+          return date.toLocaleString("en-IN", options);
+        },
       },
     });
 
@@ -511,12 +570,57 @@ export const TradingMain: React.FC = () => {
     connectTelemetry();
   }, [connectTelemetry]);
 
-  // Sync current LTP when backend tick updates spot price
+  // Sync current LTP when backend tick updates spot price (real WebSocket updates)
   useEffect(() => {
-    if (status && status.spot_price > 0) {
-      setCurrentLtp(status.spot_price);
+    if (status && status.spot_price > 0 && selectedInstrument) {
+      const isIndex = selectedInstrument.instrumentKey.includes("NSE_INDEX") || 
+                      selectedInstrument.instrumentKey.includes("BSE_INDEX") || 
+                      selectedInstrument.symbol === "NIFTY 50" || 
+                      selectedInstrument.symbol === "BANKNIFTY" || 
+                      selectedInstrument.symbol === "FINNIFTY" ||
+                      selectedInstrument.symbol === "MIDCPNIFTY" ||
+                      selectedInstrument.symbol === "SENSEX" ||
+                      selectedInstrument.symbol === "BANKEX";
+      if (isIndex && candleSeriesRef.current) {
+        const ltp = status.spot_price;
+        const lastCandle = fetchedCandlesRef.current[fetchedCandlesRef.current.length - 1];
+        if (lastCandle) {
+          const updatedCandle = {
+            time: lastCandle.time,
+            open: lastCandle.open,
+            high: Math.max(lastCandle.high, ltp),
+            low: lastCandle.low === 0 ? ltp : Math.min(lastCandle.low, ltp),
+            close: ltp,
+          };
+          candleSeriesRef.current.update(updatedCandle);
+        }
+        setCurrentLtp(ltp);
+      }
     }
-  }, [status]);
+  }, [status, selectedInstrument]);
+
+  // Real-time dynamic chart ticking via real REST Ticket Quotes
+  useEffect(() => {
+    const handleRealTick = (e: Event) => {
+      const ltp = (e as CustomEvent).detail.price;
+      const lastCandle = fetchedCandlesRef.current[fetchedCandlesRef.current.length - 1];
+      if (lastCandle && candleSeriesRef.current) {
+        const updatedCandle = {
+          time: lastCandle.time,
+          open: lastCandle.open,
+          high: Math.max(lastCandle.high, ltp),
+          low: lastCandle.low === 0 ? ltp : Math.min(lastCandle.low, ltp),
+          close: ltp,
+        };
+        candleSeriesRef.current.update(updatedCandle);
+        setCurrentLtp(ltp);
+      }
+    };
+    window.addEventListener("valkyrie-real-quote-update", handleRealTick);
+    return () => {
+      window.removeEventListener("valkyrie-real-quote-update", handleRealTick);
+    };
+  }, [selectedInstrument]);
 
   // Ref to store fetched candles for indicator recalculation
   const fetchedCandlesRef = useRef<any[]>([]);
@@ -527,7 +631,7 @@ export const TradingMain: React.FC = () => {
     let cancelled = false;
     const load = async () => {
       try {
-        const days = ["1m", "3m"].includes(selectedTimeframe) ? 1 : ["5m", "15m"].includes(selectedTimeframe) ? 5 : 30;
+        const days = ["1m", "3m"].includes(selectedTimeframe) ? 3 : ["5m", "15m"].includes(selectedTimeframe) ? 10 : 45;
         const res = await tradingApi.getBrokerCandles(selectedInstrument.instrumentKey, selectedTimeframe, days);
         if (cancelled) return;
         if (res.status === "success" && res.data?.length) {
@@ -658,6 +762,21 @@ export const TradingMain: React.FC = () => {
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
           </button>
+
+          {/* Panic Exit Kill Switch */}
+          <button
+            onClick={handlePanicExit}
+            disabled={panicSubmitting}
+            className={`px-3 py-1 rounded border font-bold text-[10px] tracking-wider transition-all uppercase select-none cursor-pointer flex items-center gap-1.5 shadow-lg ${
+              panicSubmitting
+                ? "bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed"
+                : "bg-rose-500/10 hover:bg-rose-500 border-rose-500/20 hover:border-rose-500 text-rose-400 hover:text-slate-950 shadow-rose-500/5 hover:shadow-rose-500/20"
+            }`}
+            title="Emergency Panic Exit (Cancel Orders & Square Off)"
+          >
+            <AlertTriangle className="w-3.5 h-3.5 text-rose-500 hover:text-slate-950 transition-colors" />
+            {panicSubmitting ? "SQUARING OFF..." : "PANIC EXIT"}
+          </button>
         </div>
       </div>
 
@@ -734,8 +853,16 @@ const BrokerAccountPanel: React.FC = () => {
 
   useEffect(() => {
     fetchData();
+    const handleRefresh = () => {
+      fetchData();
+    };
+    window.addEventListener("valkyrie-portfolio-refresh", handleRefresh);
+
     const interval = setInterval(fetchData, 30000); // 30s auto-refresh
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("valkyrie-portfolio-refresh", handleRefresh);
+    };
   }, []);
 
   const formatCurrency = (val: any) => {
@@ -896,6 +1023,25 @@ export const TradingRight: React.FC = () => {
   const [orderType, setOrderType] = useState<"MARKET" | "LIMIT">("MARKET");
   const [limitPrice, setLimitPrice] = useState(0);
   const [triggerPrice, setTriggerPrice] = useState(0);
+  const isSubmittingRef = useRef(false);
+
+  const [analytics, setAnalytics] = useState<any>(null);
+
+  // Sync with active contract option analytics from OptionChainPanel
+  useEffect(() => {
+    const handleAnalyticsUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail === null) {
+        setAnalytics(null);
+      } else if (customEvent.detail && customEvent.detail.instrumentKey === currentInstrument?.instrumentKey) {
+        setAnalytics(customEvent.detail);
+      }
+    };
+    window.addEventListener("valkyrie-active-instrument-analytics", handleAnalyticsUpdate);
+    return () => {
+      window.removeEventListener("valkyrie-active-instrument-analytics", handleAnalyticsUpdate);
+    };
+  }, [currentInstrument?.instrumentKey]);
 
   // Dynamic lot size engine
   useEffect(() => {
@@ -983,6 +1129,7 @@ export const TradingRight: React.FC = () => {
     setAskPrice(0);
     setContractPrice(0);
     setLastUpdated("");
+    setAnalytics(null);
 
     let isMounted = true;
     const fetchQuote = async () => {
@@ -1011,6 +1158,9 @@ export const TradingRight: React.FC = () => {
           
           // Populate default pricing on first fetch
           setLimitPrice((prev) => prev === 0 ? ltp : prev);
+
+          // Dispatch real quote update to chart
+          window.dispatchEvent(new CustomEvent("valkyrie-real-quote-update", { detail: { price: ltp } }));
         }
       } catch (err) {
         console.error("Failed to fetch quote in order ticket:", err);
@@ -1020,7 +1170,7 @@ export const TradingRight: React.FC = () => {
     };
     
     fetchQuote();
-    const interval = setInterval(fetchQuote, 5000);
+    const interval = setInterval(fetchQuote, 2000);
     
     return () => {
       isMounted = false;
@@ -1035,7 +1185,7 @@ export const TradingRight: React.FC = () => {
     const interval = setInterval(() => {
       fetchAvailableMargin();
       fetchPositions();
-    }, 10000);
+    }, 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -1083,9 +1233,41 @@ export const TradingRight: React.FC = () => {
     const orderSide = overrideSide || side;
     const entryPrice = orderType === "MARKET" ? 0 : limitPrice;
 
+    if (isSubmittingRef.current) {
+      console.warn("Order placement blocked: parallel submission or double-click prevented.");
+      return;
+    }
+    isSubmittingRef.current = true;
     setOrderSubmitting(true);
     setOrderError(null);
     setOrderSuccess(null);
+
+    console.log(`[Order Safeguard] Transition to SUBMITTING state. Side: ${orderSide}, Qty: ${quantity}, Contract: ${currentInstrument.symbol}`);
+
+    // Pre-flight Daily Loss Guard Check
+    const totalRealizedPnL = positions.reduce((acc, pos) => acc + Number(pos.realised || 0), 0);
+    const dailyLimit = 20000; // Configured dynamically on backend or fallback
+    if (totalRealizedPnL <= -dailyLimit) {
+      const errorMsg = `Order Blocked Locally: Daily Realized Loss Limit of ₹${dailyLimit.toLocaleString("en-IN")} Exceeded (Current: ₹${totalRealizedPnL.toLocaleString("en-IN")}). Lockout active.`;
+      console.error(`[Order Safeguard] ${errorMsg}`);
+      setOrderError(errorMsg);
+      addEvent({ type: "error", message: errorMsg, workspace: "Trading" });
+      
+      isSubmittingRef.current = false;
+      setOrderSubmitting(false);
+      return;
+    }
+
+    if (brokerMarginReq > availableMargin) {
+      const errorMsg = `Order Blocked Locally: Insufficient Margin. Required: ₹${brokerMarginReq.toLocaleString("en-IN", { minimumFractionDigits: 2 })}, Available: ₹${availableMargin.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`;
+      console.error(`[Order Safeguard] ${errorMsg}`);
+      setOrderError(errorMsg);
+      addEvent({ type: "error", message: errorMsg, workspace: "Trading" });
+      
+      isSubmittingRef.current = false;
+      setOrderSubmitting(false);
+      return;
+    }
 
     try {
       const result = await tradingApi.placeBrokerOrder({
@@ -1096,6 +1278,8 @@ export const TradingRight: React.FC = () => {
         product: productType,
         price: entryPrice,
         trigger_price: triggerPrice > 0 ? triggerPrice : 0,
+        stop_loss: stopLoss > 0 ? stopLoss : 0,
+        target: targetPrice > 0 ? targetPrice : 0,
       });
 
       const orderId = result?.data?.order_id || result?.order_id || "—";
@@ -1108,7 +1292,9 @@ export const TradingRight: React.FC = () => {
       setOrderError(errMsg);
       addEvent({ type: "error", message: `ORDER FAILED: ${errMsg}`, workspace: "Trading" });
     } finally {
+      isSubmittingRef.current = false;
       setOrderSubmitting(false);
+      console.log(`[Order Safeguard] Transition to IDLE state.`);
     }
   };
 
@@ -1119,12 +1305,13 @@ export const TradingRight: React.FC = () => {
 
   const entryPriceVal = orderType === "MARKET" ? contractPrice : limitPrice;
   const hasSL = stopLoss > 0;
+  const hasTarget = targetPrice > 0;
   
   const riskAmount = hasSL ? Math.abs(entryPriceVal - stopLoss) * quantity : 0;
   const riskPct = hasSL && entryPriceVal > 0 ? (Math.abs(entryPriceVal - stopLoss) / entryPriceVal) * 100 : 0;
   
-  const rewardAmount = targetPrice > 0 ? Math.abs(targetPrice - entryPriceVal) : 0;
-  const rrRatio = (hasSL && rewardAmount > 0) ? (rewardAmount / Math.abs(entryPriceVal - stopLoss)).toFixed(1) : "N/A";
+  const rewardAmountVal = hasTarget ? Math.abs(targetPrice - entryPriceVal) * quantity : 0;
+  const rrRatio = (hasSL && rewardAmountVal > 0) ? (rewardAmountVal / (Math.abs(entryPriceVal - stopLoss) * quantity)).toFixed(1) : "N/A";
 
   return (
     <div className="flex flex-col gap-3 h-full font-sans text-xs">
@@ -1330,8 +1517,8 @@ export const TradingRight: React.FC = () => {
         <div className="grid grid-cols-2 gap-2">
           <div className="flex flex-col gap-1">
             <div className="flex justify-between">
-              <span className="text-[9px] text-slate-500 uppercase tracking-wider">Stop Loss</span>
-              {!stopLoss && <span className="text-[8px] text-rose-400 font-sans uppercase">Required</span>}
+              <span className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold">Stop Loss</span>
+              <span className="text-[8px] text-slate-500 font-mono uppercase">Optional</span>
             </div>
             <input
               type="number"
@@ -1355,6 +1542,18 @@ export const TradingRight: React.FC = () => {
 
         {/* Real Broker Margin HUD & Risk Estimation */}
         <div className="flex flex-col gap-1.5 bg-slate-950/40 p-2 rounded border border-white/5 font-mono text-[9px] text-slate-500 select-none">
+          <div className="flex justify-between items-center border-b border-white/5 pb-1 mb-1">
+            <span>RISK STATUS:</span>
+            <span className={`px-2 py-0.5 rounded border text-[8px] tracking-wider uppercase transition-all ${
+              brokerMarginReq > availableMargin
+                ? "text-rose-500 bg-rose-500/10 border-rose-500/20 animate-pulse font-extrabold"
+                : (availableMargin > 0 && brokerMarginReq / availableMargin > 0.5)
+                  ? "text-amber-400 bg-amber-500/10 border-amber-500/20 font-bold"
+                  : "text-emerald-400 bg-emerald-500/10 border-emerald-500/20 font-semibold"
+            }`}>
+              {brokerMarginReq > availableMargin ? "BLOCKED" : (availableMargin > 0 && brokerMarginReq / availableMargin > 0.5) ? "WARNING" : "SAFE"}
+            </span>
+          </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="flex flex-col gap-0.5">
               <span>REQUIRED MARGIN:</span>
@@ -1383,20 +1582,51 @@ export const TradingRight: React.FC = () => {
               </span>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2 border-t border-white/5 pt-1.5 mt-1">
-            <div className="col-span-2 flex flex-col gap-0.5">
-              <span>RISK ESTIMATE:</span>
-              {hasSL ? (
-                <div className="flex flex-col text-slate-300 font-bold">
-                  <span>₹{riskAmount.toLocaleString("en-IN", { maximumFractionDigits: 2 })}</span>
-                  <span className="text-[8px] text-slate-500 font-normal mt-0.5">
-                    Risk %: {riskPct.toFixed(2)}% | R:R Ratio: 1:{rrRatio}
-                  </span>
+          <div className="grid grid-cols-2 gap-2 border-t border-white/5 pt-1.5 mt-1 select-none">
+            <div className="col-span-2 flex flex-col gap-1">
+              <span className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold">Risk Estimation</span>
+              
+              {!hasSL ? (
+                <div className="flex flex-col gap-0.5 bg-amber-500/5 p-1.5 rounded border border-amber-500/10 font-mono text-[9px]">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">RISK ESTIMATE:</span>
+                    <span className="font-bold text-amber-400">Undefined</span>
+                  </div>
+                  <div className="flex justify-between mt-0.5">
+                    <span className="text-slate-500">STATUS:</span>
+                    <span className="font-bold text-amber-400 animate-pulse font-sans">Warning</span>
+                  </div>
                 </div>
               ) : (
-                <span className="text-rose-400 font-sans font-bold animate-pulse text-[8px] uppercase">
-                  Stop Loss Required
-                </span>
+                <div className="flex flex-col gap-0.5 bg-slate-900/40 p-1.5 rounded border border-white/5 font-mono text-[9px]">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">MAX LOSS:</span>
+                    <span className="font-bold text-rose-400">
+                      ₹{riskAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">RISK PERCENT:</span>
+                    <span className="font-bold text-rose-400">{riskPct.toFixed(2)}%</span>
+                  </div>
+                </div>
+              )}
+
+              {hasTarget && (
+                <div className="flex flex-col gap-0.5 bg-slate-900/40 p-1.5 rounded border border-white/5 font-mono text-[9px]">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">POTENTIAL REWARD:</span>
+                    <span className="font-bold text-emerald-400">
+                      ₹{rewardAmountVal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  {hasSL && (
+                    <div className="flex justify-between border-t border-white/5 pt-0.5 mt-0.5">
+                      <span className="text-slate-500">RISK/REWARD RATIO:</span>
+                      <span className="font-bold text-cyan-400">1:{rrRatio}</span>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -1436,6 +1666,97 @@ export const TradingRight: React.FC = () => {
 
       {/* Broker Account Panel */}
       <BrokerAccountPanel />
+
+      {/* Option Greeks & Analytics HUD */}
+      {analytics && (
+        <div className="p-3 bg-slate-950/40 border border-white/5 rounded-lg flex flex-col gap-2 font-mono text-[9px] select-none text-slate-300">
+          <div className="text-[10px] font-sans font-bold tracking-widest text-cyan-400 uppercase border-b border-white/5 pb-1 flex justify-between items-center">
+            <span>Option Analytics</span>
+            <span className={`px-1 py-0.5 rounded text-[8px] font-sans font-bold border ${
+              analytics.domSignal === "BULLISH" ? "text-emerald-400 bg-emerald-950/40 border-emerald-700/30" :
+              analytics.domSignal === "BEARISH" ? "text-rose-400 bg-rose-950/40 border-rose-700/30" :
+              "text-slate-400 bg-slate-900/40 border-white/10"
+            }`}>
+              DOM: {analytics.domSignal}
+            </span>
+          </div>
+
+          {/* Greeks Grid */}
+          <div className="grid grid-cols-5 gap-1.5 border-b border-white/5 pb-2 text-center text-[8px] text-slate-400">
+            <div>
+              <div className="text-slate-500">DELTA</div>
+              <div className="font-bold text-slate-200 mt-0.5">{analytics.delta.toFixed(3)}</div>
+            </div>
+            <div>
+              <div className="text-slate-500">GAMMA</div>
+              <div className="font-bold text-slate-200 mt-0.5">{analytics.gamma.toFixed(5)}</div>
+            </div>
+            <div>
+              <div className="text-slate-500">THETA</div>
+              <div className="font-bold text-slate-200 mt-0.5">{analytics.theta.toFixed(1)}</div>
+            </div>
+            <div>
+              <div className="text-slate-500">VEGA</div>
+              <div className="font-bold text-slate-200 mt-0.5">{analytics.vega.toFixed(3)}</div>
+            </div>
+            <div>
+              <div className="text-slate-500">IV%</div>
+              <div className="font-bold text-amber-400 mt-0.5">{analytics.iv.toFixed(1)}%</div>
+            </div>
+          </div>
+
+          {/* Market Data Grid */}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 pt-0.5">
+            <div className="flex justify-between">
+              <span className="text-slate-500">OI:</span>
+              <span className="text-slate-300 font-bold">{analytics.oi >= 1000000 ? `${(analytics.oi/1000000).toFixed(2)}M` : analytics.oi.toLocaleString("en-IN")}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">PCR:</span>
+              <span className="text-slate-300 font-bold">{analytics.pcr.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">OI Change:</span>
+              <span className={`font-bold ${analytics.oiChange > 0 ? "text-emerald-400" : analytics.oiChange < 0 ? "text-rose-400" : "text-slate-500"}`}>
+                {analytics.oiChange > 0 ? "+" : ""}{analytics.oiChange >= 1000000 ? `${(analytics.oiChange/1000000).toFixed(2)}M` : analytics.oiChange.toLocaleString("en-IN")}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">OI Chg %:</span>
+              <span className={`font-bold ${analytics.oiChange > 0 ? "text-emerald-400" : analytics.oiChange < 0 ? "text-rose-400" : "text-slate-500"}`}>
+                {analytics.oiChange > 0 ? "+" : ""}{analytics.oiPct.toFixed(1)}%
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">Volume:</span>
+              <span className="text-slate-300 font-bold">{analytics.volume >= 1000000 ? `${(analytics.volume/1000000).toFixed(2)}M` : analytics.volume.toLocaleString("en-IN")}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">Spread:</span>
+              <span className="text-amber-400 font-bold">₹{analytics.spread.toFixed(2)} ({((analytics.spread / (analytics.ltp || 1)) * 100).toFixed(2)}%)</span>
+            </div>
+          </div>
+
+          {/* DOM Buy/Sell Ratio Progress Bar */}
+          <div className="mt-1 border-t border-white/5 pt-2 flex flex-col gap-1 select-none">
+            <div className="flex justify-between text-[8px] text-slate-500 uppercase">
+              <span>Buy Qty (Bid): {analytics.bidQty.toLocaleString()}</span>
+              <span>Sell Qty (Ask): {analytics.askQty.toLocaleString()}</span>
+            </div>
+            <div className="w-full bg-rose-500/20 h-1.5 rounded overflow-hidden flex">
+              <div 
+                className="bg-emerald-500 h-full transition-all duration-300"
+                style={{ width: `${(analytics.domRatio * 100).toFixed(1)}%` }}
+              />
+            </div>
+            <div className="flex justify-between text-[7px] text-slate-600 font-mono mt-0.5">
+              <span>{(analytics.domRatio * 100).toFixed(1)}%</span>
+              <span>Ratio: {(analytics.bidQty / (analytics.askQty || 1)).toFixed(2)}x</span>
+              <span>{((1 - analytics.domRatio) * 100).toFixed(1)}%</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mini Position Summary Panel - Sync'd to Broker Account */}
       <div className="p-3 bg-slate-950/40 border border-white/5 rounded-lg flex flex-col gap-2 flex-1 min-h-0 select-none">
@@ -1512,21 +1833,34 @@ const OptionChainPanel: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Bug #1 fix — sync option chain underlying when watchlist instrument changes
+  // Sync option chain underlying when watchlist instrument changes
   useEffect(() => {
     if (!currentInstrument) return;
     const sym = currentInstrument.symbol.toUpperCase();
+    let targetUnderlying = "NIFTY";
     if (sym.includes("BANKNIFTY") || currentInstrument.instrumentKey.includes("Nifty Bank")) {
-      setUnderlying("BANKNIFTY");
+      targetUnderlying = "BANKNIFTY";
     } else if (sym.includes("FINNIFTY") || currentInstrument.instrumentKey.includes("Nifty Fin")) {
-      setUnderlying("FINNIFTY");
+      targetUnderlying = "FINNIFTY";
     } else if (sym.includes("MIDCPNIFTY") || sym.includes("MID SELECT")) {
-      setUnderlying("MIDCPNIFTY");
+      targetUnderlying = "MIDCPNIFTY";
     } else if (sym.includes("NIFTY") || currentInstrument.instrumentKey.includes("Nifty 50")) {
-      setUnderlying("NIFTY");
+      targetUnderlying = "NIFTY";
     } else {
-      setUnderlying(sym);
+      targetUnderlying = sym;
     }
+
+    const isOption = currentInstrument.instrumentKey.includes("NSE_FO") || 
+                     currentInstrument.instrumentKey.includes("BSE_FO") ||
+                     sym.includes(" CE") || 
+                     sym.includes(" PE");
+
+    if (isOption) {
+      // If it is a specific option contract, prevent the auto-ATM hotswap from overwriting it
+      lastUnderlyingRef.current = targetUnderlying;
+    }
+    
+    setUnderlying(targetUnderlying);
   }, [currentInstrument?.instrumentKey]);
 
   const lastUnderlyingRef = useRef<string>("");
@@ -1564,13 +1898,34 @@ const OptionChainPanel: React.FC = () => {
       setStrikesData(strikes);
 
       // Auto ATM CE selection workflow
-      if (lastUnderlyingRef.current !== underlying && data.atm_strike > 0 && strikes.length > 0) {
+      const sym = currentInstrument?.symbol?.toUpperCase() || "";
+      let currentInstrumentIndex = "NIFTY";
+      if (sym.includes("BANKNIFTY") || currentInstrument?.instrumentKey?.includes("Nifty Bank")) {
+        currentInstrumentIndex = "BANKNIFTY";
+      } else if (sym.includes("FINNIFTY") || currentInstrument?.instrumentKey?.includes("Nifty Fin")) {
+        currentInstrumentIndex = "FINNIFTY";
+      } else if (sym.includes("MIDCPNIFTY") || sym.includes("MID SELECT")) {
+        currentInstrumentIndex = "MIDCPNIFTY";
+      } else if (sym.includes("NIFTY") || currentInstrument?.instrumentKey?.includes("Nifty 50")) {
+        currentInstrumentIndex = "NIFTY";
+      }
+
+      const isCurrentIndex = !currentInstrument || 
+                             currentInstrument.instrumentKey.includes("NSE_INDEX") || 
+                             currentInstrument.instrumentKey.includes("BSE_INDEX");
+
+      const needsAutoATM = (lastUnderlyingRef.current !== underlying) && (isCurrentIndex || currentInstrumentIndex !== underlying);
+
+      if (needsAutoATM && data.atm_strike > 0 && strikes.length > 0) {
         const atmRow = strikes.find((s: any) => Number(s.strike) === Number(data.atm_strike)) || strikes[Math.floor(strikes.length / 2)];
         if (atmRow && atmRow.ce_key && atmRow.ce_symbol) {
           // Trigger global hotswap of the active instrument to the ATM CE option contract
           handleSelectContract(atmRow.strike, "CE", atmRow.ce_key, atmRow.ce_symbol);
           lastUnderlyingRef.current = underlying;
         }
+      } else if (lastUnderlyingRef.current !== underlying) {
+        // Just sync the ref if we do not need auto-ATM hotswap
+        lastUnderlyingRef.current = underlying;
       }
     } catch (err: any) {
       setError(err.message || "Failed to load option chain");
@@ -1595,12 +1950,67 @@ const OptionChainPanel: React.FC = () => {
     return () => clearInterval(timer);
   }, [selectedExpiry, underlying]);
 
+  // Sync selected instrument's Greeks, OI, Volume, DOM analytics to other panels
+  useEffect(() => {
+    if (!currentInstrument) {
+      window.dispatchEvent(
+        new CustomEvent("valkyrie-active-instrument-analytics", { detail: null })
+      );
+      return;
+    }
+    if (strikesData.length === 0) return;
+    const matchingRow = strikesData.find(
+      (r) => r.ce_key === currentInstrument.instrumentKey || r.pe_key === currentInstrument.instrumentKey
+    );
+    if (matchingRow) {
+      const isCE = matchingRow.ce_key === currentInstrument.instrumentKey;
+      const analytics = {
+        instrumentKey: currentInstrument.instrumentKey,
+        symbol: currentInstrument.symbol,
+        strike: matchingRow.strike,
+        type: isCE ? "CE" : "PE",
+        pcr: matchingRow.pcr,
+        ltp: isCE ? matchingRow.ce_ltp : matchingRow.pe_ltp,
+        iv: isCE ? matchingRow.ce_iv : matchingRow.pe_iv,
+        oi: isCE ? matchingRow.ce_oi : matchingRow.pe_oi,
+        oiChange: isCE ? matchingRow.ce_oi_change : matchingRow.pe_oi_change,
+        oiPct: isCE ? matchingRow.ce_oi_pct : matchingRow.pe_oi_pct,
+        volume: isCE ? matchingRow.ce_volume : matchingRow.pe_volume,
+        bid: isCE ? matchingRow.ce_bid : matchingRow.pe_bid,
+        bidQty: isCE ? matchingRow.ce_bid_qty : matchingRow.pe_bid_qty,
+        ask: isCE ? matchingRow.ce_ask : matchingRow.pe_ask,
+        askQty: isCE ? matchingRow.ce_ask_qty : matchingRow.pe_ask_qty,
+        spread: isCE ? matchingRow.ce_spread : matchingRow.pe_spread,
+        delta: isCE ? matchingRow.ce_delta : matchingRow.pe_delta,
+        gamma: isCE ? matchingRow.ce_gamma : matchingRow.pe_gamma,
+        theta: isCE ? matchingRow.ce_theta : matchingRow.pe_theta,
+        vega: isCE ? matchingRow.ce_vega : matchingRow.pe_vega,
+        domRatio: isCE ? matchingRow.ce_dom_ratio : matchingRow.pe_dom_ratio,
+        domSignal: isCE ? matchingRow.ce_dom_signal : matchingRow.pe_dom_signal,
+      };
+      window.dispatchEvent(
+        new CustomEvent("valkyrie-active-instrument-analytics", { detail: analytics })
+      );
+    } else {
+      window.dispatchEvent(
+        new CustomEvent("valkyrie-active-instrument-analytics", { detail: null })
+      );
+    }
+  }, [currentInstrument?.instrumentKey, strikesData]);
+
   const handleSelectContract = async (strike: number, type: "CE" | "PE", key: string, symbol: string) => {
     setInstrument({
       instrumentKey: key,
       symbol: symbol,
       exchange: "NSE",
     });
+
+    // Notify TradingLeft watchlist to persist this option contract
+    window.dispatchEvent(
+      new CustomEvent("valkyrie-add-to-watchlist", {
+        detail: { instrumentKey: key, symbol, exchange: "NSE" },
+      })
+    );
 
     try {
       await fetch("http://localhost:8081/api/standard/update_target", {
@@ -1678,7 +2088,7 @@ const OptionChainPanel: React.FC = () => {
             <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px]">Active Target:</span>
             <span className="font-bold text-cyan-400 font-mono">{currentInstrument.symbol}</span>
           </div>
-          <span className="text-[9px] font-mono text-slate-500 uppercase">Key: {currentInstrument.instrumentKey}</span>
+          <span className="text-[9px] font-mono text-slate-500 uppercase">Key: {currentInstrument.symbol}</span>
         </div>
       )}
 
@@ -1690,79 +2100,159 @@ const OptionChainPanel: React.FC = () => {
       )}
 
       {/* Option Chain Table */}
-      <div className="flex-1 min-h-0 overflow-y-auto border border-white/5 rounded">
-        <table className="w-full text-left font-mono text-[10px] border-collapse">
-          <thead className="sticky top-0 bg-slate-950/90 backdrop-blur border-b border-white/10 z-10">
-            <tr className="text-slate-500 uppercase text-[9px] tracking-wider select-none">
-              <th className="py-2 pl-3 text-emerald-400 font-bold">Call LTP</th>
-              <th className="py-2 text-center text-slate-400 font-bold">Strike</th>
-              <th className="py-2 pr-3 text-right text-rose-400 font-bold">Put LTP</th>
+      <div className="flex-1 min-h-0 overflow-auto border border-white/5 rounded">
+        <table className="w-full text-left font-mono text-[9px] border-collapse">
+          <thead className="sticky top-0 bg-slate-950/95 backdrop-blur border-b border-white/10 z-10">
+            {/* Section header row */}
+            <tr className="text-[8px] uppercase tracking-wider select-none border-b border-white/5">
+              <th colSpan={7} className="py-1.5 pl-3 text-emerald-400/70 font-bold border-r border-white/5">— CALL —</th>
+              <th className="py-1.5 text-center text-slate-400 font-bold">Strike</th>
+              <th colSpan={7} className="py-1.5 pr-3 text-right text-rose-400/70 font-bold border-l border-white/5">— PUT —</th>
+            </tr>
+            {/* Column header row */}
+            <tr className="text-slate-500 uppercase text-[8px] tracking-wider select-none">
+              <th className="py-1.5 pl-3 text-left">DOM</th>
+              <th className="py-1.5 text-right">IV%</th>
+              <th className="py-1.5 text-right">OI</th>
+              <th className="py-1.5 text-right">OI Chg</th>
+              <th className="py-1.5 text-right">Vol</th>
+              <th className="py-1.5 text-right">Bid×Qty</th>
+              <th className="py-1.5 text-right text-emerald-400 font-bold border-r border-white/5 pr-2">LTP</th>
+              <th className="py-1.5 text-center font-bold text-slate-300 px-2">Strike</th>
+              <th className="py-1.5 text-left text-rose-400 font-bold border-l border-white/5 pl-2">LTP</th>
+              <th className="py-1.5 text-left">Ask×Qty</th>
+              <th className="py-1.5 text-left">Vol</th>
+              <th className="py-1.5 text-left">OI</th>
+              <th className="py-1.5 text-left">OI Chg</th>
+              <th className="py-1.5 text-left">IV%</th>
+              <th className="py-1.5 pr-3 text-left">DOM</th>
             </tr>
           </thead>
           <tbody className="text-slate-300 divide-y divide-white/[0.02]">
             {strikesData.length > 0 ? (
               strikesData.map((row) => {
                 const isATM = Math.abs(row.strike - spotPrice) <= (underlying === "NIFTY" || underlying === "MIDCPNIFTY" ? 25 : 50);
-                
+                const ceActive = currentInstrument?.instrumentKey === row.ce_key;
+                const peActive = currentInstrument?.instrumentKey === row.pe_key;
+
+                const fmtOI = (v: number) => v >= 1000000 ? `${(v/1000000).toFixed(1)}M` : v >= 1000 ? `${(v/1000).toFixed(0)}K` : String(v);
+                const fmtVol = fmtOI;
+                const domColor = (sig: string) =>
+                  sig === "BULLISH" ? "text-emerald-400 bg-emerald-950/40 border-emerald-700/30" :
+                  sig === "BEARISH" ? "text-rose-400 bg-rose-950/40 border-rose-700/30" :
+                  "text-slate-400 bg-slate-900/40 border-white/10";
+                const oiChgColor = (v: number) => v > 0 ? "text-emerald-400" : v < 0 ? "text-rose-400" : "text-slate-500";
+
                 return (
                   <tr
                     key={row.strike}
-                    className={`hover:bg-cyan-500/5 transition-all ${
+                    className={`hover:bg-cyan-500/[0.03] transition-all ${
                       isATM ? "bg-cyan-500/[0.02] border-y border-cyan-500/10" : ""
                     }`}
                   >
-                    {/* Call LTP */}
-                    <td className="py-2 pl-3">
-                      {row.ce_key ? (
-                        <button
-                          onClick={() => handleSelectContract(row.strike, "CE", row.ce_key, row.ce_symbol)}
-                          className="flex items-center gap-1.5 group cursor-pointer text-left w-full focus:outline-none"
-                        >
-                          <span className="text-emerald-400 font-bold font-mono">
-                            ₹{row.ce_ltp.toFixed(2)}
-                          </span>
-                          <span className="opacity-0 group-hover:opacity-100 text-[8px] bg-emerald-500/10 text-emerald-400 px-1 rounded uppercase font-sans font-medium transition-opacity">
-                            Trade CE
-                          </span>
-                        </button>
-                      ) : (
-                        <span className="text-slate-600">-</span>
-                      )}
-                    </td>
-
-                    {/* Strike */}
-                    <td className="py-2 text-center font-bold text-slate-200">
-                      <span className={`px-1.5 py-0.5 rounded ${
-                        isATM ? "bg-cyan-500/10 text-cyan-400 font-extrabold" : "text-slate-400"
-                      }`}>
-                        {row.strike}
+                    {/* CE: DOM Signal */}
+                    <td className="py-1.5 pl-3">
+                      <span className={`px-1 py-0.5 rounded text-[7px] font-bold font-sans border ${domColor(row.ce_dom_signal || "NEUTRAL")}`}>
+                        {(row.ce_dom_signal || "—").slice(0, 4)}
                       </span>
                     </td>
 
-                    {/* Put LTP */}
-                    <td className="py-2 pr-3 text-right">
+                    {/* CE: IV */}
+                    <td className="py-1.5 text-right text-amber-400/80">{row.ce_iv > 0 ? row.ce_iv.toFixed(1) : "—"}</td>
+
+                    {/* CE: OI */}
+                    <td className="py-1.5 text-right text-slate-400">{row.ce_oi > 0 ? fmtOI(row.ce_oi) : "—"}</td>
+
+                    {/* CE: OI Change */}
+                    <td className={`py-1.5 text-right font-bold ${oiChgColor(row.ce_oi_change || 0)}`}>
+                      {row.ce_oi_change !== 0 && row.ce_oi_change !== undefined ? `${row.ce_oi_change > 0 ? "+" : ""}${fmtOI(row.ce_oi_change)}` : "—"}
+                    </td>
+
+                    {/* CE: Volume */}
+                    <td className="py-1.5 text-right text-slate-500">{row.ce_volume > 0 ? fmtVol(row.ce_volume) : "—"}</td>
+
+                    {/* CE: Bid × Qty */}
+                    <td className="py-1.5 text-right text-slate-400 text-[8px]">
+                      {row.ce_bid > 0 ? (
+                        <span>{row.ce_bid.toFixed(1)}<span className="text-slate-600">×{fmtOI(row.ce_bid_qty)}</span></span>
+                      ) : "—"}
+                    </td>
+
+                    {/* CE: LTP — clickable */}
+                    <td className="py-1.5 pr-2 text-right border-r border-white/5">
+                      {row.ce_key ? (
+                        <button
+                          onClick={() => handleSelectContract(row.strike, "CE", row.ce_key, row.ce_symbol)}
+                          className={`flex items-center justify-end gap-1 group cursor-pointer w-full focus:outline-none rounded px-1 py-0.5 transition-all ${
+                            ceActive ? "bg-emerald-500/10 ring-1 ring-emerald-500/30" : "hover:bg-emerald-500/5"
+                          }`}
+                        >
+                          <span className="text-emerald-400 font-bold text-[10px]">₹{row.ce_ltp.toFixed(2)}</span>
+                          <span className="opacity-0 group-hover:opacity-100 text-[7px] text-emerald-500 font-sans uppercase">CE▶</span>
+                        </button>
+                      ) : <span className="text-slate-600 pr-2">—</span>}
+                    </td>
+
+                    {/* Strike */}
+                    <td className="py-1.5 text-center px-2">
+                      <span className={`px-1.5 py-0.5 rounded font-bold text-[10px] ${
+                        isATM ? "bg-cyan-500/10 text-cyan-300 ring-1 ring-cyan-500/20" : "text-slate-300"
+                      }`}>
+                        {row.strike}
+                      </span>
+                      {row.pcr > 0 && (
+                        <div className="text-[7px] text-slate-600 font-sans text-center mt-0.5">PCR {row.pcr.toFixed(1)}</div>
+                      )}
+                    </td>
+
+                    {/* PE: LTP — clickable */}
+                    <td className="py-1.5 pl-2 text-left border-l border-white/5">
                       {row.pe_key ? (
                         <button
                           onClick={() => handleSelectContract(row.strike, "PE", row.pe_key, row.pe_symbol)}
-                          className="flex items-center justify-end gap-1.5 group cursor-pointer text-right w-full focus:outline-none"
+                          className={`flex items-center gap-1 group cursor-pointer w-full focus:outline-none rounded px-1 py-0.5 transition-all ${
+                            peActive ? "bg-rose-500/10 ring-1 ring-rose-500/30" : "hover:bg-rose-500/5"
+                          }`}
                         >
-                          <span className="opacity-0 group-hover:opacity-100 text-[8px] bg-rose-500/10 text-rose-400 px-1 rounded uppercase font-sans font-medium transition-opacity">
-                            Trade PE
-                          </span>
-                          <span className="text-rose-400 font-bold font-mono">
-                            ₹{row.pe_ltp.toFixed(2)}
-                          </span>
+                          <span className="opacity-0 group-hover:opacity-100 text-[7px] text-rose-500 font-sans uppercase">◀PE</span>
+                          <span className="text-rose-400 font-bold text-[10px]">₹{row.pe_ltp.toFixed(2)}</span>
                         </button>
-                      ) : (
-                        <span className="text-slate-600">-</span>
-                      )}
+                      ) : <span className="text-slate-600 pl-2">—</span>}
+                    </td>
+
+                    {/* PE: Ask × Qty */}
+                    <td className="py-1.5 text-left text-slate-400 text-[8px]">
+                      {row.pe_ask > 0 ? (
+                        <span>{row.pe_ask.toFixed(1)}<span className="text-slate-600">×{fmtOI(row.pe_ask_qty)}</span></span>
+                      ) : "—"}
+                    </td>
+
+                    {/* PE: Volume */}
+                    <td className="py-1.5 text-left text-slate-500">{row.pe_volume > 0 ? fmtVol(row.pe_volume) : "—"}</td>
+
+                    {/* PE: OI */}
+                    <td className="py-1.5 text-left text-slate-400">{row.pe_oi > 0 ? fmtOI(row.pe_oi) : "—"}</td>
+
+                    {/* PE: OI Change */}
+                    <td className={`py-1.5 text-left font-bold ${oiChgColor(row.pe_oi_change || 0)}`}>
+                      {row.pe_oi_change !== 0 && row.pe_oi_change !== undefined ? `${row.pe_oi_change > 0 ? "+" : ""}${fmtOI(row.pe_oi_change)}` : "—"}
+                    </td>
+
+                    {/* PE: IV */}
+                    <td className="py-1.5 text-left text-amber-400/80">{row.pe_iv > 0 ? row.pe_iv.toFixed(1) : "—"}</td>
+
+                    {/* PE: DOM Signal */}
+                    <td className="py-1.5 pr-3">
+                      <span className={`px-1 py-0.5 rounded text-[7px] font-bold font-sans border ${domColor(row.pe_dom_signal || "NEUTRAL")}`}>
+                        {(row.pe_dom_signal || "—").slice(0, 4)}
+                      </span>
                     </td>
                   </tr>
                 );
               })
             ) : (
               <tr>
-                <td colSpan={3} className="py-6 text-center text-slate-500 text-[10px] font-sans">
+                <td colSpan={15} className="py-6 text-center text-slate-500 text-[10px] font-sans">
                   No options chain data loaded. Please select a valid expiry.
                 </td>
               </tr>
@@ -1784,6 +2274,76 @@ export const TradingBottom: React.FC = () => {
   const [brokerOrders, setBrokerOrders] = useState<any[]>([]);
   const [brokerTrades, setBrokerTrades] = useState<any[]>([]);
   const [brokerHoldings, setBrokerHoldings] = useState<any[]>([]);
+
+  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
+
+  const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
+  const [editPrice, setEditPrice] = useState<number>(0);
+  const [editQty, setEditQty] = useState<number>(0);
+  const [modifyingOrderId, setModifyingOrderId] = useState<string | null>(null);
+
+  const handleModifyOrder = async (orderId: string, orderType: string) => {
+    try {
+      setModifyingOrderId(orderId);
+      await tradingApi.modifyBrokerOrder({
+        order_id: orderId,
+        quantity: editQty,
+        price: editPrice,
+        order_type: orderType,
+      });
+      setEditingOrderId(null);
+      fetchOrders();
+      fetchPositions();
+    } catch (err: any) {
+      alert(`Failed to modify order: ${err.message || err}`);
+    } finally {
+      setModifyingOrderId(null);
+    }
+  };
+
+  const handleCancelOrder = async (orderId: string) => {
+    if (!window.confirm(`Cancel order ${orderId}?`)) return;
+    try {
+      setCancellingOrderId(orderId);
+      await tradingApi.cancelBrokerOrder(orderId);
+      fetchOrders();
+      fetchPositions();
+    } catch (err: any) {
+      alert(`Failed to cancel order: ${err.message || err}`);
+    } finally {
+      setCancellingOrderId(null);
+    }
+  };
+
+  const [squaringOffKey, setSquaringOffKey] = useState<string | null>(null);
+
+  const handleSquareOff = async (pos: any) => {
+    const qty = Number(pos.quantity || 0);
+    if (qty === 0) return;
+    
+    const side = qty > 0 ? "SELL" : "BUY";
+    const absQty = Math.abs(qty);
+    const key = `${pos.instrument_token}_${pos.product}`;
+    
+    if (!window.confirm(`Square Off ${pos.trading_symbol}? This will place a MARKET ${side} for ${absQty} lot(s) immediately.`)) return;
+    
+    try {
+      setSquaringOffKey(key);
+      await tradingApi.placeBrokerOrder({
+        instrument_key: pos.instrument_token,
+        quantity: absQty,
+        transaction_type: side,
+        order_type: "MARKET",
+        product: pos.product,
+      });
+      fetchPositions();
+      fetchOrders();
+    } catch (err: any) {
+      alert(`Failed to square off position: ${err.message || err}`);
+    } finally {
+      setSquaringOffKey(null);
+    }
+  };
 
   const fetchPositions = async () => {
     try {
@@ -1827,14 +2387,25 @@ export const TradingBottom: React.FC = () => {
     fetchTrades();
     fetchHoldings();
 
+    const handleRefresh = () => {
+      fetchPositions();
+      fetchOrders();
+      fetchTrades();
+      fetchHoldings();
+    };
+    window.addEventListener("valkyrie-portfolio-refresh", handleRefresh);
+
     const interval = setInterval(() => {
       fetchPositions();
       fetchOrders();
       fetchTrades();
       fetchHoldings();
-    }, 15000);
+    }, 3000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("valkyrie-portfolio-refresh", handleRefresh);
+    };
   }, []);
 
   useEffect(() => {
@@ -1846,7 +2417,12 @@ export const TradingBottom: React.FC = () => {
 
   const realizedPnL = brokerPositions.reduce((acc, pos) => acc + Number(pos.realised || 0), 0);
   const unrealizedPnL = brokerPositions.reduce((acc, pos) => acc + Number(pos.unrealised || 0), 0);
-  const brokerage = brokerTrades.length * 20.0;
+  // Brokerage: ₹20/leg (Upstox flat) + ₹5.5 NSE charge + 0.05% STT on sell side (capped)
+  const brokerage = brokerTrades.reduce((acc, t) => {
+    const tradeVal = Number(t.trade_value || 0) || (Number(t.price || 0) * Number(t.quantity || 0));
+    const stt = (t.transaction_type === "SELL" ? tradeVal * 0.0005 : 0);
+    return acc + 20 + 5.5 + stt;
+  }, 0);
   const netPnL = realizedPnL + unrealizedPnL - brokerage;
 
   const tabs = [
@@ -1896,7 +2472,8 @@ export const TradingBottom: React.FC = () => {
                 <th className="py-1.5 text-right">LTP</th>
                 <th className="py-1.5 text-right">MTM</th>
                 <th className="py-1.5 text-right">Realized PnL</th>
-                <th className="py-1.5 text-center pr-2">Status</th>
+                <th className="py-1.5 text-center">Status</th>
+                <th className="py-1.5 text-center pr-2">Action</th>
               </tr>
             </thead>
             <tbody className="text-slate-300">
@@ -1905,9 +2482,10 @@ export const TradingBottom: React.FC = () => {
                   const qty = Number(pos.quantity || 0);
                   const statusLabel = qty === 0 ? "CLOSED" : qty > 0 ? "LONG" : "SHORT";
                   const statusClass = qty === 0 ? "bg-slate-900 text-slate-500 border-white/5" : qty > 0 ? "bg-emerald-950/40 text-emerald-400 border-emerald-800/30" : "bg-rose-950/40 text-rose-400 border-rose-800/30";
+                  const posKey = `${pos.instrument_token}_${pos.product}`;
                   
                   return (
-                    <tr key={`${pos.instrument_token}_${pos.product}`} className="border-b border-white/[0.02] hover:bg-white/[0.01] transition-all">
+                    <tr key={posKey} className="border-b border-white/[0.02] hover:bg-white/[0.01] transition-all">
                       <td className="py-1.5 pl-2 font-sans font-bold text-slate-200">{pos.trading_symbol}</td>
                       <td className="py-1.5 text-center font-bold">{qty}</td>
                       <td className="py-1.5 text-center text-slate-400 font-sans">{pos.product}</td>
@@ -1920,17 +2498,33 @@ export const TradingBottom: React.FC = () => {
                       <td className={`py-1.5 text-right font-bold ${Number(pos.realised || 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                         {Number(pos.realised || 0) >= 0 ? "+" : ""}₹{Number(pos.realised || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
-                      <td className="py-1.5 text-center pr-2">
+                      <td className="py-1.5 text-center">
                         <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold font-sans border ${statusClass}`}>
                           {statusLabel}
                         </span>
+                      </td>
+                      <td className="py-1.5 text-center pr-2">
+                        {qty !== 0 ? (
+                          squaringOffKey === posKey ? (
+                            <span className="text-[9px] text-rose-400 font-sans animate-pulse">Exiting...</span>
+                          ) : (
+                            <button
+                              onClick={() => handleSquareOff(pos)}
+                              className="text-[9px] text-rose-400 hover:text-rose-300 font-sans uppercase font-bold tracking-wider hover:underline transition-all duration-150"
+                            >
+                              [ Square Off ]
+                            </button>
+                          )
+                        ) : (
+                          <span className="text-slate-600">—</span>
+                        )}
                       </td>
                     </tr>
                   );
                 })
               ) : (
                 <tr>
-                  <td colSpan={9} className="py-6 text-center text-slate-500 text-[10px] font-sans">
+                  <td colSpan={10} className="py-6 text-center text-slate-500 text-[10px] font-sans">
                     No active positions found in Upstox account.
                   </td>
                 </tr>
@@ -1951,6 +2545,7 @@ export const TradingBottom: React.FC = () => {
                 <th className="py-1.5 text-center">Status</th>
                 <th className="py-1.5 text-right">Avg Price</th>
                 <th className="py-1.5 text-right pr-2">Timestamp</th>
+                <th className="py-1.5 text-center pr-2">Action</th>
               </tr>
             </thead>
             <tbody className="text-slate-300">
@@ -1959,6 +2554,7 @@ export const TradingBottom: React.FC = () => {
                   const statusLower = (ord.status || "").toLowerCase();
                   let statusLabel = "PENDING";
                   let statusClass = "bg-amber-950/20 text-amber-400 border-amber-800/30";
+                  let isPending = false;
                   
                   if (statusLower === "complete") {
                     statusLabel = "FILLED";
@@ -1969,33 +2565,121 @@ export const TradingBottom: React.FC = () => {
                   } else if (statusLower === "cancelled") {
                     statusLabel = "CANCELLED";
                     statusClass = "bg-slate-900 text-slate-500 border-white/5";
-                  } else if (statusLower === "open" || statusLower === "trigger pending" || statusLower === "put order req received") {
+                  } else if (
+                    statusLower === "open" ||
+                    statusLower === "trigger pending" ||
+                    statusLower === "put order req received" ||
+                    statusLower === "validation pending" ||
+                    statusLower === "modify validation pending" ||
+                    statusLower === "not cancelled" ||
+                    statusLower === "open pending" ||
+                    statusLower === "after market order req received"
+                  ) {
                     statusLabel = "PENDING";
                     statusClass = "bg-amber-950/20 text-amber-400 border-amber-800/30";
+                    isPending = true;
                   } else {
                     statusLabel = (ord.status || "UNKNOWN").toUpperCase();
                     statusClass = "bg-slate-900 text-slate-400 border-white/5";
                   }
 
+                  const isEditing = editingOrderId === ord.order_id;
                   return (
-                    <tr key={ord.order_id} className="border-b border-white/[0.02] hover:bg-white/[0.01]">
+                    <tr key={ord.order_id} className={`border-b border-white/[0.02] hover:bg-white/[0.01] transition-all ${isEditing ? "bg-cyan-500/5" : ""}`}>
                       <td className="py-1.5 pl-2 text-slate-500 font-mono">{ord.order_id}</td>
                       <td className="py-1.5 font-sans font-bold text-slate-200">{ord.trading_symbol}</td>
-                      <td className="py-1.5 text-center">{ord.quantity}</td>
+                      <td className="py-1.5 text-center">
+                        {isEditing ? (
+                          <input
+                            type="number"
+                            value={editQty}
+                            onChange={(e) => setEditQty(Math.max(1, Number(e.target.value)))}
+                            className="w-14 bg-slate-900 border border-cyan-500/30 rounded px-1 py-0.5 text-center text-slate-200 font-mono focus:outline-none focus:border-cyan-500"
+                          />
+                        ) : (
+                          ord.quantity
+                        )}
+                      </td>
                       <td className="py-1.5 text-center font-bold text-slate-400 font-sans">{ord.order_type}</td>
                       <td className="py-1.5 text-center">
                         <span className={`px-1 py-0.5 rounded text-[8px] font-bold uppercase font-sans border ${statusClass}`}>
                           {statusLabel}
                         </span>
                       </td>
-                      <td className="py-1.5 text-right">₹{Number(ord.average_price || 0).toFixed(2)}</td>
+                      <td className="py-1.5 text-right font-bold text-slate-200">
+                        {isEditing ? (
+                          <div className="flex items-center justify-end gap-1">
+                            <span className="text-[8px] text-slate-500">₹</span>
+                            <input
+                              type="number"
+                              step="0.05"
+                              value={editPrice}
+                              onChange={(e) => setEditPrice(Math.max(0, Number(e.target.value)))}
+                              className="w-20 bg-slate-900 border border-cyan-500/30 rounded px-1 py-0.5 text-right text-slate-200 font-mono focus:outline-none focus:border-cyan-500"
+                            />
+                          </div>
+                        ) : (
+                          `₹${Number(ord.price || ord.average_price || 0).toFixed(2)}`
+                        )}
+                      </td>
                       <td className="py-1.5 text-right pr-2 text-slate-500">{ord.order_timestamp || ord.exchange_timestamp}</td>
+                      <td className="py-1.5 text-center pr-2 font-sans font-bold text-[9px] select-none">
+                        {isEditing ? (
+                          <div className="flex gap-2.5 justify-center">
+                            {modifyingOrderId === ord.order_id ? (
+                              <span className="text-emerald-400 font-sans animate-pulse">Saving...</span>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => handleModifyOrder(ord.order_id, ord.order_type)}
+                                  className="text-emerald-400 hover:text-emerald-300 cursor-pointer"
+                                >
+                                  SAVE
+                                </button>
+                                <button
+                                  onClick={() => setEditingOrderId(null)}
+                                  className="text-slate-400 hover:text-slate-200 cursor-pointer"
+                                >
+                                  CANCEL
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        ) : isPending ? (
+                          <div className="flex gap-2.5 justify-center">
+                            {cancellingOrderId === ord.order_id ? (
+                              <span className="text-rose-400 font-sans animate-pulse">Cancelling...</span>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    setEditingOrderId(ord.order_id);
+                                    setEditPrice(Number(ord.price || ord.average_price || 0));
+                                    setEditQty(Number(ord.quantity || 1));
+                                  }}
+                                  className="text-cyan-400 hover:text-cyan-300 cursor-pointer"
+                                >
+                                  EDIT
+                                </button>
+                                <button
+                                  onClick={() => handleCancelOrder(ord.order_id)}
+                                  className="text-rose-400 hover:text-rose-300 cursor-pointer"
+                                >
+                                  CANCEL
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-slate-600 font-mono font-normal text-[10px]">—</span>
+                        )}
+                      </td>
                     </tr>
                   );
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-6 text-center text-slate-500 text-[10px] font-sans">
+                  <td colSpan={8} className="py-6 text-center text-slate-500 text-[10px] font-sans">
                     No orders found in Upstox account.
                   </td>
                 </tr>

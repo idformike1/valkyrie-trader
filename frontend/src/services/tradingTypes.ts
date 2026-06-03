@@ -8,6 +8,11 @@ export interface BackendPosition {
   trailing_gap: number;
   highest_price: number;
   total_qty: number;
+  trading_symbol?: string;
+  qty?: number;
+  ltp?: number;
+  pnl?: number;
+  side?: string;
 }
 
 export interface BackendSystemStatus {
@@ -43,6 +48,7 @@ export interface BackendSystemStatus {
   scalper_strike: number | null;
   scalper_spot_price: number;
   sharpe_ratio?: number;
+  engine?: string;
 }
 
 export interface BackendTrade {

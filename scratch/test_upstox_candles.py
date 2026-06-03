@@ -11,7 +11,7 @@ def test():
         "Authorization": f"Bearer {token}"
     }
     
-    instrument_key = "NSE_INDEX|Nifty 50"
+    instrument_key = "NSE_FO|74892"
     encoded_key = urllib.parse.quote(instrument_key)
     
     # 1. Test Intraday

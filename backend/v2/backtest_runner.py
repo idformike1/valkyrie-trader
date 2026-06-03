@@ -11,6 +11,8 @@ from v2.metrics_models import MetricsReport, EquityPoint, DrawdownPoint
 from v2.pnl_models import TradeAccountingResult
 from v2.position_models import Position
 
+from v2.telemetry_logger import TelemetryLogger, RuntimeLog
+
 logger = logging.getLogger("Valkyrie.BacktestRunner")
 
 class BacktestResult(BaseModel):
@@ -26,6 +28,7 @@ class BacktestResult(BaseModel):
     equity_curve: List[EquityPoint] = Field(..., description="Time-series log of account equity progression.")
     drawdown_curve: List[DrawdownPoint] = Field(..., description="Time-series log of account drawdown progression.")
     metadata: Dict[str, Any] = Field(..., description="Orchestration metadata of the backtest runner execution.")
+    runtime_logs: List[RuntimeLog] = Field(default_factory=list, description="Structured execution logs.")
 
 class BacktestRunner:
     """
@@ -33,6 +36,20 @@ class BacktestRunner:
     """
     @staticmethod
     def run(config: BacktestConfig) -> BacktestResult:
+        TelemetryLogger.start_session()
+        TelemetryLogger.log(
+            "SYSTEM",
+            "INFO",
+            f"Initiating V2 Option Backtest for strategy '{config.strategy_name or 'dynamic_rule'}' on index '{config.underlying_instrument_key}' spanning {config.start_date} to {config.end_date}.",
+            {
+                "strategy_name": config.strategy_name,
+                "underlying": config.underlying_instrument_key,
+                "start_date": config.start_date,
+                "end_date": config.end_date,
+                "timeframe": str(config.timeframe)
+            }
+        )
+        
         logger.info(
             f"[Backtest Runner] Initiating backtest for strategy '{config.strategy_name or 'dynamic_rule'}' "
             f"on underlying '{config.underlying_instrument_key}' spanning {config.start_date} to {config.end_date}."
@@ -46,6 +63,19 @@ class BacktestRunner:
         ledger = replay_engine.ledger
         positions = ledger.positions
         trades = ledger.accounting_records
+        
+        for t in trades:
+            TelemetryLogger.log(
+                "PNL",
+                "INFO",
+                f"PnL Calculated for trade {t.position_id}: Gross PnL: {t.gross_pnl:.2f} | Charges: {t.charges.total_charges:.2f} | Net PnL: {t.net_pnl:.2f}",
+                {
+                    "position_id": t.position_id,
+                    "gross_pnl": t.gross_pnl,
+                    "charges": t.charges.model_dump(),
+                    "net_pnl": t.net_pnl
+                }
+            )
         
         # 3. Generate performance report via MetricsEngine
         initial_capital = config.execution.initial_balance
@@ -68,6 +98,22 @@ class BacktestRunner:
             "execution_timestamp": datetime.now().isoformat()
         }
         
+        TelemetryLogger.log(
+            "METRICS",
+            "INFO",
+            f"Backtest execution and performance metrics generated successfully. Grade: {report.grade}.",
+            {
+                "total_trades": report.trade_stats.total_trades,
+                "win_rate_pct": report.trade_stats.win_rate,
+                "profit_factor": report.performance.profit_factor,
+                "net_profit": report.performance.net_profit,
+                "grade": report.grade
+            }
+        )
+
+        logs = TelemetryLogger.get_logs()
+        TelemetryLogger.clear_session()
+        
         return BacktestResult(
             report=report,
             trades=trades,
@@ -75,5 +121,6 @@ class BacktestRunner:
             replay_timeline=replay_timeline,
             equity_curve=report.equity_curve,
             drawdown_curve=report.drawdown_curve,
-            metadata=metadata
+            metadata=metadata,
+            runtime_logs=logs
         )

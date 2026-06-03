@@ -94,6 +94,13 @@ export interface V2BacktestResult {
     expiry: string;
     option_type: string;
   }>;
+  runtime_logs?: Array<{
+    timestamp: string;
+    category: string;
+    severity: string;
+    message: string;
+    metadata: Record<string, any>;
+  }>;
 }
 
 export interface OptimizationResult {
@@ -170,6 +177,21 @@ export interface StrategyMetadata {
   worst_market_conditions: string;
 }
 
+export interface StrategyPreset {
+  id: string;
+  name: string;
+  strategy_id: string;
+  parameters: Record<string, any>;
+  risk_management: Record<string, any>;
+  strike_selection: Record<string, any>;
+  expiry_selection: Record<string, any>;
+  timeframe: string;
+  notes?: string;
+  tags?: string[];
+  created_at?: string;
+  updated_at?: string;
+}
+
 interface BacktestStoreState {
   v2Config: V2Config;
   v2BacktestResult: V2BacktestResult | null;
@@ -184,6 +206,11 @@ interface BacktestStoreState {
   replayCurrentTime: number | null;
   strategiesMetadata: StrategyMetadata[];
   activeStrategyMetadata: StrategyMetadata | null;
+  
+  // Presets state
+  presets: StrategyPreset[];
+  presetsLoading: boolean;
+  presetsError: string | null;
 
   setV2Config: (config: Partial<V2Config>) => void;
   runV2Backtest: (overrideConfig?: Partial<V2Config>) => Promise<boolean>;
@@ -196,6 +223,14 @@ interface BacktestStoreState {
   resetResult: () => void;
   fetchStrategiesMetadata: () => Promise<void>;
   updateActiveStrategyMetadata: (strategyName: string) => void;
+
+  // Presets actions
+  fetchPresets: () => Promise<void>;
+  createPreset: (preset: Omit<StrategyPreset, "id" | "created_at" | "updated_at"> & { id?: string }) => Promise<StrategyPreset | null>;
+  updatePreset: (id: string, updates: Partial<StrategyPreset>) => Promise<StrategyPreset | null>;
+  deletePreset: (id: string) => Promise<boolean>;
+  duplicatePreset: (id: string, newName: string) => Promise<StrategyPreset | null>;
+  loadPreset: (preset: StrategyPreset) => void;
 }
 
 const DEFAULT_CONFIG: V2Config = {
@@ -229,6 +264,10 @@ export const useBacktestStore = create<BacktestStoreState>((set, get) => ({
   replayCurrentTime: null,
   strategiesMetadata: [],
   activeStrategyMetadata: null,
+
+  presets: [],
+  presetsLoading: false,
+  presetsError: null,
 
   setV2Config: (config) => {
     set((state) => {
@@ -346,5 +385,122 @@ export const useBacktestStore = create<BacktestStoreState>((set, get) => ({
     
     const found = list.find((s) => s.id === targetId);
     set({ activeStrategyMetadata: found || null });
+  },
+
+  fetchPresets: async () => {
+    set({ presetsLoading: true, presetsError: null });
+    try {
+      const res = await fetch("http://localhost:8081/api/v2/presets");
+      if (!res.ok) throw new Error("Failed to fetch presets");
+      const data = await res.json();
+      set({ presets: data, presetsLoading: false });
+    } catch (err: any) {
+      set({ presetsLoading: false, presetsError: err.message || "Unknown error" });
+      console.error(err);
+    }
+  },
+
+  createPreset: async (preset) => {
+    try {
+      const res = await fetch("http://localhost:8081/api/v2/presets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(preset)
+      });
+      if (!res.ok) throw new Error("Failed to create preset");
+      const data = await res.json();
+      get().fetchPresets();
+      return data;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  },
+
+  updatePreset: async (id, updates) => {
+    try {
+      const res = await fetch(`http://localhost:8081/api/v2/presets/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates)
+      });
+      if (!res.ok) throw new Error("Failed to update preset");
+      const data = await res.json();
+      get().fetchPresets();
+      return data;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  },
+
+  deletePreset: async (id) => {
+    try {
+      const res = await fetch(`http://localhost:8081/api/v2/presets/${id}`, {
+        method: "DELETE"
+      });
+      if (!res.ok) throw new Error("Failed to delete preset");
+      get().fetchPresets();
+      return true;
+    } catch (err) {
+      console.error(err);
+      return false;
+    }
+  },
+
+  duplicatePreset: async (id, newName) => {
+    try {
+      const res = await fetch(`http://localhost:8081/api/v2/presets/${id}/duplicate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ new_name: newName })
+      });
+      if (!res.ok) throw new Error("Failed to duplicate preset");
+      const data = await res.json();
+      get().fetchPresets();
+      return data;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  },
+
+  loadPreset: (preset) => {
+    set((state) => {
+      let strategy_name = preset.strategy_id;
+      if (preset.strategy_id === "five_ema") strategy_name = "five_ema_scalping";
+      if (preset.strategy_id === "ema") strategy_name = "EMA";
+      if (preset.strategy_id === "heikin_ashi") strategy_name = "heikin_ashi_gar";
+
+      const normalizedParams = { ...preset.parameters };
+      if (strategy_name === "EMA") {
+        if (normalizedParams.fast_period !== undefined) {
+          normalizedParams.fastEma = normalizedParams.fast_period;
+        }
+        if (normalizedParams.slow_period !== undefined) {
+          normalizedParams.slowEma = normalizedParams.slow_period;
+        }
+      }
+      if (strategy_name === "heikin_ashi_gar") {
+        if (normalizedParams.candle_limit !== undefined) {
+          normalizedParams.max_candles = normalizedParams.candle_limit;
+        }
+      }
+
+      const nextConfig = {
+        ...state.v2Config,
+        strategy_name,
+        strategy_params: normalizedParams,
+        timeframe: preset.timeframe,
+        strike_mode: preset.strike_selection?.mode || "ATM",
+        expiry_mode: preset.expiry_selection?.mode || "CURRENT_WEEKLY",
+      };
+
+      setTimeout(() => {
+        get().updateActiveStrategyMetadata(strategy_name);
+      }, 0);
+
+      return { v2Config: nextConfig };
+    });
   }
 }));

@@ -49,6 +49,13 @@ interface TradingQueriesState {
   cancelGtt: (id: string) => Promise<boolean>;
   startBacktest: (payload: StartBacktestRequest) => Promise<boolean>;
   clearMessages: () => void;
+
+  strategies: any[];
+  fetchV2Strategies: () => Promise<void>;
+  startV2PaperSession: (payload: any) => Promise<boolean>;
+  stopV2PaperSession: () => Promise<boolean>;
+  pauseV2PaperSession: () => Promise<boolean>;
+  resumeV2PaperSession: () => Promise<boolean>;
 }
 
 let ws: WebSocket | null = null;
@@ -123,6 +130,7 @@ export const useBackendTradingStore = create<TradingQueriesState>((set, get) => 
     isLoading: false,
     actionError: null,
     successMessage: null,
+    strategies: [],
 
     connectTelemetry: () => {
       if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
@@ -258,6 +266,79 @@ export const useBackendTradingStore = create<TradingQueriesState>((set, get) => 
         return true;
       } catch (err: any) {
         set({ isLoading: false, actionError: err.message || "Backtest start failed" });
+        return false;
+      }
+    },
+
+    fetchV2Strategies: async () => {
+      try {
+        const data = await tradingApi.getV2Strategies();
+        set({ strategies: data });
+      } catch (err: any) {
+        console.error("Failed to fetch V2 strategies:", err);
+      }
+    },
+
+    startV2PaperSession: async (payload) => {
+      set({ isLoading: true, actionError: null, successMessage: null });
+      try {
+        const response = await tradingApi.startV2Paper(payload);
+        set({
+          isLoading: false,
+          successMessage: response.message,
+          status: response.status,
+        });
+        return true;
+      } catch (err: any) {
+        set({ isLoading: false, actionError: err.message || "Failed to start V2 Paper session" });
+        return false;
+      }
+    },
+
+    stopV2PaperSession: async () => {
+      set({ isLoading: true, actionError: null, successMessage: null });
+      try {
+        const response = await tradingApi.stopV2Paper();
+        set({
+          isLoading: false,
+          successMessage: response.message,
+          status: response.status,
+        });
+        return true;
+      } catch (err: any) {
+        set({ isLoading: false, actionError: err.message || "Failed to stop V2 Paper session" });
+        return false;
+      }
+    },
+
+    pauseV2PaperSession: async () => {
+      set({ isLoading: true, actionError: null, successMessage: null });
+      try {
+        const response = await tradingApi.pauseV2Paper();
+        set({
+          isLoading: false,
+          successMessage: response.message,
+          status: response.status,
+        });
+        return true;
+      } catch (err: any) {
+        set({ isLoading: false, actionError: err.message || "Failed to pause V2 Paper session" });
+        return false;
+      }
+    },
+
+    resumeV2PaperSession: async () => {
+      set({ isLoading: true, actionError: null, successMessage: null });
+      try {
+        const response = await tradingApi.resumeV2Paper();
+        set({
+          isLoading: false,
+          successMessage: response.message,
+          status: response.status,
+        });
+        return true;
+      } catch (err: any) {
+        set({ isLoading: false, actionError: err.message || "Failed to resume V2 Paper session" });
         return false;
       }
     },

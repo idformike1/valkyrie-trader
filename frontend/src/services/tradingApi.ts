@@ -92,9 +92,53 @@ export const tradingApi = {
     product: string;
     price?: number;
     trigger_price?: number;
+    stop_loss?: number;
+    target?: number;
   }) =>
     request<any>("/api/broker/place_order", {
       method: "POST",
       body: JSON.stringify(payload),
     }),
+
+  cancelBrokerOrder: (orderId: string) =>
+    request<any>(`/api/broker/cancel_order?order_id=${encodeURIComponent(orderId)}`, {
+      method: "DELETE",
+    }),
+
+  modifyBrokerOrder: (payload: {
+    order_id: string;
+    quantity: number;
+    price: number;
+    order_type?: string;
+    trigger_price?: number;
+    validity?: string;
+  }) =>
+    request<any>("/api/broker/modify_order", {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+
+  brokerPanicExit: () =>
+    request<any>("/api/broker/panic_exit", {
+      method: "POST",
+    }),
+  startV2Paper: (payload: any) =>
+    request<{ message: string; status: any }>("/start", {
+      method: "POST",
+      body: JSON.stringify({ ...payload, engine_version: "v2" }),
+    }),
+  stopV2Paper: () =>
+    request<{ message: string; status: any }>("/stop", {
+      method: "POST",
+    }),
+  pauseV2Paper: () =>
+    request<{ message: string; status: any }>("/pause", {
+      method: "POST",
+    }),
+  resumeV2Paper: () =>
+    request<{ message: string; status: any }>("/resume", {
+      method: "POST",
+    }),
+  getV2Strategies: () =>
+    request<any[]>("/api/v2/strategies"),
 };

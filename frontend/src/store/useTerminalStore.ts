@@ -70,7 +70,25 @@ export const useTerminalStore = create<TerminalState>()(
       activeMode: "paper",
 
       setAccount: (account) => set({ currentAccount: account }),
-      setInstrument: (instrument) => set({ selectedInstrument: instrument }),
+      setInstrument: (instrument) => {
+        const oldVal = (useTerminalStore.getState() as any).selectedInstrument;
+        const err = new Error();
+        const stackLines = err.stack ? err.stack.split("\n") : [];
+        let caller = "Unknown";
+        for (let i = 1; i < stackLines.length; i++) {
+          const line = stackLines[i];
+          if (!line.includes("useTerminalStore") && !line.includes("Error")) {
+            caller = line.trim();
+            break;
+          }
+        }
+        console.log("=== setInstrument called ===");
+        console.log("OLD VALUE:", JSON.stringify(oldVal));
+        console.log("NEW VALUE:", JSON.stringify(instrument));
+        console.log("called by:", caller);
+        console.log("============================");
+        set({ selectedInstrument: instrument });
+      },
       setStrategy: (strategy) => set({ selectedStrategy: strategy }),
       setTimeframe: (timeframe) => set({ selectedTimeframe: timeframe }),
       setWorkspace: (workspaceId) => set({ selectedWorkspace: workspaceId }),

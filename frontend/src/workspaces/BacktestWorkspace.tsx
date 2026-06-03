@@ -77,13 +77,29 @@ export const BacktestLeft: React.FC = () => {
   const setV2Config = useBacktestStore((state) => state.setV2Config);
   const fetchStrategiesMetadata = useBacktestStore((state) => state.fetchStrategiesMetadata);
   const activeStrategyMetadata = useBacktestStore((state) => state.activeStrategyMetadata);
-  
+
+  // Presets Store Hooks
+  const presets = useBacktestStore((state) => state.presets);
+  const presetsLoading = useBacktestStore((state) => state.presetsLoading);
+  const fetchPresets = useBacktestStore((state) => state.fetchPresets);
+  const createPreset = useBacktestStore((state) => state.createPreset);
+  const deletePreset = useBacktestStore((state) => state.deletePreset);
+  const duplicatePreset = useBacktestStore((state) => state.duplicatePreset);
+  const loadPreset = useBacktestStore((state) => state.loadPreset);
+
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<string>("All");
 
+  // Save current preset form state
+  const [showSaveForm, setShowSaveForm] = useState(false);
+  const [newPresetName, setNewPresetName] = useState("");
+  const [newPresetNotes, setNewPresetNotes] = useState("");
+  const [newPresetTags, setNewPresetTags] = useState("");
+
   useEffect(() => {
     fetchStrategiesMetadata();
-  }, [fetchStrategiesMetadata]);
+    fetchPresets();
+  }, [fetchStrategiesMetadata, fetchPresets]);
 
   const handleSelect = (item: StrategyRepoItem) => {
     setStrategy({
@@ -101,6 +117,74 @@ export const BacktestLeft: React.FC = () => {
         ? { five_ema_period: 5, five_ema_rr: 3.0 }
         : { max_candles: 10 }
     });
+  };
+
+  const handleLoadPreset = (preset: any) => {
+    loadPreset(preset);
+    // Also update selectedStrategy in useTerminalStore so the UI lists match
+    let matchedRepo = AVAILABLE_STRATEGIES.find(s => {
+      if (preset.strategy_id === "five_ema") return s.id === "five_ema_scalping";
+      if (preset.strategy_id === "ema") return s.id === "EMA";
+      if (preset.strategy_id === "heikin_ashi") return s.id === "heikin_ashi_gar";
+      return s.id === preset.strategy_id;
+    });
+    if (matchedRepo) {
+      setStrategy({
+        strategyId: matchedRepo.id,
+        strategyName: matchedRepo.name,
+        version: matchedRepo.version
+      });
+    }
+  };
+
+  const handleSaveCurrent = async () => {
+    if (!newPresetName.trim()) return;
+    
+    // Map frontend strategy name to backend ID
+    let strategy_id = v2Config.strategy_name;
+    if (v2Config.strategy_name === "five_ema_scalping") strategy_id = "five_ema";
+    if (v2Config.strategy_name === "EMA") strategy_id = "ema";
+    if (v2Config.strategy_name === "heikin_ashi_gar") strategy_id = "heikin_ashi";
+
+    const presetPayload = {
+      name: newPresetName,
+      strategy_id,
+      parameters: v2Config.strategy_params,
+      risk_management: {
+        target_type: v2Config.strategy_name === "five_ema_scalping" ? "percent" : "none",
+        target_value: v2Config.strategy_params.five_ema_rr || 0.0,
+        stop_loss_type: v2Config.strategy_name === "five_ema_scalping" ? "percent" : "none",
+        stop_loss_value: 1.0,
+        max_holding_candles: v2Config.strategy_params.max_candles || 10,
+        cutoff_time: v2Config.strategy_params.cut_off_time || "15:25"
+      },
+      strike_selection: { mode: v2Config.strike_mode },
+      expiry_selection: { mode: v2Config.expiry_mode },
+      timeframe: v2Config.timeframe,
+      notes: newPresetNotes,
+      tags: newPresetTags.split(",").map(t => t.trim()).filter(Boolean)
+    };
+
+    await createPreset(presetPayload);
+    
+    // Reset form
+    setNewPresetName("");
+    setNewPresetNotes("");
+    setNewPresetTags("");
+    setShowSaveForm(false);
+  };
+
+  const handleDuplicatePreset = (preset: any) => {
+    const name = prompt("Enter a name for the duplicated preset:", `${preset.name} Copy`);
+    if (name && name.trim()) {
+      duplicatePreset(preset.id, name.trim());
+    }
+  };
+
+  const handleDeletePreset = (presetId: string) => {
+    if (confirm("Are you sure you want to delete this preset?")) {
+      deletePreset(presetId);
+    }
   };
 
   const filtered = AVAILABLE_STRATEGIES.filter((str) => {
@@ -143,7 +227,7 @@ export const BacktestLeft: React.FC = () => {
           </div>
 
           {/* Repository List */}
-          <div className="max-h-[160px] overflow-y-auto flex flex-col gap-1.5 mt-2 pr-1 scrollbar-thin scrollbar-thumb-white/5">
+          <div className="max-h-[140px] overflow-y-auto flex flex-col gap-1.5 mt-2 pr-1 scrollbar-thin scrollbar-thumb-white/5">
             {filtered.map((item) => {
               const isSelected = selectedStrategy?.strategyId === item.id;
               return (
@@ -178,6 +262,136 @@ export const BacktestLeft: React.FC = () => {
               );
             })}
           </div>
+        </div>
+      </GlowingCard>
+
+      {/* Preset Library Card */}
+      <GlowingCard title="Preset Library" className="shrink-0">
+        <div className="flex flex-col gap-2.5 font-sans text-xs">
+          {/* Header Action: Save Current Configuration */}
+          {!showSaveForm ? (
+            <button
+              onClick={() => setShowSaveForm(true)}
+              className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded text-[10px] font-bold transition-all border border-cyan-500/20 bg-cyan-950/20 text-cyan-400 hover:bg-cyan-950/40 hover:border-cyan-500/40 cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Save Current Config as Preset</span>
+            </button>
+          ) : (
+            <div className="bg-slate-900/60 border border-white/5 rounded p-2.5 flex flex-col gap-2">
+              <span className="text-[9px] font-bold text-cyan-400 uppercase tracking-wider">Save Strategy Preset</span>
+              <input
+                type="text"
+                value={newPresetName}
+                onChange={(e) => setNewPresetName(e.target.value)}
+                placeholder="Preset Name (e.g. 5 EMA Aggressive)"
+                className="w-full bg-slate-950 border border-white/5 rounded px-2 py-1 text-[10px] text-slate-300 focus:outline-none focus:border-cyan-500/40"
+              />
+              <input
+                type="text"
+                value={newPresetNotes}
+                onChange={(e) => setNewPresetNotes(e.target.value)}
+                placeholder="Notes/Description"
+                className="w-full bg-slate-950 border border-white/5 rounded px-2 py-1 text-[10px] text-slate-300 focus:outline-none focus:border-cyan-500/40"
+              />
+              <input
+                type="text"
+                value={newPresetTags}
+                onChange={(e) => setNewPresetTags(e.target.value)}
+                placeholder="Tags (comma-separated)"
+                className="w-full bg-slate-950 border border-white/5 rounded px-2 py-1 text-[10px] text-slate-300 focus:outline-none focus:border-cyan-500/40"
+              />
+              <div className="flex gap-2 justify-end mt-1 text-[9px] font-bold">
+                <button
+                  onClick={() => setShowSaveForm(false)}
+                  className="px-2 py-1 rounded bg-slate-950 border border-white/5 text-slate-400 hover:text-slate-200 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveCurrent}
+                  className="px-2 py-1 rounded bg-cyan-950 border border-cyan-800/30 text-cyan-400 hover:bg-cyan-900/30 cursor-pointer"
+                >
+                  Save Preset
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Presets List */}
+          {presetsLoading ? (
+            <div className="flex items-center justify-center py-4 text-slate-500 gap-1.5 text-[10px]">
+              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              <span>Loading presets...</span>
+            </div>
+          ) : presets.length === 0 ? (
+            <div className="text-center py-4 text-slate-500 text-[10px]">
+              No presets available. Save one above.
+            </div>
+          ) : (
+            <div className="max-h-[180px] overflow-y-auto flex flex-col gap-1.5 pr-1 scrollbar-thin scrollbar-thumb-white/5">
+              {presets.map((preset) => (
+                <div
+                  key={preset.id}
+                  className="p-2 bg-slate-950/40 border border-white/5 rounded flex flex-col gap-1.5 hover:border-white/10 transition-all"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="font-bold text-[10px] text-slate-200 block truncate max-w-[120px]">
+                        {preset.name}
+                      </span>
+                      <span className="text-[8px] text-cyan-500/80 font-mono tracking-wider font-semibold uppercase">
+                        {preset.strategy_id === "five_ema" ? "5 EMA" : preset.strategy_id === "ema" ? "EMA Trend" : "Heikin Ashi"} ({preset.timeframe})
+                      </span>
+                    </div>
+                    {/* Action buttons */}
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => handleLoadPreset(preset)}
+                        title="Load Preset"
+                        className="p-1 rounded bg-emerald-950/40 border border-emerald-800/30 text-emerald-400 hover:bg-emerald-900/40 hover:text-emerald-300 transition-all cursor-pointer"
+                      >
+                        <Zap className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => handleDuplicatePreset(preset)}
+                        title="Duplicate Preset"
+                        className="p-1 rounded bg-cyan-950/40 border border-cyan-800/30 text-cyan-400 hover:bg-cyan-900/40 hover:text-cyan-300 transition-all cursor-pointer"
+                      >
+                        <Layers className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => handleDeletePreset(preset.id)}
+                        title="Delete Preset"
+                        className="p-1 rounded bg-rose-950/40 border border-rose-800/30 text-rose-400 hover:bg-rose-900/40 hover:text-rose-300 transition-all cursor-pointer"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {preset.notes && (
+                    <p className="text-[9px] text-slate-400 leading-normal italic line-clamp-1">
+                      {preset.notes}
+                    </p>
+                  )}
+
+                  {preset.tags && preset.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {preset.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="text-[7px] font-mono font-bold text-slate-400 bg-slate-900 px-1 border border-white/5 rounded"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </GlowingCard>
 
@@ -1030,6 +1244,12 @@ export const BacktestBottom: React.FC = () => {
   const [fastEmaStart, setFastEmaStart] = useState(2);
   // Telemetry logs from backend
   const logs = useBackendTradingStore((state) => state.logs);
+  
+  // Runtime Telemetry Log Filters
+  const [logCategoryFilter, setLogCategoryFilter] = useState<string>("ALL");
+  const [logSearchQuery, setLogSearchQuery] = useState<string>("");
+  const [expandedLogId, setExpandedLogId] = useState<number | null>(null);
+
   const [fastEmaEnd, setFastEmaEnd] = useState(5);
   const [fastEmaStep, setFastEmaStep] = useState(1);
 
@@ -2108,14 +2328,161 @@ export const BacktestBottom: React.FC = () => {
 
             {/* Runtime Logs Tab */}
             {activeTab === "runtime" && (
-              <div className="max-h-60 overflow-y-auto font-mono text-[10px] text-slate-300 bg-slate-950/40 border border-white/5 p-3 rounded scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
-                {logs && logs.length > 0 ? (
-                  logs.map((log, idx) => (
-                    <div key={idx} className="py-0.5 border-b border-subtle/40 last:border-0">{log}</div>
-                  ))
-                ) : (
-                  <div className="text-slate-500 italic select-none">No logs available. Click "Run Backtest" or "Run Parameter Sweep" to begin.</div>
-                )}
+              <div className="flex flex-col gap-3 font-sans h-full min-h-[350px]">
+                {/* Filters Header */}
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/5 pb-2 shrink-0 select-none">
+                  {/* Category Pills */}
+                  <div className="flex flex-wrap gap-1">
+                    {["ALL", "SYSTEM", "SIGNAL", "POSITION", "PNL", "METRICS", "ERROR"].map((cat) => {
+                      const isActive = logCategoryFilter === cat;
+                      let badgeStyle = "text-slate-400 hover:text-slate-300 hover:bg-slate-900 border-transparent";
+                      if (isActive) {
+                        if (cat === "ALL") badgeStyle = "bg-slate-800 text-white border-slate-700";
+                        else if (cat === "SYSTEM") badgeStyle = "bg-blue-500/10 text-blue-400 border-blue-500/20";
+                        else if (cat === "SIGNAL") badgeStyle = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+                        else if (cat === "POSITION") badgeStyle = "bg-cyan-500/10 text-cyan-400 border-cyan-500/20";
+                        else if (cat === "PNL") badgeStyle = "bg-purple-500/10 text-purple-400 border-purple-500/20";
+                        else if (cat === "METRICS") badgeStyle = "bg-amber-500/10 text-amber-400 border-amber-500/20";
+                        else if (cat === "ERROR") badgeStyle = "bg-rose-500/10 text-rose-400 border-rose-500/20";
+                      }
+                      return (
+                        <button
+                          key={cat}
+                          onClick={() => {
+                            setLogCategoryFilter(cat);
+                            setExpandedLogId(null);
+                          }}
+                          className={`text-[9px] font-bold px-2 py-0.5 border rounded uppercase tracking-wider transition-all duration-150 cursor-pointer ${badgeStyle}`}
+                        >
+                          {cat}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Search input */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search execution logs..."
+                      value={logSearchQuery}
+                      onChange={(e) => setLogSearchQuery(e.target.value)}
+                      className="text-[9px] w-48 bg-slate-950 border border-white/10 px-2 py-1 pl-6 rounded text-slate-300 placeholder-slate-500 outline-none focus:border-cyan-500/40 transition-all duration-150"
+                    />
+                    <svg className="w-3 h-3 absolute left-2 top-2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    {logSearchQuery && (
+                      <button
+                        onClick={() => setLogSearchQuery("")}
+                        className="absolute right-2 top-1 text-slate-500 hover:text-slate-300"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Console Output Scroll Box */}
+                <div className="flex-1 overflow-y-auto max-h-96 min-h-[300px] font-mono text-[10px] text-slate-300 bg-slate-950/80 border border-white/5 rounded-lg p-2.5 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
+                  {v2Result?.runtime_logs && v2Result.runtime_logs.length > 0 ? (
+                    (() => {
+                      const filtered = v2Result.runtime_logs.filter(log => {
+                        const matchCat = logCategoryFilter === "ALL" || log.category.toUpperCase() === logCategoryFilter.toUpperCase();
+                        const matchSearch = !logSearchQuery || 
+                          log.message.toLowerCase().includes(logSearchQuery.toLowerCase()) ||
+                          log.category.toLowerCase().includes(logSearchQuery.toLowerCase());
+                        return matchCat && matchSearch;
+                      });
+
+                      if (filtered.length === 0) {
+                        return <div className="text-slate-500 italic p-4 text-center select-none">No logs match active filters.</div>;
+                      }
+
+                      return filtered.map((log, idx) => {
+                        const isExpanded = expandedLogId === idx;
+                        const hasMetadata = log.metadata && Object.keys(log.metadata).length > 0;
+                        const logTime = new Date(log.timestamp).toLocaleTimeString("en-US", { hour12: false });
+                        
+                        let catBadge = "text-slate-400 border-slate-700/30 bg-slate-800/10";
+                        let textStyle = "text-slate-300";
+                        if (log.category === "SYSTEM") {
+                          catBadge = "text-blue-400 border-blue-500/20 bg-blue-500/5";
+                          textStyle = "text-blue-200/90";
+                        } else if (log.category === "SIGNAL") {
+                          catBadge = "text-emerald-400 border-emerald-500/20 bg-emerald-500/5";
+                          textStyle = "text-emerald-200/90 font-bold";
+                        } else if (log.category === "POSITION") {
+                          catBadge = "text-cyan-400 border-cyan-500/20 bg-cyan-500/5";
+                          textStyle = "text-cyan-200/90";
+                        } else if (log.category === "PNL") {
+                          catBadge = "text-purple-400 border-purple-500/20 bg-purple-500/5";
+                          textStyle = "text-purple-200/90";
+                        } else if (log.category === "METRICS") {
+                          catBadge = "text-amber-400 border-amber-500/20 bg-amber-500/5";
+                          textStyle = "text-amber-200/90 font-bold";
+                        } else if (log.category === "ERROR") {
+                          catBadge = "text-rose-400 border-rose-500/20 bg-rose-500/5";
+                          textStyle = "text-rose-200/90 font-bold";
+                        }
+
+                        return (
+                          <div key={idx} className="border-b border-white/5 last:border-0">
+                            {/* Log Row */}
+                            <div 
+                              onClick={() => hasMetadata && setExpandedLogId(isExpanded ? null : idx)}
+                              className={`flex items-start gap-2.5 py-1 px-1.5 hover:bg-white/5 transition-all duration-100 rounded cursor-pointer select-none ${isExpanded ? 'bg-white/5' : ''}`}
+                            >
+                              {/* Timestamp */}
+                              <span className="text-slate-500 shrink-0 select-none text-[9px]">{logTime}</span>
+                              
+                              {/* Category Badge */}
+                              <span className={`px-1.5 py-0.5 text-[8px] font-bold border rounded uppercase shrink-0 select-none tracking-wider ${catBadge}`}>
+                                {log.category}
+                              </span>
+
+                              {/* Message */}
+                              <span className={`flex-1 break-all ${textStyle}`}>
+                                {log.message}
+                              </span>
+
+                              {/* Expansion Indicator */}
+                              {hasMetadata && (
+                                <span className="text-slate-500 text-[8px] shrink-0 font-bold select-none hover:text-slate-300">
+                                  {isExpanded ? "▼ METADATA" : "▶ METADATA"}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Metadata Expandable Block */}
+                            {isExpanded && hasMetadata && (
+                              <div className="bg-slate-950 border-x border-b border-white/5 p-3 mx-1.5 mb-1.5 rounded-b text-[9px] text-slate-400 max-h-48 overflow-y-auto">
+                                <div className="text-cyan-400/80 uppercase font-bold tracking-wider text-[8px] mb-1.5">Payload Details:</div>
+                                <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                                  {Object.entries(log.metadata).map(([key, val]) => (
+                                    <div key={key} className="flex border-b border-white/5 py-0.5 last:border-0">
+                                      <span className="text-slate-500 font-bold w-24 shrink-0 uppercase tracking-wide">{key}:</span>
+                                      <span className="text-slate-300 break-all text-[8px]">
+                                        {typeof val === "object" ? JSON.stringify(val) : String(val)}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      });
+                    })()
+                  ) : logs && logs.length > 0 ? (
+                    // Fallback to legacy string logs
+                    logs.map((log, idx) => (
+                      <div key={idx} className="py-0.5 border-b border-white/5 last:border-0">{log}</div>
+                    ))
+                  ) : (
+                    <div className="text-slate-500 italic p-6 text-center select-none">No logs available. Click "Run Backtest" or "Run Parameter Sweep" to begin.</div>
+                  )}
+                </div>
               </div>
             )}
 

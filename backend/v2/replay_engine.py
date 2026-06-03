@@ -147,10 +147,24 @@ class HistoricalReplayEngine:
         end_dt = datetime.combine(end_dt.date(), datetime_time(15, 30))
         
         raw_candles = self.spot_loader.load_candles(underlying_name, "1m", start_dt, end_dt)
+        from v2.telemetry_logger import TelemetryLogger
+        TelemetryLogger.log(
+            "SYSTEM",
+            "INFO",
+            f"Loaded {len(raw_candles)} spot candles at 1m resolution for {underlying_name}.",
+            {"raw_candles_count": len(raw_candles), "underlying": underlying_name}
+        )
         
         # 2. Resample base candles to requested timeframe
         tf_val = config.timeframe.value if hasattr(config.timeframe, "value") else str(config.timeframe)
         underlying_candles = resample_candles(raw_candles, tf_val)
+        
+        TelemetryLogger.log(
+            "SYSTEM",
+            "INFO",
+            f"Replay starting. Resampled base candles to {tf_val} timeframe. Total candles to process: {len(underlying_candles)}.",
+            {"resampled_candles_count": len(underlying_candles), "timeframe": tf_val}
+        )
         
         logger.info(f"Replay starting for {underlying_name}. Total underlying candles: {len(underlying_candles)}")
         
@@ -248,6 +262,21 @@ class HistoricalReplayEngine:
                     timeline.events.append(intent)
                     log_replay_event(current_ts, "SELL_INTENT", f"{active_contract['strike']} {active_contract['option_type']} ({active_contract['expiry']})", exit_price, active_contract["source"])
                     
+                    TelemetryLogger.log(
+                        "POSITION",
+                        "INFO",
+                        f"Closed position: {active_contract['strike']} {active_contract['option_type']} ({active_contract['expiry']}) | Exit Premium: {exit_price:.2f} | Reason: {exit_reason} | Spot: {spot_price}",
+                        {
+                            "action": "close",
+                            "strike": active_contract["strike"],
+                            "option_type": active_contract["option_type"],
+                            "expiry": active_contract["expiry"],
+                            "exit_premium": exit_price,
+                            "reason": exit_reason,
+                            "spot": spot_price
+                        }
+                    )
+                    
                     self.position_manager.close_position(pos_data, current_ts)
                     adapter.reset_state()
                     active_contract = None
@@ -259,6 +288,13 @@ class HistoricalReplayEngine:
             if signal == "BUY":
                 if active_contract is not None:
                     continue  # Already in position, ignore new entries
+                
+                TelemetryLogger.log(
+                    "SIGNAL",
+                    "INFO",
+                    f"BUY signal generated. Strategy: {strategy_name} | Spot: {spot_price} | Time: {current_ts.isoformat()}",
+                    {"strategy": strategy_name, "spot": spot_price, "timestamp": current_ts.isoformat()}
+                )
                 
                 # Determine Option Type (CE or PE)
                 if is_dynamic and strategy_def is not None:
@@ -372,6 +408,21 @@ class HistoricalReplayEngine:
                     self.position_manager.open_position(pos_data, current_ts)
                     opened_this_candle = True
                     
+                    TelemetryLogger.log(
+                        "POSITION",
+                        "INFO",
+                        f"Opened position: {strike} {option_type} ({expiry}) | Entry Premium: {premium:.2f} | Spot: {spot_price} | Qty: {quantity}",
+                        {
+                            "action": "open",
+                            "strike": strike,
+                            "option_type": option_type,
+                            "expiry": expiry,
+                            "premium": premium,
+                            "spot": spot_price,
+                            "quantity": quantity
+                        }
+                    )
+                    
                     active_contract = {
                         "strike": strike,
                         "expiry": expiry,
@@ -426,6 +477,29 @@ class HistoricalReplayEngine:
                         "premium_price": float(premium),
                         "signal": "SELL_INTENT"
                     }
+                    
+                    TelemetryLogger.log(
+                        "SIGNAL",
+                        "INFO",
+                        f"SELL signal generated. Strategy: {strategy_name} | Spot: {spot_price} | Time: {current_ts.isoformat()}",
+                        {"strategy": strategy_name, "spot": spot_price, "timestamp": current_ts.isoformat()}
+                    )
+                    
+                    TelemetryLogger.log(
+                        "POSITION",
+                        "INFO",
+                        f"Closed position: {active_contract['strike']} {active_contract['option_type']} ({active_contract['expiry']}) | Exit Premium: {premium:.2f} | Reason: Signal Exit | Spot: {spot_price}",
+                        {
+                            "action": "close",
+                            "strike": active_contract["strike"],
+                            "option_type": active_contract["option_type"],
+                            "expiry": active_contract["expiry"],
+                            "exit_premium": premium,
+                            "reason": "Signal Exit",
+                            "spot": spot_price
+                        }
+                    )
+                    
                     self.position_manager.close_position(pos_data, current_ts)
                     active_contract = None
             

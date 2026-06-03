@@ -32,12 +32,16 @@
 - [backend/v2/monte_carlo/run_monte_carlo_audit.py](#backendv2monte_carlorun_monte_carlo_auditpy)
 - [backend/v2/optimization_engine.py](#backendv2optimization_enginepy)
 - [backend/v2/optimization_models.py](#backendv2optimization_modelspy)
+- [backend/v2/option_quote_cache.py](#backendv2option_quote_cachepy)
+- [backend/v2/paper_execution_adapter.py](#backendv2paper_execution_adapterpy)
 - [backend/v2/pnl_engine.py](#backendv2pnl_enginepy)
 - [backend/v2/pnl_models.py](#backendv2pnl_modelspy)
 - [backend/v2/position_ledger.py](#backendv2position_ledgerpy)
 - [backend/v2/position_manager.py](#backendv2position_managerpy)
 - [backend/v2/position_models.py](#backendv2position_modelspy)
+- [backend/v2/preset_manager.py](#backendv2preset_managerpy)
 - [backend/v2/reality_check.py](#backendv2reality_checkpy)
+- [backend/v2/realtime_signal_runner.py](#backendv2realtime_signal_runnerpy)
 - [backend/v2/replay_audit.py](#backendv2replay_auditpy)
 - [backend/v2/replay_engine.py](#backendv2replay_enginepy)
 - [backend/v2/replay_models.py](#backendv2replay_modelspy)
@@ -46,6 +50,7 @@
 - [backend/v2/run_fast_audit.py](#backendv2run_fast_auditpy)
 - [backend/v2/run_replay_verification.py](#backendv2run_replay_verificationpy)
 - [backend/v2/scratch/check_ema_crossover.py](#backendv2scratchcheck_ema_crossoverpy)
+- [backend/v2/scratch/test_telemetry_foundation.py](#backendv2scratchtest_telemetry_foundationpy)
 - [backend/v2/signal_adapter.py](#backendv2signal_adapterpy)
 - [backend/v2/signal_source.py](#backendv2signal_sourcepy)
 - [backend/v2/strategy_builder/__init__.py](#backendv2strategy_builder__init__py)
@@ -57,13 +62,18 @@
 - [backend/v2/strategy_builder/strategy_validator.py](#backendv2strategy_builderstrategy_validatorpy)
 - [backend/v2/strategy_builder/test_strategy_builder.py](#backendv2strategy_buildertest_strategy_builderpy)
 - [backend/v2/strategy_registry.py](#backendv2strategy_registrypy)
+- [backend/v2/telemetry_logger.py](#backendv2telemetry_loggerpy)
 - [backend/v2/test_backtest_runner.py](#backendv2test_backtest_runnerpy)
 - [backend/v2/test_cache_layer.py](#backendv2test_cache_layerpy)
 - [backend/v2/test_historical_contract_provider.py](#backendv2test_historical_contract_providerpy)
+- [backend/v2/test_livefeed_v2_integration.py](#backendv2test_livefeed_v2_integrationpy)
 - [backend/v2/test_metrics_engine.py](#backendv2test_metrics_enginepy)
 - [backend/v2/test_optimization_engine.py](#backendv2test_optimization_enginepy)
 - [backend/v2/test_pnl_engine.py](#backendv2test_pnl_enginepy)
 - [backend/v2/test_position_manager.py](#backendv2test_position_managerpy)
+- [backend/v2/test_preset_api.py](#backendv2test_preset_apipy)
+- [backend/v2/test_preset_manager.py](#backendv2test_preset_managerpy)
+- [backend/v2/test_realtime_paper_engine.py](#backendv2test_realtime_paper_enginepy)
 - [backend/v2/test_replay_engine.py](#backendv2test_replay_enginepy)
 - [backend/v2/test_strategy_api.py](#backendv2test_strategy_apipy)
 - [backend/v2/test_strategy_registry.py](#backendv2test_strategy_registrypy)
@@ -112,9 +122,19 @@
 - [run_backtest_audit_query.py](#run_backtest_audit_querypy)
 - [run_january_test.py](#run_january_testpy)
 - [run_opt_sweep_query.py](#run_opt_sweep_querypy)
+- [scratch/audit_contract.js](#scratchaudit_contractjs)
+- [scratch/audit_paper_ui.py](#scratchaudit_paper_uipy)
+- [scratch/audit_script.py](#scratchaudit_scriptpy)
+- [scratch/check_auth.py](#scratchcheck_authpy)
 - [scratch/check_margin.py](#scratchcheck_marginpy)
 - [scratch/check_quotes.py](#scratchcheck_quotespy)
+- [scratch/click_debug.js](#scratchclick_debugjs)
+- [scratch/exchange_code.py](#scratchexchange_codepy)
+- [scratch/reproduce_audit.py](#scratchreproduce_auditpy)
+- [scratch/run_full_certification.py](#scratchrun_full_certificationpy)
+- [scratch/test_api.js](#scratchtest_apijs)
 - [scratch/test_upstox_candles.py](#scratchtest_upstox_candlespy)
+- [scratch/verification_audit.py](#scratchverification_auditpy)
 - [test_january_loader.py](#test_january_loaderpy)
 
 ---
@@ -146,6 +166,18 @@ No description provided.
 - **`__init__`**
   *Signature*: `def __init__(self, instrument_key, strategy_engine, account, scalper_key)`
   *Description*: No description provided.
+
+- **`register_candle_listener`**
+  *Signature*: `def register_candle_listener(self, callback)`
+  *Description*: Register a callable to be notified on every completed candle.
+
+The callback signature must be: callback(candle: dict) -> None
+Callbacks are invoked synchronously inside on_candle_close before
+V1 strategy evaluation, so they should be fast and non-blocking.
+
+- **`unregister_candle_listener`**
+  *Signature*: `def unregister_candle_listener(self, callback)`
+  *Description*: Remove a previously registered candle listener.
 
 - **`get_websocket_uri`**
   *Signature*: `async def get_websocket_uri(self)`
@@ -179,6 +211,9 @@ No description provided.
   *Signature*: `def stop(self)`
   *Description*: No description provided.
 
+#### class `ModifyOrderModel`
+No description provided.
+
 #### class `MarginRequestModel`
 No description provided.
 
@@ -210,6 +245,12 @@ No description provided.
 No description provided.
 
 #### class `V2OptimizationRequest`
+No description provided.
+
+#### class `UpdatePresetRequest`
+No description provided.
+
+#### class `DuplicatePresetRequest`
 No description provided.
 
 
@@ -351,7 +392,19 @@ No description provided.
 - **Signature**: `def get_options_chain(expiry, index, exchange)`
 - **Description**:
 ```text
-No description provided.
+Options Chain with full analytics — sourced from Upstox /v2/option/chain.
+
+Upstox API endpoint: GET https://api.upstox.com/v2/option/chain
+Query params: instrument_key (underlying index key), expiry_date (YYYY-MM-DD)
+
+Response per strike contains:
+  market_data:  ltp, volume, oi, close_price, bid_price, bid_qty, ask_price, ask_qty, prev_oi
+  option_greeks: delta, gamma, theta, vega, iv, pop
+  pcr (put/call ratio) at strike level
+
+This endpoint aggregates both CE and PE into per-strike rows for the frontend table.
+ATM is computed server-side using standard rounding to the index step size.
+Spot price comes from underlying_spot_price in the response (first row).
 ```
 
 #### `get_broker_profile` (Function)
@@ -382,6 +435,20 @@ No description provided.
 No description provided.
 ```
 
+#### `cancel_broker_order` (Function)
+- **Signature**: `def cancel_broker_order(order_id)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `modify_broker_order` (Function)
+- **Signature**: `def modify_broker_order(payload)`
+- **Description**:
+```text
+No description provided.
+```
+
 #### `get_broker_trades` (Function)
 - **Signature**: `def get_broker_trades()`
 - **Description**:
@@ -405,6 +472,13 @@ No description provided.
 
 #### `get_broker_order_margin` (Function)
 - **Signature**: `def get_broker_order_margin(req)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `broker_panic_exit` (Function)
+- **Signature**: `def broker_panic_exit()`
 - **Description**:
 ```text
 No description provided.
@@ -468,6 +542,20 @@ No description provided.
 
 #### `stop_engine` (Function)
 - **Signature**: `def stop_engine()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `pause_engine` (Function)
+- **Signature**: `def pause_engine()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `resume_engine_route` (Function)
+- **Signature**: `def resume_engine_route()`
 - **Description**:
 ```text
 No description provided.
@@ -604,6 +692,57 @@ No description provided.
 - **Description**:
 ```text
 No description provided.
+```
+
+#### `get_v2_presets` (Function)
+- **Signature**: `def get_v2_presets()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `get_v2_preset` (Function)
+- **Signature**: `def get_v2_preset(preset_id)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `create_v2_preset` (Function)
+- **Signature**: `def create_v2_preset(preset)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `update_v2_preset` (Function)
+- **Signature**: `def update_v2_preset(preset_id, req_data)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `delete_v2_preset` (Function)
+- **Signature**: `def delete_v2_preset(preset_id)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `duplicate_v2_preset` (Function)
+- **Signature**: `def duplicate_v2_preset(preset_id, req_data)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `start_hedge_monitor` (Function)
+- **Signature**: `async def start_hedge_monitor()`
+- **Description**:
+```text
+Async hedge monitor — runs every 1 s and exits positions when SL or Target is breached.
+Uses httpx.AsyncClient (non-blocking) to avoid stalling the FastAPI event loop.
+Handles both NSE_FO|57022 (pipe) and NSE_FO:57022 (colon) key formats returned by Upstox.
 ```
 
 #### `startup_event` (Function)
@@ -1398,6 +1537,84 @@ No description provided.
 
 ---
 
+## backend/v2/option_quote_cache.py
+*No description provided.*
+
+### Classes
+#### class `OptionQuote`
+No description provided.
+
+#### class `OptionQuoteCache`
+Thread-safe global registry storing the latest options L1/L2 quotes (LTP, bid, ask, volume, OI)
+received from the Upstox Market Stream WebSocket client.
+
+##### Methods:
+- **`update`**
+  *Signature*: `def update(cls, instrument_key, ltp, bid, ask, volume, oi, timestamp)`
+  *Description*: No description provided.
+
+- **`get`**
+  *Signature*: `def get(cls, instrument_key)`
+  *Description*: No description provided.
+
+- **`is_feed_available`**
+  *Signature*: `def is_feed_available(cls)`
+  *Description*: No description provided.
+
+- **`clear`**
+  *Signature*: `def clear(cls)`
+  *Description*: No description provided.
+
+
+### Functions & Endpoints
+#### `subscribe_option_contract` (Function)
+- **Signature**: `def subscribe_option_contract(instrument_key)`
+- **Description**:
+```text
+Cross-thread binding that registers a key subscription on the active Upstox WebSocket thread.
+```
+
+
+
+---
+
+## backend/v2/paper_execution_adapter.py
+*No description provided.*
+
+### Classes
+#### class `PaperExecutionAdapter`
+Responsibilities:
+- Fill BUY instantly at ask price (fallback to LTP).
+- Fill SELL instantly at bid price (fallback to LTP).
+- Resolve option details (strike, expiry, contract key, lot sizes).
+- Checks live OptionQuoteCache for market option premiums.
+- Cascades gracefully through fallback hierarchies (Live quote -> DB cache -> Synthetic).
+- Trigger PositionManager state updates and V2 accounting logs.
+
+##### Methods:
+- **`__init__`**
+  *Signature*: `def __init__(self, position_manager, config, db_path)`
+  *Description*: No description provided.
+
+- **`estimate_premium`**
+  *Signature*: `def estimate_premium(self, underlying, strike, expiry, option_type, spot_price, timestamp, side)`
+  *Description*: Calculates or retrieves the resolved option premium following our three-tier priority structure:
+1. Live OptionQuoteCache quote (BUY uses ask, SELL uses bid, fallback to LTP).
+2. Historical Option DB cache match.
+3. Synthetic Analytical Option Pricing fallback.
+
+- **`execute_buy`**
+  *Signature*: `def execute_buy(self, underlying, spot_price, timestamp)`
+  *Description*: Fills a BUY paper order instantly at ask price (or LTP), resolved ATM/OTM options, and opens position.
+
+- **`execute_sell`**
+  *Signature*: `def execute_sell(self, spot_price, timestamp, exit_reason)`
+  *Description*: Fills a SELL paper order instantly at bid price (or LTP), closing position, invoking PnLEngine and loggers.
+
+
+
+---
+
 ## backend/v2/pnl_engine.py
 *No description provided.*
 
@@ -1557,6 +1774,49 @@ No description provided.
 
 ---
 
+## backend/v2/preset_manager.py
+*No description provided.*
+
+### Classes
+#### class `StrategyPreset`
+No description provided.
+
+#### class `PresetManager`
+No description provided.
+
+##### Methods:
+- **`__init__`**
+  *Signature*: `def __init__(self, storage_path)`
+  *Description*: No description provided.
+
+- **`get_all_presets`**
+  *Signature*: `def get_all_presets(self)`
+  *Description*: No description provided.
+
+- **`get_preset`**
+  *Signature*: `def get_preset(self, preset_id)`
+  *Description*: No description provided.
+
+- **`create_preset`**
+  *Signature*: `def create_preset(self, preset)`
+  *Description*: No description provided.
+
+- **`update_preset`**
+  *Signature*: `def update_preset(self, preset_id, preset_data)`
+  *Description*: No description provided.
+
+- **`delete_preset`**
+  *Signature*: `def delete_preset(self, preset_id)`
+  *Description*: No description provided.
+
+- **`duplicate_preset`**
+  *Signature*: `def duplicate_preset(self, preset_id, new_name)`
+  *Description*: No description provided.
+
+
+
+---
+
 ## backend/v2/reality_check.py
 *No description provided.*
 
@@ -1577,6 +1837,37 @@ No description provided.
 ```text
 No description provided.
 ```
+
+
+
+---
+
+## backend/v2/realtime_signal_runner.py
+*No description provided.*
+
+### Classes
+#### class `RealtimeSignalRunner`
+Orchestrator for V2 real-time strategy signal processing and paper execution.
+- Manages rollings completed candle buffer in memory.
+- Performs risk validation audits (SL, Target, cutoff bounds) on active exposures.
+- Runs SignalAdapter models on candle history.
+- Executes BUY/SELL transactions synchronously.
+
+##### Methods:
+- **`__init__`**
+  *Signature*: `def __init__(self, config, position_manager, db_path)`
+  *Description*: No description provided.
+
+- **`on_candle`**
+  *Signature*: `def on_candle(self, candle)`
+  *Description*: Invoked on each completed real-time index candle.
+1. Checks risk exits (daily cutoff, target, stop loss, trailing SL, max hold) first.
+2. Appends candle to buffer.
+3. Invokes SignalAdapter crossover rules.
+4. Fills transactions via PaperExecutionAdapter.
+
+Returns:
+    Tuple[str, Dict[str, Any]] representing the execution action (BUY, SELL, or HOLD) and transaction metadata.
 
 
 
@@ -1796,6 +2087,35 @@ No description provided.
 ```text
 No description provided.
 ```
+
+
+
+---
+
+## backend/v2/scratch/test_telemetry_foundation.py
+*No description provided.*
+
+### Classes
+#### class `TestV2TelemetryFoundation`
+No description provided.
+
+##### Methods:
+- **`setUp`**
+  *Signature*: `def setUp(self)`
+  *Description*: No description provided.
+
+- **`tearDown`**
+  *Signature*: `def tearDown(self)`
+  *Description*: No description provided.
+
+- **`test_v2_telemetry_bridge_mapping`**
+  *Signature*: `def test_v2_telemetry_bridge_mapping(self)`
+  *Description*: Validates that update_telemetry_metrics() maps V2 runner data
+correctly to standard V1 global metrics variables.
+
+- **`test_pause_resume_endpoints`**
+  *Signature*: `def test_pause_resume_endpoints(self)`
+  *Description*: Validates the /pause and /resume engine endpoint logic.
 
 
 
@@ -2196,6 +2516,41 @@ Get a list of all registered strategies.
 
 ---
 
+## backend/v2/telemetry_logger.py
+*No description provided.*
+
+### Classes
+#### class `RuntimeLog`
+No description provided.
+
+#### class `TelemetryLogger`
+No description provided.
+
+##### Methods:
+- **`set_live_mode`**
+  *Signature*: `def set_live_mode(cls, enabled)`
+  *Description*: No description provided.
+
+- **`start_session`**
+  *Signature*: `def start_session(cls)`
+  *Description*: No description provided.
+
+- **`log`**
+  *Signature*: `def log(cls, category, severity, message, metadata)`
+  *Description*: No description provided.
+
+- **`get_logs`**
+  *Signature*: `def get_logs(cls)`
+  *Description*: No description provided.
+
+- **`clear_session`**
+  *Signature*: `def clear_session(cls)`
+  *Description*: No description provided.
+
+
+
+---
+
 ## backend/v2/test_backtest_runner.py
 *No description provided.*
 
@@ -2443,6 +2798,149 @@ No description provided.
 - **`test_22_resolve_contract_nifty_fallback`**
   *Signature*: `def test_22_resolve_contract_nifty_fallback(self)`
   *Description*: Verify resolution of NIFTY 23300 CE option contract on 2025-04-17.
+
+
+
+---
+
+## backend/v2/test_livefeed_v2_integration.py
+*P1.2 Integration Test: LiveFeed → V2 Paper Engine
+
+Validates the complete candle observer pipeline:
+
+  LiveFeed.on_candle_close()
+      └─ _notify_candle_listeners()
+          └─ RealtimeSignalRunner.on_candle()
+              └─ SignalAdapter.evaluate()
+                  └─ PaperExecutionAdapter.execute_buy/sell()
+                      └─ PositionManager.open_position / close_position()
+                          └─ PnLEngine.account_trade()
+                              └─ TelemetryLogger
+
+Success Criteria (P1.2 spec):
+  - Five EMA strategy runs continuously from live-fed candles.
+  - No synthetic pricing required (test uses option quote cache injection).
+  - No V1 strategy execution occurs when V2 runner is attached.
+  - Full execution trace captured in TelemetryLogger.*
+
+### Classes
+#### class `_FakeLiveFeed`
+Thin reproduction of LiveFeed's candle observer surface for test use.
+
+Only implements:
+  - register_candle_listener()
+  - unregister_candle_listener()
+  - _notify_candle_listeners()
+  - inject_candle()  ← test helper that calls on_candle_close()
+
+The V1 strategy evaluation path is bypassed exactly as app.py does when
+current_v2_runner is not None.
+
+##### Methods:
+- **`__init__`**
+  *Signature*: `def __init__(self)`
+  *Description*: No description provided.
+
+- **`register_candle_listener`**
+  *Signature*: `def register_candle_listener(self, callback)`
+  *Description*: No description provided.
+
+- **`unregister_candle_listener`**
+  *Signature*: `def unregister_candle_listener(self, callback)`
+  *Description*: No description provided.
+
+- **`on_candle_close`**
+  *Signature*: `def on_candle_close(self, candle)`
+  *Description*: Mirrors app.py LiveFeed.on_candle_close logic.
+
+- **`inject_candle`**
+  *Signature*: `def inject_candle(self, candle)`
+  *Description*: Test helper: simulate a completed candle from market data.
+
+#### class `TestLiveFeedV2Integration`
+P1.2 Integration Tests: LiveFeed candle observer → V2 paper engine pipeline.
+
+##### Methods:
+- **`setUp`**
+  *Signature*: `def setUp(self)`
+  *Description*: No description provided.
+
+- **`tearDown`**
+  *Signature*: `def tearDown(self)`
+  *Description*: No description provided.
+
+- **`test_register_candle_listener`**
+  *Signature*: `def test_register_candle_listener(self)`
+  *Description*: register_candle_listener() correctly stores the callback.
+
+- **`test_unregister_candle_listener`**
+  *Signature*: `def test_unregister_candle_listener(self)`
+  *Description*: unregister_candle_listener() correctly removes the callback.
+
+- **`test_no_duplicate_registration`**
+  *Signature*: `def test_no_duplicate_registration(self)`
+  *Description*: Registering the same callback twice must not create duplicates.
+
+- **`test_candle_fanout_to_runner`**
+  *Signature*: `def test_candle_fanout_to_runner(self)`
+  *Description*: inject_candle() propagates each closed candle to the registered runner.
+
+- **`test_v1_path_bypassed_when_v2_attached`**
+  *Signature*: `def test_v1_path_bypassed_when_v2_attached(self)`
+  *Description*: V1 strategy evaluation must be skipped when a V2 runner is attached.
+
+- **`test_full_pipeline_buy_and_sell`**
+  *Signature*: `def test_full_pipeline_buy_and_sell(self)`
+  *Description*: P1.2 primary integration test.
+
+Flow: LiveFeed → RealtimeSignalRunner → SignalAdapter → PaperExecutionAdapter
+      → PositionManager → PnLEngine → TelemetryLogger
+
+A BUY must be executed and a matching SELL must close it.
+PnLEngine must record the accounting result.
+TelemetryLogger must capture SIGNAL + POSITION + PNL events.
+
+- **`test_telemetry_signal_events_emitted`**
+  *Signature*: `def test_telemetry_signal_events_emitted(self)`
+  *Description*: Telemetry must emit SIGNAL-category events for BUY/SELL transitions.
+
+- **`test_concurrent_registration_thread_safety`**
+  *Signature*: `def test_concurrent_registration_thread_safety(self)`
+  *Description*: Concurrent registration/unregistration must not corrupt the listener list.
+
+- **`test_continuous_candle_stream`**
+  *Signature*: `def test_continuous_candle_stream(self)`
+  *Description*: Five-EMA strategy runs continuously from a live market data stream.
+Candle history accumulates correctly across multiple injections.
+
+- **`test_listener_exception_does_not_crash_feed`**
+  *Signature*: `def test_listener_exception_does_not_crash_feed(self)`
+  *Description*: A failing listener must not prevent other listeners from receiving candles.
+
+
+### Functions & Endpoints
+#### `_make_config` (Function)
+- **Signature**: `def _make_config(strategy_name)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `_five_ema_candles` (Function)
+- **Signature**: `def _five_ema_candles(base_time)`
+- **Description**:
+```text
+10 candles engineered to trigger a Five-EMA crossover BUY at candle[6]
+and a target-based SELL at candle[9].
+Pattern: 5 declining closes create downtrend → candle[6] breaks above EMA → BUY.
+```
+
+#### `_run_and_print_trace` (Function)
+- **Signature**: `def _run_and_print_trace()`
+- **Description**:
+```text
+Print a human-readable execution trace for P1.2 verification.
+```
 
 
 
@@ -3067,6 +3565,121 @@ No description provided.
 - **`test_expiry_boundary_ledger`**
   *Signature*: `def test_expiry_boundary_ledger(self)`
   *Description*: No description provided.
+
+
+
+---
+
+## backend/v2/test_preset_api.py
+*No description provided.*
+
+### Classes
+#### class `TestPresetApiEndpoints`
+No description provided.
+
+##### Methods:
+- **`setUp`**
+  *Signature*: `def setUp(self)`
+  *Description*: No description provided.
+
+- **`tearDown`**
+  *Signature*: `def tearDown(self)`
+  *Description*: No description provided.
+
+- **`test_get_all_presets_endpoint`**
+  *Signature*: `def test_get_all_presets_endpoint(self)`
+  *Description*: No description provided.
+
+- **`test_get_preset_by_id_success`**
+  *Signature*: `def test_get_preset_by_id_success(self)`
+  *Description*: No description provided.
+
+- **`test_get_preset_by_id_not_found`**
+  *Signature*: `def test_get_preset_by_id_not_found(self)`
+  *Description*: No description provided.
+
+- **`test_create_preset`**
+  *Signature*: `def test_create_preset(self)`
+  *Description*: No description provided.
+
+- **`test_update_preset`**
+  *Signature*: `def test_update_preset(self)`
+  *Description*: No description provided.
+
+- **`test_duplicate_preset`**
+  *Signature*: `def test_duplicate_preset(self)`
+  *Description*: No description provided.
+
+- **`test_delete_preset`**
+  *Signature*: `def test_delete_preset(self)`
+  *Description*: No description provided.
+
+
+
+---
+
+## backend/v2/test_preset_manager.py
+*No description provided.*
+
+### Classes
+#### class `TestPresetManager`
+No description provided.
+
+##### Methods:
+- **`setUp`**
+  *Signature*: `def setUp(self)`
+  *Description*: No description provided.
+
+- **`tearDown`**
+  *Signature*: `def tearDown(self)`
+  *Description*: No description provided.
+
+- **`test_preload_defaults`**
+  *Signature*: `def test_preload_defaults(self)`
+  *Description*: No description provided.
+
+- **`test_create_and_get_preset`**
+  *Signature*: `def test_create_and_get_preset(self)`
+  *Description*: No description provided.
+
+- **`test_update_preset`**
+  *Signature*: `def test_update_preset(self)`
+  *Description*: No description provided.
+
+- **`test_duplicate_preset`**
+  *Signature*: `def test_duplicate_preset(self)`
+  *Description*: No description provided.
+
+- **`test_delete_preset`**
+  *Signature*: `def test_delete_preset(self)`
+  *Description*: No description provided.
+
+
+
+---
+
+## backend/v2/test_realtime_paper_engine.py
+*No description provided.*
+
+### Classes
+#### class `TestRealtimePaperEngine`
+No description provided.
+
+##### Methods:
+- **`setUp`**
+  *Signature*: `def setUp(self)`
+  *Description*: No description provided.
+
+- **`test_end_to_end_realtime_execution`**
+  *Signature*: `def test_end_to_end_realtime_execution(self)`
+  *Description*: No description provided.
+
+- **`test_live_option_premium_fills`**
+  *Signature*: `def test_live_option_premium_fills(self)`
+  *Description*: PHASE P1.1A VALIDATION:
+Injects a mock options quote inside OptionQuoteCache and verifies
+that BUY fills exactly at the ask price and SELL fills exactly at the bid price,
+completely bypassing synthetic pricing.
 
 
 
@@ -4216,8 +4829,85 @@ No description provided.
 No description provided.
 ```
 
+#### `presets` (Function)
+- **Signature**: `const presets = useBacktestStore((state) => state.presets)`
+- **Description**:
+```text
+Presets Store Hooks
+```
+
+#### `presetsLoading` (Function)
+- **Signature**: `const presetsLoading = useBacktestStore((state) => state.presetsLoading)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `fetchPresets` (Function)
+- **Signature**: `const fetchPresets = useBacktestStore((state) => state.fetchPresets)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `createPreset` (Function)
+- **Signature**: `const createPreset = useBacktestStore((state) => state.createPreset)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `deletePreset` (Function)
+- **Signature**: `const deletePreset = useBacktestStore((state) => state.deletePreset)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `duplicatePreset` (Function)
+- **Signature**: `const duplicatePreset = useBacktestStore((state) => state.duplicatePreset)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `loadPreset` (Function)
+- **Signature**: `const loadPreset = useBacktestStore((state) => state.loadPreset)`
+- **Description**:
+```text
+No description provided.
+```
+
 #### `handleSelect` (Function)
 - **Signature**: `const handleSelect = (item: StrategyRepoItem) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleLoadPreset` (Function)
+- **Signature**: `const handleLoadPreset = (preset: any) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleSaveCurrent` (Function)
+- **Signature**: `const handleSaveCurrent = async () => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleDuplicatePreset` (Function)
+- **Signature**: `const handleDuplicatePreset = (preset: any) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleDeletePreset` (Function)
+- **Signature**: `const handleDeletePreset = (presetId: string) => `
 - **Description**:
 ```text
 No description provided.
@@ -4592,6 +5282,13 @@ No description provided.
 No description provided.
 ```
 
+#### `filtered` (Function)
+- **Signature**: `const filtered = v2Result.runtime_logs.filter(log => `
+- **Description**:
+```text
+No description provided.
+```
+
 #### `runItem` (Function)
 - **Signature**: `const runItem = [...v2OptimizationReport.top_50, ...v2OptimizationReport.top_25, ...v2OptimizationReport.top_10].find(r =>`
 - **Description**:
@@ -4740,6 +5437,13 @@ No description provided.
 No description provided.
 ```
 
+#### `handleAddFromChain` (Function)
+- **Signature**: `const handleAddFromChain = (e: Event) => `
+- **Description**:
+```text
+Listen for option chain contract selections and auto-add them to the watchlist
+```
+
 #### `togglePin` (Function)
 - **Signature**: `const togglePin = (sym: string, e: React.MouseEvent) => `
 - **Description**:
@@ -4817,6 +5521,13 @@ No description provided.
 No description provided.
 ```
 
+#### `handlePanicExit` (Function)
+- **Signature**: `const handlePanicExit = async () => `
+- **Description**:
+```text
+No description provided.
+```
+
 #### `calcVWAP` (Function)
 - **Signature**: `const calcVWAP = (candles: any[]) => `
 - **Description**:
@@ -4859,6 +5570,13 @@ No description provided.
 No description provided.
 ```
 
+#### `handleRealTick` (Function)
+- **Signature**: `const handleRealTick = (e: Event) => `
+- **Description**:
+```text
+Real-time dynamic chart ticking via real REST Ticket Quotes
+```
+
 #### `load` (Function)
 - **Signature**: `const load = async () => `
 - **Description**:
@@ -4889,6 +5607,13 @@ No description provided.
 
 #### `fetchData` (Function)
 - **Signature**: `const fetchData = async () => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleRefresh` (Function)
+- **Signature**: `const handleRefresh = () => `
 - **Description**:
 ```text
 No description provided.
@@ -4936,6 +5661,13 @@ No description provided.
 - **Description**:
 ```text
 No description provided.
+```
+
+#### `handleAnalyticsUpdate` (Function)
+- **Signature**: `const handleAnalyticsUpdate = (e: Event) => `
+- **Description**:
+```text
+Sync with active contract option analytics from OptionChainPanel
 ```
 
 #### `fetchLotSize` (Function)
@@ -4987,6 +5719,13 @@ No description provided.
 No description provided.
 ```
 
+#### `totalRealizedPnL` (Function)
+- **Signature**: `const totalRealizedPnL = positions.reduce((acc, pos) => acc + Number(pos.realised || 0), 0)`
+- **Description**:
+```text
+Pre-flight Daily Loss Guard Check
+```
+
 #### `closePosition` (Function)
 - **Signature**: `const closePosition = async (sym?: string) => `
 - **Description**:
@@ -5028,7 +5767,7 @@ No description provided.
 - **Signature**: `const atmRow = strikes.find((s: any) => Number(s.strike) === Number(data.atm_strike)) || strikes[Math.floor(strikes.length / 2)]`
 - **Description**:
 ```text
-Auto ATM CE selection workflow
+No description provided.
 ```
 
 #### `timer` (Function)
@@ -5040,6 +5779,48 @@ No description provided.
 
 #### `handleSelectContract` (Function)
 - **Signature**: `const handleSelectContract = async (strike: number, type: "CE" | "PE", key: string, symbol: string) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `fmtOI` (Function)
+- **Signature**: `const fmtOI = (v: number) => v >= 1000000 ? `${(v/1000000).toFixed(1)}M` : v >= 1000 ? `${(v/1000).toFixed(0)}K` : String(v)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `domColor` (Function)
+- **Signature**: `const domColor = (sig: string) =>`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `oiChgColor` (Function)
+- **Signature**: `const oiChgColor = (v: number) => v > 0 ? "text-emerald-400" : v < 0 ? "text-rose-400" : "text-slate-500"`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleModifyOrder` (Function)
+- **Signature**: `const handleModifyOrder = async (orderId: string, orderType: string) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleCancelOrder` (Function)
+- **Signature**: `const handleCancelOrder = async (orderId: string) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleSquareOff` (Function)
+- **Signature**: `const handleSquareOff = async (pos: any) => `
 - **Description**:
 ```text
 No description provided.
@@ -5073,6 +5854,13 @@ No description provided.
 No description provided.
 ```
 
+#### `handleRefresh` (Function)
+- **Signature**: `const handleRefresh = () => `
+- **Description**:
+```text
+No description provided.
+```
+
 #### `interval` (Function)
 - **Signature**: `const interval = setInterval(() => `
 - **Description**:
@@ -5092,6 +5880,13 @@ No description provided.
 - **Description**:
 ```text
 No description provided.
+```
+
+#### `brokerage` (Function)
+- **Signature**: `const brokerage = brokerTrades.reduce((acc, t) => `
+- **Description**:
+```text
+Brokerage: ₹20/leg (Upstox flat) + ₹5.5 NSE charge + 0.05% STT on sell side (capped)
 ```
 
 
@@ -5122,7 +5917,7 @@ No description provided.
 - **Description**:
 ```text
 ==========================================
-1. LEFT PANEL: DEPLOYMENT CENTER
+1. LEFT PANEL: STRATEGY CATALOG
 ==========================================
 ```
 
@@ -5133,15 +5928,29 @@ No description provided.
 No description provided.
 ```
 
-#### `handleSelect` (Function)
-- **Signature**: `const handleSelect = (item: DeploymentItem) => `
+#### `strategies` (Function)
+- **Signature**: `const strategies = useBackendTradingStore((state) => state.strategies)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `fetchV2Strategies` (Function)
+- **Signature**: `const fetchV2Strategies = useBackendTradingStore((state) => state.fetchV2Strategies)`
 - **Description**:
 ```text
 No description provided.
 ```
 
 #### `filtered` (Function)
-- **Signature**: `const filtered = INITIAL_DEPLOYMENTS.filter((dep) => `
+- **Signature**: `const filtered = (strategies || []).filter((dep) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleSelect` (Function)
+- **Signature**: `const handleSelect = (item: any) => `
 - **Description**:
 ```text
 No description provided.
@@ -5154,6 +5963,13 @@ No description provided.
 ==========================================
 2. MAIN PANEL: DEPLOYMENT DASHBOARD
 ==========================================
+```
+
+#### `setStrategy` (Function)
+- **Signature**: `const setStrategy = useTerminalStore((state) => state.setStrategy)`
+- **Description**:
+```text
+No description provided.
 ```
 
 #### `currentAccount` (Function)
@@ -5170,29 +5986,134 @@ No description provided.
 No description provided.
 ```
 
-#### `match` (Function)
-- **Signature**: `const match = INITIAL_DEPLOYMENTS.find((d) => d.id === selectedStrategy.strategyId)`
+#### `status` (Function)
+- **Signature**: `const status = useBackendTradingStore((state) => state.status)`
 - **Description**:
 ```text
-Sync details when active strategy swaps
+V2 Live paper telemetry
+```
+
+#### `strategies` (Function)
+- **Signature**: `const strategies = useBackendTradingStore((state) => state.strategies)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `startV2PaperSession` (Function)
+- **Signature**: `const startV2PaperSession = useBackendTradingStore((state) => state.startV2PaperSession)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `stopV2PaperSession` (Function)
+- **Signature**: `const stopV2PaperSession = useBackendTradingStore((state) => state.stopV2PaperSession)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `pauseV2PaperSession` (Function)
+- **Signature**: `const pauseV2PaperSession = useBackendTradingStore((state) => state.pauseV2PaperSession)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `resumeV2PaperSession` (Function)
+- **Signature**: `const resumeV2PaperSession = useBackendTradingStore((state) => state.resumeV2PaperSession)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `connectTelemetry` (Function)
+- **Signature**: `const connectTelemetry = useBackendTradingStore((state) => state.connectTelemetry)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `trades` (Function)
+- **Signature**: `const trades = useBackendTradingStore((state) => state.trades) || []`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `presets` (Function)
+- **Signature**: `const presets = useBacktestStore((state) => state.presets)`
+- **Description**:
+```text
+Backtest presets hooks
+```
+
+#### `presetsLoading` (Function)
+- **Signature**: `const presetsLoading = useBacktestStore((state) => state.presetsLoading)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `fetchPresets` (Function)
+- **Signature**: `const fetchPresets = useBacktestStore((state) => state.fetchPresets)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `timer` (Function)
+- **Signature**: `const timer = setInterval(() => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `formatDuration` (Function)
+- **Signature**: `const formatDuration = (seconds: number) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handlePresetChange` (Function)
+- **Signature**: `const handlePresetChange = (presetId: string) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `preset` (Function)
+- **Signature**: `const preset = presets.find((p) => p.id === presetId)`
+- **Description**:
+```text
+No description provided.
 ```
 
 #### `handleDeploy` (Function)
-- **Signature**: `const handleDeploy = () => `
+- **Signature**: `const handleDeploy = async () => `
 - **Description**:
 ```text
 No description provided.
 ```
 
 #### `handlePause` (Function)
-- **Signature**: `const handlePause = () => `
+- **Signature**: `const handlePause = async () => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleResume` (Function)
+- **Signature**: `const handleResume = async () => `
 - **Description**:
 ```text
 No description provided.
 ```
 
 #### `handleStop` (Function)
-- **Signature**: `const handleStop = () => `
+- **Signature**: `const handleStop = async () => `
 - **Description**:
 ```text
 No description provided.
@@ -5205,6 +6126,50 @@ No description provided.
 ==========================================
 3. RIGHT PANEL: STRATEGY HEALTH
 ==========================================
+```
+
+#### `status` (Function)
+- **Signature**: `const status = useBackendTradingStore((state) => state.status)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `logs` (Function)
+- **Signature**: `const logs = useBackendTradingStore((state) => state.logs) || []`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `getSystemStatusVal` (Function)
+- **Signature**: `const getSystemStatusVal = (label: string) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `status` (Function)
+- **Signature**: `const status = useBackendTradingStore((state) => state.status)`
+- **Description**:
+```text
+==========================================
+4. BOTTOM PANEL: LEDGERS & PROMOTION CHECKER
+==========================================
+```
+
+#### `trades` (Function)
+- **Signature**: `const trades = useBackendTradingStore((state) => state.trades) || []`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `logs` (Function)
+- **Signature**: `const logs = useBackendTradingStore((state) => state.logs) || []`
+- **Description**:
+```text
+No description provided.
 ```
 
 
@@ -5460,6 +6425,71 @@ No description provided.
 
 ---
 
+## scratch/audit_contract.js
+*TypeScript/JavaScript Source Component*
+
+### Functions & Endpoints
+#### `span` (Function)
+- **Signature**: `const span = spans.find(s => `
+- **Description**:
+```text
+Click BANKNIFTY
+```
+
+#### `ceButton` (Function)
+- **Signature**: `const ceButton = buttons.find(b => b.textContent && b.textContent.includes('CE'))`
+- **Description**:
+```text
+Click the CE button of the first row
+```
+
+#### `storeStr` (Function)
+- **Signature**: `const storeStr = await page.evaluate(() => localStorage.getItem('valkyrie-terminal-context-storage'))`
+- **Description**:
+```text
+Dump localStorage selectedInstrument
+```
+
+
+
+---
+
+## scratch/audit_paper_ui.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `run_audit` (Function)
+- **Signature**: `def run_audit()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## scratch/audit_script.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `main` (Function)
+- **Signature**: `def main()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## scratch/check_auth.py
+*No description provided.*
+
+
+---
+
 ## scratch/check_margin.py
 *No description provided.*
 
@@ -5472,12 +6502,119 @@ No description provided.
 
 ---
 
+## scratch/click_debug.js
+*TypeScript/JavaScript Source Component*
+
+### Functions & Endpoints
+#### `result` (Function)
+- **Signature**: `const result = await page.evaluate(() => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `bankniftySpan` (Function)
+- **Signature**: `const bankniftySpan = spans.find(s => s.textContent === 'BANKNIFTY')`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `storage` (Function)
+- **Signature**: `const storage = await page.evaluate(() => `
+- **Description**:
+```text
+Wait 2 seconds and check local storage
+```
+
+
+
+---
+
+## scratch/exchange_code.py
+*No description provided.*
+
+
+---
+
+## scratch/reproduce_audit.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `main` (Function)
+- **Signature**: `def main()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## scratch/run_full_certification.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `main` (Function)
+- **Signature**: `def main()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## scratch/test_api.js
+*TypeScript/JavaScript Source Component*
+
+
+---
+
 ## scratch/test_upstox_candles.py
 *No description provided.*
 
 ### Functions & Endpoints
 #### `test` (Function)
 - **Signature**: `def test()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## scratch/verification_audit.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `get_positions_from_api` (Function)
+- **Signature**: `def get_positions_from_api()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `get_orders_from_api` (Function)
+- **Signature**: `def get_orders_from_api()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `get_trades_from_api` (Function)
+- **Signature**: `def get_trades_from_api()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `main` (Function)
+- **Signature**: `def main()`
 - **Description**:
 ```text
 No description provided.

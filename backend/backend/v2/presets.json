@@ -1,0 +1,97 @@
+[
+    {
+        "id": "preset_five_ema_aggressive",
+        "name": "Five EMA Aggressive",
+        "strategy_id": "five_ema",
+        "parameters": {
+            "five_ema_period": 5,
+            "five_ema_rr": 4.0,
+            "max_candles": 5,
+            "cut_off_time": "15:15"
+        },
+        "risk_management": {
+            "target_type": "percent",
+            "target_value": 4.0,
+            "stop_loss_type": "percent",
+            "stop_loss_value": 1.5,
+            "max_holding_candles": 5,
+            "cutoff_time": "15:15"
+        },
+        "strike_selection": {
+            "mode": "OTM_1"
+        },
+        "expiry_selection": {
+            "mode": "CURRENT_WEEKLY"
+        },
+        "timeframe": "1m",
+        "notes": "Aggressive scalping settings with tight exit and higher risk-reward targets.",
+        "tags": [
+            "scalping",
+            "aggressive",
+            "5ema"
+        ]
+    },
+    {
+        "id": "preset_five_ema_conservative",
+        "name": "Five EMA Conservative",
+        "strategy_id": "five_ema",
+        "parameters": {
+            "five_ema_period": 5,
+            "five_ema_rr": 2.5,
+            "max_candles": 15,
+            "cut_off_time": "15:15"
+        },
+        "risk_management": {
+            "target_type": "percent",
+            "target_value": 2.5,
+            "stop_loss_type": "percent",
+            "stop_loss_value": 0.8,
+            "max_holding_candles": 15,
+            "cutoff_time": "15:15"
+        },
+        "strike_selection": {
+            "mode": "ATM"
+        },
+        "expiry_selection": {
+            "mode": "CURRENT_WEEKLY"
+        },
+        "timeframe": "5m",
+        "notes": "Conservative scalping settings using ATM strikes for lower slippage and a lower reward multiplier.",
+        "tags": [
+            "scalping",
+            "conservative",
+            "5ema"
+        ]
+    },
+    {
+        "id": "preset_ema_trend",
+        "name": "EMA Trend",
+        "strategy_id": "ema",
+        "parameters": {
+            "fast_period": 9,
+            "slow_period": 21,
+            "cut_off_time": "15:25"
+        },
+        "risk_management": {
+            "target_type": "none",
+            "target_value": 0.0,
+            "stop_loss_type": "none",
+            "stop_loss_value": 0.0,
+            "max_holding_candles": 100,
+            "cutoff_time": "15:25"
+        },
+        "strike_selection": {
+            "mode": "ATM"
+        },
+        "expiry_selection": {
+            "mode": "CURRENT_WEEKLY"
+        },
+        "timeframe": "5m",
+        "notes": "Standard trend crossover settings using 9 and 21 periods.",
+        "tags": [
+            "trend",
+            "crossover",
+            "ema"
+        ]
+    }
+]
