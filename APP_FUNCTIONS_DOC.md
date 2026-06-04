@@ -59,6 +59,7 @@
 - [backend/v2/scratch/find_exact_trades.py](#backendv2scratchfind_exact_tradespy)
 - [backend/v2/scratch/find_suspicious_trades.py](#backendv2scratchfind_suspicious_tradespy)
 - [backend/v2/scratch/query_underlying.py](#backendv2scratchquery_underlyingpy)
+- [backend/v2/scratch/run_offline_validation_p5_4a_r.py](#backendv2scratchrun_offline_validation_p5_4a_rpy)
 - [backend/v2/scratch/run_runtime_verification.py](#backendv2scratchrun_runtime_verificationpy)
 - [backend/v2/scratch/test_journal_api.py](#backendv2scratchtest_journal_apipy)
 - [backend/v2/scratch/test_live_fill_integrity.py](#backendv2scratchtest_live_fill_integritypy)
@@ -2351,6 +2352,28 @@ No description provided.
 *No description provided.*
 
 ### Functions & Endpoints
+#### `main` (Function)
+- **Signature**: `def main()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## backend/v2/scratch/run_offline_validation_p5_4a_r.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `print_section` (Function)
+- **Signature**: `def print_section(title)`
+- **Description**:
+```text
+No description provided.
+```
+
 #### `main` (Function)
 - **Signature**: `def main()`
 - **Description**:

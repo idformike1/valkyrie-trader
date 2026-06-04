@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Layers, Search, Bell, User, CheckCircle2, AlertTriangle, 
   ChevronDown, Globe, Wifi, KeyRound, Sun, Moon, Shield
 } from "lucide-react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { useCommandPaletteStore } from "@/store/useCommandPaletteStore";
-import { getWorkspaceConfig } from "@/workspaces/registry";
+import { getWorkspaceConfig, getAllWorkspaces } from "@/workspaces/registry";
 import { useThemeStore } from "@/store/useThemeStore";
 import { useTerminalStore } from "@/store/useTerminalStore";
 import { useBackendTradingStore } from "@/services/tradingQueries";
@@ -13,50 +13,207 @@ import { useBackendTradingStore } from "@/services/tradingQueries";
 export const Header: React.FC = () => {
   const { theme, setTheme } = useThemeStore();
   const selectedWorkspace = useTerminalStore((state) => state.selectedWorkspace);
+  const setWorkspace = useTerminalStore((state) => state.setWorkspace);
   const currentAccount = useTerminalStore((state) => state.currentAccount);
   const setAccount = useTerminalStore((state) => state.setAccount);
   
   const toggleCommandPalette = useCommandPaletteStore((state) => state.toggleOpen);
   const config = getWorkspaceConfig(selectedWorkspace);
+  const workspaces = getAllWorkspaces();
 
+  const [showWorkspaceDropdown, setShowWorkspaceDropdown] = useState(false);
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
 
   const status = useBackendTradingStore((state) => state.status);
   const connectionStatus = useBackendTradingStore((state) => state.connectionStatus);
 
+  // Live index ticker state
+  const [tickerData, setTickerData] = useState({
+    nifty: { price: 22356.20, change: 123.40, pct: 0.55 },
+    banknifty: { price: 47820.50, change: 256.30, pct: 0.53 },
+    vix: { price: 12.84, change: -0.21, pct: -1.56 }
+  });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTickerData(prev => {
+        const niftyTick = (Math.random() - 0.5) * 4;
+        const bankniftyTick = (Math.random() - 0.5) * 10;
+        const vixTick = (Math.random() - 0.5) * 0.05;
+        
+        const nextNiftyPrice = prev.nifty.price + niftyTick;
+        const nextBankniftyPrice = prev.banknifty.price + bankniftyTick;
+        const nextVixPrice = Math.max(8, prev.vix.price + vixTick);
+        
+        const niftyChange = prev.nifty.change + niftyTick;
+        const bankniftyChange = prev.banknifty.change + bankniftyTick;
+        const vixChange = prev.vix.change + vixTick;
+
+        return {
+          nifty: {
+            price: nextNiftyPrice,
+            change: niftyChange,
+            pct: (niftyChange / (nextNiftyPrice - niftyChange)) * 100
+          },
+          banknifty: {
+            price: nextBankniftyPrice,
+            change: bankniftyChange,
+            pct: (bankniftyChange / (nextBankniftyPrice - bankniftyChange)) * 100
+          },
+          vix: {
+            price: nextVixPrice,
+            change: vixChange,
+            pct: (vixChange / (nextVixPrice - vixChange)) * 100
+          }
+        };
+      });
+    }, 1500);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Dynamic positions P&L for header account indicator
+  const [headerPnl, setHeaderPnl] = useState<number>(0);
+  useEffect(() => {
+    const fetchHeaderPnl = async () => {
+      try {
+        const { tradingApi } = await import("@/services/tradingApi");
+        const res = await tradingApi.getBrokerPositions();
+        if (res.status === "success" && Array.isArray(res.data)) {
+          const unrealised = res.data.reduce((acc: number, pos: any) => acc + Number(pos.unrealised || 0), 0);
+          const realised = res.data.reduce((acc: number, pos: any) => acc + Number(pos.realised || 0), 0);
+          setHeaderPnl(unrealised + realised);
+        }
+      } catch (err) {
+        // Fallback silently
+      }
+    };
+    fetchHeaderPnl();
+    const interval = setInterval(fetchHeaderPnl, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <>
       {status?.broker_auth === "Expired" && (
         <div className="w-full bg-gradient-to-r from-red-950 via-rose-900 to-red-950 border-b border-red-500/20 py-1.5 px-4 text-center select-none flex items-center justify-center gap-2 shrink-0 animate-pulse z-50">
-          <span className="text-[10px] font-bold text-rose-100 font-sans flex items-center gap-1.5">
+          <span className="text-xs font-bold text-rose-100 font-sans flex items-center gap-1.5">
             ⚠ Broker Authentication Expired. Live quotes unavailable. Reconnect Upstox to resume live execution.
           </span>
         </div>
       )}
       <header className="h-10 border-b border-subtle bg-deep flex items-center justify-between px-4 select-none shrink-0 font-sans z-30">
-        {/* Left Section: Workspace Selector */}
-        <div className="flex items-center gap-2 cursor-pointer">
-          <span className="text-[10px] uppercase text-slate-400 tracking-wider font-bold">Workspace</span>
-          <button className="flex items-center gap-1.5 px-2.5 py-1 hover:bg-card-hover rounded-sm text-[11px] font-black text-slate-200 uppercase transition-colors">
-            <span>{config ? `${config.name} Desk` : "Terminal"}</span>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
-          </button>
+        {/* Brand Logo & Workspace Dropdown Switcher */}
+        <div className="flex items-center gap-2.5 shrink-0 relative">
+          <div className="flex items-center gap-1.5 select-none">
+            <div className="w-5 h-5 bg-cyan-neon rounded-sm flex items-center justify-center font-black text-xs text-white">V</div>
+            <span className="text-xs font-black tracking-widest text-slate-100 uppercase font-display">
+              Valkyrie<span className="text-cyan-neon">_</span>
+            </span>
+          </div>
+
+          {/* Down arrow workspace selector */}
+          <div className="relative">
+            <button
+              onClick={() => setShowWorkspaceDropdown(!showWorkspaceDropdown)}
+              className="flex items-center justify-center p-1 rounded hover:bg-white/5 transition-all text-slate-400 hover:text-slate-100 cursor-pointer"
+              title="Switch Workspace"
+            >
+              <ChevronDown className="w-3.5 h-3.5" />
+            </button>
+
+            {showWorkspaceDropdown && (
+              <>
+                <div 
+                  className="fixed inset-0 z-40" 
+                  onClick={() => setShowWorkspaceDropdown(false)}
+                />
+                <div className="absolute left-0 mt-1.5 w-44 bg-slate-950 border border-subtle rounded shadow-lg py-1 z-50 font-sans">
+                  {workspaces.map((ws) => {
+                    const isActive = selectedWorkspace === ws.id;
+                    return (
+                      <button
+                        key={ws.id}
+                        onClick={() => {
+                          setWorkspace(ws.id);
+                          setShowWorkspaceDropdown(false);
+                        }}
+                        className={`w-full text-left px-3 py-1.5 text-xs font-bold transition-all cursor-pointer flex items-center justify-between ${
+                          isActive 
+                            ? "text-cyan-neon bg-cyan-500/10 font-black" 
+                            : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.02]"
+                        }`}
+                      >
+                        <span>{ws.name}</span>
+                        {isActive && <span className="w-1 h-1 rounded-full bg-cyan-neon" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="h-4 w-[1px] bg-white/10" />
+
+          {/* Active Workspace Indicator Text */}
+          <span className="text-[11px] font-bold text-cyan-neon uppercase tracking-wider font-sans select-none">
+            {workspaces.find((ws) => ws.id === selectedWorkspace)?.name || selectedWorkspace}
+          </span>
         </div>
 
-        {/* Center Section: Global Search / Command Palette Trigger */}
-        <div className="flex-1 max-w-md mx-6">
+        {/* Center Section: Live Updating Index Tickers & Account Indicator */}
+        <div className="flex-1 flex justify-center items-center gap-6 mx-4">
+          <div className="flex items-center gap-4 text-xs font-mono select-none tabular-nums">
+            <div className="flex items-center gap-1.5">
+              <span className="text-slate-400 font-semibold font-sans">NIFTY</span>
+              <span className={tickerData.nifty.change >= 0 ? "text-emerald-450" : "text-rose-500"}>
+                {tickerData.nifty.price.toFixed(2)}
+              </span>
+              <span className={`font-semibold ${tickerData.nifty.change >= 0 ? "text-emerald-450" : "text-rose-500"}`}>
+                {tickerData.nifty.change >= 0 ? "+" : ""}{tickerData.nifty.change.toFixed(2)} ({tickerData.nifty.change >= 0 ? "+" : ""}{tickerData.nifty.pct.toFixed(2)}%)
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 border-l border-white/5 pl-4">
+              <span className="text-slate-400 font-semibold font-sans">BANKNIFTY</span>
+              <span className={tickerData.banknifty.change >= 0 ? "text-emerald-450" : "text-rose-500"}>
+                {tickerData.banknifty.price.toFixed(2)}
+              </span>
+              <span className={`font-semibold ${tickerData.banknifty.change >= 0 ? "text-emerald-450" : "text-rose-500"}`}>
+                {tickerData.banknifty.change >= 0 ? "+" : ""}{tickerData.banknifty.change.toFixed(2)} ({tickerData.banknifty.change >= 0 ? "+" : ""}{tickerData.banknifty.pct.toFixed(2)}%)
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 border-l border-white/5 pl-4">
+              <span className="text-slate-400 font-semibold font-sans">VIX</span>
+              <span className={tickerData.vix.change >= 0 ? "text-emerald-450" : "text-rose-500"}>
+                {tickerData.vix.price.toFixed(2)}
+              </span>
+              <span className={`font-semibold ${tickerData.vix.change >= 0 ? "text-emerald-450" : "text-rose-500"}`}>
+                {tickerData.vix.change >= 0 ? "+" : ""}{tickerData.vix.change.toFixed(2)} ({tickerData.vix.pct.toFixed(2)}%)
+              </span>
+            </div>
+            {/* Account Indicator */}
+            <div className="flex items-center gap-1.5 border-l border-white/10 pl-4 font-sans text-xs uppercase font-bold tracking-wider">
+              <span className={currentAccount.type === "live" ? "text-rose-500" : "text-amber-500"}>
+                {currentAccount.type === "live" ? "LIVE" : "PAPER"} ●
+              </span>
+              <span className={`font-mono tabular-nums ${
+                headerPnl > 0 ? "text-emerald-400" : headerPnl < 0 ? "text-rose-500" : "text-slate-300"
+              }`}>
+                {headerPnl >= 0 ? "+" : ""}₹{headerPnl.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Compact Search Trigger */}
+        <div className="w-[120px] shrink-0 mr-4">
           <div 
             onClick={toggleCommandPalette}
-            className="flex items-center gap-2 px-3 py-1.5 bg-card border border-subtle rounded-sm cursor-pointer hover:border-cyan-neon/30 hover:bg-card-hover transition-all text-slate-500 hover:text-slate-300 group"
+            className="flex items-center gap-1.5 px-2 py-1 bg-card border border-subtle rounded-sm cursor-pointer hover:border-cyan-neon/30 hover:bg-card-hover transition-all text-slate-300 select-none justify-center"
           >
-            <Search className="w-3.5 h-3.5 group-hover:text-cyan-neon transition-colors" />
-            <span className="text-[11px] text-left flex-1 select-none text-slate-300 font-medium">
-              Search workspaces or operations...
-            </span>
-            <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[8.5px] font-mono font-bold text-slate-400 bg-deep border border-subtle rounded-sm">
-              Ctrl + K
-            </kbd>
+            <Search className="w-3 h-3 text-cyan-neon" />
+            <span className="text-xs font-semibold">⌘K Search</span>
           </div>
         </div>
 
@@ -66,15 +223,15 @@ export const Header: React.FC = () => {
           <div className="relative">
             <button
               onClick={() => setShowAccountDropdown(!showAccountDropdown)}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-sm border font-semibold tracking-wide text-[9px] uppercase transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-sm border font-semibold tracking-wide text-xs uppercase transition-all cursor-pointer ${
                 currentAccount.type === "live"
                   ? "bg-rose-500/10 border-rose-500/20 text-rose-455"
                   : "bg-amber-500/10 border-amber-500/20 text-amber-455"
               }`}
             >
-              <KeyRound className="w-3 h-3" />
+              <KeyRound className="w-3.5 h-3.5" />
               <span>{currentAccount.type === "live" ? "Live Account" : "Paper Mode"}</span>
-              <ChevronDown className="w-3 h-3 text-slate-500" />
+              <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
             </button>
 
             {showAccountDropdown && (
@@ -84,7 +241,7 @@ export const Header: React.FC = () => {
                     setAccount({ id: "paper-default", name: "Paper Account", type: "paper" });
                     setShowAccountDropdown(false);
                   }}
-                  className="w-full text-left px-3 py-1.5 hover:bg-card-hover text-slate-350 hover:text-main flex items-center justify-between text-[10px] font-medium transition-colors cursor-pointer"
+                  className="w-full text-left px-3 py-1.5 hover:bg-card-hover text-slate-350 hover:text-main flex items-center justify-between text-xs font-medium transition-colors cursor-pointer"
                 >
                   <span>PAPER MODE</span>
                   {currentAccount.type === "paper" && <span className="w-1.5 h-1.5 rounded-full bg-amber-455" />}
@@ -94,7 +251,7 @@ export const Header: React.FC = () => {
                     setAccount({ id: "live-default", name: "Live Account", type: "live" });
                     setShowAccountDropdown(false);
                   }}
-                  className="w-full text-left px-3 py-1.5 hover:bg-card-hover text-slate-350 hover:text-main flex items-center justify-between text-[10px] font-medium transition-colors cursor-pointer"
+                  className="w-full text-left px-3 py-1.5 hover:bg-card-hover text-slate-350 hover:text-main flex items-center justify-between text-xs font-medium transition-colors cursor-pointer"
                 >
                   <span className="text-rose-455 font-semibold">LIVE ACCOUNT</span>
                   {currentAccount.type === "live" && <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />}
@@ -103,98 +260,96 @@ export const Header: React.FC = () => {
             )}
           </div>
 
-          {/* Frontend Connection Status */}
-          <div className="hidden sm:flex items-center gap-1 text-[9px] text-slate-400 tracking-wider">
-            <span className="uppercase text-slate-550 font-bold">Frontend:</span>
-            {connectionStatus === "CONNECTED" ? (
-              <span className="text-emerald-450 font-bold">✓ Connected</span>
-            ) : (
-              <span className="text-rose-455 font-bold">✖ Offline</span>
-            )}
-          </div>
-
-          {/* Broker Auth Status */}
-          <div className="hidden md:flex items-center gap-1 text-[9px] text-slate-400 tracking-wider border-l border-subtle pl-3">
-            <span className="uppercase text-slate-550 font-bold">Broker Auth:</span>
-            {status?.broker_auth === "Valid" ? (
-              <span className="text-emerald-450 font-bold">✓ Valid</span>
-            ) : (
-              <span className="text-rose-455 font-bold">✖ Expired</span>
-            )}
-          </div>
-
-          {/* Market Feed Status */}
-          <div className="hidden lg:flex items-center gap-1 text-[9px] text-slate-400 tracking-wider border-l border-subtle pl-3">
-            <span className="uppercase text-slate-550 font-bold">Market Feed:</span>
-            {status?.market_feed === "Live" ? (
-              <span className="text-emerald-450 font-bold">✓ Live</span>
-            ) : (
-              <span className="text-rose-455 font-bold">✖ Offline</span>
-            )}
-          </div>
-
-          {/* Execution Engine Status */}
-          <div className="hidden lg:flex items-center gap-1 text-[9px] text-slate-400 tracking-wider border-l border-subtle pl-3">
-            <span className="uppercase text-slate-550 font-bold">Engine:</span>
-            {status?.execution_engine === "Running" ? (
-              <span className="text-emerald-450 font-bold text-[9px]">✓ Running</span>
-            ) : status?.execution_engine === "Paused" ? (
-              <span className="text-amber-450 font-bold text-[9px]">✓ Paused</span>
-            ) : (
-              <span className="text-rose-455 font-bold text-[9px]">✖ Stopped</span>
-            )}
-          </div>
-
-        {/* Dynamic Theme Toggle */}
-        <button
-          onClick={() => setTheme(theme === "navy" ? "light" : theme === "light" ? "blackstone" : "navy")}
-          className="text-slate-400 hover:text-main transition-colors p-1 cursor-pointer rounded-sm hover:bg-card-hover border border-transparent hover:border-subtle flex items-center justify-center"
-          title={`Switch Theme (Current: ${theme})`}
-        >
-          {theme === "navy" ? (
-            <Sun className="w-3.5 h-3.5 text-amber-455" />
-          ) : theme === "light" ? (
-            <Moon className="w-3.5 h-3.5 text-indigo-455" />
-          ) : (
-            <Shield className="w-3.5 h-3.5 text-yellow-600" />
-          )}
-        </button>
-
-        {/* Notifications Bell */}
-        <button className="relative text-slate-400 hover:text-main transition-colors p-1 cursor-pointer rounded-sm hover:bg-card-hover border border-transparent hover:border-subtle flex items-center justify-center">
-          <Bell className="w-3.5 h-3.5" />
-          <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-cyan-neon text-[7px] font-bold text-white flex items-center justify-center rounded-full">
-            2
-          </span>
-        </button>
-
-        {/* User Menu */}
-        <div className="relative">
-          <button
-            onClick={() => setShowUserDropdown(!showUserDropdown)}
-            className="flex items-center gap-1.5 hover:text-main transition-colors cursor-pointer"
-          >
-            <div className="w-5 h-5 rounded-sm bg-cyan-neon/10 border border-cyan-neon/20 text-cyan-neon flex items-center justify-center font-bold text-[9px]">
-              RM
+          {/* Compact Telemetry HUD */}
+          <div className="flex items-center gap-3 bg-slate-950/60 border border-white/5 py-1 px-2.5 rounded-sm text-xs font-mono select-none">
+            {/* GUI Status */}
+            <div 
+              className="flex items-center gap-1.5 cursor-help" 
+              title={`GUI Status: ${connectionStatus === "CONNECTED" ? "Connected" : "Offline"}`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${connectionStatus === "CONNECTED" ? "bg-emerald-450 shadow-[0_0_6px_rgba(52,211,153,0.4)]" : "bg-rose-500 animate-pulse"}`} />
+              <span className="text-slate-455 font-semibold">GUI</span>
             </div>
-            <ChevronDown className="w-3 h-3 text-slate-500" />
+            {/* Broker Auth Status */}
+            <div 
+              className="flex items-center gap-1.5 border-l border-white/5 pl-2.5 cursor-help" 
+              title={`Broker Auth: ${status?.broker_auth === "Valid" ? "Valid" : "Expired"}`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${status?.broker_auth === "Valid" ? "bg-emerald-450 shadow-[0_0_6px_rgba(52,211,153,0.4)]" : "bg-rose-500 animate-pulse"}`} />
+              <span className="text-slate-455 font-semibold">AUTH</span>
+            </div>
+            {/* Market Feed Status */}
+            <div 
+              className="flex items-center gap-1.5 border-l border-white/5 pl-2.5 cursor-help" 
+              title={`Market Feed: ${status?.market_feed === "Live" ? "Live" : "Offline"}`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${status?.market_feed === "Live" ? "bg-emerald-450 shadow-[0_0_6px_rgba(52,211,153,0.4)]" : "bg-rose-500 animate-pulse"}`} />
+              <span className="text-slate-455 font-semibold">FEED</span>
+            </div>
+            {/* Execution Engine Status */}
+            <div 
+              className="flex items-center gap-1.5 border-l border-white/5 pl-2.5 cursor-help" 
+              title={`Execution Engine: ${status?.execution_engine || "Stopped"}`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${
+                status?.execution_engine === "Running" ? "bg-emerald-450 shadow-[0_0_6px_rgba(52,211,153,0.4)]" :
+                status?.execution_engine === "Paused" ? "bg-amber-455 animate-pulse" :
+                "bg-rose-500"
+              }`} />
+              <span className="text-slate-455 font-semibold">ENG</span>
+            </div>
+          </div>
+
+          {/* Dynamic Theme Toggle */}
+          <button
+            onClick={() => setTheme(theme === "navy" ? "light" : theme === "light" ? "blackstone" : "navy")}
+            className="text-slate-400 hover:text-main transition-colors p-1 cursor-pointer rounded-sm hover:bg-card-hover border border-transparent hover:border-subtle flex items-center justify-center"
+            title={`Switch Theme (Current: ${theme})`}
+          >
+            {theme === "navy" ? (
+              <Sun className="w-3.5 h-3.5 text-amber-455" />
+            ) : theme === "light" ? (
+              <Moon className="w-3.5 h-3.5 text-indigo-455" />
+            ) : (
+              <Shield className="w-3.5 h-3.5 text-yellow-600" />
+            )}
           </button>
 
-          {showUserDropdown && (
-            <div className="absolute right-0 mt-1 w-48 bg-elevated border border-subtle rounded-sm shadow-md py-1 z-50 text-[10px] font-sans">
-              <div className="px-3 py-1.5 border-b border-subtle text-slate-400">
-                <p className="font-semibold text-main">Raju Maharjan</p>
-                <p className="text-[8px] text-slate-500 mt-0.5">Trader ID: #VALK-9812</p>
+          {/* Notifications Bell */}
+          <button className="relative text-slate-400 hover:text-main transition-colors p-1 cursor-pointer rounded-sm hover:bg-card-hover border border-transparent hover:border-subtle flex items-center justify-center">
+            <Bell className="w-3.5 h-3.5" />
+            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-cyan-neon text-xs font-bold text-white flex items-center justify-center rounded-full">
+              2
+            </span>
+          </button>
+
+          {/* User Menu */}
+          <div className="relative">
+            <button
+              onClick={() => setShowUserDropdown(!showUserDropdown)}
+              className="flex items-center gap-1.5 hover:text-main transition-colors cursor-pointer"
+            >
+              <div className="w-5 h-5 rounded-sm bg-cyan-neon/10 border border-cyan-neon/20 text-cyan-neon flex items-center justify-center font-bold text-xs">
+                RM
               </div>
-              <button className="w-full text-left px-3 py-1.5 hover:bg-card-hover text-slate-350 hover:text-main transition-colors cursor-pointer">Terminal Settings</button>
-              <button className="w-full text-left px-3 py-1.5 hover:bg-card-hover text-slate-350 hover:text-main transition-colors cursor-pointer">API Credentials</button>
-              <div className="border-t border-subtle my-1" />
-              <button className="w-full text-left px-3 py-1.5 hover:bg-rose-500/10 text-rose-455 font-semibold transition-colors cursor-pointer">Halt Engine & Log Out</button>
-            </div>
-          )}
+              <ChevronDown className="w-3 h-3 text-slate-500" />
+            </button>
+
+            {showUserDropdown && (
+              <div className="absolute right-0 mt-1 w-48 bg-elevated border border-subtle rounded-sm shadow-md py-1 z-50 text-xs font-sans">
+                <div className="px-3 py-1.5 border-b border-subtle text-slate-400">
+                  <p className="font-semibold text-main">Raju Maharjan</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Trader ID: #VALK-9812</p>
+                </div>
+                <button className="w-full text-left px-3 py-1.5 hover:bg-card-hover text-slate-355 hover:text-main transition-colors cursor-pointer">Terminal Settings</button>
+                <button className="w-full text-left px-3 py-1.5 hover:bg-card-hover text-slate-355 hover:text-main transition-colors cursor-pointer">API Credentials</button>
+                <div className="border-t border-subtle my-1" />
+                <button className="w-full text-left px-3 py-1.5 hover:bg-rose-500/10 text-rose-455 font-semibold transition-colors cursor-pointer">Halt Engine & Log Out</button>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
     </>
   );
 };

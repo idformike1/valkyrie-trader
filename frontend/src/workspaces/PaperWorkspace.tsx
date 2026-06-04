@@ -13,30 +13,25 @@ import { useBacktestStore } from "@/store/useBacktestStore";
 
 // Helper components for professional Mission Control styling
 const MissionCard: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ title, children, className = "" }) => (
-  <div className={`p-3 flex flex-col h-full bg-slate-950/40 border border-white/5 rounded-lg hover:border-cyan-500/10 transition-all ${className}`}>
-    <h3 className="text-[10px] font-bold tracking-widest text-cyan-400 uppercase border-b border-white/5 pb-1.5 mb-2.5 flex items-center justify-between">
+  <div className={`p-2 flex flex-col h-full ${className}`}>
+    <h3 className="text-[12px] font-bold text-slate-200 border-b border-white/5 pb-1.5 mb-2 flex items-center justify-between">
       <span>{title}</span>
-      <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
     </h3>
     <div className="flex-1 overflow-y-auto min-h-0">{children}</div>
   </div>
 );
 
 const TelemetryDial: React.FC<{ label: string; value: string | number; subText?: string; isPositive?: boolean; isHero?: boolean }> = ({ label, value, subText, isPositive, isHero }) => (
-  <div className={`bg-slate-900/40 border rounded-lg p-4 flex flex-col gap-1.5 select-none transition-all ${
-    isHero 
-      ? "border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.15)] bg-slate-950/60" 
-      : "border-white/5 hover:border-white/10"
-  }`}>
-    <span className={`text-xs uppercase font-bold tracking-wider ${isHero ? "text-cyan-400" : "text-slate-500"}`}>{label}</span>
+  <div className="flex flex-col gap-0.5 select-none">
+    <span className={`text-[11px] font-semibold ${isHero ? "text-slate-300" : "text-slate-500"}`}>{label}</span>
     <span className={`font-mono tabular-nums font-black tracking-tight leading-none ${
       isHero 
-        ? "text-3xl md:text-4xl py-1 font-black" 
-        : "text-xl md:text-2xl font-extrabold"
+        ? "text-4xl md:text-5xl" 
+        : "text-xl md:text-2xl"
     } ${
       isPositive === true ? "text-emerald-400" : isPositive === false ? "text-rose-450" : "text-slate-200"
     }`}>{value}</span>
-    {subText && <span className="text-xs text-slate-500 font-mono tabular-nums font-semibold">{subText}</span>}
+    {subText && <span className="text-[11px] text-slate-500 font-mono tabular-nums">{subText}</span>}
   </div>
 );
 
@@ -70,7 +65,7 @@ export const PaperLeft: React.FC = () => {
   };
 
   return (
-    <div className="p-2 flex flex-col h-full bg-slate-950/40 border border-white/5 rounded-lg select-none font-sans text-xs gap-2">
+    <div className="p-2 flex flex-col h-full select-none font-sans text-xs gap-2">
       <h3 className="text-xs font-semibold text-slate-400 border-b border-white/5 pb-1.5">
         Strategies
       </h3>
@@ -510,30 +505,50 @@ export const PaperMain: React.FC = () => {
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-slate-500 font-semibold">Underlying index</span>
-                    <select
-                      value={indexName}
-                      onChange={(e) => setIndexName(e.target.value)}
-                      disabled={isEngineRunning}
-                      className="bg-slate-950 border border-white/10 rounded px-1.5 py-0.5 text-slate-305 font-mono focus:outline-none text-[11px]"
-                    >
-                      {["NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY", "SENSEX"].map((idx) => (
-                        <option key={idx} value={idx}>{idx}</option>
-                      ))}
-                    </select>
+                    <span className="text-slate-500 font-semibold mb-0.5">Underlying index</span>
+                    <div className="flex gap-0.5 bg-slate-950 p-0.5 rounded border border-white/10">
+                      {["NIFTY", "BANKNIFTY", "FINNIFTY"].map((idx) => {
+                        const active = indexName === idx;
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            disabled={isEngineRunning}
+                            onClick={() => setIndexName(idx)}
+                            className={`flex-1 py-1 text-[9px] font-bold font-mono transition-all rounded-sm uppercase tracking-wider ${
+                              active
+                                ? "bg-cyan-500/20 text-cyan-400 font-black"
+                                : "text-slate-400 hover:text-slate-200"
+                            }`}
+                          >
+                            {idx.replace("NIFTY", "") || "NFT"}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-slate-500 font-semibold">Option type</span>
-                    <select
-                      value={optionType}
-                      onChange={(e) => setOptionType(e.target.value)}
-                      disabled={isEngineRunning}
-                      className="bg-slate-950 border border-white/10 rounded px-1.5 py-0.5 text-slate-305 font-mono focus:outline-none text-[11px]"
-                    >
-                      {["DYNAMIC", "CE", "PE"].map((ot) => (
-                        <option key={ot} value={ot}>{ot}</option>
-                      ))}
-                    </select>
+                    <span className="text-slate-500 font-semibold mb-0.5">Option type</span>
+                    <div className="flex gap-0.5 bg-slate-950 p-0.5 rounded border border-white/10">
+                      {["DYNAMIC", "CE", "PE"].map((ot) => {
+                        const active = optionType === ot;
+                        return (
+                          <button
+                            key={ot}
+                            type="button"
+                            disabled={isEngineRunning}
+                            onClick={() => setOptionType(ot)}
+                            className={`flex-1 py-1 text-[9px] font-bold font-mono transition-all rounded-sm ${
+                              active
+                                ? "bg-cyan-500/20 text-cyan-400 font-black"
+                                : "text-slate-400 hover:text-slate-200"
+                            }`}
+                          >
+                            {ot === "DYNAMIC" ? "DYN" : ot}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                   <div className="flex flex-col gap-0.5">
                     <span className="text-slate-500 font-semibold">Strike mode</span>
@@ -549,33 +564,57 @@ export const PaperMain: React.FC = () => {
                     </select>
                   </div>
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-slate-500 font-semibold">Expiry mode</span>
-                    <select
-                      value={expiry}
-                      onChange={(e) => setExpiry(e.target.value)}
-                      disabled={isEngineRunning}
-                      className="bg-slate-955 border border-white/10 rounded px-1.5 py-0.5 text-slate-305 font-mono focus:outline-none text-[11px]"
-                    >
-                      {["CURRENT_WEEKLY", "NEXT_WEEKLY", "CURRENT_MONTHLY"].map((exp) => (
-                        <option key={exp} value={exp}>{exp.replace("_", " ")}</option>
-                      ))}
-                    </select>
+                    <span className="text-slate-500 font-semibold mb-0.5">Expiry mode</span>
+                    <div className="flex gap-0.5 bg-slate-950 p-0.5 rounded border border-white/10">
+                      {[
+                        { label: "CUR", value: "CURRENT_WEEKLY" },
+                        { label: "NXT", value: "NEXT_WEEKLY" },
+                        { label: "MON", value: "CURRENT_MONTHLY" }
+                      ].map((item) => {
+                        const active = expiry === item.value;
+                        return (
+                          <button
+                            key={item.value}
+                            type="button"
+                            disabled={isEngineRunning}
+                            onClick={() => setExpiry(item.value)}
+                            className={`flex-1 py-1 text-[9px] font-bold font-mono transition-all rounded-sm whitespace-nowrap ${
+                              active
+                                ? "bg-cyan-500/20 text-cyan-400 font-black"
+                                : "text-slate-400 hover:text-slate-200"
+                            }`}
+                          >
+                            {item.label}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-slate-500 font-semibold">Timeframe</span>
-                    <select
-                      value={timeframe}
-                      onChange={(e) => setTimeframe(e.target.value)}
-                      disabled={isEngineRunning}
-                      className="bg-slate-955 border border-white/10 rounded px-1.5 py-0.5 text-slate-305 font-mono focus:outline-none text-[11px]"
-                    >
-                      {["1m", "3m", "5m", "15m"].map((tf) => (
-                        <option key={tf} value={tf}>{tf}</option>
-                      ))}
-                    </select>
+                    <span className="text-slate-500 font-semibold mb-0.5">Timeframe</span>
+                    <div className="flex gap-0.5 bg-slate-950 p-0.5 rounded border border-white/10">
+                      {["1m", "3m", "5m", "15m"].map((tf) => {
+                        const active = timeframe === tf;
+                        return (
+                          <button
+                            key={tf}
+                            type="button"
+                            disabled={isEngineRunning}
+                            onClick={() => setTimeframe(tf)}
+                            className={`flex-1 py-1 text-[9px] font-bold font-mono transition-all rounded-sm ${
+                              active
+                                ? "bg-cyan-500/20 text-cyan-400 font-black"
+                                : "text-slate-400 hover:text-slate-200"
+                            }`}
+                          >
+                            {tf}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                   <div className="flex flex-col gap-0.5">
                     <span className="text-slate-500 font-semibold">Lot size</span>
@@ -790,7 +829,7 @@ export const PaperMain: React.FC = () => {
                 {/* Dynamic recent trades list directly underneath if trades exist */}
                 {trades.length > 0 ? (
                   <div className="flex-1 overflow-y-auto border border-white/5 bg-slate-950/30 rounded scrollbar-thin scrollbar-thumb-white/5">
-                    <table className="w-full text-left font-mono text-[11px]">
+                    <table className="w-full text-left font-mono tabular-nums text-[11px]">
                       <thead>
                         <tr className="border-b border-white/5 text-slate-550 text-[9px] font-bold bg-slate-900/40 sticky top-0">
                           <th className="py-1 px-2">Instrument</th>
@@ -1214,7 +1253,7 @@ export const PaperBottom: React.FC = () => {
               <span className="text-xs font-bold text-slate-550">No Trades Yet</span>
             </div>
           ) : status?.position ? (
-            <table className="w-full text-left font-mono text-[11px]">
+            <table className="w-full text-left font-mono tabular-nums text-[11px]">
               <thead>
                 <tr className="border-b border-white/10 text-slate-500 select-none text-[9px] font-semibold">
                   <th className="py-1 pl-1.5 font-sans">Instrument</th>
@@ -1258,7 +1297,7 @@ export const PaperBottom: React.FC = () => {
           ) : trades.length > 0 ? (
             <div className="flex flex-col gap-2">
               <div className="max-h-[160px] overflow-y-auto border border-white/5 rounded">
-                <table className="w-full text-left font-mono text-[11px]">
+                <table className="w-full text-left font-mono tabular-nums text-[11px]">
                   <thead>
                     <tr className="border-b border-white/10 text-slate-500 select-none text-[9px] font-semibold bg-slate-950/20">
                       <th className="py-1 pl-1.5 font-sans">Trade ID</th>
@@ -1514,7 +1553,7 @@ export const PaperBottom: React.FC = () => {
                 </div>
               ) : (
                 <div className="overflow-y-auto max-h-[280px] scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
-                  <table className="w-full text-left font-mono text-[10px]">
+                  <table className="w-full text-left font-mono tabular-nums text-[10px]">
                     <thead>
                       <tr className="border-b border-white/10 text-slate-550 text-[8px] font-bold uppercase select-none">
                         <th className="py-1">ID</th>
@@ -1632,7 +1671,7 @@ export const PaperBottom: React.FC = () => {
                             No trades found for this session matching filters.
                           </div>
                         ) : (
-                          <table className="w-full text-left font-mono text-[10px]">
+                          <table className="w-full text-left font-mono tabular-nums text-[10px]">
                             <thead>
                               <tr className="border-b border-white/10 text-slate-500 text-[8px] font-bold uppercase select-none bg-slate-950/20">
                                 <th className="py-1 pl-1.5">Trade ID</th>
@@ -1757,7 +1796,7 @@ export const PaperBottom: React.FC = () => {
                 <span className="text-cyan-400 font-mono text-[9px] lowercase font-normal">rolling dynamically</span>
               </div>
               {status?.option_chain && status.option_chain.length > 0 ? (
-                <table className="w-full text-left font-mono text-[10px]">
+                <table className="w-full text-left font-mono tabular-nums text-[10px]">
                   <thead>
                     <tr className="border-b border-white/10 text-slate-500 select-none text-[8px] font-semibold">
                       <th className="py-1 pl-2 font-sans">CE price</th>

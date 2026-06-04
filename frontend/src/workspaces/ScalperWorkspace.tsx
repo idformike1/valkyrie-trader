@@ -382,7 +382,7 @@ export const ScalperMain: React.FC = () => {
   return (
     <div className="flex flex-col gap-2 h-full font-sans select-none">
       {/* 1. Tick Chart Panel */}
-      <div className="flex-1 bg-slate-950/60 border border-white/5 rounded-lg p-2.5 flex flex-col justify-between overflow-hidden relative">
+      <div className="flex-1 p-2 flex flex-col justify-between overflow-hidden relative">
         <div className="flex justify-between items-center text-[10px] uppercase font-bold text-slate-400 border-b border-white/5 pb-1">
           <div className="flex items-center gap-1.5">
             <Radio className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
@@ -463,7 +463,7 @@ export const ScalperMain: React.FC = () => {
       <div className="grid grid-cols-12 gap-2 h-44 shrink-0">
         
         {/* Order Pad Execution Panel (Center Execution) */}
-        <div className="col-span-8 bg-slate-950/60 border border-white/5 rounded-lg p-2.5 flex flex-col justify-between">
+        <div className="col-span-8 p-2 flex flex-col justify-between">
           <div className="flex justify-between items-center text-[9px] uppercase font-bold text-slate-500 tracking-wider">
             <span>SCALPING ORDER PAD</span>
             <span className="text-cyan-400 font-bold">Qty: {activeLots} Lot(s)</span>
@@ -528,7 +528,7 @@ export const ScalperMain: React.FC = () => {
         </div>
 
         {/* Hotkey Panel (Display status only) */}
-        <div className="col-span-4 bg-slate-950/60 border border-white/5 rounded-lg p-2.5 flex flex-col justify-between font-mono text-[9px]">
+        <div className="col-span-4 border-l border-white/5 p-2 flex flex-col justify-between font-mono text-[9px]">
           <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider font-sans">HOTKEYS STATUS</span>
           
           <div className="flex flex-col gap-1.5 text-slate-300 select-none">
@@ -611,15 +611,47 @@ export const ScalperRight: React.FC = () => {
   return (
     <div className="flex flex-col gap-3 h-full font-sans text-xs select-none">
       {/* Level 2 DOM Ladder */}
-      <div className="flex-1 bg-slate-950/60 border border-white/5 rounded-lg p-2.5 flex flex-col justify-between min-h-0">
-        <div className="flex justify-between items-center text-[10px] uppercase font-bold text-slate-400 border-b border-white/5 pb-1 select-none">
+      <div className="flex-1 p-2 flex flex-col justify-between min-h-0">
+        <div className="flex justify-between items-center text-xs uppercase font-bold text-slate-400 border-b border-white/5 pb-1 select-none">
           <span>LEVEL 2 LIQUIDITY LADDER</span>
-          <span className="text-emerald-400 font-mono text-[9px]">L2</span>
+          <span className="text-emerald-400 font-mono text-xs">L2</span>
+        </div>
+
+        {/* Liquidity Summary HUD */}
+        <div className="grid grid-cols-2 gap-2 bg-slate-950/40 p-2 rounded border border-white/5 font-mono text-xs select-none mt-2 shrink-0">
+          <div className="flex flex-col">
+            <div className="flex justify-between items-center text-slate-500">
+              <span>Bid Total</span>
+              <span className="font-bold text-emerald-400 tabular-nums">{(bidVolumeSum * 100).toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between items-center text-slate-500 mt-1">
+              <span>Ask Total</span>
+              <span className="font-bold text-rose-400 tabular-nums">{(askVolumeSum * 100).toLocaleString()}</span>
+            </div>
+          </div>
+          <div className="flex flex-col border-l border-white/5 pl-2">
+            <div className="flex justify-between items-center text-slate-500">
+              <span>Delta</span>
+              <span className={`font-bold tabular-nums ${
+                (bidVolumeSum - askVolumeSum) >= 0 ? "text-emerald-400" : "text-rose-500"
+              }`}>
+                {(bidVolumeSum - askVolumeSum) >= 0 ? "+" : ""}{((bidVolumeSum - askVolumeSum) * 100).toLocaleString()}
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-slate-500 mt-1">
+              <span>Imbalance</span>
+              <span className={`font-bold tabular-nums ${
+                (bidVolumeSum - askVolumeSum) >= 0 ? "text-emerald-400" : "text-rose-500"
+              }`}>
+                {(bidVolumeSum - askVolumeSum) >= 0 ? "+" : ""}{(((bidVolumeSum - askVolumeSum) / (bidVolumeSum + askVolumeSum || 1)) * 100).toFixed(1)}%
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* DOM Rows */}
-        <div className="flex-1 overflow-y-auto mt-2 font-mono tabular-nums text-[10px] flex flex-col gap-0.5 pr-1 scrollbar-thin scrollbar-thumb-white/5">
-          <div className="grid grid-cols-4 py-1 text-[8px] font-bold text-slate-500 uppercase tracking-widest text-center border-b border-white/[0.02]">
+        <div className="flex-1 overflow-y-auto mt-2 font-mono tabular-nums text-sm flex flex-col gap-0.5 pr-1 scrollbar-thin scrollbar-thumb-white/5">
+          <div className="grid grid-cols-4 py-1 text-xs font-bold text-slate-500 uppercase tracking-widest text-center border-b border-white/[0.02]">
             <span>Bid Qty</span>
             <span className="col-span-2">Price</span>
             <span>Ask Qty</span>
@@ -654,24 +686,24 @@ export const ScalperRight: React.FC = () => {
                 )}
 
                 {/* Bid Volume */}
-                <span className="text-emerald-400 text-left pl-2 z-10">{row.bid || ""}</span>
+                <span className="text-emerald-400 text-left pl-2 z-10 font-bold font-mono text-sm">{row.bid || ""}</span>
                 
                 {/* Price columns */}
-                <span className={`col-span-2 text-center font-bold z-10 ${
-                  row.bid ? "text-emerald-500/80" : row.ask ? "text-rose-500/80" : "text-cyan-400"
+                <span className={`col-span-2 text-center font-bold font-mono text-sm z-10 ${
+                  row.bid ? "text-emerald-500" : row.ask ? "text-rose-500" : "text-cyan-400"
                 }`}>
                   ₹{row.price.toFixed(2)}
                 </span>
                 
                 {/* Ask Volume */}
-                <span className="text-rose-400 text-right pr-2 z-10">{row.ask || ""}</span>
+                <span className="text-rose-400 text-right pr-2 z-10 font-bold font-mono text-sm">{row.ask || ""}</span>
               </div>
             );
           })}
         </div>
 
         {/* DOM Liquidity Spread Summary */}
-        <div className="border-t border-white/5 pt-2 mt-2 flex justify-between items-center text-[9px] text-slate-500 select-none">
+        <div className="border-t border-white/5 pt-2 mt-2 flex justify-between items-center text-xs text-slate-500 select-none">
           <div className="flex gap-1.5 items-center">
             <span>BIDS:</span>
             <span className="font-bold text-emerald-400">{bidVolumeSum}</span>
@@ -687,11 +719,11 @@ export const ScalperRight: React.FC = () => {
       <div className="bg-red-950/20 border border-red-500/40 p-2.5 rounded-lg flex flex-col gap-1.5 shrink-0 select-none">
         <button 
           onClick={triggerPanicExit}
-          className="w-full bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-bold py-2.5 rounded text-[11px] uppercase tracking-widest transition-all shadow-lg shadow-red-600/30 border border-red-500 cursor-pointer text-center"
+          className="w-full bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-bold py-2.5 rounded text-xs uppercase tracking-widest transition-all shadow-lg shadow-red-600/30 border border-red-500 cursor-pointer text-center"
         >
           🚨 PANIC EXIT / FLATTEN ALL
         </button>
-        <span className="text-[8px] text-red-400/60 text-center uppercase tracking-wider font-mono">
+        <span className="text-xs text-red-400/60 text-center uppercase tracking-wider font-mono">
           Immediate square-off and active order purge
         </span>
       </div>

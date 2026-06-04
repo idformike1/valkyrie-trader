@@ -197,70 +197,48 @@ export const BacktestLeft: React.FC = () => {
     <div className="flex flex-col gap-3 h-full overflow-y-auto pr-1 pb-4 scrollbar-thin scrollbar-thumb-white/5">
       <GlowingCard title="Strategy Repository" className="shrink-0">
         <div className="flex flex-col gap-2 font-sans text-xs">
-          {/* Search */}
-          <div className="relative shrink-0">
-            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-500" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search strategies..."
-              className="w-full bg-slate-900/60 border border-white/5 rounded pl-8 pr-3 py-1.5 text-[11px] text-slate-300 focus:outline-none focus:border-cyan-500/40"
-            />
-          </div>
-
-          {/* Filter buttons grid */}
-          <div className="grid grid-cols-2 gap-1.5 shrink-0 select-none">
-            {["All", "Validated", "Testing", "Draft"].map((status) => (
-              <button
-                key={status}
-                onClick={() => setActiveFilter(status)}
-                className={`py-1 rounded text-[10px] font-bold transition-all cursor-pointer text-center border ${
-                  activeFilter === status
-                    ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400"
-                    : "bg-slate-900 border-white/5 text-slate-500 hover:text-slate-300"
-                }`}
+          <div className="flex flex-col gap-1.5">
+            <div className="relative">
+              <select
+                value={selectedStrategy?.strategyId || ""}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const found = AVAILABLE_STRATEGIES.find((str) => str.id === val);
+                  if (found) {
+                    handleSelect(found);
+                  }
+                }}
+                className="w-full bg-slate-900 border border-subtle rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-neon font-sans uppercase font-bold cursor-pointer appearance-none"
               >
-                {status}
-              </button>
-            ))}
-          </div>
-
-          {/* Repository List */}
-          <div className="max-h-[140px] overflow-y-auto flex flex-col gap-1.5 mt-2 pr-1 scrollbar-thin scrollbar-thumb-white/5">
-            {filtered.map((item) => {
-              const isSelected = selectedStrategy?.strategyId === item.id;
-              return (
-                <div
-                  key={item.id}
-                  onClick={() => handleSelect(item)}
-                  className={`p-2.5 rounded border transition-all cursor-pointer flex flex-col gap-1.5 relative ${
-                    isSelected
-                      ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400"
-                      : "bg-slate-950/20 border-white/5 hover:bg-white/5 text-slate-300"
-                  }`}
-                >
-                  <div className="flex justify-between items-start">
-                    <span className="font-bold uppercase tracking-wider text-[11px] truncate mr-2">
-                      {item.name}
-                    </span>
-                    <span className="font-mono text-[9px] text-slate-500 font-bold bg-slate-900 px-1 border border-white/5 rounded">
-                      {item.version}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between items-center text-[10px] text-slate-500 select-none">
-                    <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${
-                      item.status === "Validated" ? "bg-emerald-950/40 text-emerald-400" :
-                      item.status === "Testing" ? "bg-amber-950/40 text-amber-400" : "bg-slate-900 text-slate-400"
-                    }`}>
-                      {item.promotionState}
-                    </span>
-                    <span className="text-[9px] font-mono">Run: {item.lastRun}</span>
-                  </div>
+                <option value="" disabled>-- Select Strategy --</option>
+                {AVAILABLE_STRATEGIES.map((str) => (
+                  <option key={str.id} value={str.id}>
+                    {str.name} ({str.version})
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+                <SlidersHorizontal className="w-3 h-3" />
+              </div>
+            </div>
+            {selectedStrategy && (
+              <div className="bg-slate-950/40 border border-white/5 rounded p-2 flex flex-col gap-1 mt-1">
+                <div className="flex justify-between items-center text-[10px]">
+                  <span className="text-slate-500">Status:</span>
+                  <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${
+                    selectedStrategy.strategyId === "five_ema_scalping" ? "bg-amber-950/40 text-amber-400" : "bg-emerald-950/40 text-emerald-400"
+                  }`}>
+                    {selectedStrategy.strategyId === "five_ema_scalping" ? "Testing" : "Validated"}
+                  </span>
                 </div>
-              );
-            })}
+                <div className="flex justify-between items-center text-[10px]">
+                  <span className="text-slate-500">Promotion State:</span>
+                  <span className="text-slate-300 font-sans font-bold uppercase text-[9px] text-cyan-neon">
+                    {selectedStrategy.strategyId === "five_ema_scalping" ? "Paper Approved" : "Live Approved"}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </GlowingCard>
@@ -1830,61 +1808,144 @@ export const BacktestBottom: React.FC = () => {
 
       {/* Tabs Container */}
       <div className="flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent min-h-0">
-            {/* Overview Tab */}
             {activeTab === "overview" && (
-              <div className="flex flex-col gap-6 select-none w-full">
-                {/* Top Grid: Cards + Equity Curve Chart */}
-                <div className="grid grid-cols-12 gap-5 w-full">
-                  {/* Grid of 8 Metrics Cards */}
-                  <div className="col-span-8 grid grid-cols-4 gap-3">
-                    {/* Net Profit Card */}
-                    <div className="bg-[#111625] border border-subtle p-4 rounded-md flex flex-col gap-1.5 justify-center shadow-sm">
-                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Net Profit</span>
-                      <span className={`font-mono text-xl font-black ${netProfit >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+              <div className="flex flex-col gap-4 select-none w-full">
+                
+                {/* Hero KPI Strip */}
+                <div className="w-full bg-[#111625] border border-subtle p-4 rounded-md flex flex-col gap-1.5 justify-center shadow-sm font-sans">
+                  <div className="grid grid-cols-12 items-center gap-4">
+                    {/* Hero metric: Net Profit */}
+                    <div className="col-span-4 flex flex-col justify-center border-r border-white/5 pr-4">
+                      <span className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">Net Profit</span>
+                      <span className={`font-mono text-4xl font-black tracking-tight tabular-nums ${netProfit >= 0 ? "text-emerald-400" : "text-rose-500"}`}>
                         ₹{netProfit.toLocaleString("en-IN")}
                       </span>
                     </div>
 
-                    {/* Capital Return Card */}
-                    <div className="bg-[#111625] border border-subtle p-4 rounded-md flex flex-col gap-1.5 justify-center shadow-sm">
-                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Capital Return</span>
-                      <span className="text-slate-100 font-mono text-xl font-black">{returnPct.toFixed(2)}%</span>
+                    {/* Secondary Metrics */}
+                    <div className="col-span-8 grid grid-cols-4 gap-4 pl-2">
+                      <div className="flex flex-col justify-center">
+                        <span className="text-[10px] text-slate-500 uppercase font-semibold">Sharpe Ratio</span>
+                        <span className="text-cyan-neon font-mono text-xl font-bold tabular-nums">
+                          {sharpe.toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex flex-col justify-center">
+                        <span className="text-[10px] text-slate-500 uppercase font-semibold">Win Rate</span>
+                        <span className="text-slate-100 font-mono text-xl font-bold tabular-nums">
+                          {winRate.toFixed(1)}%
+                        </span>
+                      </div>
+                      <div className="flex flex-col justify-center">
+                        <span className="text-[10px] text-slate-500 uppercase font-semibold">Max Drawdown</span>
+                        <span className="text-rose-500 font-mono text-xl font-bold tabular-nums">
+                          -{Math.abs(maxDrawdown).toFixed(2)}%
+                        </span>
+                      </div>
+                      <div className="flex flex-col justify-center">
+                        <span className="text-[10px] text-slate-500 uppercase font-semibold">Expectancy</span>
+                        <span className={`font-mono text-xl font-bold tabular-nums ${
+                          (report?.performance?.expectancy || report?.performance?.avg_trade || 0) >= 0 ? "text-emerald-450" : "text-rose-500"
+                        }`}>
+                          ₹{(report?.performance?.expectancy || report?.performance?.avg_trade || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom Section: Recent Trades table on left, Equity Curve visual on right */}
+                <div className="grid grid-cols-12 gap-5 w-full">
+                  {/* Recent Trades Section */}
+                  <div className="col-span-8 flex flex-col gap-3.5 bg-[#111625] border border-subtle p-4 rounded-md shadow-sm">
+                    <div className="flex justify-between items-center border-b border-subtle pb-2">
+                      <span className="text-[11px] text-slate-350 font-bold uppercase tracking-wider">Recent Trades</span>
+                      <button 
+                        onClick={() => setActiveTab("trades")}
+                        className="text-[10px] text-cyan-neon font-bold hover:text-white transition-colors cursor-pointer"
+                      >
+                        View full trade ledger &rarr;
+                      </button>
                     </div>
 
-                    {/* Win Rate Card */}
-                    <div className="bg-[#111625] border border-subtle p-4 rounded-md flex flex-col gap-1.5 justify-center shadow-sm">
-                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Win Rate</span>
-                      <span className="text-slate-100 font-mono text-xl font-black">{winRate.toFixed(1)}%</span>
-                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left font-mono text-[11px] border-collapse">
+                        <thead>
+                          <tr className="text-slate-400 uppercase text-[9px] tracking-wider font-semibold border-b border-subtle bg-[#0E1320]/40 font-sans">
+                            <th className="py-2.5 pl-3">Time</th>
+                            <th className="py-2.5">Type</th>
+                            <th className="py-2.5">Instrument</th>
+                            <th className="py-2.5 text-center">Strike</th>
+                            <th className="py-2.5">Expiry</th>
+                            <th className="py-2.5 text-center">Qty</th>
+                            <th className="py-2.5 text-right">Entry Price</th>
+                            <th className="py-2.5 text-right">Exit Price</th>
+                            <th className="py-2.5 text-right">P&amp;L (&amp;INR;)</th>
+                            <th className="py-2.5 text-right">P&amp;L (%)</th>
+                            <th className="py-2.5 text-center pr-3">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="text-slate-200">
+                          {v2Result?.trades.slice(0, 5).map((t, idx) => {
+                            const isProfit = t.net_pnl >= 0;
+                            const strikeMatch = t.contract.match(new RegExp("\\d{5}"));
+                            const strike = strikeMatch ? strikeMatch[0] : "-";
+                            
+                            // Format instrument name (extract underlying symbol)
+                            const symbol = t.contract.split(" ")[0] || t.contract;
+                            const type = t.contract.includes("PE") ? "SELL" : "BUY";
+                            
+                            // Format entry date time beautifully
+                            const timeStr = new Date(t.entry_time).toLocaleTimeString("en-IN", { 
+                              hour: "2-digit", 
+                              minute: "2-digit", 
+                              second: "2-digit",
+                              timeZone: "Asia/Kolkata"
+                            });
+                            
+                            const expiryDate = t.contract.split(" ")[1] || "-";
 
-                    {/* Sharpe Ratio Card */}
-                    <div className="bg-[#111625] border border-subtle p-4 rounded-md flex flex-col gap-1.5 justify-center shadow-sm">
-                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Sharpe Ratio</span>
-                      <span className="text-cyan-neon font-mono text-xl font-black">{sharpe.toFixed(2)}</span>
-                    </div>
-
-                    {/* Profit Factor Card */}
-                    <div className="bg-[#111625] border border-subtle p-4 rounded-md flex flex-col gap-1.5 justify-center shadow-sm">
-                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Profit Factor</span>
-                      <span className="text-slate-100 font-mono text-xl font-black">{profitFactor.toFixed(2)}</span>
-                    </div>
-
-                    {/* Total Trades Card */}
-                    <div className="bg-[#111625] border border-subtle p-4 rounded-md flex flex-col gap-1.5 justify-center shadow-sm">
-                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Trades</span>
-                      <span className="text-slate-100 font-mono text-xl font-black">{totalTrades}</span>
-                    </div>
-
-                    {/* Max Drawdown Card */}
-                    <div className="bg-[#111625] border border-subtle p-4 rounded-md flex flex-col gap-1.5 justify-center shadow-sm">
-                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Max Drawdown</span>
-                      <span className="text-rose-400 font-mono text-xl font-black">-{maxDrawdown.toFixed(2)}%</span>
-                    </div>
-
-                    {/* Score Rating Card */}
-                    <div className="bg-[#111625] border border-subtle p-4 rounded-md flex flex-col gap-1.5 justify-center shadow-sm">
-                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Score Rating</span>
-                      <span className="text-cyan-neon font-mono text-xl font-black">{report?.grade || "N/A"}</span>
+                            return (
+                              <tr key={idx} className="border-b border-subtle hover:bg-card-hover/40 transition-all h-[34px]">
+                                <td className="py-2 pl-3 text-slate-400">{timeStr}</td>
+                                <td className="py-2">
+                                  <span className={`px-1.5 py-0.5 rounded-sm text-[8px] font-bold font-sans uppercase ${
+                                    type === "BUY" ? "bg-emerald-950/40 text-emerald-400 border border-emerald-900/40" : "bg-rose-950/40 text-rose-400 border border-rose-900/40"
+                                  }`}>
+                                    {type}
+                                  </span>
+                                </td>
+                                <td className="py-2 font-sans font-bold text-slate-300">{symbol}</td>
+                                <td className="py-2 text-center">{strike}</td>
+                                <td className="py-2 text-slate-400 font-sans">{expiryDate}</td>
+                                <td className="py-2 text-center text-slate-300">{t.quantity}</td>
+                                <td className="py-2 text-right">₹{t.entry_premium.toFixed(2)}</td>
+                                <td className="py-2 text-right">₹{t.exit_premium.toFixed(2)}</td>
+                                <td className={`py-2 text-right font-bold ${isProfit ? "text-emerald-400" : "text-rose-455"}`}>
+                                  {isProfit ? "+" : ""}₹{t.net_pnl.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </td>
+                                <td className={`py-2 text-right font-bold ${isProfit ? "text-emerald-400" : "text-rose-455"}`}>
+                                  {isProfit ? "+" : ""}{((t.net_pnl / (t.entry_premium * t.quantity)) * 100).toFixed(2)}%
+                                </td>
+                                <td className="py-2 text-center pr-3">
+                                  <span className={`px-1.5 py-0.5 rounded-sm text-[9px] font-sans font-bold uppercase ${
+                                    isProfit ? "bg-emerald-950/40 text-emerald-400" : "bg-rose-950/40 text-rose-455"
+                                  }`}>
+                                    Closed
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                          {(!v2Result || v2Result.trades.length === 0) && (
+                            <tr>
+                              <td colSpan={11} className="py-6 text-center text-slate-500 font-sans">
+                                No recent trades executed in this backtest.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
 
@@ -1926,98 +1987,6 @@ export const BacktestBottom: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Bottom Row: Recent Trades Section */}
-                <div className="flex flex-col gap-3.5 bg-[#111625] border border-subtle p-4 rounded-md shadow-sm w-full">
-                  <div className="flex justify-between items-center border-b border-subtle pb-2">
-                    <span className="text-[11px] text-slate-350 font-bold uppercase tracking-wider">Recent Trades</span>
-                    <button 
-                      onClick={() => setActiveTab("trades")}
-                      className="text-[10px] text-cyan-neon font-bold hover:text-white transition-colors cursor-pointer"
-                    >
-                      View full trade ledger &rarr;
-                    </button>
-                  </div>
-
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left font-mono text-[11px] border-collapse">
-                      <thead>
-                        <tr className="text-slate-400 uppercase text-[9px] tracking-wider font-semibold border-b border-subtle bg-[#0E1320]/40 font-sans">
-                          <th className="py-2.5 pl-3">Time</th>
-                          <th className="py-2.5">Type</th>
-                          <th className="py-2.5">Instrument</th>
-                          <th className="py-2.5 text-center">Strike</th>
-                          <th className="py-2.5">Expiry</th>
-                          <th className="py-2.5 text-center">Qty</th>
-                          <th className="py-2.5 text-right">Entry Price</th>
-                          <th className="py-2.5 text-right">Exit Price</th>
-                          <th className="py-2.5 text-right">P&amp;L (&amp;INR;)</th>
-                          <th className="py-2.5 text-right">P&amp;L (%)</th>
-                          <th className="py-2.5 text-center pr-3">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="text-slate-200">
-                        {v2Result?.trades.slice(0, 5).map((t, idx) => {
-                          const isProfit = t.net_pnl >= 0;
-                          const strikeMatch = t.contract.match(new RegExp("\\\\d{5}"));
-                          const strike = strikeMatch ? strikeMatch[0] : "-";
-                          
-                          // Format instrument name (extract underlying symbol)
-                          const symbol = t.contract.split(" ")[0] || t.contract;
-                          const type = t.contract.includes("PE") ? "SELL" : "BUY";
-                          
-                          // Format entry date time beautifully
-                          const timeStr = new Date(t.entry_time).toLocaleTimeString("en-IN", { 
-                            hour: "2-digit", 
-                            minute: "2-digit", 
-                            second: "2-digit",
-                            timeZone: "Asia/Kolkata"
-                          });
-                          
-                          const expiryDate = t.contract.split(" ")[1] || "-";
-
-                          return (
-                            <tr key={idx} className="border-b border-subtle hover:bg-card-hover/40 transition-all h-[34px]">
-                              <td className="py-2 pl-3 text-slate-400">{timeStr}</td>
-                              <td className="py-2">
-                                <span className={`px-1.5 py-0.5 rounded-sm text-[8px] font-bold font-sans uppercase ${
-                                  type === "BUY" ? "bg-emerald-950/40 text-emerald-400 border border-emerald-900/40" : "bg-rose-950/40 text-rose-400 border border-rose-900/40"
-                                }`}>
-                                  {type}
-                                </span>
-                              </td>
-                              <td className="py-2 font-sans font-bold text-slate-300">{symbol}</td>
-                              <td className="py-2 text-center">{strike}</td>
-                              <td className="py-2 text-slate-400 font-sans">{expiryDate}</td>
-                              <td className="py-2 text-center text-slate-300">{t.quantity}</td>
-                              <td className="py-2 text-right">₹{t.entry_premium.toFixed(2)}</td>
-                              <td className="py-2 text-right">₹{t.exit_premium.toFixed(2)}</td>
-                              <td className={`py-2 text-right font-bold ${isProfit ? "text-emerald-400" : "text-rose-455"}`}>
-                                {isProfit ? "+" : ""}₹{t.net_pnl.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              </td>
-                              <td className={`py-2 text-right font-bold ${isProfit ? "text-emerald-400" : "text-rose-455"}`}>
-                                {isProfit ? "+" : ""}{((t.net_pnl / (t.entry_premium * t.quantity)) * 100).toFixed(2)}%
-                              </td>
-                              <td className="py-2 text-center pr-3">
-                                <span className={`px-1.5 py-0.5 rounded-sm text-[9px] font-sans font-bold uppercase ${
-                                  isProfit ? "bg-emerald-950/40 text-emerald-400" : "bg-rose-950/40 text-rose-455"
-                                }`}>
-                                  Closed
-                                </span>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                        {(!v2Result || v2Result.trades.length === 0) && (
-                          <tr>
-                            <td colSpan={11} className="py-6 text-center text-slate-500 font-sans">
-                              No recent trades executed in this backtest.
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
               </div>
             )}
 

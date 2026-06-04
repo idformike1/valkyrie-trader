@@ -2,16 +2,13 @@
 
 import React, { useEffect } from "react";
 import Header from "@/components/shell/Header";
-import Sidebar from "@/components/shell/Sidebar";
 import EventBar from "@/components/shell/EventBar";
 import CommandPalette from "@/components/shell/CommandPalette";
 import WorkspaceHost from "@/components/workspace/WorkspaceHost";
-import { useSidebarStore } from "@/store/useSidebarStore";
 import { useEventStore } from "@/store/useEventStore";
 import { useThemeStore } from "@/store/useThemeStore";
 
 export default function ValkyrieCommandRoom() {
-  const isCollapsed = useSidebarStore((state) => state.isCollapsed);
   const addEvent = useEventStore((state) => state.addEvent);
   const theme = useThemeStore((state) => state.theme);
 
@@ -30,9 +27,6 @@ export default function ValkyrieCommandRoom() {
 
   return (
     <div className="flex flex-row min-h-screen w-full bg-bg-deep text-text-main font-sans overflow-hidden">
-      {/* Collapsible Left Sidebar (Full Height Column) */}
-      <Sidebar />
-
       {/* Main Right Side Content Container */}
       <div className="flex-1 flex flex-col min-w-0 h-screen relative">
         {/* Top Fixed Header inside Right Content Area */}

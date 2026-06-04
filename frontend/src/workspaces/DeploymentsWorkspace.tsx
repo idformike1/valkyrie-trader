@@ -11,10 +11,9 @@ import { useEventStore } from "@/store/useEventStore";
 
 // Helper components for Kubernetes/Datadog styled grid boxes
 const ControlCard: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ title, children, className = "" }) => (
-  <div className={`p-3 flex flex-col h-full bg-slate-950/40 border border-white/5 rounded-lg hover:border-cyan-500/10 transition-all ${className}`}>
-    <h3 className="text-[10px] font-bold tracking-widest text-cyan-400 uppercase border-b border-white/5 pb-1.5 mb-2.5 flex items-center justify-between">
+  <div className={`p-2 flex flex-col h-full ${className}`}>
+    <h3 className="text-[12px] font-bold text-slate-200 border-b border-white/5 pb-1.5 mb-2 flex items-center justify-between">
       <span>{title}</span>
-      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
     </h3>
     <div className="flex-1 overflow-y-auto min-h-0">{children}</div>
   </div>
@@ -250,7 +249,7 @@ export const DeploymentsMain: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-950/60 border border-white/5 rounded-lg overflow-hidden font-sans text-xs">
+    <div className="flex flex-col h-full overflow-hidden font-sans text-xs">
       
       {/* Kubernetes Command Bar */}
       <div className="flex items-center justify-between px-3 py-2 bg-slate-900/50 border-b border-white/5 select-none shrink-0 flex-wrap gap-2">
@@ -453,7 +452,7 @@ export const DeploymentsBottom: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-3 py-1.5 font-bold uppercase text-[10px] tracking-wider transition-all border-b-2 cursor-pointer ${
+            className={`px-3 py-1.5 font-bold text-[10px] tracking-wide transition-all border-b-2 cursor-pointer ${
               activeTab === tab.id
                 ? "border-cyan-400 text-cyan-400 bg-slate-900/30"
                 : "border-transparent text-slate-500 hover:text-slate-300"

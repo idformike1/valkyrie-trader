@@ -7,10 +7,9 @@ import {
 
 // Helper components for professional aesthetics
 const GlowingCard: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ title, children, className = "" }) => (
-  <div className={`glass-panel p-4 flex flex-col h-full bg-slate-950/40 border border-white/5 rounded-lg hover:border-cyan-500/20 transition-all ${className}`}>
-    <h3 className="text-xs font-bold tracking-widest text-cyan-400 uppercase border-b border-white/5 pb-2 mb-3 flex items-center justify-between">
+  <div className={`p-2 flex flex-col h-full ${className}`}>
+    <h3 className="text-[12px] font-bold text-slate-200 border-b border-white/5 pb-1.5 mb-2 flex items-center justify-between">
       <span>{title}</span>
-      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
     </h3>
     <div className="flex-1 overflow-y-auto">{children}</div>
   </div>

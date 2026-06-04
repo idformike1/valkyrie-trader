@@ -73,14 +73,14 @@ export const WorkspaceHost: React.FC = () => {
   };
 
   return (
-    <div ref={containerRef} className="flex-1 flex flex-col overflow-hidden min-h-0 p-2 gap-2 select-none">
+    <div ref={containerRef} className="flex-1 flex flex-col overflow-hidden min-h-0 p-0 gap-0 select-none">
       {/* Top Section: Left + Main + Right Panels */}
-      <div className="flex-1 flex flex-row overflow-hidden min-h-0 gap-2 relative">
+      <div className="flex-1 flex flex-row overflow-hidden min-h-0 gap-0 relative">
         {/* Left Panel */}
         {LeftPanel && (
           <div
             style={{
-              width: layout.leftCollapsed ? "auto" : `${layout.leftWidth || 260}px`,
+              width: layout.leftCollapsed ? "auto" : (activeWorkspaceId === "trading" ? "18vw" : `${layout.leftWidth || 260}px`),
               transition: "width 0.15s ease-out",
             }}
             className="flex shrink-0 min-h-0"
@@ -95,10 +95,10 @@ export const WorkspaceHost: React.FC = () => {
           </div>
         )}
 
-        {/* Left Resize Handle */}
+        {/* Left Resize Handle (Subtle 1px vertical separator line) */}
         {LeftPanel && !layout.leftCollapsed && (
           <div
-            className="w-1 hover:w-1.5 bg-transparent hover:bg-cyan-500/40 cursor-col-resize transition-all shrink-0 self-stretch rounded"
+            className="w-[1px] bg-white/5 hover:bg-cyan-500/40 cursor-col-resize transition-all shrink-0 self-stretch"
             onMouseDown={handleResize("left")}
           />
         )}
@@ -110,10 +110,10 @@ export const WorkspaceHost: React.FC = () => {
           </Panel>
         </div>
 
-        {/* Right Resize Handle */}
+        {/* Right Resize Handle (Subtle 1px vertical separator line) */}
         {RightPanel && !layout.rightCollapsed && (
           <div
-            className="w-1 hover:w-1.5 bg-transparent hover:bg-cyan-500/40 cursor-col-resize transition-all shrink-0 self-stretch rounded"
+            className="w-[1px] bg-white/5 hover:bg-cyan-500/40 cursor-col-resize transition-all shrink-0 self-stretch"
             onMouseDown={handleResize("right")}
           />
         )}
@@ -122,7 +122,7 @@ export const WorkspaceHost: React.FC = () => {
         {RightPanel && (
           <div
             style={{
-              width: layout.rightCollapsed ? "auto" : `${layout.rightWidth || 320}px`,
+              width: layout.rightCollapsed ? "auto" : (activeWorkspaceId === "trading" ? "20vw" : activeWorkspaceId === "scalper" ? "45vw" : `${layout.rightWidth || 320}px`),
               transition: "width 0.15s ease-out",
             }}
             className="flex shrink-0 min-h-0"
@@ -141,10 +141,10 @@ export const WorkspaceHost: React.FC = () => {
       {/* Bottom Section: Bottom Panel */}
       {BottomPanel && (
         <>
-          {/* Bottom Resize Handle */}
+          {/* Bottom Resize Handle (Subtle 1px horizontal separator line) */}
           {!layout.bottomCollapsed && (
             <div
-              className="h-1 hover:h-1.5 bg-transparent hover:bg-cyan-500/40 cursor-row-resize transition-all shrink-0 w-full rounded"
+              className="h-[1px] bg-white/5 hover:bg-cyan-500/40 cursor-row-resize transition-all shrink-0 w-full"
               onMouseDown={handleResize("bottom")}
             />
           )}
@@ -158,7 +158,7 @@ export const WorkspaceHost: React.FC = () => {
           >
             {layout.bottomCollapsed ? (
               <div 
-                className="flex items-center justify-between px-3 py-1.5 bg-slate-900/50 border border-white/5 rounded-md cursor-pointer hover:bg-slate-900 transition-all text-[10px] font-bold text-slate-400 uppercase select-none tracking-widest"
+                className="flex items-center justify-between px-3 py-1.5 bg-slate-900/50 border-t border-white/5 cursor-pointer hover:bg-slate-900 transition-all text-[10px] font-bold text-slate-400 uppercase select-none tracking-widest"
                 onClick={() => toggleCollapse(activeWorkspaceId, "bottom")}
               >
                 <span>{config.name} Ledger / Telemetry</span>

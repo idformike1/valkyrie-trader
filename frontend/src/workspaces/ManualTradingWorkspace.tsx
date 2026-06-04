@@ -15,10 +15,9 @@ import { tradingApi } from "@/services/tradingApi";
 
 // Helper components for professional aesthetics
 const GlowingCard: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ title, children, className = "" }) => (
-  <div className={`p-3 flex flex-col h-full bg-slate-950/40 border border-white/5 rounded-lg hover:border-cyan-500/10 transition-all ${className}`}>
-    <h3 className="text-[10px] font-bold tracking-widest text-cyan-400 uppercase border-b border-white/5 pb-1.5 mb-2.5 flex items-center justify-between">
+  <div className={`p-2 flex flex-col h-full ${className}`}>
+    <h3 className="text-[12px] font-bold text-slate-200 border-b border-white/5 pb-1.5 mb-2 flex items-center justify-between">
       <span>{title}</span>
-      <span className="w-1 h-1 rounded-full bg-cyan-400 animate-pulse" />
     </h3>
     <div className="flex-1 overflow-y-auto min-h-0">{children}</div>
   </div>
@@ -67,7 +66,7 @@ export const TradingLeft: React.FC = () => {
   const connectionStatus = useBackendTradingStore((state) => state.connectionStatus);
   const connectTelemetry = useBackendTradingStore((state) => state.connectTelemetry);
   
-  const [prices, setPrices] = useState<Record<string, { ltp: number; change: string; up: boolean; timestamp?: string }>>({});
+  const [prices, setPrices] = useState<Record<string, { ltp: number; change: string; up: boolean; timestamp?: string; diff?: number; pct?: number; volume?: number }>>({});
 
   // Initialize and persist watchlist in local storage
   useEffect(() => {
@@ -94,7 +93,7 @@ export const TradingLeft: React.FC = () => {
       const keys = watchlist.map((ins) => ins.instrumentKey).join(",");
       const res = await tradingApi.getBrokerQuotes(keys);
       if (res.status === "success" && res.data) {
-        const newPrices: Record<string, { ltp: number; change: string; up: boolean; timestamp?: string }> = {};
+        const newPrices: Record<string, { ltp: number; change: string; up: boolean; timestamp?: string; diff?: number; pct?: number; volume?: number }> = {};
         
         watchlist.forEach((ins) => {
           const k1 = ins.instrumentKey;
@@ -111,10 +110,14 @@ export const TradingLeft: React.FC = () => {
             const close = Number(q.ohlc?.close || ltp);
             const diff = ltp - close;
             const pct = close > 0 ? (diff / close) * 100 : 0;
+            const volume = Number(q.volume || 0);
             
             newPrices[ins.symbol] = {
               ltp: ltp,
+              diff: diff,
+              pct: pct,
               change: `${diff >= 0 ? "+" : ""}${pct.toFixed(2)}%`,
+              volume: volume,
               up: diff >= 0,
               timestamp: q.timestamp 
                 ? new Date(Number(q.timestamp)).toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata" }) + " IST"
@@ -222,8 +225,8 @@ export const TradingLeft: React.FC = () => {
     "bg-rose-500 shadow-rose-500/20";
 
   return (
-    <div className="flex flex-col h-full bg-slate-950/40 border border-white/5 rounded-lg p-3 hover:border-cyan-500/10 transition-all select-none">
-      <h3 className="text-[10px] font-bold tracking-widest text-cyan-400 uppercase border-b border-white/5 pb-1.5 mb-2.5 flex items-center justify-between select-none">
+    <div className="flex flex-col h-full p-2 select-none">
+      <h3 className="text-[12px] font-bold text-slate-200 border-b border-white/5 pb-1.5 mb-2 flex items-center justify-between select-none">
         <span>Watchlist</span>
         <div className="flex items-center gap-1.5">
           <span className="text-[8px] text-slate-500 font-mono font-medium lowercase">{connectionStatus}</span>
@@ -266,32 +269,35 @@ export const TradingLeft: React.FC = () => {
           {/* Instruments list */}
           <div className="flex-1 overflow-y-auto flex flex-col gap-0.5 mt-1 pr-1 font-sans text-xs scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
             {/* Header Row */}
-            <div className="grid grid-cols-12 px-2 py-1 text-[9px] font-bold text-slate-500 uppercase tracking-wider select-none shrink-0 border-b border-white/[0.02]">
-              <span className="col-span-6">Symbol</span>
-              <span className="col-span-3 text-right">LTP</span>
-              <span className="col-span-3 text-right">Change</span>
+            <div className="grid grid-cols-12 px-2 py-1 text-[11px] font-bold text-slate-500 uppercase tracking-wider select-none shrink-0 border-b border-white/[0.02]">
+              <span className="col-span-4 text-left">Symbol</span>
+              <span className="col-span-2 text-right">LTP</span>
+              <span className="col-span-2 text-right">Δ</span>
+              <span className="col-span-2 text-right">Δ%</span>
+              <span className="col-span-2 text-right">Volume</span>
             </div>
 
             {filteredWatchlist.map((item, index) => {
-              const priceInfo = prices[item.symbol] || { ltp: 0, change: "0.00%", up: true, timestamp: "" };
+              const priceInfo = prices[item.symbol] || { ltp: 0, change: "0.00%", up: true, timestamp: "", diff: 0, pct: 0, volume: 0 };
               const isSelected = currentInstrument?.symbol === item.symbol;
               const isPinned = pinned.includes(item.symbol);
+              const fmtVol = (v: number) => v >= 1000000 ? `${(v/1000000).toFixed(1)}M` : v >= 1000 ? `${(v/1000).toFixed(0)}K` : String(v);
 
               return (
                 <div
                   key={item.instrumentKey}
                   onClick={() => setInstrument(item)}
-                  className={`grid grid-cols-12 items-center px-2 py-1.5 rounded cursor-pointer border transition-all ${
+                  className={`grid grid-cols-12 items-center px-2 py-1 rounded cursor-pointer border transition-all ${
                     isSelected
                       ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400 font-semibold"
                       : "bg-transparent border-transparent hover:bg-white/5 text-slate-300 hover:text-white"
                   }`}
                 >
                   {/* Symbol & Pin indicator */}
-                  <div className="col-span-6 flex items-center gap-1.5 min-w-0">
+                  <div className="col-span-4 flex items-center gap-1 min-w-0">
                     <button
                       onClick={(e) => togglePin(item.symbol, e)}
-                      className="text-slate-600 hover:text-cyan-400 transition-colors cursor-pointer"
+                      className="text-slate-600 hover:text-cyan-400 transition-colors cursor-pointer shrink-0"
                     >
                       <Star className={`w-3 h-3 ${isPinned ? "fill-cyan-400 text-cyan-400" : ""}`} />
                     </button>
@@ -303,30 +309,33 @@ export const TradingLeft: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col min-w-0 flex-1">
-                      <span className="truncate uppercase font-medium">{item.symbol}</span>
-                      {priceInfo.timestamp && (
-                        <span className="text-[7px] text-slate-500 font-mono leading-none mt-0.5">{priceInfo.timestamp}</span>
-                      )}
+                      <span className="truncate uppercase font-medium text-xs">{item.symbol}</span>
                     </div>
                   </div>
 
                   {/* LTP */}
-                  <span className="col-span-3 text-right font-mono tabular-nums text-[11px]">
-                    ₹{priceInfo.ltp.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  <span className="col-span-2 text-right font-mono tabular-nums text-xs">
+                    ₹{(priceInfo.ltp || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
 
-                  {/* Change & Delete */}
-                  <div className="col-span-3 flex items-center justify-end gap-1.5 min-w-0">
-                    <span
-                      className={`text-right font-mono tabular-nums text-[10px] font-semibold ${
-                        priceInfo.up ? "text-emerald-400" : "text-rose-400"
-                      }`}
-                    >
-                      {priceInfo.change}
+                  {/* Δ */}
+                  <span className={`col-span-2 text-right font-mono tabular-nums text-xs ${(priceInfo.diff || 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                    {priceInfo.diff !== undefined ? `${priceInfo.diff >= 0 ? "+" : ""}${priceInfo.diff.toFixed(2)}` : "—"}
+                  </span>
+
+                  {/* Δ% */}
+                  <span className={`col-span-2 text-right font-mono tabular-nums text-xs ${(priceInfo.diff || 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                    {priceInfo.pct !== undefined ? `${priceInfo.pct >= 0 ? "+" : ""}${priceInfo.pct.toFixed(2)}%` : "—"}
+                  </span>
+
+                  {/* Volume & Delete */}
+                  <div className="col-span-2 flex items-center justify-end gap-1 min-w-0">
+                    <span className="font-mono tabular-nums text-xs text-slate-400">
+                      {priceInfo.volume !== undefined ? fmtVol(priceInfo.volume) : "—"}
                     </span>
                     <button
                       onClick={(e) => handleDeleteSymbol(item.symbol, e)}
-                      className="text-slate-600 hover:text-rose-400 transition-colors cursor-pointer text-xs font-bold font-sans shrink-0 px-0.5 select-none"
+                      className="text-slate-600 hover:text-rose-400 transition-colors cursor-pointer text-xs font-bold font-sans shrink-0 ml-1 select-none"
                       title="Remove Symbol"
                     >
                       ×
@@ -702,18 +711,22 @@ export const TradingMain: React.FC = () => {
             )}
           </select>
 
-          {/* Timeframe dropdown */}
-          <select
-            value={selectedTimeframe}
-            onChange={(e) => setTimeframe(e.target.value as Timeframe)}
-            className="bg-slate-900 border border-white/10 rounded px-2 py-0.5 text-slate-300 focus:outline-none"
-          >
-            {["1m", "3m", "5m", "15m", "1h", "1d"].map((tf) => (
-              <option key={tf} value={tf}>
+          {/* Timeframe Segmented Control */}
+          <div className="flex bg-slate-900/60 p-0.5 rounded border border-white/5 gap-0.5 select-none font-mono">
+            {(["1m", "5m", "15m", "1h"] as const).map((tf) => (
+              <button
+                key={tf}
+                onClick={() => setTimeframe(tf as Timeframe)}
+                className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase transition-all cursor-pointer text-center ${
+                  selectedTimeframe === tf
+                    ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+                    : "text-slate-400 hover:text-slate-200 border border-transparent"
+                }`}
+              >
                 {tf}
-              </option>
+              </button>
             ))}
-          </select>
+          </div>
 
           <div className="h-4 w-px bg-white/5 mx-1" />
 
@@ -871,13 +884,13 @@ const BrokerAccountPanel: React.FC = () => {
   };
 
   return (
-    <div className="p-3 bg-slate-950/40 border border-white/5 rounded-lg flex flex-col gap-2.5 hover:border-cyan-500/10 transition-all select-none">
-      <h3 className="text-[10px] font-bold tracking-widest text-cyan-400 uppercase border-b border-white/5 pb-1.5 flex items-center justify-between">
-        <span>BROKER ACCOUNT</span>
+    <div className="p-2 flex flex-col gap-2 select-none border-t border-white/5">
+      <h3 className="text-[12px] font-bold text-slate-200 border-b border-white/5 pb-1.5 flex items-center justify-between">
+        <span>Broker account</span>
         <div className="flex items-center gap-1">
           <span className={`w-1.5 h-1.5 rounded-full ${brokerConnected ? "bg-emerald-400 animate-pulse" : "bg-rose-500 animate-pulse"}`} />
           <span className="text-[8px] font-mono text-slate-500">
-            {brokerConnected ? "CONNECTED" : "DISCONNECTED"}
+            {brokerConnected ? "Connected" : "Disconnected"}
           </span>
         </div>
       </h3>
@@ -1020,7 +1033,7 @@ export const TradingRight: React.FC = () => {
 
   const [side, setSide] = useState<"BUY" | "SELL">("BUY");
   const [productType, setProductType] = useState<"MIS" | "NRML" | "CNC">("MIS");
-  const [orderType, setOrderType] = useState<"MARKET" | "LIMIT">("MARKET");
+  const [orderType, setOrderType] = useState<"MARKET" | "LIMIT" | "SL">("MARKET");
   const [limitPrice, setLimitPrice] = useState(0);
   const [triggerPrice, setTriggerPrice] = useState(0);
   const isSubmittingRef = useRef(false);
@@ -1274,7 +1287,7 @@ export const TradingRight: React.FC = () => {
         instrument_key: currentInstrument.instrumentKey,
         quantity,
         transaction_type: orderSide,
-        order_type: orderType,
+        order_type: orderType === "SL" ? "LIMIT" : orderType,
         product: productType,
         price: entryPrice,
         trigger_price: triggerPrice > 0 ? triggerPrice : 0,
@@ -1313,18 +1326,52 @@ export const TradingRight: React.FC = () => {
   const rewardAmountVal = hasTarget ? Math.abs(targetPrice - entryPriceVal) * quantity : 0;
   const rrRatio = (hasSL && rewardAmountVal > 0) ? (rewardAmountVal / (Math.abs(entryPriceVal - stopLoss) * quantity)).toFixed(1) : "N/A";
 
+  const totalUnrealizedPnL = positions.reduce((acc, pos) => acc + Number(pos.unrealised || 0), 0);
+  const totalRealizedPnL = positions.reduce((acc, pos) => acc + Number(pos.realised || 0), 0);
+  const totalPnL = totalUnrealizedPnL + totalRealizedPnL;
+
   return (
-    <div className="flex flex-col gap-3 h-full font-sans text-xs">
+    <div className="flex flex-col gap-2 h-full font-sans text-xs">
+      {/* Hero P&L Anchor */}
+      <div className="p-3 bg-slate-950/80 border-b border-white/5 select-none flex flex-col gap-2 shrink-0">
+        <div className="flex flex-col items-center justify-center">
+          <span className="text-[12px] font-bold text-slate-400 uppercase tracking-widest font-sans">NET P&L</span>
+          <span className={`text-[42px] font-black font-mono tabular-nums leading-none tracking-tight mt-1 ${
+            totalPnL > 0 ? "text-emerald-400" : totalPnL < 0 ? "text-rose-500" : "text-slate-350"
+          }`}>
+            {totalPnL > 0 ? "+" : ""}₹{totalPnL.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </span>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-2 border-t border-white/5 pt-2 text-center">
+          <div className="flex flex-col">
+            <span className="text-[12px] text-slate-500 uppercase font-sans tracking-wide">REALIZED</span>
+            <span className={`text-[20px] font-bold font-mono tabular-nums mt-0.5 ${
+              totalRealizedPnL > 0 ? "text-emerald-400" : totalRealizedPnL < 0 ? "text-rose-500" : "text-slate-400"
+            }`}>
+              {totalRealizedPnL > 0 ? "+" : ""}₹{totalRealizedPnL.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          </div>
+          <div className="flex flex-col border-l border-white/5">
+            <span className="text-[12px] text-slate-500 uppercase font-sans tracking-wide">UNREALIZED</span>
+            <span className={`text-[20px] font-bold font-mono tabular-nums mt-0.5 ${
+              totalUnrealizedPnL > 0 ? "text-emerald-400" : totalUnrealizedPnL < 0 ? "text-rose-500" : "text-slate-400"
+            }`}>
+              {totalUnrealizedPnL > 0 ? "+" : ""}₹{totalUnrealizedPnL.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* Order Pad Card */}
-      <div className="p-3 bg-slate-950/40 border border-white/5 rounded-lg flex flex-col gap-2.5">
-        <h3 className="text-[10px] font-bold tracking-widest text-cyan-400 uppercase border-b border-white/5 pb-1.5 flex items-center justify-between select-none">
-          <span>ORDER TICKET</span>
-          <span className="text-[8px] font-mono text-slate-500">{currentAccount.name}</span>
+      <div className="px-2 flex flex-col gap-1.5">
+        <h3 className="text-xs font-bold text-slate-200 border-b border-white/5 pb-1 flex items-center justify-between select-none">
+          <span>Order ticket</span>
+          <span className="text-xs font-mono text-slate-500">{currentAccount.name}</span>
         </h3>
 
-
         {/* Selected Instrument Info with Real-time Quote Panel */}
-        <div className="flex flex-col gap-1.5 bg-slate-900/40 p-2 rounded border border-white/5 font-mono text-[10px] select-none text-slate-300">
+        <div className="flex flex-col gap-1 bg-slate-900/40 p-1.5 rounded border border-white/5 font-mono text-xs select-none text-slate-300">
           <div className="flex justify-between items-center">
             <span>CONTRACT:</span>
             <span className="font-bold text-cyan-400 uppercase">
@@ -1337,7 +1384,7 @@ export const TradingRight: React.FC = () => {
                 const details = parseInstrument(currentInstrument.symbol);
                 if (details.type === "CE" || details.type === "PE") {
                   return (
-                    <div className="grid grid-cols-3 gap-1 mt-0.5 border-t border-white/5 pt-1.5 text-[8px] text-slate-400 uppercase">
+                    <div className="grid grid-cols-3 gap-1 mt-0.5 border-t border-white/5 pt-1 text-xs text-slate-400 uppercase">
                       <div>
                         <span>TYPE: </span>
                         <span className={`font-bold ${details.type === "CE" ? "text-emerald-400" : "text-rose-400"}`}>{details.type}</span>
@@ -1355,7 +1402,7 @@ export const TradingRight: React.FC = () => {
                 }
                 return null;
               })()}
-              <div className="grid grid-cols-2 gap-x-3 gap-y-1 mt-1 border-t border-white/5 pt-1.5 text-[9px] text-slate-400">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 mt-0.5 border-t border-white/5 pt-1 text-xs text-slate-400">
                 <div className="flex justify-between">
                   <span>LTP:</span>
                   <span className="text-slate-200 font-bold">₹{contractPrice.toFixed(2)}</span>
@@ -1378,10 +1425,10 @@ export const TradingRight: React.FC = () => {
         </div>
 
         {/* Side Selector Toggle */}
-        <div className="grid grid-cols-2 gap-2 bg-slate-900/30 p-1 rounded border border-white/5 select-none shrink-0">
+        <div className="grid grid-cols-2 gap-2 bg-slate-900/30 p-0.5 rounded border border-white/5 select-none shrink-0">
           <button
             onClick={() => setSide("BUY")}
-            className={`py-1.5 rounded text-[11px] font-bold transition-all cursor-pointer text-center ${
+            className={`py-1 rounded text-xs font-bold transition-all cursor-pointer text-center ${
               side === "BUY"
                 ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/10"
                 : "text-slate-400 hover:text-slate-200"
@@ -1391,7 +1438,7 @@ export const TradingRight: React.FC = () => {
           </button>
           <button
             onClick={() => setSide("SELL")}
-            className={`py-1.5 rounded text-[11px] font-bold transition-all cursor-pointer text-center ${
+            className={`py-1 rounded text-xs font-bold transition-all cursor-pointer text-center ${
               side === "SELL"
                 ? "bg-rose-500 text-slate-950 shadow-md shadow-rose-500/10"
                 : "text-slate-400 hover:text-slate-200"
@@ -1403,27 +1450,27 @@ export const TradingRight: React.FC = () => {
 
         {/* Action Feedbacks */}
         {orderError && (
-          <div className="p-2 bg-rose-950/40 border border-rose-500/20 text-rose-400 text-[10px] rounded flex items-center gap-1.5 font-sans animate-pulse">
+          <div className="p-1.5 bg-rose-950/40 border border-rose-500/20 text-rose-400 text-xs rounded flex items-center gap-1.5 font-sans animate-pulse">
             <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
             <span className="truncate">{orderError}</span>
           </div>
         )}
         {orderSuccess && (
-          <div className="p-2 bg-emerald-950/40 border border-emerald-500/20 text-emerald-400 text-[10px] rounded flex items-center gap-1.5 font-sans">
+          <div className="p-1.5 bg-emerald-950/40 border border-emerald-500/20 text-emerald-400 text-xs rounded flex items-center gap-1.5 font-sans">
             <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
             <span className="truncate">{orderSuccess}</span>
           </div>
         )}
 
         {/* Product Type (MIS/NRML/CNC) */}
-        <div className="flex flex-col gap-1 select-none">
-          <span className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold">Product Type</span>
-          <div className="grid grid-cols-3 gap-1 bg-slate-900/40 p-0.5 rounded border border-white/5">
+        <div className="flex flex-col gap-0.5 select-none">
+          <span className="text-xs text-slate-500 uppercase font-semibold">Product Type</span>
+          <div className="grid grid-cols-3 gap-0.5 bg-slate-900/40 p-0.5 rounded border border-white/5">
             {(["MIS", "NRML", "CNC"] as const).map((type) => (
               <button
                 key={type}
                 onClick={() => setProductType(type)}
-                className={`py-1 rounded text-[10px] font-bold uppercase transition-all cursor-pointer text-center ${
+                className={`py-0.5 rounded text-xs font-bold uppercase transition-all cursor-pointer text-center ${
                   productType === type
                     ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
                     : "text-slate-500 hover:text-slate-300 border border-transparent"
@@ -1436,15 +1483,15 @@ export const TradingRight: React.FC = () => {
         </div>
 
         {/* Quantity (Lots / Units) */}
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-0.5">
           <div className="flex justify-between items-center">
-            <span className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold">Quantity</span>
-            <span className="text-[9px] text-slate-500 font-mono">Lot Size: {lotSize}</span>
+            <span className="text-xs text-slate-500 uppercase font-semibold">Quantity</span>
+            <span className="text-xs text-slate-500 font-mono">Lot: {lotSize}</span>
           </div>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setQuantity((q) => Math.max(lotSize, q - lotSize))}
-              className="bg-slate-900 border border-white/5 hover:border-white/10 w-8 py-1 rounded text-slate-300 font-bold hover:text-white transition-all cursor-pointer text-center"
+              className="bg-slate-900 border border-white/5 hover:border-white/10 w-8 py-0.5 rounded text-slate-300 font-bold hover:text-white transition-all cursor-pointer text-center text-xs"
             >
               -
             </button>
@@ -1452,11 +1499,11 @@ export const TradingRight: React.FC = () => {
               type="number"
               value={quantity}
               onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
-              className="flex-1 bg-slate-900/60 border border-white/5 rounded py-1 text-center font-mono text-slate-200 focus:outline-none focus:border-cyan-500/40"
+              className="flex-1 bg-slate-900/60 border border-white/5 rounded py-0.5 text-center font-mono text-xs text-slate-200 focus:outline-none focus:border-cyan-500/40"
             />
             <button
               onClick={() => setQuantity((q) => q + lotSize)}
-              className="bg-slate-900 border border-white/5 hover:border-white/10 w-8 py-1 rounded text-slate-300 font-bold hover:text-white transition-all cursor-pointer text-center"
+              className="bg-slate-900 border border-white/5 hover:border-white/10 w-8 py-0.5 rounded text-slate-300 font-bold hover:text-white transition-all cursor-pointer text-center text-xs"
             >
               +
             </button>
@@ -1464,87 +1511,80 @@ export const TradingRight: React.FC = () => {
         </div>
 
         {/* Order Type Toggle */}
-        <div className="flex flex-col gap-1 select-none">
-          <span className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold">Order Type</span>
-          <div className="grid grid-cols-2 gap-1.5">
-            <button
-              onClick={() => setOrderType("MARKET")}
-              className={`py-1 rounded border transition-all cursor-pointer text-center font-bold text-[10px] ${
-                orderType === "MARKET"
-                  ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400"
-                  : "bg-slate-900 border-white/5 text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              MARKET
-            </button>
-            <button
-              onClick={() => setOrderType("LIMIT")}
-              className={`py-1 rounded border transition-all cursor-pointer text-center font-bold text-[10px] ${
-                orderType === "LIMIT"
-                  ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400"
-                  : "bg-slate-900 border-white/5 text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              LIMIT
-            </button>
+        <div className="flex flex-col gap-0.5 select-none">
+          <span className="text-xs text-slate-500 uppercase font-semibold">Order Type</span>
+          <div className="grid grid-cols-3 gap-0.5 bg-slate-900/40 p-0.5 rounded border border-white/5">
+            {(["MARKET", "LIMIT", "SL"] as const).map((type) => (
+              <button
+                key={type}
+                onClick={() => setOrderType(type)}
+                className={`py-0.5 rounded text-xs font-bold uppercase transition-all cursor-pointer text-center ${
+                  orderType === type
+                    ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+                    : "text-slate-500 hover:text-slate-300 border border-transparent"
+                }`}
+              >
+                {type}
+              </button>
+            ))}
           </div>
         </div>
 
         {/* Limit Price / Trigger Price */}
         <div className="grid grid-cols-2 gap-2">
-          <div className="flex flex-col gap-1">
-            <span className="text-[9px] text-slate-500 uppercase tracking-wider">Limit Price</span>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-slate-500 uppercase">Limit Price</span>
             <input
               type="number"
               disabled={orderType === "MARKET"}
               value={limitPrice || ""}
               onChange={(e) => setLimitPrice(Number(e.target.value))}
-              className="w-full bg-slate-900 border border-white/5 rounded py-1 px-2 font-mono text-center text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:border-cyan-500/40"
+              className="w-full bg-slate-900 border border-white/5 rounded py-0.5 px-2 font-mono text-center text-xs text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:border-cyan-500/40"
             />
           </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-[9px] text-slate-500 uppercase tracking-wider">Trigger Price</span>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-slate-500 uppercase">Trigger Price</span>
             <input
               type="number"
               value={triggerPrice || ""}
               onChange={(e) => setTriggerPrice(Number(e.target.value))}
-              className="w-full bg-slate-900 border border-white/5 rounded py-1 px-2 font-mono text-center text-slate-200 focus:outline-none focus:border-cyan-500/40"
+              className="w-full bg-slate-900 border border-white/5 rounded py-0.5 px-2 font-mono text-center text-xs text-slate-200 focus:outline-none focus:border-cyan-500/40"
             />
           </div>
         </div>
 
         {/* Risk Targets (Optional for SL / Target placement) */}
         <div className="grid grid-cols-2 gap-2">
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-0.5">
             <div className="flex justify-between">
-              <span className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold">Stop Loss</span>
-              <span className="text-[8px] text-slate-500 font-mono uppercase">Optional</span>
+              <span className="text-xs text-slate-500 uppercase font-semibold">Stop Loss</span>
+              <span className="text-xs text-slate-500 font-mono uppercase">Opt</span>
             </div>
             <input
               type="number"
               placeholder="SL Price"
               value={stopLoss || ""}
               onChange={(e) => setStopLoss(Number(e.target.value))}
-              className="w-full bg-slate-900 border border-white/5 rounded py-1 px-2 font-mono text-center text-slate-200 focus:outline-none focus:border-cyan-500/40"
+              className="w-full bg-slate-900 border border-white/5 rounded py-0.5 px-2 font-mono text-center text-xs text-slate-200 focus:outline-none focus:border-cyan-500/40"
             />
           </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-[9px] text-slate-500 uppercase tracking-wider">Target Price</span>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-slate-500 uppercase">Target Price</span>
             <input
               type="number"
               placeholder="Target Price"
               value={targetPrice || ""}
               onChange={(e) => setTargetPrice(Number(e.target.value))}
-              className="w-full bg-slate-900 border border-white/5 rounded py-1 px-2 font-mono text-center text-slate-200 focus:outline-none focus:border-cyan-500/40"
+              className="w-full bg-slate-900 border border-white/5 rounded py-0.5 px-2 font-mono text-center text-xs text-slate-200 focus:outline-none focus:border-cyan-500/40"
             />
           </div>
         </div>
 
         {/* Real Broker Margin HUD & Risk Estimation */}
-        <div className="flex flex-col gap-1.5 bg-slate-950/40 p-2 rounded border border-white/5 font-mono text-[9px] text-slate-500 select-none">
-          <div className="flex justify-between items-center border-b border-white/5 pb-1 mb-1">
+        <div className="flex flex-col gap-1 bg-slate-950/40 p-1.5 rounded border border-white/5 font-mono text-xs text-slate-500 select-none">
+          <div className="flex justify-between items-center border-b border-white/5 pb-0.5 mb-0.5">
             <span>RISK STATUS:</span>
-            <span className={`px-2 py-0.5 rounded border text-[8px] tracking-wider uppercase transition-all ${
+            <span className={`px-2 py-0.5 rounded border text-xs tracking-wider uppercase transition-all ${
               brokerMarginReq > availableMargin
                 ? "text-rose-500 bg-rose-500/10 border-rose-500/20 animate-pulse font-extrabold"
                 : (availableMargin > 0 && brokerMarginReq / availableMargin > 0.5)
@@ -1637,29 +1677,29 @@ export const TradingRight: React.FC = () => {
           )}
         </div>
 
-        {/* Big Action Submit Buttons */}
-        <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/5">
+        {/* Primary Action Buttons — Maximum Visual Weight */}
+        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/5">
           <button
             onClick={() => handlePlaceOrder("BUY")}
             disabled={orderSubmitting || !currentInstrument}
-            className={`w-full font-bold py-2 rounded text-xs transition-all uppercase tracking-wider text-center shadow-lg ${
+            className={`w-full font-black py-3 rounded text-sm transition-all tracking-wide text-center ${
               orderSubmitting
                 ? "bg-slate-700 text-slate-400 cursor-not-allowed"
-                : "bg-emerald-500 hover:bg-emerald-400 text-slate-950 cursor-pointer shadow-emerald-500/10"
+                : "bg-emerald-500 hover:bg-emerald-400 text-slate-950 cursor-pointer shadow-[0_0_20px_rgba(16,185,129,0.25)]"
             }`}
           >
-            {orderSubmitting ? "SUBMITTING..." : "BUY"}
+            {orderSubmitting ? "Submitting..." : "Buy"}
           </button>
           <button
             onClick={() => handlePlaceOrder("SELL")}
             disabled={orderSubmitting || !currentInstrument}
-            className={`w-full font-bold py-2 rounded text-xs transition-all uppercase tracking-wider text-center shadow-lg ${
+            className={`w-full font-black py-3 rounded text-sm transition-all tracking-wide text-center ${
               orderSubmitting
                 ? "bg-slate-700 text-slate-400 cursor-not-allowed"
-                : "bg-rose-500 hover:bg-rose-400 text-slate-950 cursor-pointer shadow-rose-500/10"
+                : "bg-rose-500 hover:bg-rose-400 text-slate-950 cursor-pointer shadow-[0_0_20px_rgba(244,63,94,0.25)]"
             }`}
           >
-            {orderSubmitting ? "SUBMITTING..." : "SELL"}
+            {orderSubmitting ? "Submitting..." : "Sell"}
           </button>
         </div>
       </div>
@@ -1669,9 +1709,9 @@ export const TradingRight: React.FC = () => {
 
       {/* Option Greeks & Analytics HUD */}
       {analytics && (
-        <div className="p-3 bg-slate-950/40 border border-white/5 rounded-lg flex flex-col gap-2 font-mono text-[9px] select-none text-slate-300">
-          <div className="text-[10px] font-sans font-bold tracking-widest text-cyan-400 uppercase border-b border-white/5 pb-1 flex justify-between items-center">
-            <span>Option Analytics</span>
+        <div className="p-2 flex flex-col gap-2 font-mono text-[9px] select-none text-slate-300 border-t border-white/5">
+          <div className="text-[12px] font-sans font-bold text-slate-200 border-b border-white/5 pb-1 flex justify-between items-center">
+            <span>Option analytics</span>
             <span className={`px-1 py-0.5 rounded text-[8px] font-sans font-bold border ${
               analytics.domSignal === "BULLISH" ? "text-emerald-400 bg-emerald-950/40 border-emerald-700/30" :
               analytics.domSignal === "BEARISH" ? "text-rose-400 bg-rose-950/40 border-rose-700/30" :
@@ -1759,9 +1799,9 @@ export const TradingRight: React.FC = () => {
       )}
 
       {/* Mini Position Summary Panel - Sync'd to Broker Account */}
-      <div className="p-3 bg-slate-950/40 border border-white/5 rounded-lg flex flex-col gap-2 flex-1 min-h-0 select-none">
-        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest border-b border-white/5 pb-1">
-          Open Positions ({positions.length})
+      <div className="p-2 flex flex-col gap-2 flex-1 min-h-0 select-none border-t border-white/5">
+        <span className="text-[12px] font-bold text-slate-200 border-b border-white/5 pb-1">
+          Open positions ({positions.length})
         </span>
         <div className="flex-1 overflow-y-auto flex flex-col gap-1.5 pr-1 font-sans text-xs scrollbar-thin scrollbar-thumb-white/5">
           {positions.length > 0 ? (
@@ -2101,16 +2141,16 @@ const OptionChainPanel: React.FC = () => {
 
       {/* Option Chain Table */}
       <div className="flex-1 min-h-0 overflow-auto border border-white/5 rounded">
-        <table className="w-full text-left font-mono tabular-nums text-[9px] border-collapse">
+        <table className="w-full text-left font-mono tabular-nums text-xs border-collapse">
           <thead className="sticky top-0 bg-slate-950/95 backdrop-blur border-b border-white/10 z-10">
             {/* Section header row */}
-            <tr className="text-[8px] uppercase tracking-wider select-none border-b border-white/5">
-              <th colSpan={7} className="py-1.5 pl-3 text-emerald-400/70 font-bold border-r border-white/5">— CALL —</th>
-              <th className="py-1.5 text-center text-slate-400 font-bold">Strike</th>
-              <th colSpan={7} className="py-1.5 pr-3 text-right text-rose-400/70 font-bold border-l border-white/5">— PUT —</th>
+            <tr className="text-xs uppercase tracking-wider select-none border-b border-white/5 bg-slate-900/10">
+              <th colSpan={7} className="py-1.5 pl-3 text-emerald-450 font-bold border-r border-white/5 text-center">— CALLS —</th>
+              <th className="py-1.5 text-center text-slate-350 font-bold bg-slate-900 border-x border-white/10">Strike</th>
+              <th colSpan={7} className="py-1.5 pr-3 text-right text-rose-400 font-bold border-l border-white/5 text-center">— PUTS —</th>
             </tr>
             {/* Column header row */}
-            <tr className="text-slate-500 uppercase text-[8px] tracking-wider select-none">
+            <tr className="text-slate-500 uppercase text-xs tracking-wider select-none bg-slate-950">
               <th className="py-1.5 pl-3 text-left">DOM</th>
               <th className="py-1.5 text-right">IV%</th>
               <th className="py-1.5 text-right">OI</th>
@@ -2118,7 +2158,7 @@ const OptionChainPanel: React.FC = () => {
               <th className="py-1.5 text-right">Vol</th>
               <th className="py-1.5 text-right">Bid×Qty</th>
               <th className="py-1.5 text-right text-emerald-400 font-bold border-r border-white/5 pr-2">LTP</th>
-              <th className="py-1.5 text-center font-bold text-slate-300 px-2">Strike</th>
+              <th className="py-1.5 text-center font-bold text-slate-300 bg-slate-900 border-x border-white/10 px-2">Strike</th>
               <th className="py-1.5 text-left text-rose-400 font-bold border-l border-white/5 pl-2">LTP</th>
               <th className="py-1.5 text-left">Ask×Qty</th>
               <th className="py-1.5 text-left">Vol</th>
@@ -2152,7 +2192,7 @@ const OptionChainPanel: React.FC = () => {
                   >
                     {/* CE: DOM Signal */}
                     <td className="py-1.5 pl-3">
-                      <span className={`px-1 py-0.5 rounded text-[7px] font-bold font-sans border ${domColor(row.ce_dom_signal || "NEUTRAL")}`}>
+                      <span className={`px-1 py-0.5 rounded text-xs font-bold font-sans border ${domColor(row.ce_dom_signal || "NEUTRAL")}`}>
                         {(row.ce_dom_signal || "—").slice(0, 4)}
                       </span>
                     </td>
@@ -2172,7 +2212,7 @@ const OptionChainPanel: React.FC = () => {
                     <td className="py-1.5 text-right text-slate-500">{row.ce_volume > 0 ? fmtVol(row.ce_volume) : "—"}</td>
 
                     {/* CE: Bid × Qty */}
-                    <td className="py-1.5 text-right text-slate-400 text-[8px]">
+                    <td className="py-1.5 text-right text-slate-400 text-xs font-mono">
                       {row.ce_bid > 0 ? (
                         <span>{row.ce_bid.toFixed(1)}<span className="text-slate-600">×{fmtOI(row.ce_bid_qty)}</span></span>
                       ) : "—"}
@@ -2187,21 +2227,23 @@ const OptionChainPanel: React.FC = () => {
                             ceActive ? "bg-emerald-500/10 ring-1 ring-emerald-500/30" : "hover:bg-emerald-500/5"
                           }`}
                         >
-                          <span className="text-emerald-400 font-bold text-[10px]">₹{row.ce_ltp.toFixed(2)}</span>
-                          <span className="opacity-0 group-hover:opacity-100 text-[7px] text-emerald-500 font-sans uppercase">CE▶</span>
+                          <span className="text-emerald-400 font-bold text-xs">₹{row.ce_ltp.toFixed(2)}</span>
+                          <span className="opacity-0 group-hover:opacity-100 text-xs text-emerald-500 font-sans uppercase">CE▶</span>
                         </button>
                       ) : <span className="text-slate-600 pr-2">—</span>}
                     </td>
 
-                    {/* Strike */}
-                    <td className="py-1.5 text-center px-2">
-                      <span className={`px-1.5 py-0.5 rounded font-bold text-[10px] ${
-                        isATM ? "bg-cyan-500/10 text-cyan-300 ring-1 ring-cyan-500/20" : "text-slate-300"
+                    {/* Center Strike Axis Spine */}
+                    <td className="py-1 text-center px-3 bg-slate-900 border-x border-white/10 select-none">
+                      <span className={`px-2 py-0.5 rounded font-mono font-bold text-xs tabular-nums tracking-wide ${
+                        isATM 
+                          ? "bg-amber-500 text-slate-950 font-black shadow-[0_0_10px_rgba(245,158,11,0.45)]" 
+                          : "text-slate-100"
                       }`}>
                         {row.strike}
                       </span>
                       {row.pcr > 0 && (
-                        <div className="text-[7px] text-slate-600 font-sans text-center mt-0.5">PCR {row.pcr.toFixed(1)}</div>
+                        <div className="text-xs text-slate-500 font-sans text-center mt-0.5">PCR {row.pcr.toFixed(1)}</div>
                       )}
                     </td>
 
@@ -2214,14 +2256,14 @@ const OptionChainPanel: React.FC = () => {
                             peActive ? "bg-rose-500/10 ring-1 ring-rose-500/30" : "hover:bg-rose-500/5"
                           }`}
                         >
-                          <span className="opacity-0 group-hover:opacity-100 text-[7px] text-rose-500 font-sans uppercase">◀PE</span>
-                          <span className="text-rose-400 font-bold text-[10px]">₹{row.pe_ltp.toFixed(2)}</span>
+                          <span className="opacity-0 group-hover:opacity-100 text-xs text-rose-500 font-sans uppercase">◀PE</span>
+                          <span className="text-rose-400 font-bold text-xs">₹{row.pe_ltp.toFixed(2)}</span>
                         </button>
                       ) : <span className="text-slate-600 pl-2">—</span>}
                     </td>
 
                     {/* PE: Ask × Qty */}
-                    <td className="py-1.5 text-left text-slate-400 text-[8px]">
+                    <td className="py-1.5 text-left text-slate-400 text-xs font-mono">
                       {row.pe_ask > 0 ? (
                         <span>{row.pe_ask.toFixed(1)}<span className="text-slate-600">×{fmtOI(row.pe_ask_qty)}</span></span>
                       ) : "—"}
@@ -2243,7 +2285,7 @@ const OptionChainPanel: React.FC = () => {
 
                     {/* PE: DOM Signal */}
                     <td className="py-1.5 pr-3">
-                      <span className={`px-1 py-0.5 rounded text-[7px] font-bold font-sans border ${domColor(row.pe_dom_signal || "NEUTRAL")}`}>
+                      <span className={`px-1 py-0.5 rounded text-xs font-bold font-sans border ${domColor(row.pe_dom_signal || "NEUTRAL")}`}>
                         {(row.pe_dom_signal || "—").slice(0, 4)}
                       </span>
                     </td>
@@ -2442,7 +2484,7 @@ export const TradingBottom: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-3 py-1.5 font-bold uppercase text-[10px] tracking-wider transition-all border-b-2 cursor-pointer ${
+            className={`px-3 py-1.5 font-bold text-[10px] tracking-wide transition-all border-b-2 cursor-pointer ${
               activeTab === tab.id
                 ? "border-cyan-400 text-cyan-400 bg-slate-900/30"
                 : "border-transparent text-slate-500 hover:text-slate-300"
@@ -2776,37 +2818,39 @@ export const TradingBottom: React.FC = () => {
           </table>
         )}
 
-        {/* Tab 5: PnL Summary */}
+        {/* Tab 5: PnL Summary — Hero KPI Typography */}
         {activeTab === "pnl" && (
-          <div className="grid grid-cols-5 gap-4 max-w-4xl p-2 select-none">
-            <div className="bg-slate-900/30 p-2.5 rounded border border-white/5">
-              <span className="text-[9px] text-slate-500 block uppercase font-sans tracking-wide">Realized P&L</span>
-              <span className={`font-mono text-base font-bold ${realizedPnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                ₹{realizedPnL.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+          <div className="flex items-start gap-8 max-w-5xl p-3 select-none">
+            {/* Hero: Net P&L */}
+            <div className="flex flex-col">
+              <span className="text-[12px] text-slate-400 font-sans font-semibold">Net P&L</span>
+              <span className={`font-mono text-4xl font-black tabular-nums tracking-tight ${netPnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                {netPnL >= 0 ? "+" : ""}₹{netPnL.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </span>
             </div>
-            <div className="bg-slate-900/30 p-2.5 rounded border border-white/5">
-              <span className="text-[9px] text-slate-500 block uppercase font-sans tracking-wide">Unrealized P&L</span>
-              <span className={`font-mono text-base font-bold ${unrealizedPnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                ₹{unrealizedPnL.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+            {/* Secondary metrics */}
+            <div className="flex flex-col border-l border-white/5 pl-6">
+              <span className="text-[11px] text-slate-500 font-sans">Realized</span>
+              <span className={`font-mono text-xl font-bold tabular-nums ${realizedPnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                {realizedPnL >= 0 ? "+" : ""}₹{realizedPnL.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </span>
             </div>
-            <div className="bg-slate-900/30 p-2.5 rounded border border-white/5">
-              <span className="text-[9px] text-slate-500 block uppercase font-sans tracking-wide">Brokerage Fees</span>
-              <span className="font-mono text-base font-bold text-slate-300">
+            <div className="flex flex-col border-l border-white/5 pl-6">
+              <span className="text-[11px] text-slate-500 font-sans">Unrealized</span>
+              <span className={`font-mono text-xl font-bold tabular-nums ${unrealizedPnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                {unrealizedPnL >= 0 ? "+" : ""}₹{unrealizedPnL.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+            <div className="flex flex-col border-l border-white/5 pl-6">
+              <span className="text-[11px] text-slate-500 font-sans">Day total</span>
+              <span className={`font-mono text-xl font-bold tabular-nums ${realizedPnL + unrealizedPnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                {realizedPnL + unrealizedPnL >= 0 ? "+" : ""}₹{(realizedPnL + unrealizedPnL).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+            <div className="flex flex-col border-l border-white/5 pl-6">
+              <span className="text-[11px] text-slate-500 font-sans">Brokerage</span>
+              <span className="font-mono text-xl font-bold tabular-nums text-slate-300">
                 ₹{brokerage.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-              </span>
-            </div>
-            <div className="bg-slate-900/30 p-2.5 rounded border border-white/5">
-              <span className="text-[9px] text-slate-500 block uppercase font-sans tracking-wide">Day P&L Total</span>
-              <span className={`font-mono text-base font-bold ${realizedPnL + unrealizedPnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                ₹{(realizedPnL + unrealizedPnL).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-              </span>
-            </div>
-            <div className="bg-cyan-950/20 p-2.5 rounded border border-cyan-500/20">
-              <span className="text-[9px] text-cyan-400 block uppercase font-sans tracking-wide font-semibold">Net P&L</span>
-              <span className={`font-mono text-base font-bold ${netPnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                ₹{netPnL.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </span>
             </div>
           </div>
