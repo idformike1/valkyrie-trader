@@ -15,11 +15,11 @@ import { tradingApi } from "@/services/tradingApi";
 
 // Helper components for professional aesthetics
 const GlowingCard: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ title, children, className = "" }) => (
-  <div className={`p-2 flex flex-col h-full ${className}`}>
-    <h3 className="text-[12px] font-bold text-slate-200 border-b border-white/5 pb-1.5 mb-2 flex items-center justify-between">
-      <span>{title}</span>
-    </h3>
-    <div className="flex-1 overflow-y-auto min-h-0">{children}</div>
+  <div className={`panel flex flex-col h-full ${className}`}>
+    <div className="panel-header">
+      <span className="text-sm font-medium text-slate-200">{title}</span>
+    </div>
+    <div className="flex-1 overflow-y-auto min-h-0 p-3">{children}</div>
   </div>
 );
 
@@ -229,7 +229,7 @@ export const TradingLeft: React.FC = () => {
       <h3 className="text-[12px] font-bold text-slate-200 border-b border-white/5 pb-1.5 mb-2 flex items-center justify-between select-none">
         <span>Watchlist</span>
         <div className="flex items-center gap-1.5">
-          <span className="text-[8px] text-slate-500 font-mono font-medium lowercase">{connectionStatus}</span>
+          <span className="text-xs text-slate-500 font-mono font-medium lowercase">{connectionStatus}</span>
           <span className={`w-1.5 h-1.5 rounded-full ${connectionDotColor} shadow-md`} />
         </div>
       </h3>
@@ -247,7 +247,7 @@ export const TradingLeft: React.FC = () => {
               }}
               onFocus={() => setShowSearchResults(true)}
               placeholder="Search / Add Stock Options..."
-              className="w-full bg-slate-900/60 border border-white/5 rounded pl-8 pr-3 py-1.5 text-[11px] text-slate-300 focus:outline-none focus:border-cyan-500/40 font-sans"
+              className="w-full bg-slate-900/60 border border-white/5 rounded pl-8 pr-3 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-500/40 font-sans"
             />
             {/* Search results popup */}
             {showSearchResults && searchResults.length > 0 && (
@@ -259,7 +259,7 @@ export const TradingLeft: React.FC = () => {
                     className="flex justify-between items-center px-3 py-2 hover:bg-cyan-500/10 cursor-pointer transition-colors text-slate-200 border-b border-white/[0.02]"
                   >
                     <span>{item.symbol}</span>
-                    <span className="text-[9px] text-cyan-400 font-mono bg-cyan-950/40 px-1 py-0.5 rounded border border-cyan-500/10 font-bold uppercase">{item.exchange}</span>
+                    <span className="text-xs text-cyan-400 font-mono bg-cyan-950/40 px-1 py-0.5 rounded border border-cyan-500/10 font-bold uppercase">{item.exchange}</span>
                   </div>
                 ))}
               </div>
@@ -269,7 +269,7 @@ export const TradingLeft: React.FC = () => {
           {/* Instruments list */}
           <div className="flex-1 overflow-y-auto flex flex-col gap-0.5 mt-1 pr-1 font-sans text-xs scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
             {/* Header Row */}
-            <div className="grid grid-cols-12 px-2 py-1 text-[11px] font-bold text-slate-500 uppercase tracking-wider select-none shrink-0 border-b border-white/[0.02]">
+            <div className="grid grid-cols-12 px-2 py-1 text-xs font-bold text-slate-500 uppercase tracking-wider select-none shrink-0 border-b border-white/[0.02]">
               <span className="col-span-4 text-left">Symbol</span>
               <span className="col-span-2 text-right">LTP</span>
               <span className="col-span-2 text-right">Δ</span>
@@ -712,16 +712,12 @@ export const TradingMain: React.FC = () => {
           </select>
 
           {/* Timeframe Segmented Control */}
-          <div className="flex bg-slate-900/60 p-0.5 rounded border border-white/5 gap-0.5 select-none font-mono">
+          <div className="tab-container flex select-none font-mono">
             {(["1m", "5m", "15m", "1h"] as const).map((tf) => (
               <button
                 key={tf}
                 onClick={() => setTimeframe(tf as Timeframe)}
-                className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase transition-all cursor-pointer text-center ${
-                  selectedTimeframe === tf
-                    ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
-                    : "text-slate-400 hover:text-slate-200 border border-transparent"
-                }`}
+                className={`tab-item ${selectedTimeframe === tf ? "active" : ""}`}
               >
                 {tf}
               </button>
@@ -734,7 +730,7 @@ export const TradingMain: React.FC = () => {
           <div className="relative">
             <button
               onClick={() => toggleIndicator("VWAP")}
-              className={`px-2 py-0.5 rounded border transition-colors cursor-pointer text-[10px] ${
+              className={`px-2 py-0.5 rounded border transition-colors cursor-pointer text-xs ${
                 activeIndicators.includes("VWAP")
                   ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400 font-bold"
                   : "bg-slate-900 border-white/10 text-slate-400 hover:text-slate-200"
@@ -745,7 +741,7 @@ export const TradingMain: React.FC = () => {
           </div>
           <button
             onClick={() => toggleIndicator("EMA")}
-            className={`px-2 py-0.5 rounded border transition-colors cursor-pointer text-[10px] ${
+            className={`px-2 py-0.5 rounded border transition-colors cursor-pointer text-xs ${
               activeIndicators.includes("EMA")
                 ? "bg-amber-500/10 border-amber-500/30 text-amber-400 font-bold"
                 : "bg-slate-900 border-white/10 text-slate-400 hover:text-slate-200"
@@ -758,7 +754,7 @@ export const TradingMain: React.FC = () => {
         <div className="flex items-center gap-2">
           {/* Chart loading indicator */}
           {chartLoading && (
-            <span className="flex items-center gap-1 text-[9px] text-cyan-400 font-mono animate-pulse">
+            <span className="flex items-center gap-1 text-xs text-cyan-400 font-mono animate-pulse">
               <RefreshCw className="w-2.5 h-2.5 animate-spin" />
               LOADING
             </span>
@@ -780,7 +776,7 @@ export const TradingMain: React.FC = () => {
           <button
             onClick={handlePanicExit}
             disabled={panicSubmitting}
-            className={`px-3 py-1 rounded border font-bold text-[10px] tracking-wider transition-all uppercase select-none cursor-pointer flex items-center gap-1.5 shadow-lg ${
+            className={`px-3 py-1 rounded border font-bold text-xs tracking-wider transition-all uppercase select-none cursor-pointer flex items-center gap-1.5 shadow-lg ${
               panicSubmitting
                 ? "bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed"
                 : "bg-rose-500/10 hover:bg-rose-500 border-rose-500/20 hover:border-rose-500 text-rose-400 hover:text-slate-950 shadow-rose-500/5 hover:shadow-rose-500/20"
@@ -815,7 +811,7 @@ export const TradingMain: React.FC = () => {
           <div ref={chartContainerRef} className="w-full h-full min-h-0" />
           
           {/* Price overlay indicator */}
-          <div className="absolute top-3 left-4 bg-slate-950/80 backdrop-blur border border-white/5 px-2 py-1 rounded text-[10px] font-mono text-slate-300 flex items-center gap-2 shadow-md">
+          <div className="absolute top-3 left-4 bg-slate-950/80 backdrop-blur border border-white/5 px-2 py-1 rounded text-xs font-mono text-slate-300 flex items-center gap-2 shadow-md">
             <span className="font-bold text-slate-400">LTP:</span>
             <span className="text-emerald-400 font-bold">
               ₹{currentLtp.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
@@ -889,33 +885,33 @@ const BrokerAccountPanel: React.FC = () => {
         <span>Broker account</span>
         <div className="flex items-center gap-1">
           <span className={`w-1.5 h-1.5 rounded-full ${brokerConnected ? "bg-emerald-400 animate-pulse" : "bg-rose-500 animate-pulse"}`} />
-          <span className="text-[8px] font-mono text-slate-500">
+          <span className="text-xs font-mono text-slate-500">
             {brokerConnected ? "Connected" : "Disconnected"}
           </span>
         </div>
       </h3>
 
-      <div className="grid grid-cols-2 gap-2 text-[10px] bg-slate-900/20 p-2 rounded border border-white/5 font-sans">
+      <div className="grid grid-cols-2 gap-2 text-xs bg-slate-900/20 p-2 rounded border border-white/5 font-sans">
         <div className="flex flex-col gap-0.5">
-          <span className="text-[8px] text-slate-500 uppercase tracking-wider">Client Name</span>
+          <span className="text-xs text-slate-500 ">Client name</span>
           <span className="font-bold text-slate-200 uppercase truncate">
             {profile?.user_name || (loading ? "Loading..." : "N/A")}
           </span>
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="text-[8px] text-slate-500 uppercase tracking-wider">Client ID</span>
+          <span className="text-xs text-slate-500 ">Client ID</span>
           <span className="font-bold text-slate-200 font-mono">
             {profile?.user_id || (loading ? "Loading..." : "N/A")}
           </span>
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="text-[8px] text-slate-500 uppercase tracking-wider">Broker</span>
+          <span className="text-xs text-slate-500 ">Broker</span>
           <span className="font-bold text-slate-200 uppercase">
             {profile?.broker || "UPSTOX"}
           </span>
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="text-[8px] text-slate-500 uppercase tracking-wider">Token Status</span>
+          <span className="text-xs text-slate-500 ">Token status</span>
           <span className={`font-bold uppercase ${tokenStatus === "VALID" ? "text-emerald-400" : "text-rose-400 animate-pulse"}`}>
             {tokenStatus}
           </span>
@@ -923,13 +919,13 @@ const BrokerAccountPanel: React.FC = () => {
       </div>
 
       {error && (
-        <div className="p-2 bg-rose-950/40 border border-rose-500/20 text-rose-400 text-[10px] rounded flex items-center gap-1.5 font-mono">
+        <div className="p-2 bg-rose-950/40 border border-rose-500/20 text-rose-400 text-xs rounded flex items-center gap-1.5 font-mono">
           <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
           <span className="truncate" title={error}>{error}</span>
         </div>
       )}
 
-      <div className="flex flex-col gap-1.5 font-mono text-[10px]">
+      <div className="flex flex-col gap-1.5 font-mono text-xs">
         <div className="flex justify-between items-center text-slate-400 py-0.5 border-b border-white/[0.02]">
           <span>Available Margin</span>
           <span className="font-bold text-cyan-400">
@@ -968,7 +964,7 @@ const BrokerAccountPanel: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex justify-between items-center text-[8px] text-slate-500 font-mono border-t border-white/5 pt-1.5 mt-0.5">
+      <div className="flex justify-between items-center text-xs text-slate-500 font-mono border-t border-white/5 pt-1.5 mt-0.5">
         <span>LAST SYNC: {lastSync || "NEVER"}</span>
         <button 
           onClick={fetchData} 
@@ -1425,26 +1421,18 @@ export const TradingRight: React.FC = () => {
         </div>
 
         {/* Side Selector Toggle */}
-        <div className="grid grid-cols-2 gap-2 bg-slate-900/30 p-0.5 rounded border border-white/5 select-none shrink-0">
+        <div className="tab-container grid grid-cols-2 select-none shrink-0">
           <button
             onClick={() => setSide("BUY")}
-            className={`py-1 rounded text-xs font-bold transition-all cursor-pointer text-center ${
-              side === "BUY"
-                ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/10"
-                : "text-slate-400 hover:text-slate-200"
-            }`}
+            className={`tab-item ${side === "BUY" ? "active text-emerald-400 bg-emerald-500/10 font-bold" : ""}`}
           >
-            BUY
+            Buy
           </button>
           <button
             onClick={() => setSide("SELL")}
-            className={`py-1 rounded text-xs font-bold transition-all cursor-pointer text-center ${
-              side === "SELL"
-                ? "bg-rose-500 text-slate-950 shadow-md shadow-rose-500/10"
-                : "text-slate-400 hover:text-slate-200"
-            }`}
+            className={`tab-item ${side === "SELL" ? "active text-rose-500 bg-rose-500/10 font-bold" : ""}`}
           >
-            SELL
+            Sell
           </button>
         </div>
 
@@ -1465,16 +1453,12 @@ export const TradingRight: React.FC = () => {
         {/* Product Type (MIS/NRML/CNC) */}
         <div className="flex flex-col gap-0.5 select-none">
           <span className="text-xs text-slate-500 uppercase font-semibold">Product Type</span>
-          <div className="grid grid-cols-3 gap-0.5 bg-slate-900/40 p-0.5 rounded border border-white/5">
+          <div className="tab-container grid grid-cols-3">
             {(["MIS", "NRML", "CNC"] as const).map((type) => (
               <button
                 key={type}
                 onClick={() => setProductType(type)}
-                className={`py-0.5 rounded text-xs font-bold uppercase transition-all cursor-pointer text-center ${
-                  productType === type
-                    ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
-                    : "text-slate-500 hover:text-slate-300 border border-transparent"
-                }`}
+                className={`tab-item ${productType === type ? "active" : ""}`}
               >
                 {type}
               </button>
@@ -1513,16 +1497,12 @@ export const TradingRight: React.FC = () => {
         {/* Order Type Toggle */}
         <div className="flex flex-col gap-0.5 select-none">
           <span className="text-xs text-slate-500 uppercase font-semibold">Order Type</span>
-          <div className="grid grid-cols-3 gap-0.5 bg-slate-900/40 p-0.5 rounded border border-white/5">
+          <div className="tab-container grid grid-cols-3">
             {(["MARKET", "LIMIT", "SL"] as const).map((type) => (
               <button
                 key={type}
                 onClick={() => setOrderType(type)}
-                className={`py-0.5 rounded text-xs font-bold uppercase transition-all cursor-pointer text-center ${
-                  orderType === type
-                    ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
-                    : "text-slate-500 hover:text-slate-300 border border-transparent"
-                }`}
+                className={`tab-item ${orderType === type ? "active" : ""}`}
               >
                 {type}
               </button>
@@ -1624,10 +1604,10 @@ export const TradingRight: React.FC = () => {
           </div>
           <div className="grid grid-cols-2 gap-2 border-t border-white/5 pt-1.5 mt-1 select-none">
             <div className="col-span-2 flex flex-col gap-1">
-              <span className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold">Risk Estimation</span>
+              <span className="text-xs text-slate-500 font-semibold">Risk estimation</span>
               
               {!hasSL ? (
-                <div className="flex flex-col gap-0.5 bg-amber-500/5 p-1.5 rounded border border-amber-500/10 font-mono text-[9px]">
+                <div className="flex flex-col gap-0.5 bg-amber-500/5 p-1.5 rounded border border-amber-500/10 font-mono text-xs">
                   <div className="flex justify-between">
                     <span className="text-slate-500">RISK ESTIMATE:</span>
                     <span className="font-bold text-amber-400">Undefined</span>
@@ -1638,7 +1618,7 @@ export const TradingRight: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-col gap-0.5 bg-slate-900/40 p-1.5 rounded border border-white/5 font-mono text-[9px]">
+                <div className="flex flex-col gap-0.5 bg-slate-900/40 p-1.5 rounded border border-white/5 font-mono text-xs">
                   <div className="flex justify-between">
                     <span className="text-slate-500">MAX LOSS:</span>
                     <span className="font-bold text-rose-400">
@@ -1653,7 +1633,7 @@ export const TradingRight: React.FC = () => {
               )}
 
               {hasTarget && (
-                <div className="flex flex-col gap-0.5 bg-slate-900/40 p-1.5 rounded border border-white/5 font-mono text-[9px]">
+                <div className="flex flex-col gap-0.5 bg-slate-900/40 p-1.5 rounded border border-white/5 font-mono text-xs">
                   <div className="flex justify-between">
                     <span className="text-slate-500">POTENTIAL REWARD:</span>
                     <span className="font-bold text-emerald-400">
@@ -1671,7 +1651,7 @@ export const TradingRight: React.FC = () => {
             </div>
           </div>
           {brokerMarginError && (
-            <span className="text-[8px] text-rose-400 mt-1 uppercase font-sans animate-pulse">
+            <span className="text-xs text-rose-400 mt-1 uppercase font-sans animate-pulse">
               * {brokerMarginError}
             </span>
           )}
@@ -1682,10 +1662,8 @@ export const TradingRight: React.FC = () => {
           <button
             onClick={() => handlePlaceOrder("BUY")}
             disabled={orderSubmitting || !currentInstrument}
-            className={`w-full font-black py-3 rounded text-sm transition-all tracking-wide text-center ${
-              orderSubmitting
-                ? "bg-slate-700 text-slate-400 cursor-not-allowed"
-                : "bg-emerald-500 hover:bg-emerald-400 text-slate-950 cursor-pointer shadow-[0_0_20px_rgba(16,185,129,0.25)]"
+            className={`btn-buy w-full ${
+              orderSubmitting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
             }`}
           >
             {orderSubmitting ? "Submitting..." : "Buy"}
@@ -1693,10 +1671,8 @@ export const TradingRight: React.FC = () => {
           <button
             onClick={() => handlePlaceOrder("SELL")}
             disabled={orderSubmitting || !currentInstrument}
-            className={`w-full font-black py-3 rounded text-sm transition-all tracking-wide text-center ${
-              orderSubmitting
-                ? "bg-slate-700 text-slate-400 cursor-not-allowed"
-                : "bg-rose-500 hover:bg-rose-400 text-slate-950 cursor-pointer shadow-[0_0_20px_rgba(244,63,94,0.25)]"
+            className={`btn-sell w-full ${
+              orderSubmitting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
             }`}
           >
             {orderSubmitting ? "Submitting..." : "Sell"}
@@ -1709,10 +1685,10 @@ export const TradingRight: React.FC = () => {
 
       {/* Option Greeks & Analytics HUD */}
       {analytics && (
-        <div className="p-2 flex flex-col gap-2 font-mono text-[9px] select-none text-slate-300 border-t border-white/5">
+        <div className="p-2 flex flex-col gap-2 font-mono text-xs select-none text-slate-300 border-t border-white/5">
           <div className="text-[12px] font-sans font-bold text-slate-200 border-b border-white/5 pb-1 flex justify-between items-center">
             <span>Option analytics</span>
-            <span className={`px-1 py-0.5 rounded text-[8px] font-sans font-bold border ${
+            <span className={`px-1 py-0.5 rounded text-xs font-sans font-bold border ${
               analytics.domSignal === "BULLISH" ? "text-emerald-400 bg-emerald-950/40 border-emerald-700/30" :
               analytics.domSignal === "BEARISH" ? "text-rose-400 bg-rose-950/40 border-rose-700/30" :
               "text-slate-400 bg-slate-900/40 border-white/10"
@@ -1722,7 +1698,7 @@ export const TradingRight: React.FC = () => {
           </div>
 
           {/* Greeks Grid */}
-          <div className="grid grid-cols-5 gap-1.5 border-b border-white/5 pb-2 text-center text-[8px] text-slate-400">
+          <div className="grid grid-cols-5 gap-1.5 border-b border-white/5 pb-2 text-center text-xs text-slate-400">
             <div>
               <div className="text-slate-500">DELTA</div>
               <div className="font-bold text-slate-200 mt-0.5">{analytics.delta.toFixed(3)}</div>
@@ -1779,7 +1755,7 @@ export const TradingRight: React.FC = () => {
 
           {/* DOM Buy/Sell Ratio Progress Bar */}
           <div className="mt-1 border-t border-white/5 pt-2 flex flex-col gap-1 select-none">
-            <div className="flex justify-between text-[8px] text-slate-500 uppercase">
+            <div className="flex justify-between text-xs text-slate-500 uppercase">
               <span>Buy Qty (Bid): {analytics.bidQty.toLocaleString()}</span>
               <span>Sell Qty (Ask): {analytics.askQty.toLocaleString()}</span>
             </div>
@@ -1822,23 +1798,23 @@ export const TradingRight: React.FC = () => {
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                  <div className="grid grid-cols-4 text-[10px] text-slate-400 font-mono">
+                  <div className="grid grid-cols-4 text-xs text-slate-400 font-mono">
                     <div className="flex flex-col">
-                      <span className="text-[8px] text-slate-600 font-sans uppercase">Side</span>
+                      <span className="text-xs text-slate-600 font-sans ">Side</span>
                       <span className={qty > 0 ? "text-emerald-400 font-bold" : qty < 0 ? "text-rose-400 font-bold" : "text-slate-500"}>
                         {qty > 0 ? "LONG" : qty < 0 ? "SHORT" : "CLOSED"}
                       </span>
                     </div>
                     <div className="flex flex-col text-right">
-                      <span className="text-[8px] text-slate-600 font-sans uppercase">Qty</span>
+                      <span className="text-xs text-slate-600 font-sans ">Qty</span>
                       <span>{qty}</span>
                     </div>
                     <div className="flex flex-col text-right">
-                      <span className="text-[8px] text-slate-600 font-sans uppercase">Avg/LTP</span>
+                      <span className="text-xs text-slate-600 font-sans ">Avg/LTP</span>
                       <span>₹{Number(pos.average_price || pos.buy_price || 0).toFixed(1)}/₹{Number(pos.last_price || 0).toFixed(1)}</span>
                     </div>
                     <div className="flex flex-col text-right">
-                      <span className="text-[8px] text-slate-600 font-sans uppercase">PnL</span>
+                      <span className="text-xs text-slate-600 font-sans ">PnL</span>
                       <span className={`font-bold ${Number(pos.unrealised || 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                         {Number(pos.unrealised || 0) >= 0 ? "+" : ""}₹{Number(pos.unrealised || 0).toLocaleString("en-IN", { maximumFractionDigits: 1 })}
                       </span>
@@ -1848,8 +1824,8 @@ export const TradingRight: React.FC = () => {
               );
             })
           ) : (
-            <div className="flex-1 flex items-center justify-center text-slate-500 text-[10px]">
-              No active open positions.
+            <div className="empty-state flex-1">
+              <span>No active open positions.</span>
             </div>
           )}
         </div>
@@ -2076,11 +2052,11 @@ const OptionChainPanel: React.FC = () => {
         <div className="flex items-center gap-3">
           {/* Underlying Selector */}
           <div className="flex items-center gap-1.5">
-            <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Index:</span>
+            <span className="text-xs text-slate-500 font-bold ">Index:</span>
             <select
               value={underlying}
               onChange={(e) => setUnderlying(e.target.value)}
-              className="bg-slate-950 border border-white/10 rounded px-2 py-1 text-[11px] text-slate-200 focus:outline-none focus:border-cyan-500/40 cursor-pointer font-sans"
+              className="bg-slate-950 border border-white/10 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-cyan-500/40 cursor-pointer font-sans"
             >
               <option value="NIFTY">NIFTY</option>
               <option value="BANKNIFTY">BANKNIFTY</option>
@@ -2094,11 +2070,11 @@ const OptionChainPanel: React.FC = () => {
 
           {/* Expiry Selector */}
           <div className="flex items-center gap-1.5">
-            <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Expiry:</span>
+            <span className="text-xs text-slate-500 font-bold ">Expiry:</span>
             <select
               value={selectedExpiry}
               onChange={(e) => setSelectedExpiry(e.target.value)}
-              className="bg-slate-950 border border-white/10 rounded px-2 py-1 text-[11px] text-slate-200 focus:outline-none focus:border-cyan-500/40 cursor-pointer font-sans"
+              className="bg-slate-950 border border-white/10 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-cyan-500/40 cursor-pointer font-sans"
             >
               {expiries.map((exp) => (
                 <option key={exp} value={exp}>
@@ -2112,29 +2088,29 @@ const OptionChainPanel: React.FC = () => {
         {/* Spot Price and Status Indicator */}
         <div className="flex items-center gap-4 text-xs font-mono">
           <div className="flex items-center gap-1.5">
-            <span className="text-[9px] text-slate-500 uppercase tracking-wider">Spot Price:</span>
+            <span className="text-xs text-slate-500 ">Spot price:</span>
             <span className="text-cyan-400 font-bold">
               ₹{spotPrice.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </span>
           </div>
-          {loading && <span className="text-[9px] text-cyan-500 animate-pulse uppercase">Syncing...</span>}
+          {loading && <span className="text-xs text-cyan-500 animate-pulse uppercase">Syncing...</span>}
         </div>
       </div>
 
       {/* Selected Contract Quick HUD */}
       {currentInstrument && (
-        <div className="bg-cyan-500/5 border border-cyan-500/20 px-3 py-1.5 rounded flex items-center justify-between text-[11px] font-sans">
+        <div className="bg-cyan-500/5 border border-cyan-500/20 px-3 py-1.5 rounded flex items-center justify-between text-xs font-sans">
           <div className="flex items-center gap-2">
-            <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px]">Active Target:</span>
+            <span className="text-slate-500 font-bold text-xs">Active target:</span>
             <span className="font-bold text-cyan-400 font-mono">{currentInstrument.symbol}</span>
           </div>
-          <span className="text-[9px] font-mono text-slate-500 uppercase">Key: {currentInstrument.symbol}</span>
+          <span className="text-xs font-mono text-slate-500 ">Key: {currentInstrument.symbol}</span>
         </div>
       )}
 
       {/* Error alert */}
       {error && (
-        <div className="p-2 bg-rose-950/40 border border-rose-500/20 text-rose-400 text-[10px] rounded select-none">
+        <div className="p-2 bg-rose-950/40 border border-rose-500/20 text-rose-400 text-xs rounded select-none">
           {error}
         </div>
       )}
@@ -2294,9 +2270,7 @@ const OptionChainPanel: React.FC = () => {
               })
             ) : (
               <tr>
-                <td colSpan={15} className="py-6 text-center text-slate-500 text-[10px] font-sans">
-                  No options chain data loaded. Please select a valid expiry.
-                </td>
+                <td colSpan={15}><div className="empty-state">No options chain data loaded. Please select a valid expiry.</div></td>
               </tr>
             )}
           </tbody>
@@ -2484,7 +2458,7 @@ export const TradingBottom: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-3 py-1.5 font-bold text-[10px] tracking-wide transition-all border-b-2 cursor-pointer ${
+            className={`px-3 py-1.5 font-bold text-xs tracking-wide transition-all border-b-2 cursor-pointer ${
               activeTab === tab.id
                 ? "border-cyan-400 text-cyan-400 bg-slate-900/30"
                 : "border-transparent text-slate-500 hover:text-slate-300"
@@ -2503,9 +2477,9 @@ export const TradingBottom: React.FC = () => {
 
         {/* Tab 1: Positions */}
         {activeTab === "positions" && (
-          <table className="w-full text-left font-mono tabular-nums text-[10px]">
+          <table className="w-full text-left font-mono tabular-nums text-xs">
             <thead>
-              <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-[9px] tracking-wider">
+              <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-xs tracking-wider">
                 <th className="py-1.5 pl-2">Symbol</th>
                 <th className="py-1.5 text-center">Qty</th>
                 <th className="py-1.5 text-center">Product</th>
@@ -2541,18 +2515,18 @@ export const TradingBottom: React.FC = () => {
                         {Number(pos.realised || 0) >= 0 ? "+" : ""}₹{Number(pos.realised || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
                       <td className="py-1.5 text-center">
-                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold font-sans border ${statusClass}`}>
+                        <span className={`px-1.5 py-0.5 rounded text-xs font-bold font-sans border ${statusClass}`}>
                           {statusLabel}
                         </span>
                       </td>
                       <td className="py-1.5 text-center pr-2">
                         {qty !== 0 ? (
                           squaringOffKey === posKey ? (
-                            <span className="text-[9px] text-rose-400 font-sans animate-pulse">Exiting...</span>
+                            <span className="text-xs text-rose-400 font-sans animate-pulse">Exiting...</span>
                           ) : (
                             <button
                               onClick={() => handleSquareOff(pos)}
-                              className="text-[9px] text-rose-400 hover:text-rose-300 font-sans uppercase font-bold tracking-wider hover:underline transition-all duration-150"
+                              className="text-xs text-rose-400 hover:text-rose-300 font-sans font-bold hover:underline transition-all duration-150"
                             >
                               [ Square Off ]
                             </button>
@@ -2566,9 +2540,7 @@ export const TradingBottom: React.FC = () => {
                 })
               ) : (
                 <tr>
-                  <td colSpan={10} className="py-6 text-center text-slate-500 text-[10px] font-sans">
-                    No active positions found in Upstox account.
-                  </td>
+                  <td colSpan={10}><div className="empty-state">No active positions found in Upstox account.</div></td>
                 </tr>
               )}
             </tbody>
@@ -2577,9 +2549,9 @@ export const TradingBottom: React.FC = () => {
 
         {/* Tab 2: Orders */}
         {activeTab === "orders" && (
-          <table className="w-full text-left font-mono tabular-nums text-[10px]">
+          <table className="w-full text-left font-mono tabular-nums text-xs">
             <thead>
-              <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-[9px] tracking-wider">
+              <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-xs tracking-wider">
                 <th className="py-1.5 pl-2">Order ID</th>
                 <th className="py-1.5">Symbol</th>
                 <th className="py-1.5 text-center">Qty</th>
@@ -2644,14 +2616,14 @@ export const TradingBottom: React.FC = () => {
                       </td>
                       <td className="py-1.5 text-center font-bold text-slate-400 font-sans">{ord.order_type}</td>
                       <td className="py-1.5 text-center">
-                        <span className={`px-1 py-0.5 rounded text-[8px] font-bold uppercase font-sans border ${statusClass}`}>
+                        <span className={`px-1 py-0.5 rounded text-xs font-bold uppercase font-sans border ${statusClass}`}>
                           {statusLabel}
                         </span>
                       </td>
                       <td className="py-1.5 text-right font-bold text-slate-200">
                         {isEditing ? (
                           <div className="flex items-center justify-end gap-1">
-                            <span className="text-[8px] text-slate-500">₹</span>
+                            <span className="text-xs text-slate-500">₹</span>
                             <input
                               type="number"
                               step="0.05"
@@ -2665,7 +2637,7 @@ export const TradingBottom: React.FC = () => {
                         )}
                       </td>
                       <td className="py-1.5 text-right pr-2 text-slate-500">{ord.order_timestamp || ord.exchange_timestamp}</td>
-                      <td className="py-1.5 text-center pr-2 font-sans font-bold text-[9px] select-none">
+                      <td className="py-1.5 text-center pr-2 font-sans font-bold text-xs select-none">
                         {isEditing ? (
                           <div className="flex gap-2.5 justify-center">
                             {modifyingOrderId === ord.order_id ? (
@@ -2713,7 +2685,7 @@ export const TradingBottom: React.FC = () => {
                             )}
                           </div>
                         ) : (
-                          <span className="text-slate-600 font-mono font-normal text-[10px]">—</span>
+                          <span className="text-slate-600 font-mono font-normal text-xs">—</span>
                         )}
                       </td>
                     </tr>
@@ -2721,9 +2693,7 @@ export const TradingBottom: React.FC = () => {
                 })
               ) : (
                 <tr>
-                  <td colSpan={8} className="py-6 text-center text-slate-500 text-[10px] font-sans">
-                    No orders found in Upstox account.
-                  </td>
+                  <td colSpan={8}><div className="empty-state">No orders found in Upstox account.</div></td>
                 </tr>
               )}
             </tbody>
@@ -2732,9 +2702,9 @@ export const TradingBottom: React.FC = () => {
 
         {/* Tab 3: Trades */}
         {activeTab === "trades" && (
-          <table className="w-full text-left font-mono tabular-nums text-[10px]">
+          <table className="w-full text-left font-mono tabular-nums text-xs">
             <thead>
-              <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-[9px] tracking-wider">
+              <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-xs tracking-wider">
                 <th className="py-1.5 pl-2">Trade ID</th>
                 <th className="py-1.5">Order ID</th>
                 <th className="py-1.5">Symbol</th>
@@ -2752,7 +2722,7 @@ export const TradingBottom: React.FC = () => {
                     <td className="py-1.5 text-slate-500 font-mono">{trd.order_id}</td>
                     <td className="py-1.5 font-sans font-bold text-slate-200">{trd.trading_symbol}</td>
                     <td className="py-1.5 text-center">
-                      <span className={`font-sans font-bold text-[9px] ${trd.transaction_type === "BUY" ? "text-emerald-400" : "text-rose-400"}`}>
+                      <span className={`font-sans font-bold text-xs ${trd.transaction_type === "BUY" ? "text-emerald-400" : "text-rose-400"}`}>
                         {trd.transaction_type}
                       </span>
                     </td>
@@ -2763,9 +2733,7 @@ export const TradingBottom: React.FC = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-6 text-center text-slate-500 text-[10px] font-sans">
-                    No trades executed today in Upstox account.
-                  </td>
+                  <td colSpan={7}><div className="empty-state">No trades executed today in Upstox account.</div></td>
                 </tr>
               )}
             </tbody>
@@ -2774,9 +2742,9 @@ export const TradingBottom: React.FC = () => {
 
         {/* Tab 4: Holdings */}
         {activeTab === "holdings" && (
-          <table className="w-full text-left font-mono tabular-nums text-[10px]">
+          <table className="w-full text-left font-mono tabular-nums text-xs">
             <thead>
-              <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-[9px] tracking-wider">
+              <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-xs tracking-wider">
                 <th className="py-1.5 pl-2">Symbol</th>
                 <th className="py-1.5 text-center">Qty</th>
                 <th className="py-1.5 text-right">Avg Cost</th>
@@ -2809,9 +2777,7 @@ export const TradingBottom: React.FC = () => {
                 })
               ) : (
                 <tr>
-                  <td colSpan={6} className="py-6 text-center text-slate-500 text-[10px] font-sans">
-                    No holdings found in Upstox account.
-                  </td>
+                  <td colSpan={6}><div className="empty-state">No holdings found in Upstox account.</div></td>
                 </tr>
               )}
             </tbody>
@@ -2830,25 +2796,25 @@ export const TradingBottom: React.FC = () => {
             </div>
             {/* Secondary metrics */}
             <div className="flex flex-col border-l border-white/5 pl-6">
-              <span className="text-[11px] text-slate-500 font-sans">Realized</span>
+              <span className="text-xs text-slate-500 font-sans">Realized</span>
               <span className={`font-mono text-xl font-bold tabular-nums ${realizedPnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                 {realizedPnL >= 0 ? "+" : ""}₹{realizedPnL.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </span>
             </div>
             <div className="flex flex-col border-l border-white/5 pl-6">
-              <span className="text-[11px] text-slate-500 font-sans">Unrealized</span>
+              <span className="text-xs text-slate-500 font-sans">Unrealized</span>
               <span className={`font-mono text-xl font-bold tabular-nums ${unrealizedPnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                 {unrealizedPnL >= 0 ? "+" : ""}₹{unrealizedPnL.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </span>
             </div>
             <div className="flex flex-col border-l border-white/5 pl-6">
-              <span className="text-[11px] text-slate-500 font-sans">Day total</span>
+              <span className="text-xs text-slate-500 font-sans">Day total</span>
               <span className={`font-mono text-xl font-bold tabular-nums ${realizedPnL + unrealizedPnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                 {realizedPnL + unrealizedPnL >= 0 ? "+" : ""}₹{(realizedPnL + unrealizedPnL).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </span>
             </div>
             <div className="flex flex-col border-l border-white/5 pl-6">
-              <span className="text-[11px] text-slate-500 font-sans">Brokerage</span>
+              <span className="text-xs text-slate-500 font-sans">Brokerage</span>
               <span className="font-mono text-xl font-bold tabular-nums text-slate-300">
                 ₹{brokerage.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </span>

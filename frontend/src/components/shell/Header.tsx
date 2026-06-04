@@ -103,7 +103,7 @@ export const Header: React.FC = () => {
         </div>
       )}
       <header className="h-10 border-b border-subtle bg-deep flex items-center justify-between px-4 select-none shrink-0 font-sans z-30">
-        {/* Brand Logo & Workspace Dropdown Switcher */}
+        {/* 1. Workspace navigation */}
         <div className="flex items-center gap-2.5 shrink-0 relative">
           <div className="flex items-center gap-1.5 select-none">
             <div className="w-5 h-5 bg-cyan-neon rounded-sm flex items-center justify-center font-black text-xs text-white">V</div>
@@ -156,48 +156,58 @@ export const Header: React.FC = () => {
 
           <div className="h-4 w-[1px] bg-white/10" />
 
-          {/* Active Workspace Indicator Text */}
-          <span className="text-[11px] font-bold text-cyan-neon uppercase tracking-wider font-sans select-none">
+          {/* Active Workspace Indicator Text (Sentence Case) */}
+          <span className="text-xs font-semibold text-cyan-neon font-sans select-none">
             {workspaces.find((ws) => ws.id === selectedWorkspace)?.name || selectedWorkspace}
           </span>
         </div>
 
-        {/* Center Section: Live Updating Index Tickers & Account Indicator */}
-        <div className="flex-1 flex justify-center items-center gap-6 mx-4">
+        {/* Visually Prominent Search Bar */}
+        <div 
+          onClick={toggleCommandPalette}
+          className="w-64 flex items-center gap-2 px-3 py-1 bg-slate-950/40 border border-subtle rounded-md hover:border-cyan-neon/30 hover:bg-slate-950/60 transition-all text-slate-400 cursor-pointer select-none mx-4"
+        >
+          <Search className="w-3.5 h-3.5 text-slate-500" />
+          <span className="text-xs text-slate-500 font-medium flex-1 text-left">Search commands & symbols...</span>
+          <kbd className="text-[9px] font-mono bg-slate-900 border border-white/10 px-1.5 py-0.5 rounded text-slate-500">⌘K</kbd>
+        </div>
+
+        {/* 2. Market indices & 3. Account state */}
+        <div className="flex-1 flex justify-center items-center gap-6 mx-2">
           <div className="flex items-center gap-4 text-xs font-mono select-none tabular-nums">
             <div className="flex items-center gap-1.5">
-              <span className="text-slate-400 font-semibold font-sans">NIFTY</span>
-              <span className={tickerData.nifty.change >= 0 ? "text-emerald-450" : "text-rose-500"}>
+              <span className="text-slate-500 font-semibold font-sans">NIFTY</span>
+              <span className={`font-bold ${tickerData.nifty.change >= 0 ? "text-emerald-400" : "text-rose-500"}`}>
                 {tickerData.nifty.price.toFixed(2)}
               </span>
-              <span className={`font-semibold ${tickerData.nifty.change >= 0 ? "text-emerald-450" : "text-rose-500"}`}>
-                {tickerData.nifty.change >= 0 ? "+" : ""}{tickerData.nifty.change.toFixed(2)} ({tickerData.nifty.change >= 0 ? "+" : ""}{tickerData.nifty.pct.toFixed(2)}%)
+              <span className={`font-semibold ${tickerData.nifty.change >= 0 ? "text-emerald-400" : "text-rose-500"}`}>
+                {tickerData.nifty.change >= 0 ? "+" : ""}{tickerData.nifty.pct.toFixed(2)}%
               </span>
             </div>
             <div className="flex items-center gap-1.5 border-l border-white/5 pl-4">
-              <span className="text-slate-400 font-semibold font-sans">BANKNIFTY</span>
-              <span className={tickerData.banknifty.change >= 0 ? "text-emerald-450" : "text-rose-500"}>
+              <span className="text-slate-500 font-semibold font-sans">BANKNIFTY</span>
+              <span className={`font-bold ${tickerData.banknifty.change >= 0 ? "text-emerald-400" : "text-rose-500"}`}>
                 {tickerData.banknifty.price.toFixed(2)}
               </span>
-              <span className={`font-semibold ${tickerData.banknifty.change >= 0 ? "text-emerald-450" : "text-rose-500"}`}>
-                {tickerData.banknifty.change >= 0 ? "+" : ""}{tickerData.banknifty.change.toFixed(2)} ({tickerData.banknifty.change >= 0 ? "+" : ""}{tickerData.banknifty.pct.toFixed(2)}%)
+              <span className={`font-semibold ${tickerData.banknifty.change >= 0 ? "text-emerald-400" : "text-rose-500"}`}>
+                {tickerData.banknifty.change >= 0 ? "+" : ""}{tickerData.banknifty.pct.toFixed(2)}%
               </span>
             </div>
             <div className="flex items-center gap-1.5 border-l border-white/5 pl-4">
-              <span className="text-slate-400 font-semibold font-sans">VIX</span>
-              <span className={tickerData.vix.change >= 0 ? "text-emerald-450" : "text-rose-500"}>
+              <span className="text-slate-500 font-semibold font-sans">VIX</span>
+              <span className={`font-bold ${tickerData.vix.change >= 0 ? "text-emerald-400" : "text-rose-500"}`}>
                 {tickerData.vix.price.toFixed(2)}
               </span>
-              <span className={`font-semibold ${tickerData.vix.change >= 0 ? "text-emerald-450" : "text-rose-500"}`}>
-                {tickerData.vix.change >= 0 ? "+" : ""}{tickerData.vix.change.toFixed(2)} ({tickerData.vix.pct.toFixed(2)}%)
+              <span className={`font-semibold ${tickerData.vix.change >= 0 ? "text-emerald-400" : "text-rose-500"}`}>
+                {tickerData.vix.pct.toFixed(2)}%
               </span>
             </div>
             {/* Account Indicator */}
             <div className="flex items-center gap-1.5 border-l border-white/10 pl-4 font-sans text-xs uppercase font-bold tracking-wider">
               <span className={currentAccount.type === "live" ? "text-rose-500" : "text-amber-500"}>
-                {currentAccount.type === "live" ? "LIVE" : "PAPER"} ●
+                {currentAccount.type === "live" ? "LIVE" : "PAPER"}
               </span>
-              <span className={`font-mono tabular-nums ${
+              <span className={`font-mono tabular-nums font-bold ${
                 headerPnl > 0 ? "text-emerald-400" : headerPnl < 0 ? "text-rose-500" : "text-slate-300"
               }`}>
                 {headerPnl >= 0 ? "+" : ""}₹{headerPnl.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -206,18 +216,7 @@ export const Header: React.FC = () => {
           </div>
         </div>
 
-        {/* Compact Search Trigger */}
-        <div className="w-[120px] shrink-0 mr-4">
-          <div 
-            onClick={toggleCommandPalette}
-            className="flex items-center gap-1.5 px-2 py-1 bg-card border border-subtle rounded-sm cursor-pointer hover:border-cyan-neon/30 hover:bg-card-hover transition-all text-slate-300 select-none justify-center"
-          >
-            <Search className="w-3 h-3 text-cyan-neon" />
-            <span className="text-xs font-semibold">⌘K Search</span>
-          </div>
-        </div>
-
-        {/* Right Section: Telemetry HUD & Profile Menu */}
+        {/* 4. System telemetry & user actions */}
         <div className="flex items-center gap-4 text-xs">
           {/* Account Selector */}
           <div className="relative">
@@ -225,8 +224,8 @@ export const Header: React.FC = () => {
               onClick={() => setShowAccountDropdown(!showAccountDropdown)}
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-sm border font-semibold tracking-wide text-xs uppercase transition-all cursor-pointer ${
                 currentAccount.type === "live"
-                  ? "bg-rose-500/10 border-rose-500/20 text-rose-455"
-                  : "bg-amber-500/10 border-amber-500/20 text-amber-455"
+                  ? "bg-rose-500/10 border-rose-500/20 text-rose-455 hover:bg-rose-500/20"
+                  : "bg-amber-500/10 border-amber-500/20 text-amber-455 hover:bg-amber-500/20"
               }`}
             >
               <KeyRound className="w-3.5 h-3.5" />
@@ -261,43 +260,27 @@ export const Header: React.FC = () => {
           </div>
 
           {/* Compact Telemetry HUD */}
-          <div className="flex items-center gap-3 bg-slate-950/60 border border-white/5 py-1 px-2.5 rounded-sm text-xs font-mono select-none">
-            {/* GUI Status */}
-            <div 
-              className="flex items-center gap-1.5 cursor-help" 
-              title={`GUI Status: ${connectionStatus === "CONNECTED" ? "Connected" : "Offline"}`}
-            >
-              <span className={`w-1.5 h-1.5 rounded-full ${connectionStatus === "CONNECTED" ? "bg-emerald-450 shadow-[0_0_6px_rgba(52,211,153,0.4)]" : "bg-rose-500 animate-pulse"}`} />
-              <span className="text-slate-455 font-semibold">GUI</span>
-            </div>
-            {/* Broker Auth Status */}
-            <div 
-              className="flex items-center gap-1.5 border-l border-white/5 pl-2.5 cursor-help" 
-              title={`Broker Auth: ${status?.broker_auth === "Valid" ? "Valid" : "Expired"}`}
-            >
-              <span className={`w-1.5 h-1.5 rounded-full ${status?.broker_auth === "Valid" ? "bg-emerald-450 shadow-[0_0_6px_rgba(52,211,153,0.4)]" : "bg-rose-500 animate-pulse"}`} />
-              <span className="text-slate-455 font-semibold">AUTH</span>
-            </div>
-            {/* Market Feed Status */}
-            <div 
-              className="flex items-center gap-1.5 border-l border-white/5 pl-2.5 cursor-help" 
-              title={`Market Feed: ${status?.market_feed === "Live" ? "Live" : "Offline"}`}
-            >
-              <span className={`w-1.5 h-1.5 rounded-full ${status?.market_feed === "Live" ? "bg-emerald-450 shadow-[0_0_6px_rgba(52,211,153,0.4)]" : "bg-rose-500 animate-pulse"}`} />
-              <span className="text-slate-455 font-semibold">FEED</span>
-            </div>
-            {/* Execution Engine Status */}
-            <div 
-              className="flex items-center gap-1.5 border-l border-white/5 pl-2.5 cursor-help" 
-              title={`Execution Engine: ${status?.execution_engine || "Stopped"}`}
-            >
+          <div className="flex items-center gap-2 bg-slate-950/20 border border-white/5 py-1 px-2.5 rounded text-[10px] font-mono tracking-tight text-slate-500 select-none">
+            <span className="flex items-center gap-1" title={`GUI: ${connectionStatus}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${connectionStatus === "CONNECTED" ? "bg-emerald-500" : "bg-rose-500 animate-pulse"}`} />
+              <span>GUI</span>
+            </span>
+            <span className="flex items-center gap-1 pl-2 border-l border-white/5" title={`AUTH: ${status?.broker_auth}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${status?.broker_auth === "Valid" ? "bg-emerald-500" : "bg-rose-500 animate-pulse"}`} />
+              <span>AUTH</span>
+            </span>
+            <span className="flex items-center gap-1 pl-2 border-l border-white/5" title={`FEED: ${status?.market_feed}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${status?.market_feed === "Live" ? "bg-emerald-500" : "bg-rose-500 animate-pulse"}`} />
+              <span>FEED</span>
+            </span>
+            <span className="flex items-center gap-1 pl-2 border-l border-white/5" title={`ENG: ${status?.execution_engine}`}>
               <span className={`w-1.5 h-1.5 rounded-full ${
-                status?.execution_engine === "Running" ? "bg-emerald-450 shadow-[0_0_6px_rgba(52,211,153,0.4)]" :
-                status?.execution_engine === "Paused" ? "bg-amber-455 animate-pulse" :
+                status?.execution_engine === "Running" ? "bg-emerald-500" :
+                status?.execution_engine === "Paused" ? "bg-amber-500 animate-pulse" :
                 "bg-rose-500"
               }`} />
-              <span className="text-slate-455 font-semibold">ENG</span>
-            </div>
+              <span>ENG</span>
+            </span>
           </div>
 
           {/* Dynamic Theme Toggle */}
@@ -347,9 +330,9 @@ export const Header: React.FC = () => {
                 <button className="w-full text-left px-3 py-1.5 hover:bg-rose-500/10 text-rose-455 font-semibold transition-colors cursor-pointer">Halt Engine & Log Out</button>
               </div>
             )}
-          </div>
         </div>
-      </header>
+      </div>
+    </header>
     </>
   );
 };

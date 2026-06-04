@@ -39,7 +39,7 @@ export const TradingLeft: React.FC = () => (
             <span className="font-semibold text-slate-200">{item.symbol}</span>
             <div className="text-right">
               <div className="font-mono text-slate-200">₹{item.price}</div>
-              <div className={`text-[10px] font-semibold ${item.up ? "text-emerald-400" : "text-rose-400"}`}>{item.change}</div>
+              <div className={`text-xs font-semibold ${item.up ? "text-emerald-400" : "text-rose-400"}`}>{item.change}</div>
             </div>
           </div>
         ))}
@@ -58,8 +58,8 @@ export const TradingMain: React.FC = () => (
           Workspace layouts are fully registered, responsive, and stateful. Switch workspaces, resize, and collapse panels to test persistence.
         </p>
         <div className="mt-4 flex gap-2">
-          <span className="text-[10px] px-2 py-1 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">Layout Preserved</span>
-          <span className="text-[10px] px-2 py-1 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">State Saved</span>
+          <span className="text-xs px-2 py-1 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">Layout Preserved</span>
+          <span className="text-xs px-2 py-1 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">State Saved</span>
         </div>
       </div>
     </div>
@@ -70,11 +70,11 @@ export const TradingRight: React.FC = () => (
   <GlowingCard title="Order Desk">
     <div className="flex flex-col gap-3 text-xs">
       <div className="grid grid-cols-2 gap-2 bg-slate-900/40 p-1 rounded border border-white/5">
-        <button className="bg-cyan-500 text-slate-950 font-bold py-1.5 rounded transition-all text-[11px] shadow-lg shadow-cyan-500/20">BUY</button>
-        <button className="bg-slate-900 text-slate-400 hover:bg-slate-800 py-1.5 rounded transition-all text-[11px]">SELL</button>
+        <button className="bg-cyan-500 text-slate-950 font-bold py-1.5 rounded transition-all text-xs shadow-lg shadow-cyan-500/20">BUY</button>
+        <button className="bg-slate-900 text-slate-400 hover:bg-slate-800 py-1.5 rounded transition-all text-xs">SELL</button>
       </div>
       <div className="flex flex-col gap-2 mt-2">
-        <label className="text-[10px] text-slate-400 uppercase tracking-wider">Order Type</label>
+        <label className="text-xs text-slate-400 uppercase tracking-wider">Order Type</label>
         <select className="bg-slate-900 border border-white/10 rounded px-2 py-1.5 text-slate-300">
           <option>MARKET</option>
           <option>LIMIT</option>
@@ -83,11 +83,11 @@ export const TradingRight: React.FC = () => (
       </div>
       <div className="grid grid-cols-2 gap-2">
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] text-slate-400 uppercase">Quantity (Lots)</label>
+          <label className="text-xs text-slate-400 uppercase">Quantity (Lots)</label>
           <input type="number" defaultValue={1} className="bg-slate-900 border border-white/10 rounded px-2 py-1 text-slate-300 text-center" />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] text-slate-400 uppercase">Trigger Price</label>
+          <label className="text-xs text-slate-400 uppercase">Trigger Price</label>
           <input type="number" defaultValue={120} className="bg-slate-900 border border-white/10 rounded px-2 py-1 text-slate-300 text-center" />
         </div>
       </div>
@@ -109,12 +109,12 @@ export const TradingBottom: React.FC = () => (
       { label: "Available Funding", value: "₹12,30,400.00", sub: "Margin power: 10x", trend: null }
     ].map((card, idx) => (
       <div key={idx} className="glass-panel p-3 bg-slate-950/20 border border-white/5 rounded-lg flex flex-col justify-between">
-        <span className="text-[10px] uppercase text-slate-400 tracking-wider">{card.label}</span>
+        <span className="text-xs uppercase text-slate-400 tracking-wider">{card.label}</span>
         <div className="flex items-end justify-between mt-1">
           <span className={`text-base font-bold ${card.trend === true ? "text-emerald-400" : card.trend === false ? "text-rose-400" : "text-slate-100"}`}>
             {card.value}
           </span>
-          <span className="text-[10px] text-slate-500">{card.sub}</span>
+          <span className="text-xs text-slate-500">{card.sub}</span>
         </div>
       </div>
     ))}
@@ -129,9 +129,9 @@ export const ScalperMain: React.FC = () => (
     <div className="col-span-2 glass-panel p-3 border border-white/5 rounded-lg bg-slate-950/30 flex flex-col h-full overflow-hidden">
       <div className="flex justify-between items-center border-b border-white/5 pb-2 mb-2">
         <span className="font-bold text-slate-300">LEVEL 2 DOM (Depth of Market)</span>
-        <span className="text-[10px] bg-rose-500/10 text-rose-400 border border-rose-500/20 px-1.5 py-0.5 rounded font-bold uppercase animate-pulse">Live</span>
+        <span className="text-xs bg-rose-500/10 text-rose-400 border border-rose-500/20 px-1.5 py-0.5 rounded font-bold uppercase animate-pulse">Live</span>
       </div>
-      <div className="flex-1 overflow-y-auto font-mono text-[11px] flex flex-col gap-0.5 pr-1">
+      <div className="flex-1 overflow-y-auto font-mono text-xs flex flex-col gap-0.5 pr-1">
         {[
           { size: 28, bid: null, price: "223.70", ask: 12, sizeAsk: 12 },
           { size: 37, bid: null, price: "223.65", ask: 17, sizeAsk: 17 },
@@ -146,9 +146,9 @@ export const ScalperMain: React.FC = () => (
         ].map((row, idx) => (
           <div key={idx} className="grid grid-cols-5 py-0.5 border-b border-white/[0.02] text-center items-center">
             <span className="text-emerald-400 text-left pl-2">{row.bid || ""}</span>
-            <span className="text-emerald-500/60 text-left text-[10px]">{row.bid ? `${row.size} Lots` : ""}</span>
+            <span className="text-emerald-500/60 text-left text-xs">{row.bid ? `${row.size} Lots` : ""}</span>
             <span className={`font-bold ${row.bid ? "text-emerald-400" : "text-rose-400"} bg-slate-900/60 rounded py-0.5`}>₹{row.price}</span>
-            <span className="text-rose-500/60 text-right text-[10px]">{row.ask ? `${row.sizeAsk} Lots` : ""}</span>
+            <span className="text-rose-500/60 text-right text-xs">{row.ask ? `${row.sizeAsk} Lots` : ""}</span>
             <span className="text-rose-400 text-right pr-2">{row.ask || ""}</span>
           </div>
         ))}
@@ -158,7 +158,7 @@ export const ScalperMain: React.FC = () => (
     {/* Scalping Order Desk */}
     <div className="col-span-1 flex flex-col gap-3 justify-between">
       <div className="glass-panel p-3 border border-white/5 rounded-lg bg-slate-950/20 flex flex-col gap-2.5">
-        <span className="font-bold text-[10px] tracking-wider text-slate-400 uppercase">ORDER PAD</span>
+        <span className="font-bold text-xs tracking-wider text-slate-400 uppercase">ORDER PAD</span>
         <div className="grid grid-cols-3 gap-1">
           {[1, 2, 5, 10].map(lots => (
             <button key={lots} className="bg-slate-900 border border-white/10 py-1 hover:border-cyan-400 rounded text-slate-300 font-semibold">{lots} L</button>
@@ -169,14 +169,14 @@ export const ScalperMain: React.FC = () => (
           <button className="bg-emerald-500 text-slate-950 font-bold py-2 rounded text-xs uppercase shadow-lg shadow-emerald-500/10">BUY MKT</button>
           <button className="bg-rose-500 text-slate-950 font-bold py-2 rounded text-xs uppercase shadow-lg shadow-rose-500/10">SELL MKT</button>
         </div>
-        <button className="bg-white/5 border border-white/10 hover:bg-white/10 text-slate-300 font-bold py-1.5 rounded text-[10px] uppercase">FLATTEN ALL</button>
+        <button className="bg-white/5 border border-white/10 hover:bg-white/10 text-slate-300 font-bold py-1.5 rounded text-xs uppercase">FLATTEN ALL</button>
       </div>
 
       <div className="glass-panel p-3 border border-red-500/20 rounded-lg bg-red-950/5 flex flex-col">
         <button className="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 rounded text-xs uppercase tracking-widest shadow-lg shadow-red-600/20">
           PANIC EXIT
         </button>
-        <span className="text-[9px] text-red-400/60 text-center mt-1.5 uppercase tracking-wider">SQUARES OFF ALL POSITIONS & CANCELS ALL ORDERS</span>
+        <span className="text-xs text-red-400/60 text-center mt-1.5 uppercase tracking-wider">SQUARES OFF ALL POSITIONS & CANCELS ALL ORDERS</span>
       </div>
     </div>
   </div>
@@ -186,7 +186,7 @@ export const ScalperRight: React.FC = () => (
   <GlowingCard title="Quick execution settings">
     <div className="flex flex-col gap-4 text-xs">
       <div className="bg-slate-950/40 p-3 rounded-lg border border-white/5 flex flex-col gap-2">
-        <span className="text-[10px] uppercase text-slate-400 tracking-wider">Hotkeys status</span>
+        <span className="text-xs uppercase text-slate-400 tracking-wider">Hotkeys status</span>
         <div className="flex items-center justify-between text-slate-300">
           <span>Shift + B (Buy Market)</span>
           <span className="font-semibold text-emerald-400">ACTIVE</span>
@@ -201,11 +201,11 @@ export const ScalperRight: React.FC = () => (
         </div>
       </div>
       <div className="flex flex-col gap-2 mt-1">
-        <label className="text-[10px] text-slate-400 uppercase">Scalp Target</label>
+        <label className="text-xs text-slate-400 uppercase">Scalp Target</label>
         <div className="grid grid-cols-3 gap-1">
-          <button className="bg-slate-900 border border-white/5 py-1 text-slate-300 rounded font-semibold text-[10px]">+2 pts</button>
-          <button className="bg-slate-900 border border-white/5 py-1 text-slate-300 rounded font-semibold text-[10px]">+5 pts</button>
-          <button className="bg-cyan-950 border border-cyan-800 text-cyan-400 py-1 rounded font-semibold text-[10px]">+10 pts</button>
+          <button className="bg-slate-900 border border-white/5 py-1 text-slate-300 rounded font-semibold text-xs">+2 pts</button>
+          <button className="bg-slate-900 border border-white/5 py-1 text-slate-300 rounded font-semibold text-xs">+5 pts</button>
+          <button className="bg-cyan-950 border border-cyan-800 text-cyan-400 py-1 rounded font-semibold text-xs">+10 pts</button>
         </div>
       </div>
     </div>
@@ -216,24 +216,24 @@ export const ScalperBottom: React.FC = () => (
   <div className="flex items-center justify-between h-full bg-slate-950/10 px-4 py-2 border border-white/5 rounded-lg text-xs">
     <div className="flex gap-6 items-center">
       <div>
-        <span className="text-[10px] text-slate-500 uppercase tracking-wider block">CURRENT ACTIVE POSITION</span>
+        <span className="text-xs text-slate-500 uppercase tracking-wider block">CURRENT ACTIVE POSITION</span>
         <span className="font-bold text-slate-200">BANKNIFTY CE (LONG 5 LOTS)</span>
       </div>
       <div>
-        <span className="text-[10px] text-slate-500 uppercase tracking-wider block">ENTRY PRICE</span>
+        <span className="text-xs text-slate-500 uppercase tracking-wider block">ENTRY PRICE</span>
         <span className="font-bold text-slate-200">₹487.30</span>
       </div>
       <div>
-        <span className="text-[10px] text-slate-500 uppercase tracking-wider block">LTP</span>
+        <span className="text-xs text-slate-500 uppercase tracking-wider block">LTP</span>
         <span className="font-bold text-slate-200">₹498.20</span>
       </div>
       <div>
-        <span className="text-[10px] text-slate-500 uppercase tracking-wider block">R:R</span>
+        <span className="text-xs text-slate-500 uppercase tracking-wider block">R:R</span>
         <span className="font-semibold text-cyan-400">1 : 2.5</span>
       </div>
     </div>
     <div>
-      <span className="text-[10px] text-slate-500 uppercase tracking-wider block text-right">UNREALIZED P&L</span>
+      <span className="text-xs text-slate-500 uppercase tracking-wider block text-right">UNREALIZED P&L</span>
       <span className="font-bold text-emerald-400 text-lg glow-green">+₹5,450.00 (+2.22%)</span>
     </div>
   </div>
@@ -257,7 +257,7 @@ export const BacktestLeft: React.FC = () => (
             : "bg-slate-900/30 border-white/5 hover:bg-slate-900/60 text-slate-300"
         }`}>
           <span className="font-semibold">{strat.name}</span>
-          <span className={`text-[9px] px-1.5 py-0.5 rounded uppercase font-bold border ${
+          <span className={`text-xs px-1.5 py-0.5 rounded uppercase font-bold border ${
             strat.status === "Tested" 
               ? "bg-emerald-950/30 text-emerald-400 border-emerald-800" 
               : "bg-amber-950/30 text-amber-400 border-amber-800"
@@ -303,9 +303,9 @@ export const BacktestMain: React.FC = () => (
           </div>
         </div>
         <div className="flex gap-4 border-t border-white/5 pt-2 text-xs text-slate-400">
-          <div><span className="text-[10px] block text-slate-500">Benchmark Return</span><span className="font-semibold text-slate-300">+12.4%</span></div>
-          <div><span className="text-[10px] block text-slate-500">Alpha Generated</span><span className="font-semibold text-emerald-400">+6.3%</span></div>
-          <div><span className="text-[10px] block text-slate-500">Sharpe Ratio</span><span className="font-semibold text-slate-300">1.87</span></div>
+          <div><span className="text-xs block text-slate-500">Benchmark Return</span><span className="font-semibold text-slate-300">+12.4%</span></div>
+          <div><span className="text-xs block text-slate-500">Alpha Generated</span><span className="font-semibold text-emerald-400">+6.3%</span></div>
+          <div><span className="text-xs block text-slate-500">Sharpe Ratio</span><span className="font-semibold text-slate-300">1.87</span></div>
         </div>
       </div>
     </div>
@@ -316,19 +316,19 @@ export const BacktestRight: React.FC = () => (
   <GlowingCard title="Strategy parameters">
     <div className="flex flex-col gap-3 text-xs">
       <div className="flex flex-col gap-1.5">
-        <label className="text-[10px] text-slate-400">EMA Fast Period</label>
+        <label className="text-xs text-slate-400">EMA Fast Period</label>
         <input type="number" defaultValue={9} className="bg-slate-900 border border-white/10 rounded px-2.5 py-1 text-slate-200" />
       </div>
       <div className="flex flex-col gap-1.5">
-        <label className="text-[10px] text-slate-400">EMA Slow Period</label>
+        <label className="text-xs text-slate-400">EMA Slow Period</label>
         <input type="number" defaultValue={21} className="bg-slate-900 border border-white/10 rounded px-2.5 py-1 text-slate-200" />
       </div>
       <div className="flex flex-col gap-1.5">
-        <label className="text-[10px] text-slate-400">Pullback threshold (%)</label>
+        <label className="text-xs text-slate-400">Pullback threshold (%)</label>
         <input type="number" defaultValue={0.5} className="bg-slate-900 border border-white/10 rounded px-2.5 py-1 text-slate-200" />
       </div>
       <div className="flex flex-col gap-1.5">
-        <label className="text-[10px] text-slate-400">ATR Period</label>
+        <label className="text-xs text-slate-400">ATR Period</label>
         <input type="number" defaultValue={14} className="bg-slate-900 border border-white/10 rounded px-2.5 py-1 text-slate-200" />
       </div>
       <button className="w-full mt-3 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded flex items-center justify-center gap-1.5 uppercase text-xs tracking-wider shadow-lg shadow-cyan-500/10">
@@ -348,12 +348,12 @@ export const BacktestBottom: React.FC = () => (
       { label: "Max Drawdown", value: "-8.32%", sub: "Peak to Trough", trend: false }
     ].map((card, idx) => (
       <div key={idx} className="glass-panel p-3 bg-slate-950/20 border border-white/5 rounded-lg flex flex-col justify-between">
-        <span className="text-[10px] uppercase text-slate-400 tracking-wider">{card.label}</span>
+        <span className="text-xs uppercase text-slate-400 tracking-wider">{card.label}</span>
         <div className="flex items-end justify-between mt-1">
           <span className={`text-base font-bold ${card.trend === true ? "text-emerald-400" : card.trend === false ? "text-rose-400" : "text-slate-100"}`}>
             {card.value}
           </span>
-          <span className="text-[10px] text-slate-500">{card.sub}</span>
+          <span className="text-xs text-slate-500">{card.sub}</span>
         </div>
       </div>
     ))}
@@ -366,21 +366,21 @@ export const PaperLeft: React.FC = () => (
   <GlowingCard title="Deploy configuration">
     <div className="flex flex-col gap-3 text-xs">
       <div className="flex flex-col gap-1.5">
-        <label className="text-[10px] text-slate-400 uppercase">Target Strategy</label>
+        <label className="text-xs text-slate-400 uppercase">Target Strategy</label>
         <select className="bg-slate-900 border border-white/10 rounded px-2 py-1.5 text-slate-300">
           <option>EMA Pullback v4</option>
           <option>VWAP Reversal v2</option>
         </select>
       </div>
       <div className="flex flex-col gap-1.5">
-        <label className="text-[10px] text-slate-400 uppercase">Underlying Index</label>
+        <label className="text-xs text-slate-400 uppercase">Underlying Index</label>
         <select className="bg-slate-900 border border-white/10 rounded px-2 py-1.5 text-slate-300">
           <option>BANKNIFTY</option>
           <option>NIFTY</option>
         </select>
       </div>
       <div className="flex flex-col gap-1.5">
-        <label className="text-[10px] text-slate-400 uppercase">Timeframe</label>
+        <label className="text-xs text-slate-400 uppercase">Timeframe</label>
         <select className="bg-slate-900 border border-white/10 rounded px-2 py-1.5 text-slate-300">
           <option>5m</option>
           <option>1m</option>
@@ -408,7 +408,7 @@ export const PaperMain: React.FC = () => (
         <div className="w-full h-40 flex items-center justify-center">
           {/* Simulated chart */}
           <div className="w-full max-w-md h-full flex flex-col justify-end">
-            <div className="w-full flex items-end justify-between h-3/4 px-4 font-mono text-[10px] text-slate-500">
+            <div className="w-full flex items-end justify-between h-3/4 px-4 font-mono text-xs text-slate-500">
               <div className="w-4 bg-emerald-400/20 border-t border-emerald-400 h-10" />
               <div className="w-4 bg-rose-400/20 border-t border-rose-400 h-8" />
               <div className="w-4 bg-emerald-400/20 border-t border-emerald-400 h-16" />
@@ -435,13 +435,9 @@ export const PaperRight: React.FC = () => (
         <div key={idx} className="bg-slate-900/40 p-2.5 rounded border border-white/5 flex flex-col gap-1.5 hover:border-white/10 transition-all">
           <div className="flex justify-between items-center">
             <span className="font-semibold text-slate-200">{bot.name}</span>
-            <span className={`text-[9px] px-1 rounded-full font-bold border ${
-              bot.status === "Running" 
-                ? "bg-emerald-950/20 text-emerald-400 border-emerald-800" 
-                : "bg-slate-900 text-slate-500 border-slate-700"
-            }`}>{bot.status}</span>
+            <span className={`status-badge ${bot.status === "Running" ? "running" : "inactive"}`}>{bot.status}</span>
           </div>
-          <div className="flex justify-between text-[11px] text-slate-400">
+          <div className="flex justify-between text-xs text-slate-400">
             <span>{bot.symbol}</span>
             <span className={bot.up ? "text-emerald-400 font-semibold" : "text-rose-400 font-semibold"}>{bot.pnl}</span>
           </div>
@@ -460,12 +456,12 @@ export const PaperBottom: React.FC = () => (
       { label: "Paper Margin Used", value: "₹1,20,400.00", sub: "Free power: 88%", trend: null }
     ].map((card, idx) => (
       <div key={idx} className="glass-panel p-3 bg-slate-950/20 border border-white/5 rounded-lg flex flex-col justify-between">
-        <span className="text-[10px] uppercase text-slate-400 tracking-wider">{card.label}</span>
+        <span className="text-xs uppercase text-slate-400 tracking-wider">{card.label}</span>
         <div className="flex items-end justify-between mt-1">
           <span className={`text-base font-bold ${card.trend === true ? "text-emerald-400" : card.trend === false ? "text-rose-400" : "text-slate-100"}`}>
             {card.value}
           </span>
-          <span className="text-[10px] text-slate-500">{card.sub}</span>
+          <span className="text-xs text-slate-500">{card.sub}</span>
         </div>
       </div>
     ))}
@@ -488,7 +484,7 @@ export const DeploymentsLeft: React.FC = () => (
             : "bg-slate-900/30 border-white/5 hover:bg-slate-900/60 text-slate-300"
         }`}>
           <span className="font-semibold">{env.name}</span>
-          <span className="text-[10px] text-slate-400">{env.desc}</span>
+          <span className="text-xs text-slate-400">{env.desc}</span>
         </div>
       ))}
     </div>
@@ -511,20 +507,20 @@ export const DeploymentsMain: React.FC = () => (
 
 export const DeploymentsBottom: React.FC = () => (
   <div className="glass-panel p-3 border border-white/5 rounded-lg bg-slate-950/30 h-full overflow-hidden text-xs">
-    <div className="flex items-center gap-2 border-b border-white/5 pb-2 mb-2 text-cyan-400 font-bold uppercase tracking-wider text-[10px]">
+    <div className="flex items-center gap-2 border-b border-white/5 pb-2 mb-2 text-cyan-400 font-bold uppercase tracking-wider text-xs">
       <Server className="w-3.5 h-3.5" /> Engine deployment host telemetry
     </div>
     <div className="grid grid-cols-3 gap-4">
       <div className="bg-slate-900/30 p-2.5 rounded border border-white/5">
-        <span className="text-[10px] text-slate-500 block">CPU STABILITY</span>
+        <span className="text-xs text-slate-500 block">CPU STABILITY</span>
         <span className="font-mono font-semibold text-slate-200">14.2% Load</span>
       </div>
       <div className="bg-slate-900/30 p-2.5 rounded border border-white/5">
-        <span className="text-[10px] text-slate-500 block">RAM ALLOCATION</span>
+        <span className="text-xs text-slate-500 block">RAM ALLOCATION</span>
         <span className="font-mono font-semibold text-slate-200">1.2 GB / 8 GB</span>
       </div>
       <div className="bg-slate-900/30 p-2.5 rounded border border-white/5">
-        <span className="text-[10px] text-slate-500 block">NETWORK LATENCY</span>
+        <span className="text-xs text-slate-500 block">NETWORK LATENCY</span>
         <span className="font-mono font-semibold text-emerald-400">14ms average</span>
       </div>
     </div>
@@ -558,7 +554,7 @@ export const OperationsLeft: React.FC = () => (
 export const OperationsMain: React.FC = () => (
   <GlowingCard title="Runtime Event Logs Logger">
     <div className="flex flex-col justify-between h-full min-h-[300px]">
-      <div className="flex-1 bg-slate-950/60 border border-white/5 p-3 rounded font-mono text-[11px] text-slate-300 flex flex-col gap-1.5 overflow-y-auto">
+      <div className="flex-1 bg-slate-950/60 border border-white/5 p-3 rounded font-mono text-xs text-slate-300 flex flex-col gap-1.5 overflow-y-auto">
         <div><span className="text-slate-500">[09:21:15]</span> <span className="text-cyan-400">[INFO]</span> Buy Order Filled - BANKNIFTY 15 MAY 46700 CE</div>
         <div><span className="text-slate-500">[09:21:14]</span> <span className="text-emerald-400">[TRADE]</span> Sell Order Filled - NIFTY 15 MAY 22300 CE</div>
         <div><span className="text-slate-500">[09:21:10]</span> <span className="text-amber-400">[WARN]</span> WebSocket connection latencies peaked at 180ms</div>
@@ -581,7 +577,7 @@ export const OperationsRight: React.FC = () => (
       ].map((comp, idx) => (
         <div key={idx} className="flex justify-between items-center p-2 rounded bg-slate-900/30 border border-white/5">
           <span className="text-slate-300 font-semibold">{comp.name}</span>
-          <span className={`text-[9px] px-2 py-0.5 rounded border uppercase font-bold ${comp.color}`}>{comp.status}</span>
+          <span className="status-badge success">{comp.status}</span>
         </div>
       ))}
     </div>
@@ -590,8 +586,8 @@ export const OperationsRight: React.FC = () => (
 
 export const OperationsBottom: React.FC = () => (
   <div className="glass-panel p-3 border border-white/5 rounded-lg bg-slate-950/30 h-full overflow-hidden text-xs">
-    <span className="text-[10px] text-slate-500 font-bold uppercase block mb-1">Trace Ledger Transaction Auditor</span>
-    <table className="w-full text-left font-mono text-[10px]">
+    <span className="text-xs text-slate-500 font-bold uppercase block mb-1">Trace Ledger Transaction Auditor</span>
+    <table className="w-full text-left font-mono text-xs">
       <thead>
         <tr className="border-b border-white/10 text-slate-400">
           <th className="py-1">TIMESTAMP</th>

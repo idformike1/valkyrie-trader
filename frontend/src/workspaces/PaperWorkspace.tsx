@@ -13,17 +13,17 @@ import { useBacktestStore } from "@/store/useBacktestStore";
 
 // Helper components for professional Mission Control styling
 const MissionCard: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ title, children, className = "" }) => (
-  <div className={`p-2 flex flex-col h-full ${className}`}>
-    <h3 className="text-[12px] font-bold text-slate-200 border-b border-white/5 pb-1.5 mb-2 flex items-center justify-between">
-      <span>{title}</span>
-    </h3>
-    <div className="flex-1 overflow-y-auto min-h-0">{children}</div>
+  <div className={`panel flex flex-col h-full ${className}`}>
+    <div className="panel-header">
+      <span className="text-sm font-medium text-slate-200">{title}</span>
+    </div>
+    <div className="flex-1 overflow-y-auto min-h-0 p-3">{children}</div>
   </div>
 );
 
 const TelemetryDial: React.FC<{ label: string; value: string | number; subText?: string; isPositive?: boolean; isHero?: boolean }> = ({ label, value, subText, isPositive, isHero }) => (
   <div className="flex flex-col gap-0.5 select-none">
-    <span className={`text-[11px] font-semibold ${isHero ? "text-slate-300" : "text-slate-500"}`}>{label}</span>
+    <span className={`text-xs font-semibold ${isHero ? "text-slate-300" : "text-slate-500"}`}>{label}</span>
     <span className={`font-mono tabular-nums font-black tracking-tight leading-none ${
       isHero 
         ? "text-4xl md:text-5xl" 
@@ -31,7 +31,7 @@ const TelemetryDial: React.FC<{ label: string; value: string | number; subText?:
     } ${
       isPositive === true ? "text-emerald-400" : isPositive === false ? "text-rose-450" : "text-slate-200"
     }`}>{value}</span>
-    {subText && <span className="text-[11px] text-slate-500 font-mono tabular-nums">{subText}</span>}
+    {subText && <span className="text-xs text-slate-500 font-mono tabular-nums">{subText}</span>}
   </div>
 );
 
@@ -374,7 +374,7 @@ export const PaperMain: React.FC = () => {
           <div className="flex items-center">
             {isEngineRunning ? (
               isEnginePaused ? (
-                <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/25 text-[10px] font-bold font-mono flex items-center gap-1.5 shadow-[0_0_10px_rgba(245,158,11,0.05)]">
+                <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/25 text-xs font-bold font-mono flex items-center gap-1.5 shadow-[0_0_10px_rgba(245,158,11,0.05)]">
                   <span className="relative flex h-1.5 w-1.5">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500"></span>
@@ -382,7 +382,7 @@ export const PaperMain: React.FC = () => {
                   ● Paused
                 </span>
               ) : (
-                <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 text-[10px] font-bold font-mono flex items-center gap-1.5 shadow-[0_0_12px_rgba(16,185,129,0.15)]">
+                <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 text-xs font-bold font-mono flex items-center gap-1.5 shadow-[0_0_12px_rgba(16,185,129,0.15)]">
                   <span className="relative flex h-1.5 w-1.5">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
@@ -391,8 +391,8 @@ export const PaperMain: React.FC = () => {
                 </span>
               )
             ) : (
-              <span className="px-2 py-0.5 rounded bg-slate-900 border border-white/5 text-slate-405 text-[10px] font-bold font-mono flex items-center gap-1.5">
-                <span className="text-slate-500 text-[8px]">○</span>
+              <span className="px-2 py-0.5 rounded bg-slate-900 border border-white/5 text-slate-405 text-xs font-bold font-mono flex items-center gap-1.5">
+                <span className="text-slate-500 text-xs">○</span>
                 Ready
               </span>
             )}
@@ -401,14 +401,14 @@ export const PaperMain: React.FC = () => {
           <div className="h-4 w-px bg-white/5" />
 
           {/* Inline Capital Input */}
-          <div className="flex items-center gap-1 text-[11px] font-mono">
+          <div className="flex items-center gap-1 text-xs font-mono">
             <span className="text-slate-500 font-bold">₹</span>
             <input
               type="number"
               value={allocation}
               onChange={(e) => setAllocation(Number(e.target.value))}
               disabled={isEngineRunning}
-              className="bg-transparent border-none text-[11px] text-slate-300 focus:outline-none font-mono w-16 py-0.5"
+              className="bg-transparent border-none text-xs text-slate-300 focus:outline-none font-mono w-16 py-0.5"
             />
           </div>
         </div>
@@ -419,9 +419,9 @@ export const PaperMain: React.FC = () => {
             <button
               onClick={handleDeploy}
               disabled={!selectedStrategy}
-              className="bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-900 disabled:text-slate-600 disabled:border-white/5 text-slate-950 font-bold px-3 py-1 rounded transition-all cursor-pointer text-center flex items-center gap-1 text-xs border border-transparent"
+              className="btn-buy flex items-center gap-1 cursor-pointer disabled:opacity-50"
             >
-              <Play className="w-3 h-3 fill-slate-955" />
+              <Play className="w-3 h-3" />
               Deploy
             </button>
           ) : (
@@ -429,26 +429,26 @@ export const PaperMain: React.FC = () => {
               {isEnginePaused ? (
                 <button
                   onClick={handleResume}
-                  className="bg-emerald-500 hover:bg-emerald-400 text-slate-955 font-bold px-3 py-1 rounded transition-all cursor-pointer text-center flex items-center gap-1 text-xs border border-transparent"
+                  className="btn-buy flex items-center gap-1 cursor-pointer"
                 >
-                  <Play className="w-3 h-3 fill-slate-955" />
+                  <Play className="w-3 h-3" />
                   Resume
                 </button>
               ) : (
                 <button
                   onClick={handlePause}
-                  className="bg-amber-500 hover:bg-amber-400 text-slate-955 font-bold px-3 py-1 rounded transition-all cursor-pointer text-center flex items-center gap-1 text-xs border border-transparent"
+                  className="btn-secondary text-amber-400 flex items-center gap-1 cursor-pointer"
                 >
-                  <Pause className="w-3 h-3 fill-slate-955" />
+                  <Pause className="w-3 h-3" />
                   Pause
                 </button>
               )}
 
               <button
                 onClick={handleStop}
-                className="bg-rose-500 hover:bg-rose-400 text-slate-955 font-bold px-3 py-1 rounded transition-all cursor-pointer text-center flex items-center gap-1 text-xs border border-transparent"
+                className="btn-destructive flex items-center gap-1 cursor-pointer"
               >
-                <Square className="w-3 h-3 fill-slate-955" />
+                <Square className="w-3 h-3" />
                 Stop
               </button>
             </>
@@ -479,18 +479,18 @@ export const PaperMain: React.FC = () => {
             {isSettingsOpen && (
               <div className="bg-slate-900/30 border border-white/5 rounded-lg p-3 flex flex-col gap-2 font-sans transition-all">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-white/5 pb-1.5">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Strategy Settings
                   </span>
                   
                   {/* Preset Selector Dropdown */}
-                  <div className="flex items-center gap-1 text-[11px] text-slate-400">
+                  <div className="flex items-center gap-1 text-xs text-slate-400">
                     <span className="font-semibold shrink-0">Preset:</span>
                     <select
                       value={selectedPresetId}
                       onChange={(e) => handlePresetChange(e.target.value)}
                       disabled={isEngineRunning}
-                      className="bg-slate-950 border border-white/10 rounded px-1.5 py-0.5 text-slate-305 font-mono focus:outline-none text-[11px]"
+                      className="bg-slate-950 border border-white/10 rounded px-1.5 py-0.5 text-slate-305 font-mono focus:outline-none text-xs"
                     >
                       <option value="">-- Manual --</option>
                       {presets.map((preset) => (
@@ -499,11 +499,11 @@ export const PaperMain: React.FC = () => {
                         </option>
                       ))}
                     </select>
-                    {presetsLoading && <span className="text-[9px] text-cyan-500 animate-pulse">Loading...</span>}
+                    {presetsLoading && <span className="text-xs text-cyan-500 animate-pulse">Loading...</span>}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
                   <div className="flex flex-col gap-0.5">
                     <span className="text-slate-500 font-semibold mb-0.5">Underlying index</span>
                     <div className="flex gap-0.5 bg-slate-950 p-0.5 rounded border border-white/10">
@@ -515,7 +515,7 @@ export const PaperMain: React.FC = () => {
                             type="button"
                             disabled={isEngineRunning}
                             onClick={() => setIndexName(idx)}
-                            className={`flex-1 py-1 text-[9px] font-bold font-mono transition-all rounded-sm uppercase tracking-wider ${
+                            className={`flex-1 py-1 text-xs font-bold font-mono transition-all rounded-sm uppercase tracking-wider ${
                               active
                                 ? "bg-cyan-500/20 text-cyan-400 font-black"
                                 : "text-slate-400 hover:text-slate-200"
@@ -538,7 +538,7 @@ export const PaperMain: React.FC = () => {
                             type="button"
                             disabled={isEngineRunning}
                             onClick={() => setOptionType(ot)}
-                            className={`flex-1 py-1 text-[9px] font-bold font-mono transition-all rounded-sm ${
+                            className={`flex-1 py-1 text-xs font-bold font-mono transition-all rounded-sm ${
                               active
                                 ? "bg-cyan-500/20 text-cyan-400 font-black"
                                 : "text-slate-400 hover:text-slate-200"
@@ -556,7 +556,7 @@ export const PaperMain: React.FC = () => {
                       value={strike}
                       onChange={(e) => setStrike(e.target.value)}
                       disabled={isEngineRunning}
-                      className="bg-slate-955 border border-white/10 rounded px-1.5 py-0.5 text-slate-305 font-mono focus:outline-none text-[11px]"
+                      className="bg-slate-955 border border-white/10 rounded px-1.5 py-0.5 text-slate-305 font-mono focus:outline-none text-xs"
                     >
                       {["ATM", "ATM+1", "ATM+2", "ATM+3", "ATM-1", "ATM-2", "ATM-3", "OTM_1", "OTM_2", "OTM_3", "ITM_1", "ITM_2", "ITM_3"].map((stk) => (
                         <option key={stk} value={stk}>{stk.replace("_", " ")}</option>
@@ -578,7 +578,7 @@ export const PaperMain: React.FC = () => {
                             type="button"
                             disabled={isEngineRunning}
                             onClick={() => setExpiry(item.value)}
-                            className={`flex-1 py-1 text-[9px] font-bold font-mono transition-all rounded-sm whitespace-nowrap ${
+                            className={`flex-1 py-1 text-xs font-bold font-mono transition-all rounded-sm whitespace-nowrap ${
                               active
                                 ? "bg-cyan-500/20 text-cyan-400 font-black"
                                 : "text-slate-400 hover:text-slate-200"
@@ -592,7 +592,7 @@ export const PaperMain: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
                   <div className="flex flex-col gap-0.5">
                     <span className="text-slate-500 font-semibold mb-0.5">Timeframe</span>
                     <div className="flex gap-0.5 bg-slate-950 p-0.5 rounded border border-white/10">
@@ -604,7 +604,7 @@ export const PaperMain: React.FC = () => {
                             type="button"
                             disabled={isEngineRunning}
                             onClick={() => setTimeframe(tf)}
-                            className={`flex-1 py-1 text-[9px] font-bold font-mono transition-all rounded-sm ${
+                            className={`flex-1 py-1 text-xs font-bold font-mono transition-all rounded-sm ${
                               active
                                 ? "bg-cyan-500/20 text-cyan-400 font-black"
                                 : "text-slate-400 hover:text-slate-200"
@@ -623,7 +623,7 @@ export const PaperMain: React.FC = () => {
                       value={lotSize}
                       onChange={(e) => setLotSize(Number(e.target.value))}
                       disabled={isEngineRunning}
-                      className="bg-slate-955 border border-white/10 rounded px-1.5 py-0.5 w-full text-slate-305 font-mono focus:outline-none text-[11px]"
+                      className="bg-slate-955 border border-white/10 rounded px-1.5 py-0.5 w-full text-slate-305 font-mono focus:outline-none text-xs"
                     />
                   </div>
                   <div className="flex flex-col gap-0.5">
@@ -633,7 +633,7 @@ export const PaperMain: React.FC = () => {
                       value={maxCandles}
                       onChange={(e) => setMaxCandles(Number(e.target.value))}
                       disabled={isEngineRunning}
-                      className="bg-slate-955 border border-white/10 rounded px-1.5 py-0.5 w-full text-slate-305 font-mono focus:outline-none text-[11px]"
+                      className="bg-slate-955 border border-white/10 rounded px-1.5 py-0.5 w-full text-slate-305 font-mono focus:outline-none text-xs"
                     />
                   </div>
                   <div className="flex flex-col gap-0.5">
@@ -643,13 +643,13 @@ export const PaperMain: React.FC = () => {
                       value={cutoffTime}
                       onChange={(e) => setCutoffTime(e.target.value)}
                       disabled={isEngineRunning}
-                      className="bg-slate-955 border border-white/10 rounded px-1.5 py-0.5 w-full text-slate-305 font-mono focus:outline-none text-[11px]"
+                      className="bg-slate-955 border border-white/10 rounded px-1.5 py-0.5 w-full text-slate-305 font-mono focus:outline-none text-xs"
                     />
                   </div>
                 </div>
 
                 {(selectedStrategy?.strategyId === "five_ema" || selectedStrategy?.strategyId === "five_ema_scalping") && (
-                  <div className="grid grid-cols-2 gap-2 text-[11px] border-t border-white/5 pt-2 mt-0.5">
+                  <div className="grid grid-cols-2 gap-2 text-xs border-t border-white/5 pt-2 mt-0.5">
                     <div className="flex flex-col gap-0.5">
                       <span className="text-slate-500 font-semibold">5 EMA period</span>
                       <input
@@ -657,7 +657,7 @@ export const PaperMain: React.FC = () => {
                         value={fiveEmaPeriod}
                         onChange={(e) => setFiveEmaPeriod(Number(e.target.value))}
                         disabled={isEngineRunning}
-                        className="bg-slate-955 border border-white/10 rounded px-1.5 py-0.5 text-slate-305 font-mono focus:outline-none text-[11px]"
+                        className="bg-slate-955 border border-white/10 rounded px-1.5 py-0.5 text-slate-305 font-mono focus:outline-none text-xs"
                       />
                     </div>
                     <div className="flex flex-col gap-0.5">
@@ -668,7 +668,7 @@ export const PaperMain: React.FC = () => {
                         value={fiveEmaRr}
                         onChange={(e) => setFiveEmaRr(Number(e.target.value))}
                         disabled={isEngineRunning}
-                        className="bg-slate-955 border border-white/10 rounded px-1.5 py-0.5 text-slate-305 font-mono focus:outline-none text-[11px]"
+                        className="bg-slate-955 border border-white/10 rounded px-1.5 py-0.5 text-slate-305 font-mono focus:outline-none text-xs"
                       />
                     </div>
                   </div>
@@ -681,7 +681,7 @@ export const PaperMain: React.FC = () => {
               {/* Hero Card 1 — P&L */}
               {(totalPnl === 0 && !status?.position) ? (
                 <div className="bg-slate-900/40 border border-white/5 rounded-lg p-3 flex flex-col justify-center min-h-[130px] select-none transition-all hover:border-white/10 col-span-5">
-                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">P&L</span>
+                  <span className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">P&L</span>
                   <span className="text-3xl font-black font-mono text-slate-400">₹0</span>
                   <span className="text-xs text-slate-500 font-bold font-mono mt-1">Win Rate {winRate}%</span>
                 </div>
@@ -720,7 +720,7 @@ export const PaperMain: React.FC = () => {
                       </span>
                     </div>
                     
-                    <div className="flex justify-between items-center gap-1.5 border-t border-white/5 pt-1 mt-1 font-mono text-[10px]">
+                    <div className="flex justify-between items-center gap-1.5 border-t border-white/5 pt-1 mt-1 font-mono text-xs">
                       <div className="flex items-center gap-0.5">
                         <span className="text-slate-500 font-bold">Qty</span>
                         <span className="font-bold text-slate-200">{status.position.qty ?? 0}</span>
@@ -769,7 +769,7 @@ export const PaperMain: React.FC = () => {
                       
                       <div className="flex flex-col gap-1.5 mt-1 border-t border-white/5 pt-1">
                         <div>
-                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold font-mono border ${
+                          <span className={`px-1.5 py-0.5 rounded text-xs font-bold font-mono border ${
                             executionSource.includes("LIVE") 
                               ? "bg-cyan-500/10 text-cyan-400 border-cyan-500/25" 
                               : executionSource.includes("CACHE")
@@ -779,7 +779,7 @@ export const PaperMain: React.FC = () => {
                             {executionSource.includes("LIVE") ? "LIVE" : executionSource.includes("CACHE") ? "CACHE" : "SYNTH"}
                           </span>
                         </div>
-                        <span className="text-[10px] text-slate-500 font-semibold font-mono">
+                        <span className="text-xs text-slate-500 font-semibold font-mono">
                           {new Date(lastTrade.timestamp).toLocaleTimeString()}
                         </span>
                       </div>
@@ -795,33 +795,33 @@ export const PaperMain: React.FC = () => {
               {/* Left Column: Session Activity & Trades List (Col-span 8) */}
               <div className="col-span-8 flex flex-col gap-2 min-h-0 bg-slate-900/20 border border-white/5 rounded-lg p-2.5">
                 <div className="flex items-center justify-between border-b border-white/5 pb-1 shrink-0">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Session Activity</span>
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Session Activity</span>
                 </div>
                 
                 {/* Statistics row */}
-                <div className="grid grid-cols-6 gap-2 bg-slate-950/20 border border-white/5 rounded p-2 text-center select-none font-mono text-[11px] shrink-0">
+                <div className="grid grid-cols-6 gap-2 bg-slate-950/20 border border-white/5 rounded p-2 text-center select-none font-mono text-xs shrink-0">
                   <div className="flex flex-col">
-                    <span className="text-[9px] text-slate-500 font-bold font-sans uppercase">Trades Today</span>
+                    <span className="text-xs text-slate-500 font-bold font-sans uppercase">Trades Today</span>
                     <span className="text-slate-200 font-bold text-xs mt-0.5">{totalTradesCount}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[9px] text-slate-500 font-bold font-sans uppercase">Wins</span>
+                    <span className="text-xs text-slate-500 font-bold font-sans uppercase">Wins</span>
                     <span className="text-emerald-400 font-bold text-xs mt-0.5">{winsCount}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[9px] text-slate-500 font-bold font-sans uppercase">Losses</span>
+                    <span className="text-xs text-slate-500 font-bold font-sans uppercase">Losses</span>
                     <span className="text-rose-455 font-bold text-xs mt-0.5">{lossesCount}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[9px] text-slate-500 font-bold font-sans uppercase">Win Rate</span>
+                    <span className="text-xs text-slate-500 font-bold font-sans uppercase">Win Rate</span>
                     <span className="text-cyan-400 font-bold text-xs mt-0.5">{computedWinRate}%</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[9px] text-slate-500 font-bold font-sans uppercase">Drawdown</span>
+                    <span className="text-xs text-slate-500 font-bold font-sans uppercase">Drawdown</span>
                     <span className="text-slate-200 font-bold text-xs mt-0.5">₹{drawdown.toLocaleString("en-IN")}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[9px] text-slate-500 font-bold font-sans uppercase">Runtime</span>
+                    <span className="text-xs text-slate-500 font-bold font-sans uppercase">Runtime</span>
                     <span className="text-slate-200 font-bold text-xs mt-0.5">{formatDuration(runtimeSeconds)}</span>
                   </div>
                 </div>
@@ -829,9 +829,9 @@ export const PaperMain: React.FC = () => {
                 {/* Dynamic recent trades list directly underneath if trades exist */}
                 {trades.length > 0 ? (
                   <div className="flex-1 overflow-y-auto border border-white/5 bg-slate-950/30 rounded scrollbar-thin scrollbar-thumb-white/5">
-                    <table className="w-full text-left font-mono tabular-nums text-[11px]">
+                    <table className="w-full text-left font-mono tabular-nums text-xs">
                       <thead>
-                        <tr className="border-b border-white/5 text-slate-550 text-[9px] font-bold bg-slate-900/40 sticky top-0">
+                        <tr className="border-b border-white/5 text-slate-550 text-xs font-bold bg-slate-900/40 sticky top-0">
                           <th className="py-1 px-2">Instrument</th>
                           <th className="py-1">Side</th>
                           <th className="py-1 text-right">Price</th>
@@ -859,8 +859,8 @@ export const PaperMain: React.FC = () => {
                     </table>
                   </div>
                 ) : (
-                  <div className="flex-1 flex items-center justify-center select-none border border-dashed border-white/5 rounded bg-slate-950/20">
-                    <span className="text-slate-550 font-bold text-xs">No Trades Yet</span>
+                  <div className="empty-state flex-1">
+                    <span>No trades yet</span>
                   </div>
                 )}
               </div>
@@ -868,9 +868,9 @@ export const PaperMain: React.FC = () => {
               {/* Right Column: Session Statistics Panel (Col-span 4) */}
               <div className="col-span-4 flex flex-col bg-slate-900/20 border border-white/5 rounded-lg p-2.5 select-none font-sans text-xs">
                 <div className="border-b border-white/5 pb-1 mb-2 shrink-0">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Session Statistics</span>
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Session Statistics</span>
                 </div>
-                <div className="flex-1 flex flex-col justify-between font-mono text-[11px]">
+                <div className="flex-1 flex flex-col justify-between font-mono text-xs">
                   <div className="flex flex-col gap-2">
                     <div className="flex justify-between items-center py-0.5 border-b border-white/[0.02]">
                       <span className="text-slate-550 font-sans">Trades Today</span>
@@ -911,7 +911,7 @@ export const PaperMain: React.FC = () => {
           <div className="h-full flex flex-col items-center justify-center text-slate-500 text-center gap-2 select-none py-8">
             <Cpu className="w-10 h-10 text-slate-700" />
             <span className="text-sm font-bold text-slate-400">Ready</span>
-            <span className="text-[10px] text-slate-550 font-mono">Select Strategy</span>
+            <span className="text-xs text-slate-550 font-mono">Select Strategy</span>
           </div>
         )}
       </div>
@@ -1025,33 +1025,28 @@ export const PaperRight: React.FC = () => {
     <div className="p-2 flex flex-col h-full bg-slate-955/60 border border-white/5 rounded-lg select-none font-sans text-xs gap-1.5 justify-between">
       <div className="flex flex-col gap-1.5">
         {selectedStrategy ? (
-          <div className="flex flex-col font-mono text-[10px] gap-2">
+          <div className="flex flex-col font-mono text-xs gap-2">
             {/* System Health Indicators */}
             <div className="flex flex-col gap-1.5">
               {systemItems.map((item, idx) => (
-                <div key={idx} className="flex items-center">
-                  {item.ok ? (
-                    <span className="text-emerald-500 font-bold flex items-center gap-1.5 leading-none">
-                      <span className="text-[10px]">●</span>
-                      <span className="text-slate-400 font-medium text-[9px]">{item.name}:</span>
-                      <span className="text-[9px] text-emerald-450 font-bold">{item.label}</span>
-                    </span>
-                  ) : (
-                    <span className="text-rose-500 font-bold flex items-center gap-1 leading-none text-[9px] animate-pulse">
-                      <span>⚠</span>
-                      <span className="text-slate-400 font-medium text-[9px]">{item.name}:</span>
-                      <span className="text-rose-455 font-bold">{item.label}</span>
-                    </span>
-                  )}
+                <div key={idx} className="flex justify-between items-center py-1 border-b border-white/[0.02]">
+                  <span className="text-slate-400 font-sans text-xs">{item.name}</span>
+                  <span className={`status-badge ${
+                    item.ok ? (
+                      item.label === "Connected" || item.label === "Live" || item.label === "Valid" || item.label === "Running" ? "success" : "connected"
+                    ) : (
+                      item.label === "Offline" || item.label === "Expired" || item.label === "Stopped" ? "offline" : "failed"
+                    )
+                  }`}>{item.label}</span>
                 </div>
               ))}
-              <div className={`text-[10px] font-bold mt-1.5 leading-none ${hasUnhealthy ? "text-rose-500 animate-pulse" : "text-slate-500"}`}>
+              <div className={`text-xs font-bold mt-1.5 leading-none ${hasUnhealthy ? "text-rose-500 animate-pulse" : "text-slate-500"}`}>
                 {status?.engine === "v2" ? (hasUnhealthy ? "35ms" : "12ms") : "N/A"}
               </div>
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-center text-slate-550 text-center font-mono text-[9px] py-4">
+          <div className="flex items-center justify-center text-slate-550 text-center font-mono text-xs py-4">
             ● WS
           </div>
         )}
@@ -1059,20 +1054,20 @@ export const PaperRight: React.FC = () => {
 
       {/* Session Lifecycle Status Card */}
       {selectedStrategy && (
-        <div className="p-2 bg-slate-950/40 rounded border border-white/5 flex flex-col gap-2 select-text font-mono text-[9px]">
+        <div className="p-2 bg-slate-950/40 rounded border border-white/5 flex flex-col gap-2 select-text font-mono text-xs">
           <div className="flex justify-between items-center border-b border-white/5 pb-1">
-            <span className={`text-[9px] font-bold uppercase tracking-wide ${
-              currentState === "RUNNING" ? "text-emerald-450 font-bold" :
-              currentState === "PAUSED" ? "text-amber-500" :
-              currentState === "STOPPED" ? "text-slate-500" :
-              currentState === "RECOVERING" ? "text-cyan-400 animate-pulse" : "text-slate-400"
+            <span className={`status-badge ${
+              currentState === "RUNNING" ? "running" :
+              currentState === "PAUSED" ? "paused" :
+              currentState === "STOPPED" ? "offline" :
+              currentState === "RECOVERING" ? "warning animate-pulse" : "connected"
             }`}>
               {currentState === "RUNNING" ? "Running" :
                currentState === "PAUSED" ? "Paused" :
                currentState === "STOPPED" ? "Stopped" :
                currentState === "RECOVERING" ? "Recovering" : "Ready"}
             </span>
-            <span className="text-[8px] text-slate-500">
+            <span className="text-xs text-slate-500">
               {status?.session_id ? `Session #${status.session_id}` : "No Active Session"}
             </span>
           </div>
@@ -1102,7 +1097,7 @@ export const PaperRight: React.FC = () => {
           </div>
 
           {/* Session Recovery Audit Indicators */}
-          <div className="border-t border-white/5 pt-1.5 flex flex-col gap-1 text-[8px] select-none">
+          <div className="border-t border-white/5 pt-1.5 flex flex-col gap-1 text-xs select-none">
             <div className="flex items-center justify-between">
               <span className="text-slate-500">Backend Alive:</span>
               <span className={connectionStatus === "CONNECTED" ? "text-emerald-500" : "text-rose-500"}>
@@ -1116,7 +1111,7 @@ export const PaperRight: React.FC = () => {
               </span>
             </div>
             {isSessionRestored && (
-              <div className="flex items-center justify-between bg-emerald-950/20 px-1 py-0.5 rounded border border-emerald-500/10 text-[8px] text-emerald-450 font-bold mt-0.5 animate-pulse">
+              <div className="flex items-center justify-between bg-emerald-950/20 px-1 py-0.5 rounded border border-emerald-500/10 text-xs text-emerald-450 font-bold mt-0.5 animate-pulse">
                 <span>Session Restored:</span>
                 <span>RECOVERED</span>
               </div>
@@ -1204,20 +1199,20 @@ export const PaperBottom: React.FC = () => {
     const s = (src || "SYNTHETIC_MODEL").toUpperCase();
     if (s.includes("LIVE")) {
       return (
-        <span className="px-2 py-0.5 rounded text-[10px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/10 font-medium">
+        <span className="px-2 py-0.5 rounded text-xs bg-cyan-500/10 text-cyan-400 border border-cyan-500/10 font-medium">
           Live quote
         </span>
       );
     }
     if (s.includes("CACHE")) {
       return (
-        <span className="px-2 py-0.5 rounded text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/10 font-medium">
+        <span className="px-2 py-0.5 rounded text-xs bg-blue-500/10 text-blue-400 border border-blue-500/10 font-medium">
           Historical cache
         </span>
       );
     }
     return (
-      <span className="px-2 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/10 font-medium">
+      <span className="px-2 py-0.5 rounded text-xs bg-amber-500/10 text-amber-500 border border-amber-500/10 font-medium">
         Synthetic model
       </span>
     );
@@ -1232,7 +1227,7 @@ export const PaperBottom: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-2 py-1.5 font-medium text-[10px] transition-all border-b-2 cursor-pointer ${
+            className={`px-2 py-1.5 font-medium text-xs transition-all border-b-2 cursor-pointer ${
               activeTab === tab.id
                 ? "border-cyan-400 text-cyan-400 bg-slate-900/30 font-semibold"
                 : "border-transparent text-slate-500 hover:text-slate-350"
@@ -1250,12 +1245,12 @@ export const PaperBottom: React.FC = () => {
         {activeTab === "positions" && (
           trades.length === 0 ? (
             <div className="flex items-center justify-center py-4 select-none">
-              <span className="text-xs font-bold text-slate-550">No Trades Yet</span>
+              <span className="empty-state">No trades yet</span>
             </div>
           ) : status?.position ? (
-            <table className="w-full text-left font-mono tabular-nums text-[11px]">
+            <table className="w-full text-left font-mono tabular-nums text-xs">
               <thead>
-                <tr className="border-b border-white/10 text-slate-500 select-none text-[9px] font-semibold">
+                <tr className="border-b border-white/10 text-slate-500 select-none text-xs font-semibold">
                   <th className="py-1 pl-1.5 font-sans">Instrument</th>
                   <th className="py-1 font-sans">Type</th>
                   <th className="py-1 text-center font-sans">Net quantity</th>
@@ -1292,14 +1287,14 @@ export const PaperBottom: React.FC = () => {
         {activeTab === "trades" && (
           trades.length === 0 ? (
             <div className="flex items-center justify-center py-4 select-none">
-              <span className="text-xs font-bold text-slate-555">No Trades Yet</span>
+              <span className="empty-state">No trades yet</span>
             </div>
           ) : trades.length > 0 ? (
             <div className="flex flex-col gap-2">
               <div className="max-h-[160px] overflow-y-auto border border-white/5 rounded">
-                <table className="w-full text-left font-mono tabular-nums text-[11px]">
+                <table className="w-full text-left font-mono tabular-nums text-xs">
                   <thead>
-                    <tr className="border-b border-white/10 text-slate-500 select-none text-[9px] font-semibold bg-slate-950/20">
+                    <tr className="border-b border-white/10 text-slate-500 select-none text-xs font-semibold bg-slate-950/20">
                       <th className="py-1 pl-1.5 font-sans">Trade ID</th>
                       <th className="py-1 font-sans">Instrument</th>
                       <th className="py-1 font-sans">Side</th>
@@ -1353,24 +1348,24 @@ export const PaperBottom: React.FC = () => {
                     </span>
                     <button 
                       onClick={() => setSelectedTradeId(null)}
-                      className="text-[9px] font-medium text-slate-400 hover:text-slate-200 bg-slate-900 border border-white/10 px-2 py-0.5 rounded cursor-pointer transition-colors"
+                      className="text-xs font-medium text-slate-400 hover:text-slate-200 bg-slate-900 border border-white/10 px-2 py-0.5 rounded cursor-pointer transition-colors"
                     >
                       Clear inspector
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-[11px] leading-relaxed">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs leading-relaxed">
                     {/* Left Column: Core Trade Reasons */}
                     <div className="bg-slate-900/40 p-3 rounded-lg border border-white/5 flex flex-col gap-3">
                       <div>
-                        <span className="text-slate-400 font-semibold block text-[10px] mb-1.5">Entry logic</span>
+                        <span className="text-slate-400 font-semibold block text-xs mb-1.5">Entry logic</span>
                         <pre className="text-slate-200 font-mono text-xs whitespace-pre-wrap leading-relaxed bg-slate-950/40 p-2.5 rounded border border-white/5">
                           {selectedTrade.entry_reason || selectedTrade.reason || "Strategy entry crossover or threshold met."}
                         </pre>
                       </div>
                       {selectedTrade.type === "EXIT" && (
                         <div>
-                          <span className="text-slate-400 font-semibold block text-[10px] mb-1.5">Exit logic</span>
+                          <span className="text-slate-400 font-semibold block text-xs mb-1.5">Exit logic</span>
                           <pre className="text-rose-400 font-mono text-xs whitespace-pre-wrap leading-relaxed bg-slate-950/40 p-2.5 rounded border border-white/5">
                             {selectedTrade.exit_reason || selectedTrade.reason || "Target, stop-loss, or trailing trigger executed."}
                           </pre>
@@ -1381,17 +1376,17 @@ export const PaperBottom: React.FC = () => {
                     {/* Middle Column: Execution Source & Quote Quality */}
                     <div className="bg-slate-900/40 p-3 rounded-lg border border-white/5 flex flex-col gap-3">
                       <div className="flex justify-between items-center py-1.5 border-b border-white/[0.02] text-xs">
-                        <span className="text-slate-400 font-semibold text-[10px]">Execution source:</span>
+                        <span className="text-slate-400 font-semibold text-xs">Execution source:</span>
                         <span className="font-mono text-cyan-400 font-bold text-xs">
                           {selectedTrade.execution_source === "LIVE_QUOTE" ? "Live quote" : selectedTrade.execution_source === "HISTORICAL_CACHE" ? "Historical cache" : "Synthetic model"}{" "}
-                          <span className="text-[9px] text-slate-500 font-semibold ml-1">Real</span>
+                          <span className="text-xs text-slate-500 font-semibold ml-1">Real</span>
                         </span>
                       </div>
 
                       <div>
-                        <span className="text-slate-400 font-semibold block text-[10px] mb-1.5 flex justify-between">
+                        <span className="text-slate-400 font-semibold block text-xs mb-1.5 flex justify-between">
                           <span>Quote quality diagnostics</span>
-                          <span className="text-[9px] text-slate-500 font-semibold">
+                          <span className="text-xs text-slate-500 font-semibold">
                             {selectedTrade.quote_quality ? "Real" : "Quote not available"}
                           </span>
                         </span>
@@ -1401,28 +1396,28 @@ export const PaperBottom: React.FC = () => {
                               <span className="text-slate-505 font-sans">Bid price:</span>
                               <span className="text-slate-200">
                                 ₹{selectedTrade.quote_quality.bid?.toFixed(2)}{" "}
-                                <span className="text-[8px] text-slate-600 font-sans font-normal ml-1">Real</span>
+                                <span className="text-xs text-slate-600 font-sans font-normal ml-1">Real</span>
                               </span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-slate-505 font-sans">Ask price:</span>
                               <span className="text-slate-200">
                                 ₹{selectedTrade.quote_quality.ask?.toFixed(2)}{" "}
-                                <span className="text-[8px] text-slate-600 font-sans font-normal ml-1">Real</span>
+                                <span className="text-xs text-slate-600 font-sans font-normal ml-1">Real</span>
                               </span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-slate-505 font-sans">Spread:</span>
                               <span className="text-slate-200">
                                 ₹{selectedTrade.quote_quality.spread?.toFixed(2)}{" "}
-                                <span className="text-[8px] text-slate-600 font-sans font-normal ml-1">Real</span>
+                                <span className="text-xs text-slate-600 font-sans font-normal ml-1">Real</span>
                               </span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-slate-500 font-sans">Tick age:</span>
                               <span className={`${(selectedTrade.quote_quality.tick_age_ms ?? 0) > 1500 ? "text-rose-400 font-bold" : "text-cyan-400 font-bold"}`}>
                                 {selectedTrade.quote_quality.tick_age_ms ?? 0}ms{" "}
-                                <span className="text-[8px] text-slate-600 font-sans font-normal ml-1">Real</span>
+                                <span className="text-xs text-slate-600 font-sans font-normal ml-1">Real</span>
                               </span>
                             </div>
                           </div>
@@ -1437,9 +1432,9 @@ export const PaperBottom: React.FC = () => {
                     {/* Right Column: Fill Diagnostics */}
                     <div className="bg-slate-900/40 p-3 rounded-lg border border-white/5 flex flex-col gap-3">
                       <div>
-                        <span className="text-slate-400 font-semibold block text-[10px] mb-1.5 flex justify-between">
+                        <span className="text-slate-400 font-semibold block text-xs mb-1.5 flex justify-between">
                           <span>Fill diagnostics</span>
-                          <span className="text-[9px] text-slate-500 font-semibold">
+                          <span className="text-xs text-slate-500 font-semibold">
                             {selectedTrade.fill_diagnostics ? "Metadata" : "Not recorded"}
                           </span>
                         </span>
@@ -1449,21 +1444,21 @@ export const PaperBottom: React.FC = () => {
                               <span className="text-slate-505 font-sans">Price:</span>
                               <span className="text-slate-200">
                                 ₹{selectedTrade.fill_diagnostics.fill_price?.toFixed(2)}{" "}
-                                <span className="text-[8px] text-slate-600 font-sans font-normal ml-1">Real</span>
+                                <span className="text-xs text-slate-600 font-sans font-normal ml-1">Real</span>
                               </span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-slate-505 font-sans">Quantity:</span>
                               <span className="text-slate-200">
                                 {selectedTrade.fill_diagnostics.quantity}{" "}
-                                <span className="text-[8px] text-slate-600 font-sans font-normal ml-1">Real</span>
+                                <span className="text-xs text-slate-600 font-sans font-normal ml-1">Real</span>
                               </span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-slate-500 font-sans">Premium:</span>
                               <span className="text-slate-200">
                                 ₹{selectedTrade.fill_diagnostics.premium?.toFixed(2)}{" "}
-                                <span className="text-[8px] text-slate-600 font-sans font-normal ml-1">Derived</span>
+                                <span className="text-xs text-slate-600 font-sans font-normal ml-1">Derived</span>
                               </span>
                             </div>
                             <div className="flex justify-between">
@@ -1471,12 +1466,12 @@ export const PaperBottom: React.FC = () => {
                               {selectedTrade.fill_diagnostics.brokerage != null ? (
                                 <span className="text-slate-200">
                                   ₹{selectedTrade.fill_diagnostics.brokerage.toFixed(2)}{" "}
-                                  <span className="text-[8px] text-slate-600 font-sans font-normal ml-1">Real</span>
+                                  <span className="text-xs text-slate-600 font-sans font-normal ml-1">Real</span>
                                 </span>
                               ) : (
                                 <span className="text-amber-500 font-bold">
                                   Unavailable{" "}
-                                  <span className="text-[8px] text-slate-500 font-sans font-normal ml-1">Not recorded</span>
+                                  <span className="text-xs text-slate-500 font-sans font-normal ml-1">Not recorded</span>
                                 </span>
                               )}
                             </div>
@@ -1485,12 +1480,12 @@ export const PaperBottom: React.FC = () => {
                               {selectedTrade.fill_diagnostics.slippage_pct != null ? (
                                 <span className="text-slate-200">
                                   {selectedTrade.fill_diagnostics.slippage_pct.toFixed(4)}%{" "}
-                                  <span className="text-[8px] text-slate-600 font-sans font-normal ml-1">Real</span>
+                                  <span className="text-xs text-slate-600 font-sans font-normal ml-1">Real</span>
                                 </span>
                               ) : (
                                 <span className="text-amber-500 font-bold">
                                   Unavailable{" "}
-                                  <span className="text-[8px] text-slate-500 font-sans font-normal ml-1">Not recorded</span>
+                                  <span className="text-xs text-slate-500 font-sans font-normal ml-1">Not recorded</span>
                                 </span>
                               )}
                             </div>
@@ -1499,12 +1494,12 @@ export const PaperBottom: React.FC = () => {
                               {selectedTrade.fill_diagnostics.execution_latency_ms != null ? (
                                 <span className="text-slate-200">
                                   {selectedTrade.fill_diagnostics.execution_latency_ms}ms{" "}
-                                  <span className="text-[8px] text-slate-600 font-sans font-normal ml-1">Real</span>
+                                  <span className="text-xs text-slate-600 font-sans font-normal ml-1">Real</span>
                                 </span>
                               ) : (
                                 <span className="text-amber-500 font-bold">
                                   Unavailable{" "}
-                                  <span className="text-[8px] text-slate-500 font-sans font-normal ml-1">Not measured</span>
+                                  <span className="text-xs text-slate-500 font-sans font-normal ml-1">Not measured</span>
                                 </span>
                               )}
                             </div>
@@ -1522,7 +1517,7 @@ export const PaperBottom: React.FC = () => {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-8 text-center text-slate-500 font-sans select-none">
-              <span className="text-sm font-bold text-slate-400">No Trades</span>
+              <span className="empty-state">No trades yet</span>
             </div>
           )
         )}
@@ -1533,7 +1528,7 @@ export const PaperBottom: React.FC = () => {
             {/* Left side: sessions table */}
             <div className="col-span-12 md:col-span-5 bg-slate-900/45 p-2.5 rounded border border-white/5 flex flex-col gap-2">
               <div className="flex justify-between items-center pb-2 border-b border-white/5">
-                <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">Historical Sessions</span>
+                <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Historical Sessions</span>
                 <button 
                   onClick={fetchSessions}
                   className="p-1 hover:bg-white/5 rounded text-slate-400 hover:text-white transition-colors"
@@ -1544,18 +1539,18 @@ export const PaperBottom: React.FC = () => {
               </div>
               
               {loadingSessions ? (
-                <div className="flex items-center justify-center py-6 text-slate-500 font-mono text-[10px] animate-pulse">
+                <div className="flex items-center justify-center py-6 text-slate-500 font-mono text-xs animate-pulse">
                   LOADING HISTORICAL SESSIONS...
                 </div>
               ) : historicalSessions.length === 0 ? (
-                <div className="flex items-center justify-center py-6 text-slate-500 italic text-[11px]">
+                <div className="flex items-center justify-center py-6 text-slate-500 italic text-xs">
                   No historical sessions found.
                 </div>
               ) : (
                 <div className="overflow-y-auto max-h-[280px] scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
-                  <table className="w-full text-left font-mono tabular-nums text-[10px]">
+                  <table className="w-full text-left font-mono tabular-nums text-xs">
                     <thead>
-                      <tr className="border-b border-white/10 text-slate-550 text-[8px] font-bold uppercase select-none">
+                      <tr className="border-b border-white/10 text-slate-550 text-xs font-bold uppercase select-none">
                         <th className="py-1">ID</th>
                         <th className="py-1">Started</th>
                         <th className="py-1">Status</th>
@@ -1574,7 +1569,7 @@ export const PaperBottom: React.FC = () => {
                           <td className="py-1.5 pl-0.5 font-bold">#{sess.id}</td>
                           <td className="py-1.5">{new Date(sess.started_at).toLocaleDateString()} {new Date(sess.started_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
                           <td className="py-1.5">
-                            <span className={`px-1 rounded text-[8px] font-bold ${
+                            <span className={`px-1 rounded text-xs font-bold ${
                               sess.status === "ACTIVE" ? "bg-emerald-500/10 text-emerald-450 border border-emerald-500/20" : "bg-slate-800 text-slate-400 border border-white/5"
                             }`}>
                               {sess.status}
@@ -1594,7 +1589,7 @@ export const PaperBottom: React.FC = () => {
             {/* Right side: session details, trades table & CSV export */}
             <div className="col-span-12 md:col-span-7 bg-slate-900/45 p-2.5 rounded border border-white/5 flex flex-col gap-2 min-w-0">
               {selectedSessionId === null ? (
-                <div className="flex-1 flex flex-col items-center justify-center py-12 text-slate-500 italic text-[11px] font-sans">
+                <div className="flex-1 flex flex-col items-center justify-center py-12 text-slate-500 italic text-xs font-sans">
                   <span>Select a session on the left to view detailed metrics and trades.</span>
                 </div>
               ) : (
@@ -1613,25 +1608,25 @@ export const PaperBottom: React.FC = () => {
                       {/* Session Metrics Bar */}
                       <div className="grid grid-cols-4 gap-2 bg-slate-950/40 p-2.5 rounded border border-white/5">
                         <div className="flex flex-col">
-                          <span className="text-[8px] uppercase font-bold tracking-wider text-slate-500">Total PnL</span>
+                          <span className="text-xs font-bold text-slate-500">Total PnL</span>
                           <span className={`font-mono text-xs font-black ${sess.pnl >= 0 ? "text-emerald-400" : "text-rose-450"}`}>
                             {sess.pnl >= 0 ? "+" : ""}₹{sess.pnl.toFixed(2)}
                           </span>
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-[8px] uppercase font-bold tracking-wider text-slate-500">Win Rate</span>
+                          <span className="text-xs font-bold text-slate-500">Win rate</span>
                           <span className="font-mono text-xs font-black text-slate-200">
                             {sess.win_rate}%
                           </span>
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-[8px] uppercase font-bold tracking-wider text-slate-500">Total Trades</span>
+                          <span className="text-xs font-bold text-slate-500">Total trades</span>
                           <span className="font-mono text-xs font-black text-slate-200">
                             {sess.trades}
                           </span>
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-[8px] uppercase font-bold tracking-wider text-slate-500">Status</span>
+                          <span className="text-xs font-bold text-slate-500">Status</span>
                           <span className="font-mono text-xs font-black text-cyan-400 uppercase">
                             {sess.status}
                           </span>
@@ -1646,14 +1641,14 @@ export const PaperBottom: React.FC = () => {
                             placeholder="Search by symbol..." 
                             value={symbolSearch}
                             onChange={(e) => setSymbolSearch(e.target.value)}
-                            className="bg-slate-900 border border-white/10 rounded px-2 py-1 text-[10px] text-slate-300 focus:outline-none focus:border-cyan-500/40 w-32"
+                            className="bg-slate-900 border border-white/10 rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-cyan-500/40 w-32"
                           />
                         </div>
                         <div className="flex items-center gap-2">
                           <a 
                             href={`http://localhost:8081/api/v2/paper/export?session_id=${selectedSessionId}`}
                             download
-                            className="flex items-center gap-1.5 px-3 py-1 bg-cyan-500/10 hover:bg-cyan-500 text-cyan-400 hover:text-slate-950 border border-cyan-500/20 hover:border-cyan-500 rounded text-[10px] font-bold transition-all uppercase select-none cursor-pointer"
+                            className="flex items-center gap-1.5 px-3 py-1 bg-cyan-500/10 hover:bg-cyan-500 text-cyan-400 hover:text-slate-950 border border-cyan-500/20 hover:border-cyan-500 rounded text-xs font-bold transition-all uppercase select-none cursor-pointer"
                           >
                             Export CSV
                           </a>
@@ -1663,17 +1658,17 @@ export const PaperBottom: React.FC = () => {
                       {/* Session Trades list */}
                       <div className="flex-1 min-h-[160px] overflow-y-auto border border-white/5 rounded">
                         {loadingTrades ? (
-                          <div className="flex items-center justify-center py-6 text-slate-500 font-mono text-[9px] animate-pulse">
+                          <div className="flex items-center justify-center py-6 text-slate-500 font-mono text-xs animate-pulse">
                             FETCHING SESSION TRADES...
                           </div>
                         ) : filteredTrades.length === 0 ? (
-                          <div className="flex items-center justify-center py-6 text-slate-500 italic text-[11px]">
+                          <div className="flex items-center justify-center py-6 text-slate-500 italic text-xs">
                             No trades found for this session matching filters.
                           </div>
                         ) : (
-                          <table className="w-full text-left font-mono tabular-nums text-[10px]">
+                          <table className="w-full text-left font-mono tabular-nums text-xs">
                             <thead>
-                              <tr className="border-b border-white/10 text-slate-500 text-[8px] font-bold uppercase select-none bg-slate-950/20">
+                              <tr className="border-b border-white/10 text-slate-500 text-xs font-bold uppercase select-none bg-slate-950/20">
                                 <th className="py-1 pl-1.5">Trade ID</th>
                                 <th className="py-1">Instrument</th>
                                 <th className="py-1">Side</th>
@@ -1714,7 +1709,7 @@ export const PaperBottom: React.FC = () => {
         {/* Strategy logs tab */}
         {activeTab === "logs" && (
           logs.length > 0 ? (
-            <div className="font-mono text-[10px] text-slate-400 flex flex-col gap-1 max-w-5xl select-text">
+            <div className="font-mono text-xs text-slate-400 flex flex-col gap-1 max-w-5xl select-text">
               {logs.slice(-50).map((log, idx) => (
                 <span key={idx}>{log}</span>
               ))}
@@ -1731,7 +1726,7 @@ export const PaperBottom: React.FC = () => {
           (() => {
             const filteredLogs = logs.filter(l => l.includes("[SYSTEM]") || l.includes("Engine"));
             return filteredLogs.length > 0 ? (
-              <div className="font-mono text-[10px] text-slate-400 flex flex-col gap-1 select-text">
+              <div className="font-mono text-xs text-slate-400 flex flex-col gap-1 select-text">
                 {filteredLogs.slice(-30).map((log, idx) => (
                   <span key={idx}>{log}</span>
                 ))}
@@ -1747,7 +1742,7 @@ export const PaperBottom: React.FC = () => {
         {/* Promotion readiness tab */}
         {activeTab === "promotion" && (
           <div className="flex flex-col gap-3 font-sans text-xs max-w-3xl">
-            <div className="text-[10px] text-slate-500 font-bold border-b border-white/5 pb-1 uppercase tracking-wider">
+            <div className="text-xs text-slate-500 font-bold border-b border-white/5 pb-1 uppercase tracking-wider">
               Forward paper policy validation checklist
             </div>
             
@@ -1779,7 +1774,7 @@ export const PaperBottom: React.FC = () => {
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                 <span className="text-amber-500">Status: Not eligible for production</span>
               </div>
-              <span className="text-[10px] text-slate-500">
+              <span className="text-xs text-slate-500">
                 Strategy needs to accumulate more trading days to satisfy the 14-day live paper test policy before production promotion is unlocked.
               </span>
             </div>
@@ -1791,14 +1786,14 @@ export const PaperBottom: React.FC = () => {
           <div className="flex flex-col lg:flex-row gap-4 w-full h-full min-h-[250px]">
             {/* Left Side: Option Chain Table */}
             <div className="flex-1 bg-slate-950/40 p-3 rounded border border-white/5 flex flex-col gap-2">
-              <div className="text-[10px] text-slate-550 font-bold border-b border-white/5 pb-1 flex justify-between items-center">
+              <div className="text-xs text-slate-550 font-bold border-b border-white/5 pb-1 flex justify-between items-center">
                 <span>ATM±2 option chain</span>
-                <span className="text-cyan-400 font-mono text-[9px] lowercase font-normal">rolling dynamically</span>
+                <span className="text-cyan-400 font-mono text-xs lowercase font-normal">rolling dynamically</span>
               </div>
               {status?.option_chain && status.option_chain.length > 0 ? (
-                <table className="w-full text-left font-mono tabular-nums text-[10px]">
+                <table className="w-full text-left font-mono tabular-nums text-xs">
                   <thead>
-                    <tr className="border-b border-white/10 text-slate-500 select-none text-[8px] font-semibold">
+                    <tr className="border-b border-white/10 text-slate-500 select-none text-xs font-semibold">
                       <th className="py-1 pl-2 font-sans">CE price</th>
                       <th className="py-1 text-center font-sans">CE tick age</th>
                       <th className="py-1 text-center font-sans">Strike</th>
@@ -1902,7 +1897,7 @@ export const PaperBottom: React.FC = () => {
                     </div>
                   )}
                 </div>
-                <span className="text-[11px] text-slate-500 leading-relaxed">
+                <span className="text-xs text-slate-500 leading-relaxed">
                   Real-time option quote engine automatically rolls NIFTY option subscriptions dynamically as index spot price changes to ensure 100% quote-driven fills.
                 </span>
               </div>

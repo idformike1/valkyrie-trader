@@ -17,12 +17,11 @@ import { useThemeStore } from "@/store/useThemeStore";
 
 // Helper components for professional styling
 const GlowingCard: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ title, children, className = "" }) => (
-  <div className={`p-3 flex flex-col h-full card ${className}`}>
-    <h3 className="text-[10px] font-bold tracking-widest text-cyan-neon uppercase border-b border-white/5 pb-1.5 mb-2.5 flex items-center justify-between">
-      <span>{title}</span>
-      <span className="w-1.5 h-1.5 rounded-full bg-cyan-neon animate-pulse" />
-    </h3>
-    <div className="flex-1 overflow-y-auto min-h-0">{children}</div>
+  <div className={`panel flex flex-col h-full ${className}`}>
+    <div className="panel-header">
+      <span className="text-sm font-medium text-slate-200">{title}</span>
+    </div>
+    <div className="flex-1 overflow-y-auto min-h-0 p-3">{children}</div>
   </div>
 );
 
@@ -223,17 +222,17 @@ export const BacktestLeft: React.FC = () => {
             </div>
             {selectedStrategy && (
               <div className="bg-slate-950/40 border border-white/5 rounded p-2 flex flex-col gap-1 mt-1">
-                <div className="flex justify-between items-center text-[10px]">
+                <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-500">Status:</span>
-                  <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${
+                  <span className={`px-1.5 py-0.5 rounded text-xs font-bold ${
                     selectedStrategy.strategyId === "five_ema_scalping" ? "bg-amber-950/40 text-amber-400" : "bg-emerald-950/40 text-emerald-400"
                   }`}>
                     {selectedStrategy.strategyId === "five_ema_scalping" ? "Testing" : "Validated"}
                   </span>
                 </div>
-                <div className="flex justify-between items-center text-[10px]">
+                <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-500">Promotion State:</span>
-                  <span className="text-slate-300 font-sans font-bold uppercase text-[9px] text-cyan-neon">
+                  <span className="text-slate-300 font-sans font-bold uppercase text-xs text-cyan-neon">
                     {selectedStrategy.strategyId === "five_ema_scalping" ? "Paper Approved" : "Live Approved"}
                   </span>
                 </div>
@@ -250,36 +249,36 @@ export const BacktestLeft: React.FC = () => {
           {!showSaveForm ? (
             <button
               onClick={() => setShowSaveForm(true)}
-              className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded text-[10px] font-bold transition-all border border-cyan-500/20 bg-cyan-950/20 text-cyan-400 hover:bg-cyan-950/40 hover:border-cyan-500/40 cursor-pointer"
+              className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded text-xs font-bold transition-all border border-cyan-500/20 bg-cyan-950/20 text-cyan-400 hover:bg-cyan-950/40 hover:border-cyan-500/40 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Save Current Config as Preset</span>
             </button>
           ) : (
             <div className="bg-slate-900/60 border border-white/5 rounded p-2.5 flex flex-col gap-2">
-              <span className="text-[9px] font-bold text-cyan-400 uppercase tracking-wider">Save Strategy Preset</span>
+              <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Save Strategy Preset</span>
               <input
                 type="text"
                 value={newPresetName}
                 onChange={(e) => setNewPresetName(e.target.value)}
                 placeholder="Preset Name (e.g. 5 EMA Aggressive)"
-                className="w-full bg-slate-950 border border-white/5 rounded px-2 py-1 text-[10px] text-slate-300 focus:outline-none focus:border-cyan-500/40"
+                className="w-full bg-slate-950 border border-white/5 rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-cyan-500/40"
               />
               <input
                 type="text"
                 value={newPresetNotes}
                 onChange={(e) => setNewPresetNotes(e.target.value)}
                 placeholder="Notes/Description"
-                className="w-full bg-slate-950 border border-white/5 rounded px-2 py-1 text-[10px] text-slate-300 focus:outline-none focus:border-cyan-500/40"
+                className="w-full bg-slate-950 border border-white/5 rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-cyan-500/40"
               />
               <input
                 type="text"
                 value={newPresetTags}
                 onChange={(e) => setNewPresetTags(e.target.value)}
                 placeholder="Tags (comma-separated)"
-                className="w-full bg-slate-950 border border-white/5 rounded px-2 py-1 text-[10px] text-slate-300 focus:outline-none focus:border-cyan-500/40"
+                className="w-full bg-slate-950 border border-white/5 rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-cyan-500/40"
               />
-              <div className="flex gap-2 justify-end mt-1 text-[9px] font-bold">
+              <div className="flex gap-2 justify-end mt-1 text-xs font-bold">
                 <button
                   onClick={() => setShowSaveForm(false)}
                   className="px-2 py-1 rounded bg-slate-950 border border-white/5 text-slate-400 hover:text-slate-200 cursor-pointer"
@@ -298,12 +297,12 @@ export const BacktestLeft: React.FC = () => {
 
           {/* Presets List */}
           {presetsLoading ? (
-            <div className="flex items-center justify-center py-4 text-slate-500 gap-1.5 text-[10px]">
+            <div className="flex items-center justify-center py-4 text-slate-500 gap-1.5 text-xs">
               <RefreshCw className="w-3.5 h-3.5 animate-spin" />
               <span>Loading presets...</span>
             </div>
           ) : presets.length === 0 ? (
-            <div className="text-center py-4 text-slate-500 text-[10px]">
+            <div className="text-center py-4 text-slate-500 text-xs">
               No presets available. Save one above.
             </div>
           ) : (
@@ -315,10 +314,10 @@ export const BacktestLeft: React.FC = () => {
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <span className="font-bold text-[10px] text-slate-200 block truncate max-w-[120px]">
+                      <span className="font-bold text-xs text-slate-200 block truncate max-w-[120px]">
                         {preset.name}
                       </span>
-                      <span className="text-[8px] text-cyan-500/80 font-mono tracking-wider font-semibold uppercase">
+                      <span className="text-xs text-cyan-500/80 font-mono tracking-wider font-semibold uppercase">
                         {preset.strategy_id === "five_ema" ? "5 EMA" : preset.strategy_id === "ema" ? "EMA Trend" : "Heikin Ashi"} ({preset.timeframe})
                       </span>
                     </div>
@@ -349,7 +348,7 @@ export const BacktestLeft: React.FC = () => {
                   </div>
 
                   {preset.notes && (
-                    <p className="text-[9px] text-slate-400 leading-normal italic line-clamp-1">
+                    <p className="text-xs text-slate-400 leading-normal italic line-clamp-1">
                       {preset.notes}
                     </p>
                   )}
@@ -375,17 +374,17 @@ export const BacktestLeft: React.FC = () => {
 
       <GlowingCard title="Strategy Details" className="flex-1">
         {activeStrategyMetadata ? (
-          <div className="flex flex-col gap-4 text-slate-300 font-sans text-[11px] pb-2">
+          <div className="flex flex-col gap-4 text-slate-300 font-sans text-xs pb-2">
             {/* General Specs */}
             <div className="bg-slate-900/40 border border-white/5 rounded p-3 flex flex-col gap-2.5">
               <div className="flex justify-between items-start gap-1">
                 <div>
-                  <h4 className="text-[12px] font-bold text-cyan-400 uppercase tracking-wider">{activeStrategyMetadata.name}</h4>
-                  <span className="text-[9px] text-slate-400 font-medium bg-slate-950 px-1.5 py-0.5 border border-white/5 rounded mt-1 inline-block">
+                  <h4 className="text-[12px] font-bold text-cyan-400">{activeStrategyMetadata.name}</h4>
+                  <span className="text-xs text-slate-400 font-medium bg-slate-950 px-1.5 py-0.5 border border-white/5 rounded mt-1 inline-block">
                     {activeStrategyMetadata.category}
                   </span>
                 </div>
-                <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider shrink-0 ${
+                <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider shrink-0 ${
                   activeStrategyMetadata.risk_level === "High" ? "bg-rose-950/40 text-rose-400 border border-rose-800/20" :
                   activeStrategyMetadata.risk_level === "Medium" ? "bg-amber-950/40 text-amber-400 border border-amber-800/20" :
                   "bg-emerald-950/40 text-emerald-400 border border-emerald-800/20"
@@ -396,20 +395,20 @@ export const BacktestLeft: React.FC = () => {
               
               <p className="text-slate-400 leading-relaxed">{activeStrategyMetadata.description}</p>
               
-              <div className="grid grid-cols-2 gap-2 border-t border-white/5 pt-2.5 text-[10px]">
+              <div className="grid grid-cols-2 gap-2 border-t border-white/5 pt-2.5 text-xs">
                 <div className="flex flex-col">
-                  <span className="text-slate-500 font-semibold uppercase tracking-wider text-[8px]">Market Regime</span>
+                  <span className="text-slate-500 font-semibold text-xs">Market regime</span>
                   <span className="text-slate-300 mt-0.5 font-medium">{activeStrategyMetadata.market_type}</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-slate-500 font-semibold uppercase tracking-wider text-[8px]">Trade Frequency</span>
+                  <span className="text-slate-500 font-semibold text-xs">Trade frequency</span>
                   <span className="text-slate-300 mt-0.5 font-medium">{activeStrategyMetadata.expected_trade_frequency}</span>
                 </div>
                 <div className="flex flex-col col-span-2">
-                  <span className="text-slate-500 font-semibold uppercase tracking-wider text-[8px]">Recommended Timeframes</span>
+                  <span className="text-slate-500 font-semibold text-xs">Recommended timeframes</span>
                   <div className="flex gap-1.5 mt-1">
                     {activeStrategyMetadata.recommended_timeframes.map((tf) => (
-                      <span key={tf} className="font-mono text-[9px] font-bold text-cyan-400 bg-cyan-950/30 px-2 py-0.5 rounded border border-cyan-800/20">
+                      <span key={tf} className="font-mono text-xs font-bold text-cyan-400 bg-cyan-950/30 px-2 py-0.5 rounded border border-cyan-800/20">
                         {tf}
                       </span>
                     ))}
@@ -420,36 +419,36 @@ export const BacktestLeft: React.FC = () => {
 
             {/* Entry / Exit Rules */}
             <div className="bg-slate-900/40 border border-white/5 rounded p-3 flex flex-col gap-3">
-              <h5 className="text-[9px] font-bold uppercase tracking-widest text-slate-400 border-b border-white/5 pb-1 flex items-center gap-1.5">
+              <h5 className="text-xs font-bold text-slate-400 border-b border-white/5 pb-1 flex items-center gap-1.5">
                 <TrendingUp className="w-3.5 h-3.5 text-cyan-500/80" />
                 <span>Execution & Signal Rules</span>
               </h5>
               <div className="flex flex-col gap-3">
                 <div>
-                  <span className="text-cyan-400/80 font-bold uppercase tracking-wider text-[8px] block">Entry Trigger</span>
+                  <span className="text-cyan-400/80 font-bold text-xs block">Entry trigger</span>
                   <p className="text-slate-400 mt-0.5 leading-relaxed">{activeStrategyMetadata.entry_logic}</p>
                 </div>
                 <div>
-                  <span className="text-cyan-400/80 font-bold uppercase tracking-wider text-[8px] block">Exit Rules</span>
+                  <span className="text-cyan-400/80 font-bold text-xs block">Exit rules</span>
                   <p className="text-slate-400 mt-0.5 leading-relaxed">{activeStrategyMetadata.exit_logic}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-3 border-t border-white/5 pt-2">
                   <div>
-                    <span className="text-slate-500 font-semibold uppercase tracking-wider text-[8px] block">Strike Selection</span>
+                    <span className="text-slate-500 font-semibold text-xs block">Strike selection</span>
                     <p className="text-slate-400 mt-0.5 leading-snug">{activeStrategyMetadata.strike_selection_logic}</p>
                   </div>
                   <div>
-                    <span className="text-slate-500 font-semibold uppercase tracking-wider text-[8px] block">Expiry Selection</span>
+                    <span className="text-slate-500 font-semibold text-xs block">Expiry selection</span>
                     <p className="text-slate-400 mt-0.5 leading-snug">{activeStrategyMetadata.expiry_selection_logic}</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3 border-t border-white/5 pt-2">
                   <div>
-                    <span className="text-slate-500 font-semibold uppercase tracking-wider text-[8px] block">Stop Loss Logic</span>
+                    <span className="text-slate-500 font-semibold text-xs block">Stop loss logic</span>
                     <p className="text-slate-400 mt-0.5 leading-snug">{activeStrategyMetadata.stop_loss_logic}</p>
                   </div>
                   <div>
-                    <span className="text-slate-500 font-semibold uppercase tracking-wider text-[8px] block">Target Profit Logic</span>
+                    <span className="text-slate-500 font-semibold text-xs block">Target profit logic</span>
                     <p className="text-slate-400 mt-0.5 leading-snug">{activeStrategyMetadata.target_logic}</p>
                   </div>
                 </div>
@@ -458,7 +457,7 @@ export const BacktestLeft: React.FC = () => {
 
             {/* Parameters Specification */}
             <div className="bg-slate-900/40 border border-white/5 rounded p-3 flex flex-col gap-2.5">
-              <h5 className="text-[9px] font-bold uppercase tracking-widest text-slate-400 border-b border-white/5 pb-1 flex items-center gap-1.5">
+              <h5 className="text-xs font-bold text-slate-400 border-b border-white/5 pb-1 flex items-center gap-1.5">
                 <Settings className="w-3.5 h-3.5 text-cyan-500/80" />
                 <span>Supported Parameters</span>
               </h5>
@@ -467,7 +466,7 @@ export const BacktestLeft: React.FC = () => {
                   <div key={param.name} className="p-2 bg-slate-950/60 border border-white/5 rounded flex flex-col gap-1">
                     <div className="flex justify-between items-center font-mono">
                       <span className="font-bold text-cyan-400">{param.name}</span>
-                      <div className="flex gap-1.5 text-[8px] font-bold">
+                      <div className="flex gap-1.5 text-xs font-bold">
                         <span className="bg-slate-900 text-slate-400 px-1 py-0.5 rounded border border-white/5">
                           {param.type}
                         </span>
@@ -476,7 +475,7 @@ export const BacktestLeft: React.FC = () => {
                         </span>
                       </div>
                     </div>
-                    <p className="text-slate-500 leading-normal text-[10px]">{param.description}</p>
+                    <p className="text-slate-500 leading-normal text-xs">{param.description}</p>
                   </div>
                 ))}
               </div>
@@ -485,11 +484,11 @@ export const BacktestLeft: React.FC = () => {
             {/* Market Conditions */}
             <div className="grid grid-cols-2 gap-2 bg-slate-900/40 border border-white/5 rounded p-3">
               <div>
-                <span className="text-emerald-400 font-bold uppercase tracking-wider text-[8px] block">Best Conditions</span>
+                <span className="text-emerald-400 font-bold text-xs block">Best conditions</span>
                 <p className="text-slate-400 mt-0.5 leading-normal">{activeStrategyMetadata.best_market_conditions}</p>
               </div>
               <div>
-                <span className="text-rose-400 font-bold uppercase tracking-wider text-[8px] block">Worst Conditions</span>
+                <span className="text-rose-400 font-bold text-xs block">Worst conditions</span>
                 <p className="text-slate-400 mt-0.5 leading-normal">{activeStrategyMetadata.worst_market_conditions}</p>
               </div>
             </div>
@@ -497,16 +496,16 @@ export const BacktestLeft: React.FC = () => {
             {/* Strengths & Weaknesses */}
             <div className="grid grid-cols-2 gap-2.5">
               <div className="bg-slate-900/40 border border-white/5 rounded p-3 flex flex-col">
-                <span className="text-emerald-400 font-bold uppercase tracking-wider text-[8px] block mb-1.5 border-b border-emerald-900/20 pb-0.5">Strengths</span>
-                <ul className="list-disc pl-3 text-slate-400 space-y-1 leading-relaxed text-[10px]">
+                <span className="text-emerald-400 font-bold text-xs block mb-1.5 border-b border-emerald-900/20 pb-0.5">Strengths</span>
+                <ul className="list-disc pl-3 text-slate-400 space-y-1 leading-relaxed text-xs">
                   {activeStrategyMetadata.strengths.map((str, idx) => (
                     <li key={idx}>{str}</li>
                   ))}
                 </ul>
               </div>
               <div className="bg-slate-900/40 border border-white/5 rounded p-3 flex flex-col">
-                <span className="text-rose-400 font-bold uppercase tracking-wider text-[8px] block mb-1.5 border-b border-rose-900/20 pb-0.5">Weaknesses</span>
-                <ul className="list-disc pl-3 text-slate-400 space-y-1 leading-relaxed text-[10px]">
+                <span className="text-rose-400 font-bold text-xs block mb-1.5 border-b border-rose-900/20 pb-0.5">Weaknesses</span>
+                <ul className="list-disc pl-3 text-slate-400 space-y-1 leading-relaxed text-xs">
                   {activeStrategyMetadata.weaknesses.map((weak, idx) => (
                     <li key={idx}>{weak}</li>
                   ))}
@@ -515,7 +514,7 @@ export const BacktestLeft: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center text-slate-500 text-[10px] py-12 text-center px-4 gap-2">
+          <div className="flex flex-col items-center justify-center text-slate-500 text-xs py-12 text-center px-4 gap-2">
             <AlertCircle className="w-5 h-5 text-slate-600 animate-pulse" />
             <span>Select a strategy from the repository list above to view technical details.</span>
           </div>
@@ -832,7 +831,7 @@ export const BacktestMain: React.FC = () => {
       <div className="flex items-center justify-between px-3 py-2 bg-card-hover border-b border-subtle select-none shrink-0 flex-wrap gap-2">
         <div className="flex items-center gap-3">
           <div className="flex flex-col gap-0.5">
-            <span className="text-[8px] text-slate-500 font-bold uppercase">Active Strategy</span>
+            <span className="text-xs text-slate-500 font-bold">Active strategy</span>
             <span className="text-cyan-400 font-bold font-mono">
               {v2Config.strategy_name || "No Strategy Selected"}
             </span>
@@ -842,22 +841,22 @@ export const BacktestMain: React.FC = () => {
 
           {/* Date Picker */}
           <div className="flex flex-col gap-0.5">
-            <span className="text-[8px] text-slate-500 font-bold uppercase">Start Date</span>
+            <span className="text-xs text-slate-500 font-bold">Start date</span>
             <input
               type="date"
               value={v2Config.start_date}
               onChange={(e) => setV2Config({ start_date: e.target.value })}
-              className="input font-mono rounded px-1.5 py-0.5 text-[10px] bg-deep"
+              className="input font-mono rounded px-1.5 py-0.5 text-xs bg-deep"
             />
           </div>
 
           <div className="flex flex-col gap-0.5">
-            <span className="text-[8px] text-slate-500 font-bold uppercase">End Date</span>
+            <span className="text-xs text-slate-500 font-bold">End date</span>
             <input
               type="date"
               value={v2Config.end_date}
               onChange={(e) => setV2Config({ end_date: e.target.value })}
-              className="input font-mono rounded px-1.5 py-0.5 text-[10px] bg-deep"
+              className="input font-mono rounded px-1.5 py-0.5 text-xs bg-deep"
             />
           </div>
         </div>
@@ -869,13 +868,13 @@ export const BacktestMain: React.FC = () => {
               <div className="w-20 bg-slate-800 h-1.5 rounded-full overflow-hidden">
                 <div style={{ width: `${v2Status.progress}%` }} className="bg-cyan-neon h-full transition-all duration-300" />
               </div>
-              <span className="text-[9px] font-mono text-cyan-neon font-bold">{v2Status.progress}%</span>
+              <span className="text-xs font-mono text-cyan-neon font-bold">{v2Status.progress}%</span>
             </div>
           ) : (
             <button
               onClick={handleRunBacktest}
               disabled={!selectedStrategy}
-              className="button-primary disabled:opacity-50 px-3 py-1 rounded text-center flex items-center gap-1.5 tracking-wider uppercase text-[10px]"
+              className="btn-primary flex items-center gap-1.5 cursor-pointer"
             >
               <Play className="w-3 h-3 fill-current" />
               Run Backtest
@@ -889,7 +888,7 @@ export const BacktestMain: React.FC = () => {
         {isBacktestLoading && (
           <div className="absolute inset-0 bg-slate-950/80 z-10 flex flex-col items-center justify-center gap-3">
             <RefreshCw className="w-6 h-6 text-cyan-400 animate-spin" />
-            <span className="text-[11px] text-slate-400 font-mono">Running V2 chronological replay simulation...</span>
+            <span className="text-xs text-slate-400 font-mono">Running V2 chronological replay simulation...</span>
           </div>
         )}
         <div ref={chartContainerRef} className="w-full h-full min-h-0" />
@@ -918,15 +917,15 @@ export const BacktestRight: React.FC = () => {
   return (
     <GlowingCard title="Backtest Parameters">
       <div className="flex flex-col gap-4 h-full font-sans text-xs select-none">
-        <div className="text-[10px] font-bold tracking-widest text-slate-400 uppercase border-b border-white/5 pb-1 flex items-center gap-1.5">
+        <div className="text-xs font-bold text-slate-400 border-b border-white/5 pb-1 flex items-center gap-1.5">
           <Settings className="w-3.5 h-3.5 text-cyan-500/80" />
           <span>Global Configuration</span>
         </div>
 
         {/* Global Configurations */}
-        <div className="grid grid-cols-2 gap-3 text-[10px]">
+        <div className="grid grid-cols-2 gap-3 text-xs">
           <div className="flex flex-col gap-1.5">
-            <span className="text-slate-400 font-semibold uppercase tracking-wider text-[8px]">Underlying Index</span>
+            <span className="text-slate-400 font-semibold text-xs">Underlying index</span>
             <select
               value={v2Config.underlying_instrument_key}
               onChange={(e) => setV2Config({ underlying_instrument_key: e.target.value })}
@@ -939,7 +938,7 @@ export const BacktestRight: React.FC = () => {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <span className="text-slate-400 font-semibold uppercase tracking-wider text-[8px]">Signal Source</span>
+            <span className="text-slate-400 font-semibold text-xs">Signal source</span>
             <select
               value={v2Config.signal_source}
               onChange={(e) => setV2Config({ signal_source: e.target.value })}
@@ -951,7 +950,7 @@ export const BacktestRight: React.FC = () => {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <span className="text-slate-400 font-semibold uppercase tracking-wider text-[8px]">Timeframe</span>
+            <span className="text-slate-400 font-semibold text-xs">Timeframe</span>
             <select
               value={v2Config.timeframe}
               onChange={(e) => setV2Config({ timeframe: e.target.value })}
@@ -969,7 +968,7 @@ export const BacktestRight: React.FC = () => {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <span className="text-slate-400 font-semibold uppercase tracking-wider text-[8px]">Option Pref</span>
+            <span className="text-slate-400 font-semibold text-xs">Option preference</span>
             <select
               value={v2Config.option_type_preference}
               onChange={(e) => setV2Config({ option_type_preference: e.target.value })}
@@ -982,7 +981,7 @@ export const BacktestRight: React.FC = () => {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <span className="text-slate-400 font-semibold uppercase tracking-wider text-[8px]">Strike Mode</span>
+            <span className="text-slate-400 font-semibold text-xs">Strike mode</span>
             <select
               value={v2Config.strike_mode}
               onChange={(e) => setV2Config({ strike_mode: e.target.value })}
@@ -999,7 +998,7 @@ export const BacktestRight: React.FC = () => {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <span className="text-slate-400 font-semibold uppercase tracking-wider text-[8px]">Expiry Mode</span>
+            <span className="text-slate-400 font-semibold text-xs">Expiry mode</span>
             <select
               value={v2Config.expiry_mode}
               onChange={(e) => setV2Config({ expiry_mode: e.target.value })}
@@ -1012,7 +1011,7 @@ export const BacktestRight: React.FC = () => {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <span className="text-slate-400 font-semibold uppercase tracking-wider text-[8px]">Initial Capital (₹)</span>
+            <span className="text-slate-400 font-semibold text-xs">Initial capital (₹)</span>
             <input
               type="number"
               value={v2Config.initial_capital}
@@ -1022,7 +1021,7 @@ export const BacktestRight: React.FC = () => {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <span className="text-slate-400 font-semibold uppercase tracking-wider text-[8px]">Lot Multiplier</span>
+            <span className="text-slate-400 font-semibold text-xs">Lot multiplier</span>
             <input
               type="number"
               value={v2Config.lot_multiplier}
@@ -1032,7 +1031,7 @@ export const BacktestRight: React.FC = () => {
           </div>
         </div>
 
-        <div className="text-[10px] font-bold tracking-widest text-slate-400 uppercase border-b border-white/5 pb-1 mt-1 flex items-center gap-1.5">
+        <div className="text-xs font-bold text-slate-400 border-b border-white/5 pb-1 mt-1 flex items-center gap-1.5">
           <SlidersHorizontal className="w-3.5 h-3.5 text-cyan-500/80" />
           <span>Strategy Parameters</span>
         </div>
@@ -1043,8 +1042,8 @@ export const BacktestRight: React.FC = () => {
             {v2Config.strategy_name === "EMA" && (
               <>
                 <div className="flex flex-col gap-2">
-                  <div className="flex justify-between items-center text-[10px] text-slate-400">
-                    <span className="font-semibold uppercase tracking-wider text-[8px]">Fast EMA Period</span>
+                  <div className="flex justify-between items-center text-xs text-slate-400">
+                    <span className="font-semibold uppercase tracking-wider text-xs">Fast EMA Period</span>
                     <span className="font-mono text-cyan-400 font-bold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/30">
                       {v2Config.strategy_params.fastEma || 2}
                     </span>
@@ -1055,13 +1054,13 @@ export const BacktestRight: React.FC = () => {
                     max="50"
                     value={v2Config.strategy_params.fastEma || 2}
                     onChange={(e) => handleParamChange("fastEma", Number(e.target.value))}
-                    className="w-full accent-cyan-400 bg-slate-900 cursor-pointer h-1.5 rounded-lg hover:accent-cyan-300 transition-all"
+                    className="w-full cursor-pointer transition-all"
                   />
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <div className="flex justify-between items-center text-[10px] text-slate-400">
-                    <span className="font-semibold uppercase tracking-wider text-[8px]">Slow EMA Period</span>
+                  <div className="flex justify-between items-center text-xs text-slate-400">
+                    <span className="font-semibold uppercase tracking-wider text-xs">Slow EMA Period</span>
                     <span className="font-mono text-cyan-400 font-bold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/30">
                       {v2Config.strategy_params.slowEma || 3}
                     </span>
@@ -1072,7 +1071,7 @@ export const BacktestRight: React.FC = () => {
                     max="100"
                     value={v2Config.strategy_params.slowEma || 3}
                     onChange={(e) => handleParamChange("slowEma", Number(e.target.value))}
-                    className="w-full accent-cyan-400 bg-slate-900 cursor-pointer h-1.5 rounded-lg hover:accent-cyan-300 transition-all"
+                    className="w-full cursor-pointer transition-all"
                   />
                 </div>
               </>
@@ -1081,8 +1080,8 @@ export const BacktestRight: React.FC = () => {
             {v2Config.strategy_name === "five_ema_scalping" && (
               <>
                 <div className="flex flex-col gap-2">
-                  <div className="flex justify-between items-center text-[10px] text-slate-400">
-                    <span className="font-semibold uppercase tracking-wider text-[8px]">EMA Period</span>
+                  <div className="flex justify-between items-center text-xs text-slate-400">
+                    <span className="font-semibold uppercase tracking-wider text-xs">EMA Period</span>
                     <span className="font-mono text-cyan-400 font-bold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/30">
                       {v2Config.strategy_params.five_ema_period || 5}
                     </span>
@@ -1093,13 +1092,13 @@ export const BacktestRight: React.FC = () => {
                     max="20"
                     value={v2Config.strategy_params.five_ema_period || 5}
                     onChange={(e) => handleParamChange("five_ema_period", Number(e.target.value))}
-                    className="w-full accent-cyan-400 bg-slate-900 cursor-pointer h-1.5 rounded-lg hover:accent-cyan-300 transition-all"
+                    className="w-full cursor-pointer transition-all"
                   />
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <div className="flex justify-between items-center text-[10px] text-slate-400">
-                    <span className="font-semibold uppercase tracking-wider text-[8px]">Risk-Reward Ratio</span>
+                  <div className="flex justify-between items-center text-xs text-slate-400">
+                    <span className="font-semibold uppercase tracking-wider text-xs">Risk-Reward Ratio</span>
                     <span className="font-mono text-cyan-400 font-bold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/30">
                       {v2Config.strategy_params.five_ema_rr || 3.0}
                     </span>
@@ -1111,7 +1110,7 @@ export const BacktestRight: React.FC = () => {
                     step="0.5"
                     value={v2Config.strategy_params.five_ema_rr || 3.0}
                     onChange={(e) => handleParamChange("five_ema_rr", Number(e.target.value))}
-                    className="w-full accent-cyan-400 bg-slate-900 cursor-pointer h-1.5 rounded-lg hover:accent-cyan-300 transition-all"
+                    className="w-full cursor-pointer transition-all"
                   />
                 </div>
               </>
@@ -1120,7 +1119,7 @@ export const BacktestRight: React.FC = () => {
             {/* Commissions & Slippage inputs */}
             <div className="grid grid-cols-2 gap-3 mt-1 pt-3.5 border-t border-white/5">
               <div className="flex flex-col gap-1.5">
-                <span className="text-slate-400 font-semibold uppercase tracking-wider text-[8px]">Brokerage Flat (₹)</span>
+                <span className="text-slate-400 font-semibold text-xs">Brokerage flat (₹)</span>
                 <input
                   type="number"
                   value={v2Config.brokerage_flat}
@@ -1130,7 +1129,7 @@ export const BacktestRight: React.FC = () => {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <span className="text-slate-400 font-semibold uppercase tracking-wider text-[8px]">Slippage (%)</span>
+                <span className="text-slate-400 font-semibold text-xs">Slippage (%)</span>
                 <input
                   type="number"
                   step="0.01"
@@ -1142,7 +1141,7 @@ export const BacktestRight: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-slate-500 text-[10px] text-center px-4 gap-2">
+          <div className="flex-1 flex flex-col items-center justify-center text-slate-500 text-xs text-center px-4 gap-2">
             <AlertCircle className="w-5 h-5 text-slate-600 animate-pulse" />
             <span>Select a strategy from the repository to configure parameter controls.</span>
           </div>
@@ -1523,10 +1522,10 @@ export const BacktestBottom: React.FC = () => {
                   <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isPlaying ? "bg-amber-400" : "bg-cyan-400"}`}></span>
                   <span className={`relative inline-flex rounded-full h-2 w-2 ${isPlaying ? "bg-amber-500" : "bg-cyan-500"}`}></span>
                 </span>
-                <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-slate-200">
+                <span className="font-mono text-xs font-bold uppercase tracking-widest text-slate-200">
                   Trade Forensic Replay Cockpit
                 </span>
-                <span className="px-2 py-0.5 rounded text-[8px] font-mono font-bold bg-slate-900 border border-white/10 text-cyan-400 select-text">
+                <span className="px-2 py-0.5 rounded text-xs font-mono font-bold bg-slate-900 border border-white/10 text-cyan-400 select-text">
                   {replayTrade.contract}
                 </span>
               </div>
@@ -1536,7 +1535,7 @@ export const BacktestBottom: React.FC = () => {
                   setIsPlaying(false);
                   setIsReplayMode(false);
                 }}
-                className="px-2.5 py-1 bg-rose-950/30 hover:bg-rose-900/40 text-rose-400 font-bold uppercase tracking-wider text-[9px] rounded border border-rose-800/30 transition-all cursor-pointer"
+                className="px-2.5 py-1 bg-rose-950/30 hover:bg-rose-900/40 text-rose-400 font-bold uppercase tracking-wider text-xs rounded border border-rose-800/30 transition-all cursor-pointer"
               >
                 Exit Replay
               </button>
@@ -1548,7 +1547,7 @@ export const BacktestBottom: React.FC = () => {
               {/* COL 1: Playback Console & Control Deck (4 cols) */}
               <div className="col-span-4 bg-slate-900/40 border border-white/5 rounded p-3 flex flex-col justify-between select-none">
                 <div>
-                  <span className="text-[8px] text-slate-500 uppercase tracking-wider font-bold block mb-2">Control Deck</span>
+                  <span className="text-xs text-slate-500 font-bold block mb-2">Control deck</span>
                   
                   {/* VCR Playback Controls */}
                   <div className="flex items-center gap-2 mb-4">
@@ -1609,13 +1608,13 @@ export const BacktestBottom: React.FC = () => {
                   </div>
 
                   {/* Playback Speed Deck */}
-                  <span className="text-[8px] text-slate-500 uppercase tracking-wider font-bold block mb-1.5">Speed Multiplier</span>
+                  <span className="text-xs text-slate-500 font-bold block mb-1.5">Speed multiplier</span>
                   <div className="flex gap-1.5 mb-4">
                     {([1, 2, 5, 10] as const).map((speed) => (
                       <button
                         key={speed}
                         onClick={() => setPlaySpeed(speed)}
-                        className={`px-3 py-1 font-mono text-[9px] font-bold rounded border transition-all cursor-pointer ${
+                        className={`px-3 py-1 font-mono text-xs font-bold rounded border transition-all cursor-pointer ${
                           playSpeed === speed 
                             ? "bg-cyan-950 text-cyan-400 border-cyan-500/30" 
                             : "bg-slate-950 text-slate-500 border-white/5 hover:text-slate-300 hover:border-white/10"
@@ -1629,7 +1628,7 @@ export const BacktestBottom: React.FC = () => {
 
                 {/* Step / Timeline Progress Indicator */}
                 <div className="border-t border-white/5 pt-3">
-                  <div className="flex justify-between items-center text-[9px] font-mono text-slate-400 mb-1.5">
+                  <div className="flex justify-between items-center text-xs font-mono text-slate-400 mb-1.5">
                     <span>TIMELINE INDEX</span>
                     <span className="font-bold text-slate-200">
                       STEP {currentIndex + 1} / {totalSteps}
@@ -1647,18 +1646,18 @@ export const BacktestBottom: React.FC = () => {
               {/* COL 2: Live Trade Analytics HUD (5 cols) */}
               <div className="col-span-5 bg-slate-900/20 border border-white/5 rounded p-3 flex flex-col justify-between">
                 <div>
-                  <span className="text-[8px] text-slate-500 uppercase tracking-wider font-bold block mb-2 select-none">Live Telemetry HUD</span>
+                  <span className="text-xs text-slate-500 font-bold block mb-2 select-none">Live telemetry HUD</span>
                   
                   <div className="grid grid-cols-2 gap-3 mb-3">
                     <div className="bg-slate-950/40 p-2.5 rounded border border-white/5">
-                      <span className="text-[8px] text-slate-500 uppercase tracking-wider font-bold block mb-0.5 select-none">Entry Premium</span>
+                      <span className="text-xs text-slate-500 font-bold block mb-0.5 select-none">Entry premium</span>
                       <span className="font-mono text-slate-200 font-bold text-sm">₹{replayTrade.entry_premium.toFixed(2)}</span>
                     </div>
 
                     <div className={`p-2.5 rounded border transition-all duration-300 ${
                       livePnL >= 0 ? "bg-emerald-950/20 border-emerald-500/20" : "bg-rose-950/20 border-rose-500/20"
                     }`}>
-                      <span className="text-[8px] text-slate-500 uppercase tracking-wider font-bold block mb-0.5 select-none">Current Premium</span>
+                      <span className="text-xs text-slate-500 font-bold block mb-0.5 select-none">Current premium</span>
                       <span className={`font-mono font-bold text-sm ${livePnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                         ₹{livePremium.toFixed(2)}
                       </span>
@@ -1667,12 +1666,12 @@ export const BacktestBottom: React.FC = () => {
 
                   <div className="grid grid-cols-2 gap-3 mb-3">
                     <div className="bg-slate-950/40 p-2.5 rounded border border-white/5">
-                      <span className="text-[8px] text-slate-500 uppercase tracking-wider font-bold block mb-0.5 select-none">Holding Duration</span>
+                      <span className="text-xs text-slate-500 font-bold block mb-0.5 select-none">Holding duration</span>
                       <span className="font-mono text-slate-200 font-bold text-sm">{elapsedMinutes} mins</span>
                     </div>
 
                     <div className="bg-slate-950/40 p-2.5 rounded border border-white/5">
-                      <span className="text-[8px] text-slate-500 uppercase tracking-wider font-bold block mb-0.5 select-none">Spot Index Delta</span>
+                      <span className="text-xs text-slate-500 font-bold block mb-0.5 select-none">Spot index delta</span>
                       <span className={`font-mono font-bold text-sm flex items-center gap-1 ${liveSpotDelta >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                         {liveSpotDelta >= 0 ? "+" : ""}{liveSpotDelta.toFixed(2)} ({liveSpotDeltaPct.toFixed(2)}%)
                       </span>
@@ -1685,7 +1684,7 @@ export const BacktestBottom: React.FC = () => {
                   livePnL >= 0 ? "bg-emerald-950/30 border-emerald-500/30 shadow-emerald-950/20" : "bg-rose-950/30 border-rose-500/30 shadow-rose-950/20"
                 } shadow-md`}>
                   <div className="flex flex-col">
-                    <span className="text-[8px] text-slate-400 uppercase tracking-wider font-bold select-none">UNREALIZED PROFIT / LOSS</span>
+                    <span className="text-xs text-slate-400 font-bold select-none">Unrealized profit / loss</span>
                     <span className={`font-mono text-lg font-extrabold ${livePnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                       {livePnL >= 0 ? "+" : ""}₹{livePnL.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
@@ -1701,9 +1700,9 @@ export const BacktestBottom: React.FC = () => {
               {/* COL 3: Trade Timeline & Replay Summary (3 cols) */}
               <div className="col-span-3 bg-slate-900/40 border border-white/5 rounded p-3 flex flex-col justify-between font-mono">
                 <div>
-                  <span className="text-[8px] text-slate-500 uppercase tracking-wider font-bold block mb-2 select-none">Execution Details</span>
+                  <span className="text-xs text-slate-500 uppercase tracking-wider font-bold block mb-2 select-none">Execution Details</span>
                   
-                  <div className="flex flex-col gap-1 text-[10px] text-slate-400 border-b border-white/5 pb-2.5 mb-2.5">
+                  <div className="flex flex-col gap-1 text-xs text-slate-400 border-b border-white/5 pb-2.5 mb-2.5">
                     <div className="flex justify-between">
                       <span className="text-slate-500">Entry Time:</span>
                       <span className="text-slate-300">{new Date(replayTrade.entry_time).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })} IST</span>
@@ -1724,21 +1723,21 @@ export const BacktestBottom: React.FC = () => {
                   {!reachedExit ? (
                     <div className="bg-slate-950/60 border border-subtle p-3 rounded flex flex-col items-center justify-center h-24 select-none animate-pulse">
                       <Activity className="w-4 h-4 text-slate-600 mb-1" />
-                      <span className="text-[8px] text-slate-500 uppercase tracking-widest font-bold">REPLAY RUNNING</span>
-                      <span className="text-[9px] text-slate-500">Awaiting exit candle...</span>
+                      <span className="text-xs text-slate-500 uppercase tracking-widest font-bold">REPLAY RUNNING</span>
+                      <span className="text-xs text-slate-500">Awaiting exit candle...</span>
                     </div>
                   ) : (
                     <div className="bg-slate-950 border border-white/10 p-2.5 rounded flex flex-col gap-1.5 animate-fadeIn">
                       <div className="flex justify-between items-center border-b border-white/5 pb-1">
-                        <span className="text-[8px] text-slate-500 uppercase font-bold">REPLAY SUMMARY</span>
-                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${
+                        <span className="text-xs text-slate-500 uppercase font-bold">REPLAY SUMMARY</span>
+                        <span className={`px-1.5 py-0.5 rounded text-xs font-bold ${
                           isWinner ? "bg-emerald-950/40 text-emerald-400 border border-emerald-800/30" : "bg-rose-950/40 text-rose-400 border border-rose-800/30"
                         }`}>
                           {isWinner ? "WINNER" : "LOSER"}
                         </span>
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[9px] text-slate-400">
+                      <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs text-slate-400">
                         <div className="flex justify-between">
                           <span className="text-slate-600">Net Profit:</span>
                           <span className={`font-bold ${isWinner ? "text-emerald-400" : "text-rose-400"}`}>₹{replayTrade.net_pnl.toFixed(2)}</span>
@@ -1765,23 +1764,18 @@ export const BacktestBottom: React.FC = () => {
           </div>
         );
       })()}
-
       {!isReplayMode && <div className="contents">
           {/* Tabs selectors with high legibility title */}
           <div className="flex items-center justify-between border-b border-subtle bg-deep/50 px-4 py-2 shrink-0 select-none font-sans">
             <div className="flex items-center gap-6">
-              <span className="text-[11px] text-slate-350 font-black uppercase tracking-wider">Backtest Ledger & Analytics</span>
+              <span className="text-sm font-medium text-slate-300">Backtest ledger & analytics</span>
               
-              <div className="flex items-center gap-1">
+              <div className="tab-container flex items-center">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`px-3 py-1 rounded transition-all cursor-pointer font-bold text-[10px] uppercase tracking-wider ${
-                      activeTab === tab.id
-                        ? "bg-card border border-subtle shadow-sm text-cyan-neon font-black"
-                        : "bg-transparent border border-transparent text-slate-500 hover:text-slate-200"
-                    }`}
+                    className={`tab-item ${activeTab === tab.id ? "active" : ""}`}
                   >
                     {tab.name}
                   </button>
@@ -1790,7 +1784,7 @@ export const BacktestBottom: React.FC = () => {
             </div>
 
         {selectedInspectorParams && (
-          <div className="flex items-center gap-2 bg-cyan-950/40 border border-cyan-500/20 px-2 py-0.5 rounded text-[10px] font-mono text-cyan-300 animate-pulse">
+          <div className="flex items-center gap-2 bg-cyan-950/40 border border-cyan-500/20 px-2 py-0.5 rounded text-xs font-mono text-cyan-300 animate-pulse">
             <Sliders className="w-3 h-3 text-cyan-400" />
             <span>INSPECTING: {JSON.stringify(selectedInspectorParams)}</span>
             <button
@@ -1798,7 +1792,7 @@ export const BacktestBottom: React.FC = () => {
                 setSelectedInspectorParams(null);
                 runV2Backtest(); // Reload original backtest
               }}
-              className="text-[9px] text-slate-400 hover:text-slate-200 font-bold ml-1 border-l border-white/10 pl-1 cursor-pointer transition-colors"
+              className="text-xs text-slate-400 hover:text-slate-200 font-bold ml-1 border-l border-white/10 pl-1 cursor-pointer transition-colors"
             >
               Clear
             </button>
@@ -1812,11 +1806,11 @@ export const BacktestBottom: React.FC = () => {
               <div className="flex flex-col gap-4 select-none w-full">
                 
                 {/* Hero KPI Strip */}
-                <div className="w-full bg-[#111625] border border-subtle p-4 rounded-md flex flex-col gap-1.5 justify-center shadow-sm font-sans">
+                <div className="w-full panel p-4 flex flex-col gap-1.5 justify-center font-sans">
                   <div className="grid grid-cols-12 items-center gap-4">
-                    {/* Hero metric: Net Profit */}
+                    {/* Hero metric: Net profit */}
                     <div className="col-span-4 flex flex-col justify-center border-r border-white/5 pr-4">
-                      <span className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">Net Profit</span>
+                      <span className="text-xs text-slate-500 font-medium">Net profit</span>
                       <span className={`font-mono text-4xl font-black tracking-tight tabular-nums ${netProfit >= 0 ? "text-emerald-400" : "text-rose-500"}`}>
                         ₹{netProfit.toLocaleString("en-IN")}
                       </span>
@@ -1825,25 +1819,25 @@ export const BacktestBottom: React.FC = () => {
                     {/* Secondary Metrics */}
                     <div className="col-span-8 grid grid-cols-4 gap-4 pl-2">
                       <div className="flex flex-col justify-center">
-                        <span className="text-[10px] text-slate-500 uppercase font-semibold">Sharpe Ratio</span>
+                        <span className="text-xs text-slate-500 font-medium">Sharpe ratio</span>
                         <span className="text-cyan-neon font-mono text-xl font-bold tabular-nums">
                           {sharpe.toFixed(2)}
                         </span>
                       </div>
                       <div className="flex flex-col justify-center">
-                        <span className="text-[10px] text-slate-500 uppercase font-semibold">Win Rate</span>
+                        <span className="text-xs text-slate-500 font-medium">Win rate</span>
                         <span className="text-slate-100 font-mono text-xl font-bold tabular-nums">
                           {winRate.toFixed(1)}%
                         </span>
                       </div>
                       <div className="flex flex-col justify-center">
-                        <span className="text-[10px] text-slate-500 uppercase font-semibold">Max Drawdown</span>
+                        <span className="text-xs text-slate-500 font-medium">Max drawdown</span>
                         <span className="text-rose-500 font-mono text-xl font-bold tabular-nums">
                           -{Math.abs(maxDrawdown).toFixed(2)}%
                         </span>
                       </div>
                       <div className="flex flex-col justify-center">
-                        <span className="text-[10px] text-slate-500 uppercase font-semibold">Expectancy</span>
+                        <span className="text-xs text-slate-500 font-medium">Expectancy</span>
                         <span className={`font-mono text-xl font-bold tabular-nums ${
                           (report?.performance?.expectancy || report?.performance?.avg_trade || 0) >= 0 ? "text-emerald-450" : "text-rose-500"
                         }`}>
@@ -1857,21 +1851,21 @@ export const BacktestBottom: React.FC = () => {
                 {/* Bottom Section: Recent Trades table on left, Equity Curve visual on right */}
                 <div className="grid grid-cols-12 gap-5 w-full">
                   {/* Recent Trades Section */}
-                  <div className="col-span-8 flex flex-col gap-3.5 bg-[#111625] border border-subtle p-4 rounded-md shadow-sm">
+                  <div className="col-span-8 flex flex-col gap-3.5 panel p-4">
                     <div className="flex justify-between items-center border-b border-subtle pb-2">
-                      <span className="text-[11px] text-slate-350 font-bold uppercase tracking-wider">Recent Trades</span>
+                      <span className="text-sm font-medium text-slate-300">Recent trades</span>
                       <button 
                         onClick={() => setActiveTab("trades")}
-                        className="text-[10px] text-cyan-neon font-bold hover:text-white transition-colors cursor-pointer"
+                        className="text-xs text-cyan-neon font-bold hover:text-white transition-colors cursor-pointer"
                       >
                         View full trade ledger &rarr;
                       </button>
                     </div>
 
                     <div className="overflow-x-auto">
-                      <table className="w-full text-left font-mono text-[11px] border-collapse">
+                      <table className="w-full text-left font-mono text-xs border-collapse">
                         <thead>
-                          <tr className="text-slate-400 uppercase text-[9px] tracking-wider font-semibold border-b border-subtle bg-[#0E1320]/40 font-sans">
+                          <tr className="text-slate-400 uppercase text-xs tracking-wider font-semibold border-b border-subtle bg-[#0E1320]/40 font-sans">
                             <th className="py-2.5 pl-3">Time</th>
                             <th className="py-2.5">Type</th>
                             <th className="py-2.5">Instrument</th>
@@ -1909,7 +1903,7 @@ export const BacktestBottom: React.FC = () => {
                               <tr key={idx} className="border-b border-subtle hover:bg-card-hover/40 transition-all h-[34px]">
                                 <td className="py-2 pl-3 text-slate-400">{timeStr}</td>
                                 <td className="py-2">
-                                  <span className={`px-1.5 py-0.5 rounded-sm text-[8px] font-bold font-sans uppercase ${
+                                  <span className={`px-1.5 py-0.5 rounded-sm text-xs font-bold font-sans uppercase ${
                                     type === "BUY" ? "bg-emerald-950/40 text-emerald-400 border border-emerald-900/40" : "bg-rose-950/40 text-rose-400 border border-rose-900/40"
                                   }`}>
                                     {type}
@@ -1928,7 +1922,7 @@ export const BacktestBottom: React.FC = () => {
                                   {isProfit ? "+" : ""}{((t.net_pnl / (t.entry_premium * t.quantity)) * 100).toFixed(2)}%
                                 </td>
                                 <td className="py-2 text-center pr-3">
-                                  <span className={`px-1.5 py-0.5 rounded-sm text-[9px] font-sans font-bold uppercase ${
+                                  <span className={`px-1.5 py-0.5 rounded-sm text-xs font-sans font-bold uppercase ${
                                     isProfit ? "bg-emerald-950/40 text-emerald-400" : "bg-rose-950/40 text-rose-455"
                                   }`}>
                                     Closed
@@ -1952,8 +1946,8 @@ export const BacktestBottom: React.FC = () => {
                   {/* Equity Curve Visual Card */}
                   <div className="col-span-4 bg-[#111625] border border-subtle p-4 rounded-md flex flex-col justify-between shadow-sm min-h-[170px]">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Equity Curve</span>
-                      <span className="text-[8px] font-mono text-slate-500">Compounding growth</span>
+                      <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Equity Curve</span>
+                      <span className="text-xs font-mono text-slate-500">Compounding growth</span>
                     </div>
                     
                     {/* Glowing Compound curve SVG representation */}
@@ -1994,9 +1988,9 @@ export const BacktestBottom: React.FC = () => {
             {activeTab === "trades" && (
               <div className="flex gap-4 h-full min-h-[300px]">
                 <div className="flex-1 overflow-x-auto">
-                  <table className="w-full text-left font-mono text-[10px] border-collapse">
+                  <table className="w-full text-left font-mono text-xs border-collapse">
                     <thead>
-                      <tr className="border-b border-subtle text-slate-500 uppercase select-none text-[8px] tracking-wider bg-card-hover font-sans">
+                      <tr className="border-b border-subtle text-slate-500 uppercase select-none text-xs tracking-wider bg-card-hover font-sans">
                         <th className="py-3.5 pl-3">Contract Details</th>
                         <th className="py-3.5">Entry Time</th>
                         <th className="py-3.5">Exit Time</th>
@@ -2034,9 +2028,8 @@ export const BacktestBottom: React.FC = () => {
                       ))}
                       {(!v2Result || v2Result.trades.length === 0) && (
                         <tr>
-                          <td colSpan={9} className="py-12 text-center text-slate-500 font-sans text-xs select-none">
-                            No backtest dataset loaded. Click "Run Backtest" in the parameter cockpit to run simulation.
-                          </td>
+                          <td colSpan={9}><div className="empty-state">No backtest dataset loaded. Click "Run Backtest" in the parameter cockpit to run simulation.
+                          </div></td>
                         </tr>
                       )}
                     </tbody>
@@ -2077,9 +2070,9 @@ export const BacktestBottom: React.FC = () => {
                       </button>
 
                       {/* Inspector Header */}
-                      <div className="text-slate-400 font-bold uppercase tracking-widest text-[8px] block mb-1 border-b border-white/5 pb-1 flex items-center justify-between">
+                      <div className="text-slate-400 font-bold uppercase tracking-widest text-xs block mb-1 border-b border-white/5 pb-1 flex items-center justify-between">
                         <span>Trade #{tradeIndex + 1} Inspector</span>
-                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${
+                        <span className={`px-1.5 py-0.5 rounded text-xs font-bold ${
                           isWinner ? "bg-emerald-950/40 text-emerald-400 border border-emerald-800/30" : "bg-rose-950/40 text-rose-400 border border-rose-800/30"
                         }`}>
                           {isWinner ? "WINNER" : "LOSER"}
@@ -2088,7 +2081,7 @@ export const BacktestBottom: React.FC = () => {
 
                       <div className="flex flex-col gap-0.5">
                         <span className="text-[12px] font-bold text-slate-100">{selectedTrade.contract}</span>
-                        <span className={`text-[11px] font-mono font-bold ${isWinner ? "text-emerald-400" : "text-rose-400"}`}>
+                        <span className={`text-xs font-mono font-bold ${isWinner ? "text-emerald-400" : "text-rose-400"}`}>
                           {isWinner ? "+" : ""}₹{selectedTrade.net_pnl.toFixed(2)} Net PnL
                         </span>
                       </div>
@@ -2097,8 +2090,8 @@ export const BacktestBottom: React.FC = () => {
                       <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-2.5 max-h-[340px] scrollbar-thin scrollbar-thumb-white/5">
                         {/* Position Details Group */}
                         <div className="bg-slate-900/30 p-2 rounded border border-white/5 flex flex-col gap-1.5">
-                          <span className="text-cyan-400/80 font-bold text-[8px] uppercase tracking-wider">Position Details</span>
-                          <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px]">
+                          <span className="text-cyan-400/80 font-bold text-xs uppercase tracking-wider">Position Details</span>
+                          <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
                             <div className="flex justify-between">
                               <span className="text-slate-500">Strike:</span>
                               <span className="text-slate-300 font-mono">{strike}</span>
@@ -2138,8 +2131,8 @@ export const BacktestBottom: React.FC = () => {
 
                         {/* Execution Timing Group */}
                         <div className="bg-slate-900/30 p-2 rounded border border-white/5 flex flex-col gap-1.5">
-                          <span className="text-cyan-400/80 font-bold text-[8px] uppercase tracking-wider">Execution Timing</span>
-                          <div className="flex flex-col gap-1 text-[10px]">
+                          <span className="text-cyan-400/80 font-bold text-xs uppercase tracking-wider">Execution Timing</span>
+                          <div className="flex flex-col gap-1 text-xs">
                             <div className="flex justify-between">
                               <span className="text-slate-500">Entry Time:</span>
                               <span className="text-slate-300 font-mono">{new Date(selectedTrade.entry_time).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST</span>
@@ -2157,8 +2150,8 @@ export const BacktestBottom: React.FC = () => {
 
                         {/* Signals Group */}
                         <div className="bg-slate-900/30 p-2 rounded border border-white/5 flex flex-col gap-1.5">
-                          <span className="text-cyan-400/80 font-bold text-[8px] uppercase tracking-wider">Signal Information</span>
-                          <div className="flex flex-col gap-1.5 text-[10px]">
+                          <span className="text-cyan-400/80 font-bold text-xs uppercase tracking-wider">Signal Information</span>
+                          <div className="flex flex-col gap-1.5 text-xs">
                             <div className="flex justify-between">
                               <span className="text-slate-500">Strategy:</span>
                               <span className="text-slate-300 font-bold">{strategyName}</span>
@@ -2168,26 +2161,26 @@ export const BacktestBottom: React.FC = () => {
                               <span className="text-slate-300 font-mono">{optionType}</span>
                             </div>
                             <div className="flex flex-col gap-0.5 border-t border-subtle pt-1 mt-0.5">
-                              <span className="text-slate-500 text-[9px] font-bold">Buy Reason:</span>
-                              <span className="text-slate-400 italic text-[9px] bg-slate-950/40 p-1.5 rounded mt-0.5 select-text leading-normal">
+                              <span className="text-slate-500 text-xs font-bold">Buy Reason:</span>
+                              <span className="text-slate-400 italic text-xs bg-slate-950/40 p-1.5 rounded mt-0.5 select-text leading-normal">
                                 {buyReason}
                               </span>
                             </div>
                             <div className="flex flex-col gap-0.5">
-                              <span className="text-slate-500 text-[9px] font-bold">Sell Reason:</span>
-                              <span className="text-slate-400 italic text-[9px] bg-slate-950/40 p-1.5 rounded mt-0.5 select-text leading-normal">
+                              <span className="text-slate-500 text-xs font-bold">Sell Reason:</span>
+                              <span className="text-slate-400 italic text-xs bg-slate-950/40 p-1.5 rounded mt-0.5 select-text leading-normal">
                                 {sellReason}
                               </span>
                             </div>
                             <div className="flex justify-between border-t border-subtle pt-1 mt-0.5">
                               <span className="text-slate-500">Entry Signal Time:</span>
-                              <span className="text-slate-300 font-mono text-[9px]">
+                              <span className="text-slate-300 font-mono text-xs">
                                 {entryMarker?.timestamp ? new Date(entryMarker.timestamp).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) + " IST" : "Signal reason not yet recorded"}
                               </span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-slate-500">Exit Signal Time:</span>
-                              <span className="text-slate-300 font-mono text-[9px]">
+                              <span className="text-slate-300 font-mono text-xs">
                                 {exitMarker?.timestamp ? new Date(exitMarker.timestamp).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) + " IST" : "Signal reason not yet recorded"}
                               </span>
                             </div>
@@ -2201,7 +2194,7 @@ export const BacktestBottom: React.FC = () => {
                             const entryTime = Math.floor(new Date(selectedTrade.entry_time).getTime() / 1000);
                             setReplayCurrentTime(entryTime);
                           }}
-                          className="w-full bg-cyan-500 hover:bg-cyan-400 active:bg-cyan-600 text-slate-950 font-bold uppercase tracking-wider py-2 rounded text-[10px] flex items-center justify-center gap-1.5 transition-all shadow-md mt-2 cursor-pointer transition-colors"
+                          className="w-full bg-cyan-500 hover:bg-cyan-400 active:bg-cyan-600 text-slate-950 font-bold uppercase tracking-wider py-2 rounded text-xs flex items-center justify-center gap-1.5 transition-all shadow-md mt-2 cursor-pointer transition-colors"
                         >
                           <Play className="w-3.5 h-3.5 fill-current" />
                           Replay Trade
@@ -2219,8 +2212,8 @@ export const BacktestBottom: React.FC = () => {
                 {v2Result ? (
                   <div ref={equityContainerRef} className="w-full h-full" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-slate-500 font-sans text-xs select-none">
-                    No active equity curve. Click "Run Backtest" to plot compounding curve.
+                  <div className="empty-state w-full h-full">
+                    <span>No active equity curve. Click "Run Backtest" to plot compounding curve.</span>
                   </div>
                 )}
               </div>
@@ -2232,8 +2225,8 @@ export const BacktestBottom: React.FC = () => {
                 {v2Result ? (
                   <div ref={drawdownContainerRef} className="w-full h-full" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-slate-500 font-sans text-xs select-none">
-                    No active drawdown curve. Click "Run Backtest" to plot drawdowns.
+                  <div className="empty-state w-full h-full">
+                    <span>No active drawdown curve. Click "Run Backtest" to plot drawdowns.</span>
                   </div>
                 )}
               </div>
@@ -2242,11 +2235,11 @@ export const BacktestBottom: React.FC = () => {
             {/* Metrics Tab */}
             {activeTab === "metrics" && (
               !report ? (
-                <div className="py-8 text-center text-slate-500 font-sans text-xs select-none">
-                  No metrics calculated. Click "Run Backtest" in the parameter cockpit to run simulation.
+                <div className="empty-state py-8">
+                  <span>No metrics calculated. Click "Run Backtest" in the parameter cockpit to run simulation.</span>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-4 max-w-3xl font-mono text-[10px] select-none">
+                <div className="grid grid-cols-2 gap-4 max-w-3xl font-mono text-xs select-none">
                   <div className="flex flex-col gap-1.5">
                     <div className="flex justify-between border-b border-white/5 py-1">
                       <span className="text-slate-500">NET PROFIT:</span>
@@ -2321,7 +2314,7 @@ export const BacktestBottom: React.FC = () => {
                             setLogCategoryFilter(cat);
                             setExpandedLogId(null);
                           }}
-                          className={`text-[9px] font-bold px-2 py-0.5 border rounded uppercase tracking-wider transition-all duration-150 cursor-pointer ${badgeStyle}`}
+                          className={`text-xs font-bold px-2 py-0.5 border rounded uppercase tracking-wider transition-all duration-150 cursor-pointer ${badgeStyle}`}
                         >
                           {cat}
                         </button>
@@ -2336,7 +2329,7 @@ export const BacktestBottom: React.FC = () => {
                       placeholder="Search execution logs..."
                       value={logSearchQuery}
                       onChange={(e) => setLogSearchQuery(e.target.value)}
-                      className="text-[9px] w-48 bg-slate-950 border border-white/10 px-2 py-1 pl-6 rounded text-slate-300 placeholder-slate-500 outline-none focus:border-cyan-500/40 transition-all duration-150"
+                      className="text-xs w-48 bg-slate-950 border border-white/10 px-2 py-1 pl-6 rounded text-slate-300 placeholder-slate-500 outline-none focus:border-cyan-500/40 transition-all duration-150"
                     />
                     <svg className="w-3 h-3 absolute left-2 top-2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -2353,7 +2346,7 @@ export const BacktestBottom: React.FC = () => {
                 </div>
 
                 {/* Console Output Scroll Box */}
-                <div className="flex-1 overflow-y-auto max-h-96 min-h-[300px] font-mono text-[10px] text-slate-300 bg-slate-950/80 border border-white/5 rounded-lg p-2.5 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
+                <div className="flex-1 overflow-y-auto max-h-96 min-h-[300px] font-mono text-xs text-slate-300 bg-slate-950/80 border border-white/5 rounded-lg p-2.5 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
                   {v2Result?.runtime_logs && v2Result.runtime_logs.length > 0 ? (
                     (() => {
                       const filtered = v2Result.runtime_logs.filter(log => {
@@ -2365,7 +2358,7 @@ export const BacktestBottom: React.FC = () => {
                       });
 
                       if (filtered.length === 0) {
-                        return <div className="text-slate-500 italic p-4 text-center select-none">No logs match active filters.</div>;
+                        return <div className="empty-state">No logs match active filters.</div>;
                       }
 
                       return filtered.map((log, idx) => {
@@ -2403,10 +2396,10 @@ export const BacktestBottom: React.FC = () => {
                               className={`flex items-start gap-2.5 py-1 px-1.5 hover:bg-white/5 transition-all duration-100 rounded cursor-pointer select-none ${isExpanded ? 'bg-white/5' : ''}`}
                             >
                               {/* Timestamp */}
-                              <span className="text-slate-500 shrink-0 select-none text-[9px]">{logTime}</span>
+                              <span className="text-slate-500 shrink-0 select-none text-xs">{logTime}</span>
                               
                               {/* Category Badge */}
-                              <span className={`px-1.5 py-0.5 text-[8px] font-bold border rounded uppercase shrink-0 select-none tracking-wider ${catBadge}`}>
+                              <span className={`px-1.5 py-0.5 text-xs font-bold border rounded uppercase shrink-0 select-none tracking-wider ${catBadge}`}>
                                 {log.category}
                               </span>
 
@@ -2417,7 +2410,7 @@ export const BacktestBottom: React.FC = () => {
 
                               {/* Expansion Indicator */}
                               {hasMetadata && (
-                                <span className="text-slate-500 text-[8px] shrink-0 font-bold select-none hover:text-slate-300">
+                                <span className="text-slate-500 text-xs shrink-0 font-bold select-none hover:text-slate-300">
                                   {isExpanded ? "▼ METADATA" : "▶ METADATA"}
                                 </span>
                               )}
@@ -2425,13 +2418,13 @@ export const BacktestBottom: React.FC = () => {
 
                             {/* Metadata Expandable Block */}
                             {isExpanded && hasMetadata && (
-                              <div className="bg-slate-950 border-x border-b border-white/5 p-3 mx-1.5 mb-1.5 rounded-b text-[9px] text-slate-400 max-h-48 overflow-y-auto">
-                                <div className="text-cyan-400/80 uppercase font-bold tracking-wider text-[8px] mb-1.5">Payload Details:</div>
+                              <div className="bg-slate-950 border-x border-b border-white/5 p-3 mx-1.5 mb-1.5 rounded-b text-xs text-slate-400 max-h-48 overflow-y-auto">
+                                <div className="text-cyan-400/80 uppercase font-bold tracking-wider text-xs mb-1.5">Payload Details:</div>
                                 <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                                   {Object.entries(log.metadata).map(([key, val]) => (
                                     <div key={key} className="flex border-b border-white/5 py-0.5 last:border-0">
                                       <span className="text-slate-500 font-bold w-24 shrink-0 uppercase tracking-wide">{key}:</span>
-                                      <span className="text-slate-300 break-all text-[8px]">
+                                      <span className="text-slate-300 break-all text-xs">
                                         {typeof val === "object" ? JSON.stringify(val) : String(val)}
                                       </span>
                                     </div>
@@ -2457,12 +2450,12 @@ export const BacktestBottom: React.FC = () => {
 
         {/* Optimization Tab */}
         {activeTab === "optimization" && (
-          <div className="flex flex-col h-full min-h-0 text-[10px] font-sans">
+          <div className="flex flex-col h-full min-h-0 text-xs font-sans">
             {/* Tab navigation inside Optimization */}
             <div className="flex gap-1.5 mb-3.5 border-b border-white/5 pb-1 select-none shrink-0">
               <button
                 onClick={() => setOptTab("setup")}
-                className={`px-3 py-1.5 font-bold uppercase tracking-wider text-[9px] rounded-t transition-all cursor-pointer ${
+                className={`px-3 py-1.5 font-bold uppercase tracking-wider text-xs rounded-t transition-all cursor-pointer ${
                   optTab === "setup" ? "bg-slate-900/60 border-t border-x border-white/10 text-cyan-400" : "text-slate-500 hover:text-slate-300"
                 }`}
               >
@@ -2471,7 +2464,7 @@ export const BacktestBottom: React.FC = () => {
               <button
                 onClick={() => setOptTab("ranked")}
                 disabled={!v2OptimizationReport}
-                className={`px-3 py-1.5 font-bold uppercase tracking-wider text-[9px] rounded-t transition-all cursor-pointer disabled:opacity-30 ${
+                className={`px-3 py-1.5 font-bold uppercase tracking-wider text-xs rounded-t transition-all cursor-pointer disabled:opacity-30 ${
                   optTab === "ranked" ? "bg-slate-900/60 border-t border-x border-white/10 text-cyan-400" : "text-slate-500 hover:text-slate-300"
                 }`}
               >
@@ -2480,7 +2473,7 @@ export const BacktestBottom: React.FC = () => {
               <button
                 onClick={() => setOptTab("heatmap")}
                 disabled={!v2OptimizationReport}
-                className={`px-3 py-1.5 font-bold uppercase tracking-wider text-[9px] rounded-t transition-all cursor-pointer disabled:opacity-30 ${
+                className={`px-3 py-1.5 font-bold uppercase tracking-wider text-xs rounded-t transition-all cursor-pointer disabled:opacity-30 ${
                   optTab === "heatmap" ? "bg-slate-900/60 border-t border-x border-white/10 text-cyan-400" : "text-slate-500 hover:text-slate-300"
                 }`}
               >
@@ -2492,72 +2485,72 @@ export const BacktestBottom: React.FC = () => {
             {optTab === "setup" && (
               <div className="grid grid-cols-2 gap-4 max-w-2xl select-none">
                 <div className="flex flex-col gap-3.5 bg-slate-900/10 border border-white/5 p-4 rounded shadow-sm">
-                  <span className="text-cyan-400 font-bold uppercase tracking-widest text-[8px] block border-b border-white/5 pb-1.5 mb-1.5 flex items-center gap-1.5">
+                  <span className="text-cyan-400 font-bold uppercase tracking-widest text-xs block border-b border-white/5 pb-1.5 mb-1.5 flex items-center gap-1.5">
                     <SlidersHorizontal className="w-3.5 h-3.5 text-cyan-400/80" />
                     <span>Fast EMA Sweep Range</span>
                   </span>
                   <div className="grid grid-cols-3 gap-2.5">
                     <div className="flex flex-col gap-1.5">
-                      <span className="text-slate-500 uppercase text-[8px] font-semibold tracking-wider">Min</span>
+                      <span className="text-slate-500 uppercase text-xs font-semibold tracking-wider">Min</span>
                       <input
                         type="number"
                         value={fastEmaStart}
                         onChange={(e) => setFastEmaStart(Number(e.target.value))}
-                        className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium text-[11px]"
+                        className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium text-xs"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <span className="text-slate-500 uppercase text-[8px] font-semibold tracking-wider">Max</span>
+                      <span className="text-slate-500 uppercase text-xs font-semibold tracking-wider">Max</span>
                       <input
                         type="number"
                         value={fastEmaEnd}
                         onChange={(e) => setFastEmaEnd(Number(e.target.value))}
-                        className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium text-[11px]"
+                        className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium text-xs"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <span className="text-slate-500 uppercase text-[8px] font-semibold tracking-wider">Step</span>
+                      <span className="text-slate-500 uppercase text-xs font-semibold tracking-wider">Step</span>
                       <input
                         type="number"
                         value={fastEmaStep}
                         onChange={(e) => setFastEmaStep(Number(e.target.value))}
-                        className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium text-[11px]"
+                        className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium text-xs"
                       />
                     </div>
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-3.5 bg-slate-900/10 border border-white/5 p-4 rounded shadow-sm">
-                  <span className="text-cyan-400 font-bold uppercase tracking-widest text-[8px] block border-b border-white/5 pb-1.5 mb-1.5 flex items-center gap-1.5">
+                  <span className="text-cyan-400 font-bold uppercase tracking-widest text-xs block border-b border-white/5 pb-1.5 mb-1.5 flex items-center gap-1.5">
                     <SlidersHorizontal className="w-3.5 h-3.5 text-cyan-400/80" />
                     <span>Slow EMA Sweep Range</span>
                   </span>
                   <div className="grid grid-cols-3 gap-2.5">
                     <div className="flex flex-col gap-1.5">
-                      <span className="text-slate-500 uppercase text-[8px] font-semibold tracking-wider">Min</span>
+                      <span className="text-slate-500 uppercase text-xs font-semibold tracking-wider">Min</span>
                       <input
                         type="number"
                         value={slowEmaStart}
                         onChange={(e) => setSlowEmaStart(Number(e.target.value))}
-                        className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium text-[11px]"
+                        className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium text-xs"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <span className="text-slate-500 uppercase text-[8px] font-semibold tracking-wider">Max</span>
+                      <span className="text-slate-500 uppercase text-xs font-semibold tracking-wider">Max</span>
                       <input
                         type="number"
                         value={slowEmaEnd}
                         onChange={(e) => setSlowEmaEnd(Number(e.target.value))}
-                        className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium text-[11px]"
+                        className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium text-xs"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <span className="text-slate-500 uppercase text-[8px] font-semibold tracking-wider">Step</span>
+                      <span className="text-slate-500 uppercase text-xs font-semibold tracking-wider">Step</span>
                       <input
                         type="number"
                         value={slowEmaStep}
                         onChange={(e) => setSlowEmaStep(Number(e.target.value))}
-                        className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium text-[11px]"
+                        className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium text-xs"
                       />
                     </div>
                   </div>
@@ -2565,7 +2558,7 @@ export const BacktestBottom: React.FC = () => {
 
                 <div className="flex justify-between items-center bg-slate-900/10 border border-white/5 p-4 rounded col-span-2 mt-2 shadow-sm">
                   <div className="flex items-center gap-2">
-                    <span className="text-slate-400 font-bold uppercase tracking-wider text-[8px]">Parallel Threads:</span>
+                    <span className="text-slate-400 font-bold uppercase tracking-wider text-xs">Parallel Threads:</span>
                     <input
                       type="number"
                       value={workerCount}
@@ -2577,7 +2570,7 @@ export const BacktestBottom: React.FC = () => {
                   <button
                     onClick={handleRunOptimization}
                     disabled={isOptimizationLoading}
-                    className="bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-950 font-bold px-5 py-2 rounded transition-all cursor-pointer tracking-wider uppercase text-[10px] shadow-lg shadow-cyan-500/15"
+                    className="bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-950 font-bold px-5 py-2 rounded transition-all cursor-pointer tracking-wider uppercase text-xs shadow-lg shadow-cyan-500/15"
                   >
                     {isOptimizationLoading ? "Running Sweep..." : "Run Parameter Sweep"}
                   </button>
@@ -2594,7 +2587,7 @@ export const BacktestBottom: React.FC = () => {
                       <button
                         key={f}
                         onClick={() => setRankedFilter(f)}
-                        className={`px-3 py-1 rounded border text-[9px] font-mono cursor-pointer font-bold tracking-wider transition-all ${
+                        className={`px-3 py-1 rounded border text-xs font-mono cursor-pointer font-bold tracking-wider transition-all ${
                           rankedFilter === f
                             ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400"
                             : "bg-slate-900 border-white/5 text-slate-500 hover:text-slate-400"
@@ -2604,15 +2597,15 @@ export const BacktestBottom: React.FC = () => {
                       </button>
                     ))}
                   </div>
-                  <span className="text-slate-500 text-[9px] font-mono">
+                  <span className="text-slate-500 text-xs font-mono">
                     Executed: <span className="text-slate-300 font-bold">{v2OptimizationReport.run_info.executed_combinations}</span> runs | Skipped: <span className="text-slate-300 font-bold">{v2OptimizationReport.run_info.skipped_combinations}</span>
                   </span>
                 </div>
 
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left font-mono text-[10px] border-collapse">
+                  <table className="w-full text-left font-mono text-xs border-collapse">
                     <thead>
-                      <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-[8px] tracking-wider bg-slate-950/20">
+                      <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-xs tracking-wider bg-slate-950/20">
                         <th className="py-2 pl-2">Rank</th>
                         <th className="py-2">Parameters (Fast / Slow)</th>
                         <th className="py-2 text-right">Net Profit</th>
@@ -2654,7 +2647,7 @@ export const BacktestBottom: React.FC = () => {
                             <td className="py-2 text-right text-cyan-300 font-bold">{item.composite_score}</td>
                             <td className="py-2 text-center pr-2">
                               {stability ? (
-                                <span className={`px-1.5 py-0.5 rounded text-[8px] font-sans font-bold tracking-wider ${
+                                <span className={`px-1.5 py-0.5 rounded text-xs font-sans font-bold tracking-wider ${
                                   stability.status === "STABLE" ? "bg-emerald-950/40 text-emerald-400 border border-emerald-800/30" : "bg-rose-950/40 text-rose-400 border border-rose-800/30"
                                 }`}>
                                   {stability.status}
@@ -2677,7 +2670,7 @@ export const BacktestBottom: React.FC = () => {
               <div className="flex flex-col gap-3 text-slate-400">
                 <div className="flex justify-between items-center select-none shrink-0 bg-slate-950/20 p-2 rounded border border-white/5">
                   <div className="flex items-center gap-2">
-                    <span className="text-slate-400 font-bold uppercase tracking-wider text-[8px]">Heatmap Parameter Metric:</span>
+                    <span className="text-slate-400 font-bold uppercase tracking-wider text-xs">Heatmap Parameter Metric:</span>
                     <select
                       value={heatmapMetric}
                       onChange={(e: any) => setHeatmapMetric(e.target.value)}
@@ -2697,12 +2690,12 @@ export const BacktestBottom: React.FC = () => {
                     <div className="flex flex-col gap-1.5 min-w-[300px]">
                       {/* X values label header */}
                       <div className="flex">
-                        <div className="w-16 font-mono text-[8px] text-slate-500 flex items-center justify-end pr-2.5 uppercase tracking-wider font-bold">
+                        <div className="w-16 font-mono text-xs text-slate-500 flex items-center justify-end pr-2.5 uppercase tracking-wider font-bold">
                           Slow \ Fast
                         </div>
                         <div className="flex-1 flex gap-1.5">
                           {v2OptimizationReport.heatmap_data.x_values.map((xVal) => (
-                            <div key={xVal} className="flex-1 text-center font-mono font-bold text-[8px] text-cyan-500/80">
+                            <div key={xVal} className="flex-1 text-center font-mono font-bold text-xs text-cyan-500/80">
                               F:{xVal}
                             </div>
                           ))}
@@ -2713,7 +2706,7 @@ export const BacktestBottom: React.FC = () => {
                       {v2OptimizationReport.heatmap_data.y_values.map((yVal, yIdx) => (
                         <div key={yVal} className="flex">
                           {/* Y Label */}
-                          <div className="w-16 font-mono font-bold text-[8px] text-slate-500 flex items-center justify-end pr-2.5">
+                          <div className="w-16 font-mono font-bold text-xs text-slate-500 flex items-center justify-end pr-2.5">
                             S:{yVal}
                           </div>
                           
@@ -2749,7 +2742,7 @@ export const BacktestBottom: React.FC = () => {
                                   key={xVal}
                                   onClick={() => handleInspectParams({ fastEma: xVal, slowEma: yVal })}
                                   title={`Fast: ${xVal}, Slow: ${yVal} | ${heatmapMetric}: ${cellVal}`}
-                                  className={`flex-1 aspect-[1.8] rounded border flex items-center justify-center font-mono text-[9px] cursor-pointer transition-all hover:scale-105 select-none ${cellBg}`}
+                                  className={`flex-1 aspect-[1.8] rounded border flex items-center justify-center font-mono text-xs cursor-pointer transition-all hover:scale-105 select-none ${cellBg}`}
                                 >
                                   {cellVal ? (heatmapMetric.includes("profit") ? `₹${Math.round(cellVal)}` : cellVal.toFixed(1)) : "-"}
                                 </div>
@@ -2764,7 +2757,7 @@ export const BacktestBottom: React.FC = () => {
                   {/* Inspector card right side */}
                   <div className="w-60 flex flex-col gap-2.5 shrink-0">
                     <div className="bg-slate-900/10 border border-white/5 p-3.5 rounded shadow-sm">
-                      <span className="text-slate-400 uppercase tracking-widest text-[8px] font-bold block mb-2 border-b border-white/5 pb-1">
+                      <span className="text-slate-400 uppercase tracking-widest text-xs font-bold block mb-2 border-b border-white/5 pb-1">
                         Cell Parameter Inspector
                       </span>
                       {selectedInspectorParams ? (
@@ -2794,7 +2787,7 @@ export const BacktestBottom: React.FC = () => {
                           )}
                         </div>
                       ) : (
-                        <div className="text-[10px] text-slate-500 italic select-none">
+                        <div className="text-xs text-slate-500 italic select-none">
                           Click any heatmap cell to run detailed backtest and inspect results.
                         </div>
                       )}

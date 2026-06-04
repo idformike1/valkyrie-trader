@@ -156,12 +156,12 @@ export const DeploymentsLeft: React.FC = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search active clusters..."
-            className="w-full bg-slate-900/60 border border-white/5 rounded pl-8 pr-3 py-1.5 text-[11px] text-slate-300 focus:outline-none focus:border-cyan-500/40"
+            className="w-full bg-slate-900/60 border border-white/5 rounded pl-8 pr-3 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-500/40"
           />
         </div>
 
         {/* Filter List */}
-        <div className="grid grid-cols-2 gap-1.5 shrink-0 select-none text-[9px] font-bold">
+        <div className="grid grid-cols-2 gap-1.5 shrink-0 select-none text-xs font-bold">
           {["All", "Running", "Paused", "Degraded", "Failed"].map((status) => (
             <button
               key={status}
@@ -192,28 +192,23 @@ export const DeploymentsLeft: React.FC = () => {
                 }`}
               >
                 <div className="flex justify-between items-start">
-                  <span className="font-bold uppercase tracking-wider text-[11px] truncate mr-2">
+                  <span className="font-bold uppercase tracking-wider text-xs truncate mr-2">
                     {item.strategyName}
                   </span>
-                  <span className="font-mono text-[9px] text-slate-500 bg-slate-900 px-1 border border-white/5 rounded">
+                  <span className="font-mono text-xs text-slate-500 bg-slate-900 px-1 border border-white/5 rounded">
                     {item.version}
                   </span>
                 </div>
 
-                <div className="flex justify-between items-center text-[10px] text-slate-500 select-none">
-                  <span className={`flex items-center gap-1 text-[9px] font-bold ${
-                    item.status === "Running" ? "text-emerald-400" :
-                    item.status === "Paused" ? "text-amber-400" :
-                    item.status === "Degraded" ? "text-orange-400 animate-pulse" : "text-rose-400 animate-pulse"
+                <div className="flex justify-between items-center text-xs text-slate-500 select-none">
+                  <span className={`status-badge ${
+                    item.status === "Running" ? "running" :
+                    item.status === "Paused" ? "paused" :
+                    item.status === "Degraded" ? "warning animate-pulse" : "failed animate-pulse"
                   }`}>
-                    <span className={`w-1 h-1 rounded-full ${
-                      item.status === "Running" ? "bg-emerald-400 animate-pulse" :
-                      item.status === "Paused" ? "bg-amber-400" :
-                      item.status === "Degraded" ? "bg-orange-400" : "bg-rose-400"
-                    }`} />
                     {item.status}
                   </span>
-                  <span className="text-[9px] font-mono">{item.accountType}</span>
+                  <span className="text-xs font-mono">{item.accountType}</span>
                 </div>
               </div>
             );
@@ -254,12 +249,12 @@ export const DeploymentsMain: React.FC = () => {
       {/* Kubernetes Command Bar */}
       <div className="flex items-center justify-between px-3 py-2 bg-slate-900/50 border-b border-white/5 select-none shrink-0 flex-wrap gap-2">
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] text-slate-500 font-bold uppercase mr-2">Cluster Operations:</span>
+          <span className="text-xs text-slate-500 font-bold uppercase mr-2">Cluster Operations:</span>
           
           <button
             onClick={() => handleAction("DEPLOY")}
             disabled={!selectedStrategy}
-            className="bg-emerald-500 hover:bg-emerald-400 disabled:opacity-30 disabled:hover:bg-emerald-500 text-slate-950 font-bold px-2.5 py-1 rounded transition-all cursor-pointer text-center text-[10px]"
+            className="btn-buy disabled:opacity-30 cursor-pointer text-center"
           >
             Deploy
           </button>
@@ -267,7 +262,7 @@ export const DeploymentsMain: React.FC = () => {
           <button
             onClick={() => handleAction("PAUSE")}
             disabled={!selectedStrategy}
-            className="bg-amber-500 hover:bg-amber-400 disabled:opacity-30 disabled:hover:bg-amber-500 text-slate-950 font-bold px-2.5 py-1 rounded transition-all cursor-pointer text-center text-[10px]"
+            className="btn-secondary text-amber-500 hover:text-amber-455 disabled:opacity-30 cursor-pointer text-center"
           >
             Pause
           </button>
@@ -275,7 +270,7 @@ export const DeploymentsMain: React.FC = () => {
           <button
             onClick={() => handleAction("RESUME")}
             disabled={!selectedStrategy}
-            className="bg-cyan-500 hover:bg-cyan-400 disabled:opacity-30 disabled:hover:bg-cyan-500 text-slate-950 font-bold px-2.5 py-1 rounded transition-all cursor-pointer text-center text-[10px]"
+            className="btn-primary disabled:opacity-30 cursor-pointer text-center"
           >
             Resume
           </button>
@@ -283,7 +278,7 @@ export const DeploymentsMain: React.FC = () => {
           <button
             onClick={() => handleAction("STOP")}
             disabled={!selectedStrategy}
-            className="bg-rose-500 hover:bg-rose-400 disabled:opacity-30 disabled:hover:bg-rose-500 text-slate-950 font-bold px-2.5 py-1 rounded transition-all cursor-pointer text-center text-[10px]"
+            className="btn-destructive disabled:opacity-30 cursor-pointer text-center"
           >
             Stop
           </button>
@@ -291,22 +286,22 @@ export const DeploymentsMain: React.FC = () => {
           <button
             onClick={() => handleAction("RESTART")}
             disabled={!selectedStrategy}
-            className="bg-slate-900 border border-white/15 text-slate-300 hover:border-white/30 disabled:opacity-30 px-2.5 py-1 rounded transition-all cursor-pointer text-center text-[10px]"
+            className="btn-secondary disabled:opacity-30 cursor-pointer text-center"
           >
             Restart
           </button>
         </div>
 
-        <button className="bg-slate-900 border border-white/15 text-slate-400 hover:text-slate-200 px-3 py-1 rounded transition-all cursor-pointer text-center text-[10px]">
+        <button className="btn-secondary cursor-pointer text-center">
           Bulk Shutdown
         </button>
       </div>
 
       {/* Main Kubernetes Cluster Grid */}
       <div className="flex-1 overflow-y-auto min-h-0 pr-1 scrollbar-thin scrollbar-thumb-white/5">
-        <table className="w-full text-left font-mono text-[10px]">
+        <table className="w-full text-left font-mono text-xs">
           <thead>
-            <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-[8px] tracking-wider">
+            <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-xs tracking-wider">
               <th className="py-2.5 pl-3">Deploy ID</th>
               <th className="py-2.5">Strategy</th>
               <th className="py-2.5">Version</th>
@@ -333,17 +328,17 @@ export const DeploymentsMain: React.FC = () => {
                   <td className="py-2.5 font-bold uppercase">{c.strategyName}</td>
                   <td className="py-2.5 text-slate-400">{c.version}</td>
                   <td className="py-2.5 text-slate-400">
-                    <span className="text-[9px] font-sans font-bold bg-slate-900 border border-white/5 px-1 rounded mr-1.5 text-slate-500">
+                    <span className="text-xs font-sans font-bold bg-slate-900 border border-white/5 px-1 rounded mr-1.5 text-slate-500">
                       {c.accountType}
                     </span>
                     {c.accountName}
                   </td>
                   <td className="py-2.5 text-right">₹{c.capitalAllocated.toLocaleString("en-IN")}</td>
                   <td className="py-2.5 text-center">
-                    <span className={`px-1.5 py-0.5 rounded text-[8px] font-sans font-bold ${
-                      c.status === "Running" ? "bg-emerald-950/40 text-emerald-400" :
-                      c.status === "Paused" ? "bg-amber-950/40 text-amber-400" :
-                      c.status === "Degraded" ? "bg-orange-950/40 text-orange-400" : "bg-rose-950/40 text-rose-400"
+                    <span className={`status-badge ${
+                      c.status === "Running" ? "running" :
+                      c.status === "Paused" ? "paused" :
+                      c.status === "Degraded" ? "warning" : "failed"
                     }`}>
                       {c.status}
                     </span>
@@ -388,7 +383,7 @@ export const DeploymentsRight: React.FC = () => {
   return (
     <ControlCard title="Deployment Health">
       <div className="flex flex-col gap-3 h-full font-sans text-xs">
-        <div className="text-[10px] text-slate-500 border-b border-white/5 pb-1 select-none">
+        <div className="text-xs text-slate-500 border-b border-white/5 pb-1 select-none">
           KUBERNETES CONTAINER SERVICES
         </div>
 
@@ -396,10 +391,10 @@ export const DeploymentsRight: React.FC = () => {
           <div className="flex-1 flex flex-col gap-2 overflow-y-auto pr-1">
             {healthServices.map((srv, idx) => (
               <div key={idx} className="flex justify-between items-center p-2 rounded bg-slate-900/30 border border-white/5">
-                <span className="text-slate-400 text-[10px] font-semibold">{srv.name}</span>
-                <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold ${
-                  srv.state === "HEALTHY" ? "bg-emerald-950/40 text-emerald-400" :
-                  srv.state === "WARNING" ? "bg-amber-950/40 text-amber-400 animate-pulse" : "bg-rose-950/40 text-rose-400"
+                <span className="text-slate-400 text-xs font-semibold">{srv.name}</span>
+                <span className={`status-badge ${
+                  srv.state === "HEALTHY" ? "healthy" :
+                  srv.state === "WARNING" ? "warning" : "failed"
                 }`}>
                   {srv.state}
                 </span>
@@ -407,7 +402,7 @@ export const DeploymentsRight: React.FC = () => {
             ))}
 
             <div className="mt-4 pt-3 border-t border-white/5 select-none">
-              <div className="bg-slate-950/60 p-2.5 rounded border border-white/5 flex flex-col gap-1 font-mono text-[9px]">
+              <div className="bg-slate-950/60 p-2.5 rounded border border-white/5 flex flex-col gap-1 font-mono text-xs">
                 <span className="text-slate-500 uppercase tracking-widest font-bold">Risk Management Telemetry</span>
                 <div className="flex justify-between">
                   <span>Margin Usage:</span>
@@ -421,7 +416,7 @@ export const DeploymentsRight: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex items-center justify-center text-slate-500 text-[10px] text-center px-4">
+          <div className="flex-1 flex items-center justify-center text-slate-500 text-xs text-center px-4">
             Select a target strategy to inspect container systems.
           </div>
         )}
@@ -452,7 +447,7 @@ export const DeploymentsBottom: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-3 py-1.5 font-bold text-[10px] tracking-wide transition-all border-b-2 cursor-pointer ${
+            className={`px-3 py-1.5 font-bold text-xs tracking-wide transition-all border-b-2 cursor-pointer ${
               activeTab === tab.id
                 ? "border-cyan-400 text-cyan-400 bg-slate-900/30"
                 : "border-transparent text-slate-500 hover:text-slate-300"
@@ -468,7 +463,7 @@ export const DeploymentsBottom: React.FC = () => {
         
         {/* Execution Events */}
         {activeTab === "execution" && (
-          <div className="font-mono text-[9px] text-slate-400 flex flex-col gap-1 max-w-5xl select-text">
+          <div className="font-mono text-xs text-slate-400 flex flex-col gap-1 max-w-5xl select-text">
             <span>[13:50:01 INFO] [DEP_CLS_01] Trigger Signal BUY generated - Symbol: NIFTY, Qty: 300</span>
             <span>[13:50:01 INFO] [DEP_CLS_01] Order submitted to broker route gateway target ...</span>
             <span>[13:50:02 SUCCESS] [DEP_CLS_01] Order filled @ ₹22180.20 (Latency: 14ms)</span>
@@ -477,7 +472,7 @@ export const DeploymentsBottom: React.FC = () => {
 
         {/* Strategy Logs */}
         {activeTab === "logs" && (
-          <div className="font-mono text-[9px] text-slate-400 flex flex-col gap-1 max-w-5xl select-text">
+          <div className="font-mono text-xs text-slate-400 flex flex-col gap-1 max-w-5xl select-text">
             <span>[13:48:10 INFO] EMA 9 cross above EMA 21 matching parameters ...</span>
             <span>[13:50:00 INFO] VWAP volatility threshold crossed (ATR: 2.25) ...</span>
           </div>
@@ -485,7 +480,7 @@ export const DeploymentsBottom: React.FC = () => {
 
         {/* Risk Alerts */}
         {activeTab === "risk" && (
-          <div className="font-mono text-[9px] text-slate-400 flex flex-col gap-1 select-text">
+          <div className="font-mono text-xs text-slate-400 flex flex-col gap-1 select-text">
             <span className="text-amber-400">[13:45:00 WARNING] [DEP_CLS_04] Risk Limit Warning: Broker route latency exceeded 100ms.</span>
             <span className="text-amber-400">[13:48:12 WARNING] [DEP_CLS_02] Capital Utilization Alert: Exposure margins near 75% max limits.</span>
           </div>
@@ -493,9 +488,9 @@ export const DeploymentsBottom: React.FC = () => {
 
         {/* Audit Trail Ledger */}
         {activeTab === "audit" && (
-          <table className="w-full text-left font-mono text-[10px]">
+          <table className="w-full text-left font-mono text-xs">
             <thead>
-              <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-[8px]">
+              <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-xs">
                 <th className="py-1 pl-2">Who</th>
                 <th className="py-1">What Action</th>
                 <th className="py-1">Execution Time</th>

@@ -383,7 +383,7 @@ export const ScalperMain: React.FC = () => {
     <div className="flex flex-col gap-2 h-full font-sans select-none">
       {/* 1. Tick Chart Panel */}
       <div className="flex-1 p-2 flex flex-col justify-between overflow-hidden relative">
-        <div className="flex justify-between items-center text-[10px] uppercase font-bold text-slate-400 border-b border-white/5 pb-1">
+        <div className="flex justify-between items-center text-xs uppercase font-bold text-slate-400 border-b border-white/5 pb-1">
           <div className="flex items-center gap-1.5">
             <Radio className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
             <span className="text-cyan-400">TICK CHART (40 Ticks)</span>
@@ -450,7 +450,7 @@ export const ScalperMain: React.FC = () => {
 
           {/* Value tags on the right */}
           {trade.side !== "FLAT" && (
-            <div className="absolute right-1 top-0 bottom-0 flex flex-col justify-between font-mono text-[9px] pointer-events-none">
+            <div className="absolute right-1 top-0 bottom-0 flex flex-col justify-between font-mono text-xs pointer-events-none">
               {trade.targetPrice > 0 && <span className="text-cyan-400 bg-cyan-950/80 px-1 border border-cyan-800 rounded">TGT: {trade.targetPrice.toFixed(1)}</span>}
               {trade.avgEntry > 0 && <span className="text-emerald-400 bg-emerald-950/80 px-1 border border-emerald-800 rounded">AVG: {trade.avgEntry.toFixed(1)}</span>}
               {trade.stopPrice > 0 && <span className="text-rose-400 bg-rose-950/80 px-1 border border-rose-800 rounded">SL: {trade.stopPrice.toFixed(1)}</span>}
@@ -464,22 +464,18 @@ export const ScalperMain: React.FC = () => {
         
         {/* Order Pad Execution Panel (Center Execution) */}
         <div className="col-span-8 p-2 flex flex-col justify-between">
-          <div className="flex justify-between items-center text-[9px] uppercase font-bold text-slate-500 tracking-wider">
+          <div className="flex justify-between items-center text-xs uppercase font-bold text-slate-500 tracking-wider">
             <span>SCALPING ORDER PAD</span>
             <span className="text-cyan-400 font-bold">Qty: {activeLots} Lot(s)</span>
           </div>
 
           {/* Lot Toggles */}
-          <div className="grid grid-cols-4 gap-1">
+          <div className="tab-container grid grid-cols-4 select-none font-mono">
             {[1, 2, 5, 10].map((lots) => (
               <button
                 key={lots}
                 onClick={() => setActiveLots(lots)}
-                className={`py-1 rounded font-bold text-xs transition-all cursor-pointer text-center ${
-                  activeLots === lots
-                    ? "bg-cyan-500/15 text-cyan-400 border border-cyan-500/30"
-                    : "bg-slate-900 border border-white/5 text-slate-400 hover:text-slate-200"
-                }`}
+                className={`tab-item ${activeLots === lots ? "active" : ""}`}
               >
                 {lots} L
               </button>
@@ -490,46 +486,46 @@ export const ScalperMain: React.FC = () => {
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => handleMarketOrder("BUY")}
-              className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-2 rounded text-xs uppercase cursor-pointer text-center shadow-lg shadow-emerald-500/10"
+              className="btn-buy w-full cursor-pointer text-center"
             >
-              BUY MKT
+              Buy Mkt
             </button>
             <button
               onClick={() => handleMarketOrder("SELL")}
-              className="bg-rose-500 hover:bg-rose-400 text-slate-950 font-bold py-2 rounded text-xs uppercase cursor-pointer text-center shadow-lg shadow-rose-500/10"
+              className="btn-sell w-full cursor-pointer text-center"
             >
-              SELL MKT
+              Sell Mkt
             </button>
           </div>
 
           {/* Quick operations */}
-          <div className="grid grid-cols-3 gap-1.5 text-[9px] font-bold">
+          <div className="grid grid-cols-3 gap-1.5">
             <button 
               onClick={handleReverse}
               disabled={trade.side === "FLAT"}
-              className="bg-slate-900 border border-white/5 hover:border-white/10 text-amber-400 py-1.5 rounded uppercase transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-center"
+              className="btn-secondary text-amber-500 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-center"
             >
-              REVERSE
+              Reverse
             </button>
             <button 
               onClick={handleFlatten}
               disabled={trade.side === "FLAT"}
-              className="bg-slate-900 border border-white/5 hover:border-white/10 text-slate-300 py-1.5 rounded uppercase transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-center"
+              className="btn-secondary text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-center"
             >
-              FLATTEN
+              Flatten
             </button>
             <button 
               onClick={handleCancel}
-              className="bg-slate-900 border border-white/5 hover:border-white/10 text-rose-400 py-1.5 rounded uppercase transition-all cursor-pointer text-center"
+              className="btn-secondary text-rose-500 cursor-pointer text-center"
             >
-              CANCEL
+              Cancel
             </button>
           </div>
         </div>
 
         {/* Hotkey Panel (Display status only) */}
-        <div className="col-span-4 border-l border-white/5 p-2 flex flex-col justify-between font-mono text-[9px]">
-          <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider font-sans">HOTKEYS STATUS</span>
+        <div className="col-span-4 border-l border-white/5 p-2 flex flex-col justify-between font-mono text-xs">
+          <span className="text-xs uppercase font-bold text-slate-500 tracking-wider font-sans">HOTKEYS STATUS</span>
           
           <div className="flex flex-col gap-1.5 text-slate-300 select-none">
             <div className="flex justify-between items-center">
@@ -550,7 +546,7 @@ export const ScalperMain: React.FC = () => {
             </div>
           </div>
 
-          <div className="text-[8px] text-slate-500 uppercase tracking-widest text-center mt-1 font-sans">
+          <div className="text-xs text-slate-500 uppercase tracking-widest text-center mt-1 font-sans">
             KEYBOARD BINDINGS ACTIVE
           </div>
         </div>
@@ -716,12 +712,12 @@ export const ScalperRight: React.FC = () => {
       </div>
 
       {/* Emergency Panic Exit Panel */}
-      <div className="bg-red-950/20 border border-red-500/40 p-2.5 rounded-lg flex flex-col gap-1.5 shrink-0 select-none">
+      <div className="panel border-red-500/20 bg-red-950/10 p-3 flex flex-col gap-2 shrink-0 select-none">
         <button 
           onClick={triggerPanicExit}
-          className="w-full bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-bold py-2.5 rounded text-xs uppercase tracking-widest transition-all shadow-lg shadow-red-600/30 border border-red-500 cursor-pointer text-center"
+          className="btn-destructive w-full cursor-pointer text-center"
         >
-          🚨 PANIC EXIT / FLATTEN ALL
+          🚨 Panic Exit / Flatten All
         </button>
         <span className="text-xs text-red-400/60 text-center uppercase tracking-wider font-mono">
           Immediate square-off and active order purge
@@ -774,8 +770,8 @@ export const ScalperBottom: React.FC = () => {
     <div className="flex flex-col h-full overflow-hidden text-xs font-sans select-none">
       {/* Position Header Banner */}
       <div className="flex items-center justify-between border-b border-white/5 bg-slate-950/20 px-3 py-1 shrink-0 select-none">
-        <span className="font-bold text-[9px] text-slate-500 uppercase tracking-widest">Scalper Positions Auditor</span>
-        <div className="flex gap-4 font-mono tabular-nums text-[9px] items-center">
+        <span className="font-bold text-xs text-slate-500 uppercase tracking-widest">Scalper Positions Auditor</span>
+        <div className="flex gap-4 font-mono tabular-nums text-xs items-center">
           <div className="flex gap-1.5">
             <span className="text-slate-500">REALIZED:</span>
             <span className={`font-bold ${realized >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
@@ -793,9 +789,9 @@ export const ScalperBottom: React.FC = () => {
 
       {/* Detail table */}
       <div className="flex-1 overflow-x-auto p-2 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
-        <table className="w-full text-left font-mono tabular-nums text-[10px]">
+        <table className="w-full text-left font-mono tabular-nums text-xs">
           <thead>
-            <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-[8px] tracking-wider text-center">
+            <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-xs tracking-wider text-center">
               <th className="py-1 pl-2 text-left">Instrument</th>
               <th className="py-1">Side</th>
               <th className="py-1">Qty</th>
@@ -813,8 +809,8 @@ export const ScalperBottom: React.FC = () => {
               <tr className="hover:bg-white/[0.01]">
                 <td className="py-2 pl-2 text-left font-sans font-bold text-slate-200">{pos.symbol}</td>
                 <td className="py-2">
-                  <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold font-sans ${
-                    pos.side === "LONG" ? "bg-emerald-950/40 text-emerald-400" : "bg-rose-950/40 text-rose-400"
+                  <span className={`status-badge ${
+                    pos.side === "LONG" ? "success" : "failed"
                   }`}>
                     {pos.side}
                   </span>
@@ -831,7 +827,7 @@ export const ScalperBottom: React.FC = () => {
                 <td className="py-2 text-right pr-2">
                   <button 
                     onClick={handleClosePos}
-                    className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded px-2 py-0.5 font-bold font-sans text-[8px] cursor-pointer"
+                    className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded px-2 py-0.5 font-bold font-sans text-xs cursor-pointer"
                   >
                     CLOSE
                   </button>
@@ -839,9 +835,7 @@ export const ScalperBottom: React.FC = () => {
               </tr>
             ) : (
               <tr>
-                <td colSpan={10} className="py-6 text-center text-slate-500 text-[10px] font-sans">
-                  No active scalping positions. Click BUY MKT / SELL MKT to execute.
-                </td>
+                <td colSpan={10}><div className="empty-state">No active scalping positions. Click BUY MKT / SELL MKT to execute.</div></td>
               </tr>
             )}
           </tbody>
