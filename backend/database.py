@@ -45,12 +45,13 @@ def init_db(db_path=DEFAULT_DB_PATH):
         entry_reason TEXT,
         exit_reason TEXT,
         quote_quality TEXT,
+        fill_diagnostics TEXT,
         FOREIGN KEY (session_id) REFERENCES trade_sessions(id)
     )
     """)
     
-    # Run migrations for execution_source, entry_reason, exit_reason, quote_quality
-    for col in ["execution_source", "entry_reason", "exit_reason", "quote_quality"]:
+    # Run migrations for execution_source, entry_reason, exit_reason, quote_quality, fill_diagnostics
+    for col in ["execution_source", "entry_reason", "exit_reason", "quote_quality", "fill_diagnostics"]:
         try:
             cursor.execute(f"ALTER TABLE trade_logs ADD COLUMN {col} TEXT")
         except sqlite3.OperationalError:
@@ -83,7 +84,7 @@ def close_session(session_id, final_balance, db_path=DEFAULT_DB_PATH):
     conn.commit()
     conn.close()
 
-def log_trade(session_id, instrument_key, trading_symbol, trade_type, price, quantity, stop_loss, target_price, reason, pnl, upstox_order_id=None, timestamp=None, execution_source=None, entry_reason=None, exit_reason=None, quote_quality=None, db_path=DEFAULT_DB_PATH):
+def log_trade(session_id, instrument_key, trading_symbol, trade_type, price, quantity, stop_loss, target_price, reason, pnl, upstox_order_id=None, timestamp=None, execution_source=None, entry_reason=None, exit_reason=None, quote_quality=None, fill_diagnostics=None, db_path=DEFAULT_DB_PATH):
     conn = get_db_connection(db_path)
     cursor = conn.cursor()
     if not timestamp:
@@ -93,15 +94,17 @@ def log_trade(session_id, instrument_key, trading_symbol, trade_type, price, qua
     else:
         timestamp = str(timestamp)
         
-    # Serialize quote_quality to JSON if dict
+    # Serialize to JSON if dict
     import json
     if isinstance(quote_quality, dict):
         quote_quality = json.dumps(quote_quality)
+    if isinstance(fill_diagnostics, dict):
+        fill_diagnostics = json.dumps(fill_diagnostics)
         
     cursor.execute("""
-    INSERT INTO trade_logs (session_id, instrument_key, trading_symbol, type, price, quantity, stop_loss, target_price, reason, pnl, timestamp, upstox_order_id, execution_source, entry_reason, exit_reason, quote_quality)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (session_id, instrument_key, trading_symbol, trade_type, price, quantity, stop_loss, target_price, reason, pnl, timestamp, upstox_order_id, execution_source, entry_reason, exit_reason, quote_quality))
+    INSERT INTO trade_logs (session_id, instrument_key, trading_symbol, type, price, quantity, stop_loss, target_price, reason, pnl, timestamp, upstox_order_id, execution_source, entry_reason, exit_reason, quote_quality, fill_diagnostics)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (session_id, instrument_key, trading_symbol, trade_type, price, quantity, stop_loss, target_price, reason, pnl, timestamp, upstox_order_id, execution_source, entry_reason, exit_reason, quote_quality, fill_diagnostics))
     conn.commit()
     conn.close()
 
@@ -144,6 +147,14 @@ def get_session_trades(session_id, db_path=DEFAULT_DB_PATH):
         except Exception:
             pass
             
+        fd = None
+        try:
+            if "fill_diagnostics" in r.keys() and r["fill_diagnostics"] is not None:
+                import json
+                fd = json.loads(r["fill_diagnostics"])
+        except Exception:
+            pass
+            
         trades.append({
             "id": r["id"],
             "session_id": r["session_id"],
@@ -161,7 +172,8 @@ def get_session_trades(session_id, db_path=DEFAULT_DB_PATH):
             "execution_source": exec_src,
             "entry_reason": entry_r,
             "exit_reason": exit_r,
-            "quote_quality": qq
+            "quote_quality": qq,
+            "fill_diagnostics": fd
         })
     return trades
 

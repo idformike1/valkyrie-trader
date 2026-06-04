@@ -38,6 +38,15 @@ def main():
         "tick_age_ms": 18
     }
 
+    fill_diagnostics = {
+        "fill_price": 102.5,
+        "quantity": 75,
+        "premium": 7687.5,
+        "brokerage": 20.0,
+        "slippage_pct": 0.05,
+        "execution_latency_ms": 12
+    }
+
     # Log BUY trade
     db.log_trade(
         session_id=999,
@@ -53,6 +62,7 @@ def main():
         execution_source="LIVE_QUOTE",
         entry_reason=entry_reason,
         quote_quality=quote_quality,
+        fill_diagnostics=fill_diagnostics,
         db_path=DB_PATH
     )
 
@@ -71,6 +81,7 @@ def main():
         execution_source="LIVE_QUOTE",
         exit_reason=exit_reason,
         quote_quality=quote_quality,
+        fill_diagnostics=fill_diagnostics,
         db_path=DB_PATH
     )
 
@@ -82,6 +93,7 @@ def main():
         print(f"  Entry Reason: {t.get('entry_reason')}")
         print(f"  Exit Reason: {t.get('exit_reason')}")
         print(f"  Quote Quality: {t.get('quote_quality')}")
+        print(f"  Fill Diagnostics: {t.get('fill_diagnostics')}")
         print("-" * 50)
 
     # Clean up

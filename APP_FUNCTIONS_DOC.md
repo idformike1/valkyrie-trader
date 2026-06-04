@@ -840,7 +840,7 @@ No description provided.
 ```
 
 #### `log_trade` (Function)
-- **Signature**: `def log_trade(session_id, instrument_key, trading_symbol, trade_type, price, quantity, stop_loss, target_price, reason, pnl, upstox_order_id, timestamp, execution_source, entry_reason, exit_reason, quote_quality, db_path)`
+- **Signature**: `def log_trade(session_id, instrument_key, trading_symbol, trade_type, price, quantity, stop_loss, target_price, reason, pnl, upstox_order_id, timestamp, execution_source, entry_reason, exit_reason, quote_quality, fill_diagnostics, db_path)`
 - **Description**:
 ```text
 No description provided.
@@ -6091,7 +6091,7 @@ No description provided.
 ```
 
 #### `strategies` (Function)
-- **Signature**: `const strategies = useBackendTradingStore((state) => state.strategies)`
+- **Signature**: `const strategies = useBackendTradingStore((state) => state.strategies) || []`
 - **Description**:
 ```text
 No description provided.
@@ -6099,6 +6099,13 @@ No description provided.
 
 #### `fetchV2Strategies` (Function)
 - **Signature**: `const fetchV2Strategies = useBackendTradingStore((state) => state.fetchV2Strategies)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `status` (Function)
+- **Signature**: `const status = useBackendTradingStore((state) => state.status)`
 - **Description**:
 ```text
 No description provided.
@@ -6153,6 +6160,13 @@ No description provided.
 - **Description**:
 ```text
 V2 Live paper telemetry
+```
+
+#### `connectionStatus` (Function)
+- **Signature**: `const connectionStatus = useBackendTradingStore((state) => state.connectionStatus)`
+- **Description**:
+```text
+No description provided.
 ```
 
 #### `strategies` (Function)
@@ -6225,8 +6239,15 @@ No description provided.
 No description provided.
 ```
 
-#### `timer` (Function)
-- **Signature**: `const timer = setInterval(() => `
+#### `getRuntimeSeconds` (Function)
+- **Signature**: `const getRuntimeSeconds = () => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `formatTime` (Function)
+- **Signature**: `const formatTime = (isoString?: string | null) => `
 - **Description**:
 ```text
 No description provided.
@@ -6281,12 +6302,61 @@ No description provided.
 No description provided.
 ```
 
+#### `closedTrades` (Function)
+- **Signature**: `const closedTrades = trades.filter(t => t.type === "EXIT")`
+- **Description**:
+```text
+Session Statistics & Activity computations
+```
+
+#### `winsCount` (Function)
+- **Signature**: `const winsCount = closedTrades.filter(t => (t.pnl ?? 0) > 0).length`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `lossesCount` (Function)
+- **Signature**: `const lossesCount = closedTrades.filter(t => (t.pnl ?? 0) <= 0).length`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `winningTrades` (Function)
+- **Signature**: `const winningTrades = closedTrades.filter(t => (t.pnl ?? 0) > 0)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `losingTrades` (Function)
+- **Signature**: `const losingTrades = closedTrades.filter(t => (t.pnl ?? 0) <= 0)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `grossProfit` (Function)
+- **Signature**: `const grossProfit = winningTrades.reduce((acc, t) => acc + (t.pnl ?? 0), 0)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `grossLoss` (Function)
+- **Signature**: `const grossLoss = losingTrades.reduce((acc, t) => acc + Math.abs(t.pnl ?? 0), 0)`
+- **Description**:
+```text
+No description provided.
+```
+
 #### `selectedStrategy` (Function)
 - **Signature**: `const selectedStrategy = useTerminalStore((state) => state.selectedStrategy)`
 - **Description**:
 ```text
 ==========================================
-3. RIGHT PANEL: STRATEGY HEALTH
+3. RIGHT PANEL: SYSTEM HEALTH
 ==========================================
 ```
 
@@ -6297,15 +6367,50 @@ No description provided.
 No description provided.
 ```
 
-#### `logs` (Function)
-- **Signature**: `const logs = useBackendTradingStore((state) => state.logs) || []`
+#### `connectionStatus` (Function)
+- **Signature**: `const connectionStatus = useBackendTradingStore((state) => state.connectionStatus)`
 - **Description**:
 ```text
 No description provided.
 ```
 
-#### `getSystemStatusVal` (Function)
-- **Signature**: `const getSystemStatusVal = (label: string) => `
+#### `getSystemStatus` (Function)
+- **Signature**: `const getSystemStatus = (key: string) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `hasUnhealthy` (Function)
+- **Signature**: `const hasUnhealthy = systemItems.some(item => !item.ok)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `formatTime` (Function)
+- **Signature**: `const formatTime = (isoString?: string | null) => `
+- **Description**:
+```text
+Formatter functions
+```
+
+#### `getRuntimeSeconds` (Function)
+- **Signature**: `const getRuntimeSeconds = () => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `formatDuration` (Function)
+- **Signature**: `const formatDuration = (seconds: number) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `getExplicitState` (Function)
+- **Signature**: `const getExplicitState = () => `
 - **Description**:
 ```text
 No description provided.
@@ -6343,6 +6448,13 @@ No description provided.
 
 #### `getSourceBadge` (Function)
 - **Signature**: `const getSourceBadge = (src?: string) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `filteredLogs` (Function)
+- **Signature**: `const filteredLogs = logs.filter(l => l.includes("[SYSTEM]") || l.includes("Engine"))`
 - **Description**:
 ```text
 No description provided.

@@ -272,6 +272,22 @@ class PaperExecutionAdapter:
 
         self.position_manager.open_position(pos_data, timestamp)
 
+        # Compute Fill Diagnostics (Phase 6) - Hardened Real/Unavailable Diagnostics
+        slippage_pct = None
+        if execution_source == "LIVE_QUOTE" and quote_quality:
+            ask = quote_quality.get("ask")
+            if ask and ask > 0:
+                slippage_pct = round(((premium - ask) / ask) * 100, 4)
+
+        fill_diagnostics = {
+            "fill_price": float(premium),
+            "quantity": int(quantity),
+            "premium": float(premium * quantity),
+            "brokerage": None,
+            "slippage_pct": slippage_pct,
+            "execution_latency_ms": None
+        }
+
         # Incrementally log trade to SQLite db
         try:
             import app
@@ -290,6 +306,8 @@ class PaperExecutionAdapter:
                     pnl=0.0,
                     execution_source=execution_source,
                     entry_reason=entry_reason,
+                    quote_quality=quote_quality,
+                    fill_diagnostics=fill_diagnostics,
                     timestamp=timestamp,
                     db_path=self.db_path or "valkyrie_trades.db"
                 )
@@ -360,6 +378,23 @@ class PaperExecutionAdapter:
         # Get V2 accounting record
         accounting_record = self.position_manager.ledger.accounting_records[-1]
 
+        # Compute Fill Diagnostics (Phase 6) - Hardened Real/Unavailable Diagnostics
+        slippage_pct = None
+        if execution_source == "LIVE_QUOTE" and quote_quality:
+            bid = quote_quality.get("bid")
+            if bid and bid > 0:
+                # Real slippage relative to target bid:
+                slippage_pct = round(((bid - premium) / bid) * 100, 4)
+
+        fill_diagnostics = {
+            "fill_price": float(premium),
+            "quantity": int(active_pos.quantity),
+            "premium": float(premium * active_pos.quantity),
+            "brokerage": None,
+            "slippage_pct": slippage_pct,
+            "execution_latency_ms": None
+        }
+
         # Incrementally log trade to SQLite db
         try:
             import app
@@ -378,6 +413,8 @@ class PaperExecutionAdapter:
                     pnl=accounting_record.net_pnl,
                     execution_source=execution_source,
                     exit_reason=structured_exit_reason,
+                    quote_quality=quote_quality,
+                    fill_diagnostics=fill_diagnostics,
                     timestamp=timestamp,
                     db_path=self.db_path or "valkyrie_trades.db"
                 )

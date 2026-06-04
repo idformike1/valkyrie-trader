@@ -108,7 +108,11 @@ SYSTEM_STATUS = {
         "hit_rate": 100.0,
         "miss_rate": 0.0,
         "synthetic_fills": 0
-    }
+    },
+    "session_id": None,
+    "session_start_timestamp": None,
+    "current_server_time": None,
+    "last_heartbeat": None
 }
 
 TRADE_LOGS = []
@@ -205,6 +209,9 @@ async def broadcast_telemetry():
         SYSTEM_STATUS["quote_health"] = QuoteHealthTracker.get_stats()
     except Exception as e:
         print(f"[Telemetry Warning] Option chain or quote health compute error: {e}")
+
+    SYSTEM_STATUS["current_server_time"] = datetime.now().isoformat()
+    SYSTEM_STATUS["last_heartbeat"] = datetime.now().isoformat()
 
     payload = {
       "status": SYSTEM_STATUS,
@@ -2579,6 +2586,7 @@ def start_engine(req_data: StartEngineModel):
 
                 CURRENT_SESSION_ID = db.create_session(mode_v2, req_data.initial_balance, DB_PATH)
                 SYSTEM_STATUS["session_id"] = CURRENT_SESSION_ID
+                SYSTEM_STATUS["session_start_timestamp"] = datetime.now().isoformat()
 
                 v2_config = BacktestConfig(**v2_payload)
                 v2_ledger = PositionLedger()
@@ -2830,6 +2838,7 @@ def start_engine(req_data: StartEngineModel):
     elif mode in ["PAPER", "LIVE", "MANUAL"]:
         CURRENT_SESSION_ID = db.create_session(mode, initial_balance, DB_PATH)
         SYSTEM_STATUS["session_id"] = CURRENT_SESSION_ID
+        SYSTEM_STATUS["session_start_timestamp"] = datetime.now().isoformat()
         
         account_is_real = (mode == "LIVE" or (mode == "MANUAL" and req_data.live_trading)) and live_protection
         log_event(f"Starting {mode} session engine. Real Execution active: {account_is_real} | Session ID: {CURRENT_SESSION_ID}", "SYSTEM")
@@ -2897,6 +2906,8 @@ def stop_engine():
         TelemetryLogger.set_live_mode(False)
         current_v2_runner = None
         
+    SYSTEM_STATUS["session_id"] = None
+    SYSTEM_STATUS["session_start_timestamp"] = None
     SYSTEM_STATUS["state"] = "IDLE"
     return {"message": "Session engine successfully halted.", "status": SYSTEM_STATUS}
 

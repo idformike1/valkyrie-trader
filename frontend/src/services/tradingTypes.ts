@@ -65,6 +65,10 @@ export interface BackendSystemStatus {
   };
   sharpe_ratio?: number;
   engine?: string;
+  session_id?: number | string | null;
+  session_start_timestamp?: string | null;
+  current_server_time?: string | null;
+  last_heartbeat?: string | null;
 }
 
 export interface BackendTrade {
@@ -89,6 +93,14 @@ export interface BackendTrade {
     ask?: number;
     spread?: number;
     tick_age_ms?: number;
+  } | null;
+  fill_diagnostics?: {
+    fill_price?: number;
+    quantity?: number;
+    premium?: number;
+    brokerage?: number;
+    slippage_pct?: number;
+    execution_latency_ms?: number;
   } | null;
 }
 
