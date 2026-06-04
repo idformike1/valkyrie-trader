@@ -592,6 +592,7 @@ class EngineAccount:
         
         SYSTEM_STATUS["position"] = {
             "instrument_key": instrument_key,
+            "trading_symbol": SYSTEM_STATUS.get("trading_symbol", "UNKNOWN"),
             "entry_price": self.entry_price,
             "timestamp": timestamp.isoformat() if hasattr(timestamp, 'isoformat') else str(timestamp),
             "stop_loss": stop_loss
@@ -640,11 +641,15 @@ class EngineAccount:
         SYSTEM_STATUS["balance"] += gross_pnl
         net_pnl = gross_pnl - (self.buy_cost + sell_cost)
         
+        pos_symbol = "UNKNOWN"
+        if SYSTEM_STATUS.get("position"):
+            pos_symbol = SYSTEM_STATUS["position"].get("trading_symbol", "UNKNOWN")
+
         if CURRENT_SESSION_ID:
             db.log_trade(
                 session_id=CURRENT_SESSION_ID,
                 instrument_key=instrument_key,
-                trading_symbol=SYSTEM_STATUS.get("trading_symbol", "UNKNOWN"),
+                trading_symbol=pos_symbol,
                 trade_type="EXIT",
                 price=price,
                 quantity=self.qty,
@@ -3202,7 +3207,7 @@ def manual_panic_exit():
                 if success:
                     squared_off = True
             else:
-                fallback_price = pos.get("average_price", 1.0)
+                fallback_price = pos.get("entry_price", 1.0)
                 success = current_feed.account.sell(
                     instrument_key=instrument_key,
                     price=fallback_price,
@@ -3692,24 +3697,101 @@ def get_paper_trades(session_id: int = None):
 def export_paper_trades(session_id: int = None):
     import csv
     import io
+    import json
     from fastapi.responses import StreamingResponse
     try:
         trades = db.get_all_trades(DB_PATH, session_id)
         
+        # Group trades by session_id
+        session_groups = {}
+        for t in trades:
+            sid = t["session_id"]
+            if sid not in session_groups:
+                session_groups[sid] = []
+            session_groups[sid].append(t)
+            
+        paired_trades = []
+        for sid, logs in session_groups.items():
+            # Sort by timestamp and ID
+            logs.sort(key=lambda x: (x["timestamp"], x["id"]))
+            
+            open_buys = []
+            for log in logs:
+                if log["type"] == "BUY":
+                    open_buys.append(log)
+                elif log["type"] == "EXIT":
+                    if open_buys:
+                        total_qty = sum(b["quantity"] for b in open_buys)
+                        weighted_entry_sum = sum(b["price"] * b["quantity"] for b in open_buys)
+                        avg_entry = weighted_entry_sum / total_qty if total_qty > 0 else open_buys[0]["price"]
+                        primary_buy = open_buys[0]
+                        
+                        paired_trades.append({
+                            "session_id": sid,
+                            "strategy": primary_buy.get("entry_reason") or primary_buy.get("reason") or "Valkyrie Strategy",
+                            "symbol": primary_buy["trading_symbol"],
+                            "entry_price": round(avg_entry, 2),
+                            "exit_price": round(log["price"], 2),
+                            "quantity": total_qty,
+                            "pnl": round(log["pnl"], 2),
+                            "execution_source": log.get("execution_source") or primary_buy.get("execution_source") or "SYNTHETIC_MODEL",
+                            "quote_quality": log.get("quote_quality") or primary_buy.get("quote_quality") or "",
+                            "entry_reason": primary_buy.get("entry_reason") or primary_buy.get("reason") or "Strategy Signal",
+                            "exit_reason": log.get("exit_reason") or log.get("reason") or "Exit Signal",
+                            "timestamp": log["timestamp"]
+                        })
+                        open_buys = []
+                    else:
+                        paired_trades.append({
+                            "session_id": sid,
+                            "strategy": "Valkyrie Strategy",
+                            "symbol": log["trading_symbol"],
+                            "entry_price": 0.0,
+                            "exit_price": round(log["price"], 2),
+                            "quantity": log["quantity"],
+                            "pnl": round(log["pnl"], 2),
+                            "execution_source": log.get("execution_source") or "SYNTHETIC_MODEL",
+                            "quote_quality": log.get("quote_quality") or "",
+                            "entry_reason": "Unknown",
+                            "exit_reason": log.get("exit_reason") or log.get("reason") or "Exit Signal",
+                            "timestamp": log["timestamp"]
+                        })
+            
+            for b in open_buys:
+                paired_trades.append({
+                    "session_id": sid,
+                    "strategy": b.get("entry_reason") or b.get("reason") or "Valkyrie Strategy",
+                    "symbol": b["trading_symbol"],
+                    "entry_price": round(b["price"], 2),
+                    "exit_price": 0.0,
+                    "quantity": b["quantity"],
+                    "pnl": 0.0,
+                    "execution_source": b.get("execution_source") or "SYNTHETIC_MODEL",
+                    "quote_quality": b.get("quote_quality") or "",
+                    "entry_reason": b.get("entry_reason") or b.get("reason") or "Strategy Signal",
+                    "exit_reason": "ACTIVE POSITION",
+                    "timestamp": b["timestamp"]
+                })
+        
         output = io.StringIO()
         writer = csv.writer(output)
         
+        # Write exactly the columns expected by the verification suite
         writer.writerow([
-            "Trade ID", "Session ID", "Instrument Key", "Trading Symbol", 
-            "Type", "Price", "Quantity", "Stop Loss", "Target Price", 
-            "Reason", "PnL", "Timestamp", "Execution Source"
+            "session_id", "strategy", "symbol", "entry_price", "exit_price",
+            "quantity", "pnl", "execution_source", "quote_quality",
+            "entry_reason", "exit_reason", "timestamp"
         ])
         
-        for t in trades:
+        for pt in paired_trades:
+            qq_val = pt["quote_quality"]
+            if isinstance(qq_val, dict):
+                qq_val = json.dumps(qq_val)
+                
             writer.writerow([
-                t["id"], t["session_id"], t["instrument_key"], t["trading_symbol"],
-                t["type"], t["price"], t["quantity"], t["sl"], t["target"],
-                t["reason"], t["pnl"], t["timestamp"], t["execution_source"]
+                pt["session_id"], pt["strategy"], pt["symbol"], pt["entry_price"], pt["exit_price"],
+                pt["quantity"], pt["pnl"], pt["execution_source"], qq_val,
+                pt["entry_reason"], pt["exit_reason"], pt["timestamp"]
             ])
             
         output.seek(0)

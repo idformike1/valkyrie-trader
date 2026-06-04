@@ -1112,7 +1112,7 @@ export const PaperBottom: React.FC = () => {
   const fetchSessions = async () => {
     setLoadingSessions(true);
     try {
-      const resp = await fetch("/api/v2/paper/sessions");
+      const resp = await fetch("http://localhost:8081/api/v2/paper/sessions");
       if (resp.ok) {
         const data = await resp.json();
         setHistoricalSessions(data);
@@ -1127,7 +1127,7 @@ export const PaperBottom: React.FC = () => {
   const fetchSessionTrades = async (sessId: number) => {
     setLoadingTrades(true);
     try {
-      const resp = await fetch(`/api/v2/paper/trades?session_id=${sessId}`);
+      const resp = await fetch(`http://localhost:8081/api/v2/paper/trades?session_id=${sessId}`);
       if (resp.ok) {
         const data = await resp.json();
         setSessionTrades(data);
@@ -1612,7 +1612,7 @@ export const PaperBottom: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-2">
                           <a 
-                            href={`/api/v2/paper/export?session_id=${selectedSessionId}`}
+                            href={`http://localhost:8081/api/v2/paper/export?session_id=${selectedSessionId}`}
                             download
                             className="flex items-center gap-1.5 px-3 py-1 bg-cyan-500/10 hover:bg-cyan-500 text-cyan-400 hover:text-slate-950 border border-cyan-500/20 hover:border-cyan-500 rounded text-[10px] font-bold transition-all uppercase select-none cursor-pointer"
                           >

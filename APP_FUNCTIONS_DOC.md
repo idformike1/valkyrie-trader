@@ -54,10 +54,12 @@
 - [backend/v2/run_fast_audit.py](#backendv2run_fast_auditpy)
 - [backend/v2/run_real_websocket_certification.py](#backendv2run_real_websocket_certificationpy)
 - [backend/v2/run_replay_verification.py](#backendv2run_replay_verificationpy)
+- [backend/v2/scratch/capture_ui_verification.py](#backendv2scratchcapture_ui_verificationpy)
 - [backend/v2/scratch/check_ema_crossover.py](#backendv2scratchcheck_ema_crossoverpy)
 - [backend/v2/scratch/find_exact_trades.py](#backendv2scratchfind_exact_tradespy)
 - [backend/v2/scratch/find_suspicious_trades.py](#backendv2scratchfind_suspicious_tradespy)
 - [backend/v2/scratch/query_underlying.py](#backendv2scratchquery_underlyingpy)
+- [backend/v2/scratch/run_runtime_verification.py](#backendv2scratchrun_runtime_verificationpy)
 - [backend/v2/scratch/test_journal_api.py](#backendv2scratchtest_journal_apipy)
 - [backend/v2/scratch/test_live_fill_integrity.py](#backendv2scratchtest_live_fill_integritypy)
 - [backend/v2/scratch/test_session_closure.py](#backendv2scratchtest_session_closurepy)
@@ -2271,6 +2273,28 @@ No description provided.
 
 ---
 
+## backend/v2/scratch/capture_ui_verification.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `get_latest_session_id` (Function)
+- **Signature**: `def get_latest_session_id()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `main` (Function)
+- **Signature**: `async def main()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
 ## backend/v2/scratch/check_ema_crossover.py
 *No description provided.*
 
@@ -2327,6 +2351,28 @@ No description provided.
 *No description provided.*
 
 ### Functions & Endpoints
+#### `main` (Function)
+- **Signature**: `def main()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## backend/v2/scratch/run_runtime_verification.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `print_banner` (Function)
+- **Signature**: `def print_banner(text)`
+- **Description**:
+```text
+No description provided.
+```
+
 #### `main` (Function)
 - **Signature**: `def main()`
 - **Description**:
