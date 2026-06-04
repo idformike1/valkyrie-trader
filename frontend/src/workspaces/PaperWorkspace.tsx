@@ -29,14 +29,14 @@ const TelemetryDial: React.FC<{ label: string; value: string | number; subText?:
       : "border-white/5 hover:border-white/10"
   }`}>
     <span className={`text-xs uppercase font-bold tracking-wider ${isHero ? "text-cyan-400" : "text-slate-500"}`}>{label}</span>
-    <span className={`font-mono font-black tracking-tight leading-none ${
+    <span className={`font-mono tabular-nums font-black tracking-tight leading-none ${
       isHero 
         ? "text-3xl md:text-4xl py-1 font-black" 
         : "text-xl md:text-2xl font-extrabold"
     } ${
       isPositive === true ? "text-emerald-400" : isPositive === false ? "text-rose-450" : "text-slate-200"
     }`}>{value}</span>
-    {subText && <span className="text-xs text-slate-500 font-mono font-semibold">{subText}</span>}
+    {subText && <span className="text-xs text-slate-500 font-mono tabular-nums font-semibold">{subText}</span>}
   </div>
 );
 
@@ -889,19 +889,33 @@ export const PaperRight: React.FC = () => {
   const connectionStatus = useBackendTradingStore((state) => state.connectionStatus);
 
   const getSystemStatus = (key: string) => {
-    if (!status || status.engine !== "v2") return { label: "Offline", ok: false };
-    if (key === "feed") return { label: "Healthy", ok: true };
-    if (key === "websocket") return { label: "Connected", ok: true };
-    if (key === "engine") return status.state === "PAUSED" ? { label: "Paused", ok: true } : { label: "Running", ok: true };
-    if (key === "orders") return { label: "Ready", ok: true };
-    return { label: "Online", ok: true };
+    if (key === "frontend") {
+      const ok = connectionStatus === "CONNECTED";
+      return { label: ok ? "Connected" : "Offline", ok };
+    }
+    if (!status) return { label: "Offline", ok: false };
+    
+    if (key === "auth") {
+      const ok = status.broker_auth === "Valid";
+      return { label: ok ? "Valid" : "Expired", ok };
+    }
+    if (key === "feed") {
+      const ok = status.market_feed === "Live";
+      return { label: ok ? "Live" : "Offline", ok };
+    }
+    if (key === "engine") {
+      const label = status.execution_engine || "Stopped";
+      const ok = label === "Running" || label === "Paused";
+      return { label, ok };
+    }
+    return { label: "Offline", ok: false };
   };
 
   const systemItems = [
-    { key: "feed", name: "Feed", ...getSystemStatus("feed") },
-    { key: "websocket", name: "WS", ...getSystemStatus("websocket") },
-    { key: "engine", name: "Engine", ...getSystemStatus("engine") },
-    { key: "orders", name: "Orders", ...getSystemStatus("orders") },
+    { key: "frontend", name: "Frontend Connection", ...getSystemStatus("frontend") },
+    { key: "auth", name: "Broker Auth", ...getSystemStatus("auth") },
+    { key: "feed", name: "Market Feed", ...getSystemStatus("feed") },
+    { key: "engine", name: "Execution Engine", ...getSystemStatus("engine") },
   ];
 
   const hasUnhealthy = systemItems.some(item => !item.ok);
@@ -980,12 +994,14 @@ export const PaperRight: React.FC = () => {
                   {item.ok ? (
                     <span className="text-emerald-500 font-bold flex items-center gap-1.5 leading-none">
                       <span className="text-[10px]">●</span>
-                      <span className="text-slate-400 font-medium text-[9px]">{item.name}</span>
+                      <span className="text-slate-400 font-medium text-[9px]">{item.name}:</span>
+                      <span className="text-[9px] text-emerald-450 font-bold">{item.label}</span>
                     </span>
                   ) : (
                     <span className="text-rose-500 font-bold flex items-center gap-1 leading-none text-[9px] animate-pulse">
                       <span>⚠</span>
-                      <span>{item.name} Offline</span>
+                      <span className="text-slate-400 font-medium text-[9px]">{item.name}:</span>
+                      <span className="text-rose-455 font-bold">{item.label}</span>
                     </span>
                   )}
                 </div>
@@ -1077,13 +1093,63 @@ export const PaperRight: React.FC = () => {
 // 4. BOTTOM PANEL: LEDGERS & PROMOTION CHECKER
 // ==========================================
 export const PaperBottom: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<"positions" | "trades" | "logs" | "events" | "promotion" | "chain">("positions");
+  const [activeTab, setActiveTab] = useState<"positions" | "trades" | "logs" | "events" | "promotion" | "chain" | "journal">("positions");
   const [selectedTradeId, setSelectedTradeId] = useState<number | string | null>(null);
   const status = useBackendTradingStore((state) => state.status);
   const trades = useBackendTradingStore((state) => state.trades) || [];
   const logs = useBackendTradingStore((state) => state.logs) || [];
   
   const selectedTrade = trades.find((t, i) => (t.id === selectedTradeId || `TRD_${i}` === selectedTradeId)) || null;
+
+  const [historicalSessions, setHistoricalSessions] = useState<any[]>([]);
+  const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
+  const [sessionTrades, setSessionTrades] = useState<any[]>([]);
+  const [loadingSessions, setLoadingSessions] = useState(false);
+  const [loadingTrades, setLoadingTrades] = useState(false);
+  const [strategyFilter, setStrategyFilter] = useState("ALL");
+  const [symbolSearch, setSymbolSearch] = useState("");
+
+  const fetchSessions = async () => {
+    setLoadingSessions(true);
+    try {
+      const resp = await fetch("/api/v2/paper/sessions");
+      if (resp.ok) {
+        const data = await resp.json();
+        setHistoricalSessions(data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch sessions", e);
+    } finally {
+      setLoadingSessions(false);
+    }
+  };
+
+  const fetchSessionTrades = async (sessId: number) => {
+    setLoadingTrades(true);
+    try {
+      const resp = await fetch(`/api/v2/paper/trades?session_id=${sessId}`);
+      if (resp.ok) {
+        const data = await resp.json();
+        setSessionTrades(data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch session trades", e);
+    } finally {
+      setLoadingTrades(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "journal") {
+      fetchSessions();
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (selectedSessionId !== null) {
+      fetchSessionTrades(selectedSessionId);
+    }
+  }, [selectedSessionId]);
 
   const tabs = [
     { id: "positions" as const, name: "Positions" },
@@ -1092,6 +1158,7 @@ export const PaperBottom: React.FC = () => {
     { id: "logs" as const, name: "Strategy logs" },
     { id: "events" as const, name: "System events" },
     { id: "promotion" as const, name: "Promotion readiness" },
+    { id: "journal" as const, name: "Paper Trading Journal" },
   ];
 
   const getSourceBadge = (src?: string) => {
@@ -1419,6 +1486,190 @@ export const PaperBottom: React.FC = () => {
               <span className="text-sm font-bold text-slate-400">No Trades</span>
             </div>
           )
+        )}
+
+        {/* Journal tab */}
+        {activeTab === "journal" && (
+          <div className="grid grid-cols-12 gap-3 min-h-[300px]">
+            {/* Left side: sessions table */}
+            <div className="col-span-12 md:col-span-5 bg-slate-900/45 p-2.5 rounded border border-white/5 flex flex-col gap-2">
+              <div className="flex justify-between items-center pb-2 border-b border-white/5">
+                <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">Historical Sessions</span>
+                <button 
+                  onClick={fetchSessions}
+                  className="p-1 hover:bg-white/5 rounded text-slate-400 hover:text-white transition-colors"
+                  title="Reload Sessions"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                </button>
+              </div>
+              
+              {loadingSessions ? (
+                <div className="flex items-center justify-center py-6 text-slate-500 font-mono text-[10px] animate-pulse">
+                  LOADING HISTORICAL SESSIONS...
+                </div>
+              ) : historicalSessions.length === 0 ? (
+                <div className="flex items-center justify-center py-6 text-slate-500 italic text-[11px]">
+                  No historical sessions found.
+                </div>
+              ) : (
+                <div className="overflow-y-auto max-h-[280px] scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
+                  <table className="w-full text-left font-mono text-[10px]">
+                    <thead>
+                      <tr className="border-b border-white/10 text-slate-550 text-[8px] font-bold uppercase select-none">
+                        <th className="py-1">ID</th>
+                        <th className="py-1">Started</th>
+                        <th className="py-1">Status</th>
+                        <th className="py-1 text-right">PnL</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-slate-350">
+                      {historicalSessions.map((sess) => (
+                        <tr 
+                          key={sess.id}
+                          onClick={() => setSelectedSessionId(sess.id)}
+                          className={`border-b border-white/[0.02] hover:bg-cyan-500/5 cursor-pointer transition-colors ${
+                            selectedSessionId === sess.id ? "bg-cyan-500/10 border-cyan-500/20 text-cyan-400 font-semibold" : ""
+                          }`}
+                        >
+                          <td className="py-1.5 pl-0.5 font-bold">#{sess.id}</td>
+                          <td className="py-1.5">{new Date(sess.started_at).toLocaleDateString()} {new Date(sess.started_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+                          <td className="py-1.5">
+                            <span className={`px-1 rounded text-[8px] font-bold ${
+                              sess.status === "ACTIVE" ? "bg-emerald-500/10 text-emerald-450 border border-emerald-500/20" : "bg-slate-800 text-slate-400 border border-white/5"
+                            }`}>
+                              {sess.status}
+                            </span>
+                          </td>
+                          <td className={`py-1.5 text-right font-bold pr-0.5 ${sess.pnl >= 0 ? "text-emerald-455" : "text-rose-500"}`}>
+                            {sess.pnl >= 0 ? "+" : ""}₹{sess.pnl.toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Right side: session details, trades table & CSV export */}
+            <div className="col-span-12 md:col-span-7 bg-slate-900/45 p-2.5 rounded border border-white/5 flex flex-col gap-2 min-w-0">
+              {selectedSessionId === null ? (
+                <div className="flex-1 flex flex-col items-center justify-center py-12 text-slate-500 italic text-[11px] font-sans">
+                  <span>Select a session on the left to view detailed metrics and trades.</span>
+                </div>
+              ) : (
+                (() => {
+                  const sess = historicalSessions.find(s => s.id === selectedSessionId);
+                  if (!sess) return null;
+                  
+                  const filteredTrades = sessionTrades.filter(t => {
+                    const matchesStrat = strategyFilter === "ALL" || t.reason?.toLowerCase().includes(strategyFilter.toLowerCase());
+                    const matchesSymbol = !symbolSearch || t.trading_symbol?.toLowerCase().includes(symbolSearch.toLowerCase());
+                    return matchesStrat && matchesSymbol;
+                  });
+
+                  return (
+                    <div className="flex flex-col gap-3 h-full">
+                      {/* Session Metrics Bar */}
+                      <div className="grid grid-cols-4 gap-2 bg-slate-950/40 p-2.5 rounded border border-white/5">
+                        <div className="flex flex-col">
+                          <span className="text-[8px] uppercase font-bold tracking-wider text-slate-500">Total PnL</span>
+                          <span className={`font-mono text-xs font-black ${sess.pnl >= 0 ? "text-emerald-400" : "text-rose-450"}`}>
+                            {sess.pnl >= 0 ? "+" : ""}₹{sess.pnl.toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[8px] uppercase font-bold tracking-wider text-slate-500">Win Rate</span>
+                          <span className="font-mono text-xs font-black text-slate-200">
+                            {sess.win_rate}%
+                          </span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[8px] uppercase font-bold tracking-wider text-slate-500">Total Trades</span>
+                          <span className="font-mono text-xs font-black text-slate-200">
+                            {sess.trades}
+                          </span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[8px] uppercase font-bold tracking-wider text-slate-500">Status</span>
+                          <span className="font-mono text-xs font-black text-cyan-400 uppercase">
+                            {sess.status}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Filter Toolbar */}
+                      <div className="flex items-center justify-between gap-2 bg-slate-950/20 p-2 rounded border border-white/5 flex-wrap">
+                        <div className="flex items-center gap-2">
+                          <input 
+                            type="text" 
+                            placeholder="Search by symbol..." 
+                            value={symbolSearch}
+                            onChange={(e) => setSymbolSearch(e.target.value)}
+                            className="bg-slate-900 border border-white/10 rounded px-2 py-1 text-[10px] text-slate-300 focus:outline-none focus:border-cyan-500/40 w-32"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <a 
+                            href={`/api/v2/paper/export?session_id=${selectedSessionId}`}
+                            download
+                            className="flex items-center gap-1.5 px-3 py-1 bg-cyan-500/10 hover:bg-cyan-500 text-cyan-400 hover:text-slate-950 border border-cyan-500/20 hover:border-cyan-500 rounded text-[10px] font-bold transition-all uppercase select-none cursor-pointer"
+                          >
+                            Export CSV
+                          </a>
+                        </div>
+                      </div>
+
+                      {/* Session Trades list */}
+                      <div className="flex-1 min-h-[160px] overflow-y-auto border border-white/5 rounded">
+                        {loadingTrades ? (
+                          <div className="flex items-center justify-center py-6 text-slate-500 font-mono text-[9px] animate-pulse">
+                            FETCHING SESSION TRADES...
+                          </div>
+                        ) : filteredTrades.length === 0 ? (
+                          <div className="flex items-center justify-center py-6 text-slate-500 italic text-[11px]">
+                            No trades found for this session matching filters.
+                          </div>
+                        ) : (
+                          <table className="w-full text-left font-mono text-[10px]">
+                            <thead>
+                              <tr className="border-b border-white/10 text-slate-500 text-[8px] font-bold uppercase select-none bg-slate-950/20">
+                                <th className="py-1 pl-1.5">Trade ID</th>
+                                <th className="py-1">Instrument</th>
+                                <th className="py-1">Side</th>
+                                <th className="py-1 text-right">Price</th>
+                                <th className="py-1 text-center">Qty</th>
+                                <th className="py-1 text-right">PnL</th>
+                                <th className="py-1 text-right pr-1.5">Time</th>
+                              </tr>
+                            </thead>
+                            <tbody className="text-slate-350">
+                              {filteredTrades.map((t) => (
+                                <tr key={t.id} className="border-b border-white/[0.02] hover:bg-white/[0.01]">
+                                  <td className="py-1 pl-1.5 text-slate-500">{t.id}</td>
+                                  <td className="py-1 text-slate-200 font-semibold">{t.trading_symbol}</td>
+                                  <td className={`py-1 font-bold ${t.type === "BUY" ? "text-emerald-450" : "text-rose-500"}`}>{t.type}</td>
+                                  <td className="py-1 text-right">₹{t.price.toFixed(2)}</td>
+                                  <td className="py-1 text-center">{t.quantity}</td>
+                                  <td className={`py-1 text-right font-bold ${t.pnl >= 0 ? "text-emerald-450" : "text-rose-500"}`}>
+                                    {t.type === "EXIT" ? `₹${t.pnl.toFixed(2)}` : "-"}
+                                  </td>
+                                  <td className="py-1 text-right pr-1.5 text-slate-550">
+                                    {new Date(t.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit', hour12: false})}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()
+              )}
+            </div>
+          </div>
         )}
 
         {/* Strategy logs tab */}

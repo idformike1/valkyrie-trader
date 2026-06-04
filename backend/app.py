@@ -37,7 +37,7 @@ import MarketDataFeed_pb2 as pb
 
 TOKEN_FILE = os.path.join(ROOT_DIR, "token.txt")
 CSV_PATH = os.path.join(ROOT_DIR, "nifty_options.csv")
-DB_PATH = os.path.join(ROOT_DIR, "valkyrie_trades.db")
+DB_PATH = db.DEFAULT_DB_PATH
 
 # Proxy configuration for Upstox order API
 PROXIES = {
@@ -742,54 +742,74 @@ class LiveFeed:
         return data['data']['authorizedRedirectUri'] or data['data']['authorized_redirect_uri']
 
     async def connect(self):
-        try:
-            uri = await self.get_websocket_uri()
-        except Exception as e:
-            log_event(f"WebSocket auth failed: {e}", "ERROR")
-            SYSTEM_STATUS["state"] = "FAILED"
-            return
-            
-        log_event("Connecting to Upstox Market Stream...", "WS")
-        async with websockets.connect(uri, max_size=2**25) as ws:
-            self.ws = ws
-            
+        retry_delay = 2.0  # seconds
+        max_retry_delay = 60.0
+        
+        while self.running:
             try:
-                to_date = datetime.now()
-                from_date = to_date - timedelta(days=3)
-                active_int = SYSTEM_STATUS.get("chart_interval", "1minute")
-                hist = fetch_historical_candles(self.instrument_key, '1minute', from_date, to_date)
-                if active_int in ["5minute", "15minute"]:
-                    hist = resample_candles(hist, active_int)
-                self.candles_history = hist[-100:]
-                
-                rebuild_telemetry_candles()
-                log_event(f"Pre-populated {len(HEIKIN_ASHI_CANDLES)} candles from history ({active_int}).", "WS")
+                uri = await self.get_websocket_uri()
             except Exception as e:
-                log_event(f"Failed to pre-populate candles: {e}", "WARNING")
+                log_event(f"WebSocket auth failed: {e}", "ERROR")
+                for _ in range(int(retry_delay * 10)):
+                    if not self.running:
+                        break
+                    await asyncio.sleep(0.1)
+                retry_delay = min(retry_delay * 2, max_retry_delay)
+                continue
+                
+            log_event("Connecting to Upstox Market Stream...", "WS")
+            try:
+                async with websockets.connect(uri, max_size=2**25) as ws:
+                    self.ws = ws
+                    retry_delay = 2.0
+                    
+                    try:
+                        to_date = datetime.now()
+                        from_date = to_date - timedelta(days=3)
+                        active_int = SYSTEM_STATUS.get("chart_interval", "1minute")
+                        hist = fetch_historical_candles(self.instrument_key, '1minute', from_date, to_date)
+                        if active_int in ["5minute", "15minute"]:
+                            hist = resample_candles(hist, active_int)
+                        self.candles_history = hist[-100:]
+                        
+                        rebuild_telemetry_candles()
+                        log_event(f"Pre-populated {len(HEIKIN_ASHI_CANDLES)} candles from history ({active_int}).", "WS")
+                    except Exception as e:
+                        log_event(f"Failed to pre-populate candles: {e}", "WARNING")
 
-            keys_to_subscribe = list(filter(None, list(set([self.instrument_key, self.scalper_key]))))
-            subscribe_msg = {
-                "guid": "valkyrie_heikin_ashi_gar",
-                "method": "sub",
-                "data": {"mode": "full", "instrumentKeys": keys_to_subscribe}
-            }
-            await ws.send(json.dumps(subscribe_msg).encode('utf-8'))
-            log_event(f"Subscribed to market feed for: {keys_to_subscribe}", "WS")
-            SYSTEM_STATUS["state"] = "LIVE_MONITORING"
-            
-            # Record connect time
-            global SESSION_START_TIME
-            SESSION_START_TIME = time.time()
-            
-            while self.running:
-                try:
-                    message = await asyncio.wait_for(ws.recv(), timeout=1.0)
-                    await self.process_message(message)
-                except asyncio.TimeoutError:
-                    continue
-                except websockets.exceptions.ConnectionClosed:
-                    log_event("WebSocket closed, attempting reconnection...", "WARNING")
-                    break
+                    keys_to_subscribe = list(filter(None, list(set([self.instrument_key, self.scalper_key]))))
+                    subscribe_msg = {
+                        "guid": "valkyrie_heikin_ashi_gar",
+                        "method": "sub",
+                        "data": {"mode": "full", "instrumentKeys": keys_to_subscribe}
+                    }
+                    await ws.send(json.dumps(subscribe_msg).encode('utf-8'))
+                    log_event(f"Subscribed to market feed for: {keys_to_subscribe}", "WS")
+                    SYSTEM_STATUS["state"] = "LIVE_MONITORING"
+                    
+                    # Record connect time
+                    global SESSION_START_TIME
+                    SESSION_START_TIME = time.time()
+                    
+                    while self.running:
+                        try:
+                            message = await asyncio.wait_for(ws.recv(), timeout=1.0)
+                            await self.process_message(message)
+                        except asyncio.TimeoutError:
+                            continue
+                        except websockets.exceptions.ConnectionClosed as cc:
+                            log_event(f"WebSocket connection closed (code={cc.code}, reason={cc.reason}). Reconnecting...", "WARNING")
+                            break
+                        except Exception as e:
+                            log_event(f"WebSocket read error: {e}. Reconnecting...", "ERROR")
+                            break
+            except Exception as e:
+                log_event(f"WebSocket connection failed: {e}. Retrying in {retry_delay:.1f}s...", "WARNING")
+                for _ in range(int(retry_delay * 10)):
+                    if not self.running:
+                        break
+                    await asyncio.sleep(0.1)
+                retry_delay = min(retry_delay * 2, max_retry_delay)
 
     async def subscribe_to_keys(self, keys_list):
         if self.ws and self.ws.state.name == 'OPEN':
@@ -2931,6 +2951,42 @@ def resume_engine_route():
     log_event("V2 engine session RESUMED by user request.", "SYSTEM")
     return {"message": "Session successfully resumed.", "status": SYSTEM_STATUS}
 
+LAST_AUTH_CHECK_TIME = 0
+IS_AUTH_VALID = False
+
+def check_broker_auth():
+    global LAST_AUTH_CHECK_TIME, IS_AUTH_VALID
+    now = time.time()
+    if now - LAST_AUTH_CHECK_TIME < 60.0:
+        return IS_AUTH_VALID
+    
+    token = load_upstox_token()
+    if not token:
+        IS_AUTH_VALID = False
+        LAST_AUTH_CHECK_TIME = now
+        return False
+        
+    url = "https://api.upstox.com/v2/user/profile"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json"
+    }
+    try:
+        resp = requests.get(url, headers=headers, timeout=5)
+        IS_AUTH_VALID = (resp.status_code == 200)
+    except Exception:
+        IS_AUTH_VALID = False
+    LAST_AUTH_CHECK_TIME = now
+    return IS_AUTH_VALID
+
+def check_market_feed_status():
+    from v2.option_quote_cache import OptionQuoteCache
+    global current_feed, active_thread
+    if current_feed and current_feed.ws and not getattr(current_feed.ws, 'closed', False):
+        if OptionQuoteCache.is_feed_available():
+            return "Live"
+    return "Offline"
+
 @app.get('/telemetry')
 def get_telemetry():
     global LAST_NIFTY_SPOT_TIME, CACHED_NIFTY_SPOT, current_feed, active_thread, SESSION_START_TIME
@@ -2979,6 +3035,21 @@ def get_telemetry():
         except Exception:
             pass
     SYSTEM_STATUS["nifty_spot"] = CACHED_NIFTY_SPOT
+
+    # Dynamically inject status properties for Task 2
+    auth_status = "Valid" if check_broker_auth() else "Expired"
+    feed_status = check_market_feed_status()
+    state = SYSTEM_STATUS.get("state", "IDLE")
+    if state in ["LIVE_MONITORING", "PROCESSING"]:
+        engine_status = "Running"
+    elif state == "PAUSED":
+        engine_status = "Paused"
+    else:
+        engine_status = "Stopped"
+        
+    SYSTEM_STATUS["broker_auth"] = auth_status
+    SYSTEM_STATUS["market_feed"] = feed_status
+    SYSTEM_STATUS["execution_engine"] = engine_status
 
     return {
         "status": SYSTEM_STATUS,
@@ -3602,6 +3673,53 @@ def run_v2_optimization(req: V2OptimizationRequest):
 @app.get("/api/v2/backtest/status")
 def get_v2_backtest_status():
     return V2_BACKTEST_STATUS
+
+@app.get("/api/v2/paper/sessions")
+def get_paper_sessions():
+    try:
+        return db.get_all_sessions(DB_PATH)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v2/paper/trades")
+def get_paper_trades(session_id: int = None):
+    try:
+        return db.get_all_trades(DB_PATH, session_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v2/paper/export")
+def export_paper_trades(session_id: int = None):
+    import csv
+    import io
+    from fastapi.responses import StreamingResponse
+    try:
+        trades = db.get_all_trades(DB_PATH, session_id)
+        
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        writer.writerow([
+            "Trade ID", "Session ID", "Instrument Key", "Trading Symbol", 
+            "Type", "Price", "Quantity", "Stop Loss", "Target Price", 
+            "Reason", "PnL", "Timestamp", "Execution Source"
+        ])
+        
+        for t in trades:
+            writer.writerow([
+                t["id"], t["session_id"], t["instrument_key"], t["trading_symbol"],
+                t["type"], t["price"], t["quantity"], t["sl"], t["target"],
+                t["reason"], t["pnl"], t["timestamp"], t["execution_source"]
+            ])
+            
+        output.seek(0)
+        filename = f"paper_trades_session_{session_id}.csv" if session_id else "all_paper_trades.csv"
+        headers = {
+            'Content-Disposition': f'attachment; filename="{filename}"'
+        }
+        return StreamingResponse(iter([output.getvalue()]), media_type="text/csv", headers=headers)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/v2/backtest/results")
 def get_v2_backtest_results():

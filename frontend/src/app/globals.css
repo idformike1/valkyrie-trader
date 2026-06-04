@@ -57,7 +57,7 @@
   --bg-floating: #172033;  /* LEVEL 3: Floating Surface */
   --bg-modal: #111827;     /* LEVEL 2: Modal Surface */
 
-  --border-subtle: rgba(255, 255, 255, 0.04); /* Reduced border soup by 70% */
+  --border-subtle: #1F1F22; /* Clean panel borders */
   --border-glow: rgba(59, 130, 246, 0.15);
   --cyan-neon: #3B82F6;     /* Institutional Blue Accent */
   --teal-neon: #2563EB;
@@ -74,16 +74,16 @@
   --font-mono: 'JetBrains Mono', monospace;
 
   /* Font Sizes */
-  --text-xs: 10px;
-  --text-sm: 11px;
-  --text-md: 13px;
-  --text-lg: 16px;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-md: 14px;
+  --text-lg: 20px;
 
   /* Radius */
   --radius-sm: 2px;
-  --radius-md: 4px;
-  --radius-lg: 6px;
-  --radius-xl: 8px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
 
   /* Elevation Systems (Layered space glow) */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
@@ -103,7 +103,7 @@
   --bg-floating: #FFFFFF;  /* LEVEL 3: Floating Surface */
   --bg-modal: #FFFFFF;     /* LEVEL 2: Modal Surface */
 
-  --border-subtle: rgba(15, 23, 42, 0.04); /* Reduced border soup by 70% */
+  --border-subtle: #E4E4E7; /* Standard light panel separation */
   --border-glow: rgba(59, 130, 246, 0.12);
   --cyan-neon: #3B82F6;     /* Institutional Blue Accent */
   --teal-neon: #2563EB;
@@ -120,16 +120,16 @@
   --font-mono: 'JetBrains Mono', monospace;
 
   /* Font Sizes */
-  --text-xs: 10px;
-  --text-sm: 11px;
-  --text-md: 13px;
-  --text-lg: 16px;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-md: 14px;
+  --text-lg: 20px;
 
   /* Radius */
   --radius-sm: 2px;
-  --radius-md: 4px;
-  --radius-lg: 6px;
-  --radius-xl: 8px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
 
   /* Elevation Systems (Multi-layered light shadows) */
   --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.015);
@@ -138,6 +138,52 @@
   --shadow-lg: 0 10px 24px rgba(15, 23, 42, 0.045), 0 2px 6px rgba(15, 23, 42, 0.015);
   --shadow-xl: 0 20px 48px rgba(15, 23, 42, 0.055), 0 4px 12px rgba(15, 23, 42, 0.025);
 }
+
+[data-theme="blackstone"] {
+  /* Blackstone Institutional Dark Theme */
+  --bg-deep: #070708;      /* LEVEL 0: Deep Obsidian Black */
+  --bg-base: #0B0B0D;      /* LEVEL 1: Panel base background */
+  --bg-card: #121214;      /* LEVEL 2: Card surface */
+  --bg-card-hover: #1E1E22; /* LEVEL 3: Interactive surface */
+  --bg-elevated: #121214;
+  --bg-floating: #121214;
+  --bg-modal: #121214;
+
+  --border-subtle: #1F1F22; /* Clean flat border */
+  --border-glow: #1F1F22;   /* Disable neon glow border */
+  --cyan-neon: #B9923F;     /* Blackstone Gold Accent */
+  --teal-neon: #96722F;     /* Darker gold active state */
+  --gold-accent: #B9923F;
+  --green-neon: #26D380;    /* Mint positive green */
+  --red-neon: #FF5A6E;      /* Crimson negative red */
+  --text-main: #E4E4E7;     /* High readability text */
+  --text-mute: #71717A;     /* Muted text zinc-500 */
+  --text-dark: #FFFFFF;
+
+  /* Radius (Standardize to 2px maximum in Blackstone) */
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
+
+  /* Strip all shadows */
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-xl: none;
+}
+
+/* Blackstone-specific glow and shadow strippers */
+[data-theme="blackstone"] [class*="shadow-"] {
+  box-shadow: none !important;
+}
+
+[data-theme="blackstone"] [class*="border-cyan-500/"],
+[data-theme="blackstone"] [class*="hover:border-cyan-500/"] {
+  border-color: var(--border-subtle) !important;
+}
+
 
 * {
   box-sizing: border-box;
@@ -498,7 +544,7 @@ button.bg-red-neon:hover {
 
 .text-section-title {
   font-family: var(--font-display);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: -0.01em;
   text-transform: uppercase;
@@ -507,7 +553,7 @@ button.bg-red-neon:hover {
 
 .text-panel-title {
   font-family: var(--font-display);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--text-main);
@@ -515,7 +561,7 @@ button.bg-red-neon:hover {
 
 .text-body {
   font-family: var(--font-body);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 400;
   color: var(--text-main);
   line-height: 1.5;
@@ -523,14 +569,14 @@ button.bg-red-neon:hover {
 
 .text-label {
   font-family: var(--font-display);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-mute);
 }
 
 .text-meta {
   font-family: var(--font-body);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 400;
   color: var(--text-mute);
 }
@@ -542,7 +588,8 @@ button.bg-red-neon:hover {
   font-weight: 600;
   font-size: var(--text-sm);
   letter-spacing: -0.01em;
-  padding: 8px 14px;
+  height: 42px;
+  padding: 0 24px;
   border-radius: var(--radius-sm);
   border: none;
   transition: all 0.1s ease;
@@ -567,7 +614,8 @@ button.bg-red-neon:hover {
   font-family: var(--font-display);
   font-weight: 500;
   font-size: var(--text-sm);
-  padding: 8px 14px;
+  height: 42px;
+  padding: 0 24px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-subtle);
   transition: all 0.1s ease;
@@ -588,7 +636,8 @@ button.bg-red-neon:hover {
   border: 1px solid var(--border-subtle);
   color: var(--text-main);
   border-radius: var(--radius-sm);
-  padding: 8px 12px;
+  height: 38px;
+  padding: 0 14px;
   font-family: var(--font-body);
   font-size: var(--text-sm);
   transition: all 0.1s ease;
@@ -647,3 +696,117 @@ button.bg-red-neon:hover {
   color: var(--text-main) !important;
 }
 
+/* ==========================================
+   VISUAL HIERARCHY UPGRADES (Bloomberg + Koyfin + Linear)
+   ========================================== */
+
+/* 1. Eliminate text below 11px & Standardize labels/headers */
+[class*="text-[8px]"],
+[class*="text-[9px]"],
+.text-\[8px\],
+.text-\[9px\] {
+  font-size: 11px !important;
+}
+
+[class*="text-[10px]"],
+.text-\[10px\] {
+  font-size: 12px !important;
+}
+
+[class*="text-xs"],
+.text-xs {
+  font-size: 12px !important; /* Standardize labels at 12px */
+}
+
+/* 2. Standardize section headers at 13-14px */
+.text-sm,
+[class*="text-sm"],
+[class*="text-[13px]"],
+[class*="text-[14px]"],
+h3,
+h4 {
+  font-size: 13px !important;
+}
+
+/* 3. Standardize metric values at 18-22px */
+[class*="text-xl"],
+[class*="text-2xl"],
+[class*="text-3xl"],
+[class*="text-4xl"],
+.text-xl,
+.text-2xl,
+.text-3xl,
+.text-4xl {
+  font-size: 20px !important;
+}
+
+/* 4. Controls: Increase button height to 40-44px & input height to 36-40px */
+button[class*="bg-"],
+button.bg-slate-900,
+button.bg-slate-950,
+button.bg-emerald-500,
+button.bg-rose-500,
+button.bg-red-600 {
+  height: 42px !important; /* Standardized within 40-44px range */
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+input[type="number"],
+input[type="text"],
+input[type="search"] {
+  height: 38px !important; /* Standardized within 36-40px range */
+  padding-left: 14px !important;
+  padding-right: 14px !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+/* 5. Card/Panel System radius overrides */
+[class*="rounded-"] {
+  border-radius: var(--radius-sm) !important; /* Force 2px sharp corners globally */
+}
+
+/* 6. Tables: Increase row readability while keeping density */
+table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+}
+
+th {
+  border-bottom: 1px solid var(--border-subtle) !important;
+  padding: 8px 10px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: var(--text-mute) !important;
+}
+
+td {
+  padding: 8px 10px !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+}
+
+/* Zebra striping for improved scanning in tabular layouts */
+tr:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.015) !important;
+}
+
+[data-theme="light"] tr:nth-child(even) {
+  background-color: rgba(15, 23, 42, 0.015) !important;
+}
+
+tr:hover {
+  background-color: var(--bg-card-hover) !important;
+}
+
+/* Dense tables like option chains preserve compact padding to maintain layout structure */
+table[class*="text-[9px]"] td,
+table[class*="text-[9px]"] th,
+[class*="option-chain"] td,
+[class*="option-chain"] th {
+  padding: 4px 6px !important;
+}

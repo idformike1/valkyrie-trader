@@ -69,6 +69,9 @@ export interface BackendSystemStatus {
   session_start_timestamp?: string | null;
   current_server_time?: string | null;
   last_heartbeat?: string | null;
+  broker_auth?: string;
+  market_feed?: string;
+  execution_engine?: string;
 }
 
 export interface BackendTrade {

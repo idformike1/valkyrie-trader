@@ -2,7 +2,8 @@ import sqlite3
 import os
 from datetime import datetime
 
-DEFAULT_DB_PATH = "valkyrie_trades.db"
+BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_DB_PATH = os.path.join(BACKEND_DIR, "valkyrie_trades.db")
 
 def get_db_connection(db_path=DEFAULT_DB_PATH):
     conn = sqlite3.connect(db_path)
@@ -56,12 +57,57 @@ def init_db(db_path=DEFAULT_DB_PATH):
             cursor.execute(f"ALTER TABLE trade_logs ADD COLUMN {col} TEXT")
         except sqlite3.OperationalError:
             pass # already exists
+            
+    # Run migrations for ended_at and session_statistics in trade_sessions
+    for col in ["ended_at", "session_statistics"]:
+        try:
+            cursor.execute(f"ALTER TABLE trade_sessions ADD COLUMN {col} TEXT")
+        except sqlite3.OperationalError:
+            pass # already exists
         
+    conn.commit()
+    conn.close()
+
+def terminate_active_sessions(db_path=DEFAULT_DB_PATH):
+    conn = get_db_connection(db_path)
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, initial_balance FROM trade_sessions WHERE status = 'ACTIVE'")
+    active_rows = cursor.fetchall()
+    
+    for row in active_rows:
+        session_id = row["id"]
+        initial_balance = row["initial_balance"]
+        
+        # Calculate final balance using the sum of trade logs pnl
+        cursor.execute("SELECT SUM(pnl) FROM trade_logs WHERE session_id = ?", (session_id,))
+        pnl_sum = cursor.fetchone()[0] or 0.0
+        final_balance = initial_balance + pnl_sum
+        
+        # Calculate session statistics
+        cursor.execute("SELECT type, pnl FROM trade_logs WHERE session_id = ?", (session_id,))
+        trades = cursor.fetchall()
+        total_trades = len(trades)
+        wins = sum(1 for t in trades if t["pnl"] > 0)
+        win_rate = (wins / total_trades * 100) if total_trades > 0 else 0.0
+        
+        import json
+        stats = {
+            "total_trades": total_trades,
+            "win_rate": round(win_rate, 2),
+            "total_pnl": round(pnl_sum, 2)
+        }
+        
+        now_str = datetime.now().isoformat()
+        cursor.execute(
+            "UPDATE trade_sessions SET status = ?, final_balance = ?, ended_at = ?, session_statistics = ? WHERE id = ?",
+            ("COMPLETED", final_balance, now_str, json.dumps(stats), session_id)
+        )
     conn.commit()
     conn.close()
 
 def create_session(mode, initial_balance, db_path=DEFAULT_DB_PATH):
     init_db(db_path)
+    terminate_active_sessions(db_path)
     conn = get_db_connection(db_path)
     cursor = conn.cursor()
     now_str = datetime.now().isoformat()
@@ -77,9 +123,29 @@ def create_session(mode, initial_balance, db_path=DEFAULT_DB_PATH):
 def close_session(session_id, final_balance, db_path=DEFAULT_DB_PATH):
     conn = get_db_connection(db_path)
     cursor = conn.cursor()
+    
+    # Calculate stats
+    cursor.execute("SELECT type, pnl FROM trade_logs WHERE session_id = ?", (session_id,))
+    trades = cursor.fetchall()
+    total_trades = len(trades)
+    wins = sum(1 for t in trades if t["pnl"] > 0)
+    win_rate = (wins / total_trades * 100) if total_trades > 0 else 0.0
+    
+    # Get total PnL
+    cursor.execute("SELECT SUM(pnl) FROM trade_logs WHERE session_id = ?", (session_id,))
+    total_pnl = cursor.fetchone()[0] or 0.0
+    
+    import json
+    stats = {
+        "total_trades": total_trades,
+        "win_rate": round(win_rate, 2),
+        "total_pnl": round(total_pnl, 2)
+    }
+    
+    now_str = datetime.now().isoformat()
     cursor.execute(
-        "UPDATE trade_sessions SET status = ?, final_balance = ? WHERE id = ?",
-        ("COMPLETED", final_balance, session_id)
+        "UPDATE trade_sessions SET status = ?, final_balance = ?, ended_at = ?, session_statistics = ? WHERE id = ?",
+        ("COMPLETED", final_balance, now_str, json.dumps(stats), session_id)
     )
     conn.commit()
     conn.close()
@@ -208,3 +274,121 @@ def get_active_session(db_path=DEFAULT_DB_PATH):
             "initial_balance": row["initial_balance"]
         }
     return None
+
+def get_all_sessions(db_path=DEFAULT_DB_PATH):
+    init_db(db_path)
+    conn = get_db_connection(db_path)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM trade_sessions ORDER BY id DESC")
+    rows = cursor.fetchall()
+    
+    import json
+    sessions = []
+    for r in rows:
+        session_id = r["id"]
+        cursor.execute("SELECT COUNT(*) FROM trade_logs WHERE session_id = ?", (session_id,))
+        trade_count = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT SUM(pnl) FROM trade_logs WHERE session_id = ?", (session_id,))
+        pnl_sum = cursor.fetchone()[0] or 0.0
+        
+        cursor.execute("SELECT pnl FROM trade_logs WHERE session_id = ? AND type = 'EXIT'", (session_id,))
+        exit_trades = cursor.fetchall()
+        total_exits = len(exit_trades)
+        wins = sum(1 for t in exit_trades if t["pnl"] > 0)
+        win_rate = (wins / total_exits * 100) if total_exits > 0 else 0.0
+        
+        stats = {}
+        if r["session_statistics"]:
+            try:
+                stats = json.loads(r["session_statistics"])
+            except Exception:
+                pass
+                
+        sessions.append({
+            "id": r["id"],
+            "mode": r["mode"],
+            "status": r["status"],
+            "started_at": r["started_at"],
+            "ended_at": r["ended_at"] or "",
+            "initial_balance": r["initial_balance"],
+            "final_balance": r["final_balance"] or r["initial_balance"],
+            "trades": trade_count,
+            "win_rate": round(win_rate, 2),
+            "pnl": round(pnl_sum, 2),
+            "statistics": stats
+        })
+    conn.close()
+    return sessions
+
+def get_all_trades(db_path=DEFAULT_DB_PATH, session_id=None):
+    init_db(db_path)
+    conn = get_db_connection(db_path)
+    cursor = conn.cursor()
+    if session_id:
+        cursor.execute("SELECT * FROM trade_logs WHERE session_id = ? ORDER BY id DESC", (session_id,))
+    else:
+        cursor.execute("SELECT * FROM trade_logs ORDER BY id DESC")
+    rows = cursor.fetchall()
+    conn.close()
+    
+    trades = []
+    for r in rows:
+        exec_src = "SYNTHETIC_MODEL"
+        try:
+            if "execution_source" in r.keys() and r["execution_source"] is not None:
+                exec_src = r["execution_source"]
+        except Exception:
+            pass
+            
+        entry_r = None
+        try:
+            if "entry_reason" in r.keys():
+                entry_r = r["entry_reason"]
+        except Exception:
+            pass
+            
+        exit_r = None
+        try:
+            if "exit_reason" in r.keys():
+                exit_r = r["exit_reason"]
+        except Exception:
+            pass
+            
+        qq = None
+        try:
+            if "quote_quality" in r.keys() and r["quote_quality"] is not None:
+                import json
+                qq = json.loads(r["quote_quality"])
+        except Exception:
+            pass
+            
+        fd = None
+        try:
+            if "fill_diagnostics" in r.keys() and r["fill_diagnostics"] is not None:
+                import json
+                fd = json.loads(r["fill_diagnostics"])
+        except Exception:
+            pass
+            
+        trades.append({
+            "id": r["id"],
+            "session_id": r["session_id"],
+            "instrument_key": r["instrument_key"],
+            "trading_symbol": r["trading_symbol"],
+            "type": r["type"],
+            "price": r["price"],
+            "quantity": r["quantity"],
+            "sl": r["stop_loss"] or 0.0,
+            "target": r["target_price"] or 0.0,
+            "reason": r["reason"] or "",
+            "pnl": r["pnl"] if r["pnl"] is not None else 0.0,
+            "timestamp": r["timestamp"],
+            "upstox_order_id": r["upstox_order_id"] or "",
+            "execution_source": exec_src,
+            "entry_reason": entry_r,
+            "exit_reason": exit_r,
+            "quote_quality": qq,
+            "fill_diagnostics": fd
+        })
+    return trades

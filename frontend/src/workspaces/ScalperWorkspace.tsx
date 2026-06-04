@@ -618,7 +618,7 @@ export const ScalperRight: React.FC = () => {
         </div>
 
         {/* DOM Rows */}
-        <div className="flex-1 overflow-y-auto mt-2 font-mono text-[10px] flex flex-col gap-0.5 pr-1 scrollbar-thin scrollbar-thumb-white/5">
+        <div className="flex-1 overflow-y-auto mt-2 font-mono tabular-nums text-[10px] flex flex-col gap-0.5 pr-1 scrollbar-thin scrollbar-thumb-white/5">
           <div className="grid grid-cols-4 py-1 text-[8px] font-bold text-slate-500 uppercase tracking-widest text-center border-b border-white/[0.02]">
             <span>Bid Qty</span>
             <span className="col-span-2">Price</span>
@@ -743,7 +743,7 @@ export const ScalperBottom: React.FC = () => {
       {/* Position Header Banner */}
       <div className="flex items-center justify-between border-b border-white/5 bg-slate-950/20 px-3 py-1 shrink-0 select-none">
         <span className="font-bold text-[9px] text-slate-500 uppercase tracking-widest">Scalper Positions Auditor</span>
-        <div className="flex gap-4 font-mono text-[9px] items-center">
+        <div className="flex gap-4 font-mono tabular-nums text-[9px] items-center">
           <div className="flex gap-1.5">
             <span className="text-slate-500">REALIZED:</span>
             <span className={`font-bold ${realized >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
@@ -761,7 +761,7 @@ export const ScalperBottom: React.FC = () => {
 
       {/* Detail table */}
       <div className="flex-1 overflow-x-auto p-2 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
-        <table className="w-full text-left font-mono text-[10px]">
+        <table className="w-full text-left font-mono tabular-nums text-[10px]">
           <thead>
             <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-[8px] tracking-wider text-center">
               <th className="py-1 pl-2 text-left">Instrument</th>

@@ -1,8 +1,8 @@
 import { create } from "zustand";
 
 interface ThemeState {
-  theme: "navy" | "light";
-  setTheme: (theme: "navy" | "light") => void;
+  theme: "navy" | "light" | "blackstone";
+  setTheme: (theme: "navy" | "light" | "blackstone") => void;
 }
 
 export const useThemeStore = create<ThemeState>((set) => ({

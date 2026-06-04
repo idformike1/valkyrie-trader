@@ -77,11 +77,14 @@ class HistoricalContractProvider:
         )
         rows = cursor.fetchall()
         
-        if rows:
+        today_str = datetime.now().strftime("%Y-%m-%d")
+        has_future = rows and any(r["expiry_date"] >= today_str for r in rows)
+        
+        if rows and has_future:
             conn.close()
             return [r["expiry_date"] for r in rows]
 
-        # Cache miss: fetch from API
+        # Cache miss or stale cache (no future expiries found): fetch from API
         expiries = []
         token = load_upstox_token()
         underlying_key = self.UNDERLYING_MAP[underlying]
@@ -108,20 +111,28 @@ class HistoricalContractProvider:
                     """,
                     [(underlying, exp, now_str, "UPSTOX_EXPIRED_API") for exp in expiries]
                 )
-
                 conn.commit()
             else:
-                # Subscription or other API issue
                 print(f"[WARNING] Upstox expiries API returned status {response.status_code}. Using fallback expiries discovery.")
-                expiries = self._generate_fallback_expiries(underlying)
-                self._save_expiries_to_cache(underlying, expiries, "FALLBACK_API")
         except Exception as e:
             print(f"[WARNING] Expiries API lookup failed with error: {e}. Using fallback expiries discovery.")
-            expiries = self._generate_fallback_expiries(underlying)
-            self._save_expiries_to_cache(underlying, expiries, "FALLBACK_API")
             
         conn.close()
-        return expiries
+        
+        # Always generate and merge future fallback expiries to ensure database has records for June 2026 and beyond
+        fallback_expiries = self._generate_fallback_expiries(underlying)
+        self._save_expiries_to_cache(underlying, fallback_expiries, "FALLBACK_API")
+        
+        # Re-query the database to get unified results
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT expiry_date FROM historical_expiries WHERE underlying = ? ORDER BY expiry_date ASC",
+            (underlying,)
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        return [r["expiry_date"] for r in rows]
 
     def discover_expiries(self, underlying: str) -> List[str]:
         """
@@ -131,12 +142,21 @@ class HistoricalContractProvider:
 
     def _generate_fallback_expiries(self, underlying: str) -> List[str]:
         import calendar
+        weekday_map = {
+            "NIFTY": 3,        # Thursday
+            "BANKNIFTY": 2,    # Wednesday
+            "FINNIFTY": 1,     # Tuesday
+            "MIDCPNIFTY": 0,   # Monday
+            "SENSEX": 4,       # Friday
+            "BANKEX": 0,       # Monday
+        }
+        day_idx = weekday_map.get(underlying.upper(), 3)
         expiries = []
-        for year in [2025, 2026]:
+        for year in [2025, 2026, 2027]:
             for month in range(1, 13):
                 cal = calendar.monthcalendar(year, month)
                 for week in cal:
-                    day = week[3] # Thursday index
+                    day = week[day_idx]
                     if day != 0:
                         expiries.append(f"{year:04d}-{month:02d}-{day:02d}")
         return sorted(list(set(expiries)))
@@ -198,13 +218,7 @@ class HistoricalContractProvider:
             
             if response.status_code == 200:
                 data = response.json().get("data", [])
-                if not data:
-                    print(f"[WARNING] Upstox options contract API returned empty list. Using fallback contract discovery.")
-                    contracts = self._generate_fallback_contracts(underlying, expiry_date)
-                    self._save_contracts_to_cache(contracts)
-                    conn.close()
-                    return contracts
-                else:
+                if data:
                     now_str = datetime.now().isoformat()
                     data_to_insert = []
                     for c in data:
@@ -233,26 +247,70 @@ class HistoricalContractProvider:
                             now_str,
                             "UPSTOX_EXPIRED_API"
                         ))
-                
-                cursor.executemany(
-                    """
-                    INSERT OR REPLACE INTO historical_contracts 
-                    (underlying, expiry_date, strike, option_type, instrument_key, exchange, discovered_at, source)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    """,
-                    data_to_insert
-                )
-                conn.commit()
-            else:
-                print(f"[WARNING] Upstox options contract API returned status {response.status_code}. Using fallback contract discovery.")
-                contracts = self._generate_fallback_contracts(underlying, expiry_date)
+                    cursor.executemany(
+                        """
+                        INSERT OR REPLACE INTO historical_contracts 
+                        (underlying, expiry_date, strike, option_type, instrument_key, exchange, discovered_at, source)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        data_to_insert
+                    )
+                    conn.commit()
+                    conn.close()
+                    return contracts
+            
+            # Try preloaded legacy CSV cache first on API miss/failure
+            print(f"[WARNING] Upstox options contract API not available. Trying preloaded legacy CSV cache...")
+            contracts = self._load_contracts_from_legacy_csv(underlying, expiry_date)
+            if contracts:
                 self._save_contracts_to_cache(contracts)
+                conn.close()
+                return contracts
+                
+            print(f"[WARNING] Legacy CSV cache empty. Using fallback contract discovery.")
+            contracts = self._generate_fallback_contracts(underlying, expiry_date)
+            self._save_contracts_to_cache(contracts)
         except Exception as e:
-            print(f"[WARNING] Options contract API lookup failed with error: {e}. Using fallback contract discovery.")
+            print(f"[WARNING] Options contract API lookup failed with error: {e}. Trying legacy CSV cache...")
+            try:
+                contracts = self._load_contracts_from_legacy_csv(underlying, expiry_date)
+                if contracts:
+                    self._save_contracts_to_cache(contracts)
+                    conn.close()
+                    return contracts
+            except Exception as csv_err:
+                print(f"[WARNING] Legacy CSV fallback failed: {csv_err}")
+            
             contracts = self._generate_fallback_contracts(underlying, expiry_date)
             self._save_contracts_to_cache(contracts)
             
         conn.close()
+        return contracts
+
+    def _load_contracts_from_legacy_csv(self, underlying: str, expiry_date: str) -> List[Dict[str, Any]]:
+        from v2.resolvers import ContractMasterCache
+        cache = ContractMasterCache()
+        if not cache._is_loaded:
+            try:
+                cache.preload()
+            except Exception as e:
+                print(f"[WARNING] Preload in legacy CSV helper failed: {e}")
+                return []
+        
+        contracts = []
+        now_str = datetime.now().isoformat()
+        for key, inst_key in cache._cache.items():
+            if key[0] == underlying.upper() and key[2] == expiry_date:
+                contracts.append({
+                    "underlying": underlying,
+                    "expiry_date": expiry_date,
+                    "strike": float(key[1]),
+                    "option_type": key[3],
+                    "instrument_key": inst_key,
+                    "exchange": "NSE" if underlying not in ["SENSEX", "BANKEX"] else "BSE",
+                    "discovered_at": now_str,
+                    "source": "LEGACY_CSV"
+                })
         return contracts
 
     def _generate_fallback_contracts(self, underlying: str, expiry_date: str) -> List[Dict[str, Any]]:

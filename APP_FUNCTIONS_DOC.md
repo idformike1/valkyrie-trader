@@ -15,6 +15,7 @@
 - [backend/test_backend.py](#backendtest_backendpy)
 - [backend/test_heikin_ashi_gar.py](#backendtest_heikin_ashi_garpy)
 - [backend/test_token.py](#backendtest_tokenpy)
+- [backend/trade_integrity_audit.py](#backendtrade_integrity_auditpy)
 - [backend/v2/__init__.py](#backendv2__init__py)
 - [backend/v2/backtest_runner.py](#backendv2backtest_runnerpy)
 - [backend/v2/cache/database.py](#backendv2cachedatabasepy)
@@ -54,7 +55,14 @@
 - [backend/v2/run_real_websocket_certification.py](#backendv2run_real_websocket_certificationpy)
 - [backend/v2/run_replay_verification.py](#backendv2run_replay_verificationpy)
 - [backend/v2/scratch/check_ema_crossover.py](#backendv2scratchcheck_ema_crossoverpy)
+- [backend/v2/scratch/find_exact_trades.py](#backendv2scratchfind_exact_tradespy)
+- [backend/v2/scratch/find_suspicious_trades.py](#backendv2scratchfind_suspicious_tradespy)
+- [backend/v2/scratch/query_underlying.py](#backendv2scratchquery_underlyingpy)
+- [backend/v2/scratch/test_journal_api.py](#backendv2scratchtest_journal_apipy)
+- [backend/v2/scratch/test_live_fill_integrity.py](#backendv2scratchtest_live_fill_integritypy)
+- [backend/v2/scratch/test_session_closure.py](#backendv2scratchtest_session_closurepy)
 - [backend/v2/scratch/test_telemetry_foundation.py](#backendv2scratchtest_telemetry_foundationpy)
+- [backend/v2/scratch/trace_all_exits.py](#backendv2scratchtrace_all_exitspy)
 - [backend/v2/signal_adapter.py](#backendv2signal_adapterpy)
 - [backend/v2/signal_source.py](#backendv2signal_sourcepy)
 - [backend/v2/strategy_builder/__init__.py](#backendv2strategy_builder__init__py)
@@ -136,11 +144,13 @@
 - [scratch/check_quotes.py](#scratchcheck_quotespy)
 - [scratch/click_debug.js](#scratchclick_debugjs)
 - [scratch/exchange_code.py](#scratchexchange_codepy)
+- [scratch/persistence_audit.py](#scratchpersistence_auditpy)
 - [scratch/reproduce_audit.py](#scratchreproduce_auditpy)
 - [scratch/run_full_certification.py](#scratchrun_full_certificationpy)
 - [scratch/test_api.js](#scratchtest_apijs)
 - [scratch/test_upstox_candles.py](#scratchtest_upstox_candlespy)
 - [scratch/verification_audit.py](#scratchverification_auditpy)
+- [scratch/websocket_test.py](#scratchwebsocket_testpy)
 - [test_january_loader.py](#test_january_loaderpy)
 
 ---
@@ -571,6 +581,20 @@ No description provided.
 No description provided.
 ```
 
+#### `check_broker_auth` (Function)
+- **Signature**: `def check_broker_auth()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `check_market_feed_status` (Function)
+- **Signature**: `def check_market_feed_status()`
+- **Description**:
+```text
+No description provided.
+```
+
 #### `get_telemetry` (Function)
 - **Signature**: `def get_telemetry()`
 - **Description**:
@@ -657,6 +681,27 @@ No description provided.
 
 #### `get_v2_backtest_status` (Function)
 - **Signature**: `def get_v2_backtest_status()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `get_paper_sessions` (Function)
+- **Signature**: `def get_paper_sessions()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `get_paper_trades` (Function)
+- **Signature**: `def get_paper_trades(session_id)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `export_paper_trades` (Function)
+- **Signature**: `def export_paper_trades(session_id)`
 - **Description**:
 ```text
 No description provided.
@@ -825,6 +870,13 @@ No description provided.
 No description provided.
 ```
 
+#### `terminate_active_sessions` (Function)
+- **Signature**: `def terminate_active_sessions(db_path)`
+- **Description**:
+```text
+No description provided.
+```
+
 #### `create_session` (Function)
 - **Signature**: `def create_session(mode, initial_balance, db_path)`
 - **Description**:
@@ -862,6 +914,20 @@ No description provided.
 
 #### `get_active_session` (Function)
 - **Signature**: `def get_active_session(db_path)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `get_all_sessions` (Function)
+- **Signature**: `def get_all_sessions(db_path)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `get_all_trades` (Function)
+- **Signature**: `def get_all_trades(db_path, session_id)`
 - **Description**:
 ```text
 No description provided.
@@ -1001,6 +1067,21 @@ No description provided.
 
 ## backend/test_token.py
 *No description provided.*
+
+
+---
+
+## backend/trade_integrity_audit.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `audit_trades` (Function)
+- **Signature**: `def audit_trades(limit)`
+- **Description**:
+```text
+No description provided.
+```
+
 
 
 ---
@@ -2205,6 +2286,103 @@ No description provided.
 
 ---
 
+## backend/v2/scratch/find_exact_trades.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `run_query` (Function)
+- **Signature**: `def run_query(db_path)`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## backend/v2/scratch/find_suspicious_trades.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `check_db` (Function)
+- **Signature**: `def check_db(db_path)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `main` (Function)
+- **Signature**: `def main()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## backend/v2/scratch/query_underlying.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `main` (Function)
+- **Signature**: `def main()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## backend/v2/scratch/test_journal_api.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `test_api` (Function)
+- **Signature**: `def test_api()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## backend/v2/scratch/test_live_fill_integrity.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `run_audit` (Function)
+- **Signature**: `def run_audit()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## backend/v2/scratch/test_session_closure.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `main` (Function)
+- **Signature**: `def main()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
 ## backend/v2/scratch/test_telemetry_foundation.py
 *No description provided.*
 
@@ -2229,6 +2407,21 @@ correctly to standard V1 global metrics variables.
 - **`test_pause_resume_endpoints`**
   *Signature*: `def test_pause_resume_endpoints(self)`
   *Description*: Validates the /pause and /resume engine endpoint logic.
+
+
+
+---
+
+## backend/v2/scratch/trace_all_exits.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `analyze_db` (Function)
+- **Signature**: `def analyze_db(db_path)`
+- **Description**:
+```text
+No description provided.
+```
 
 
 
@@ -4621,6 +4814,20 @@ No description provided.
 No description provided.
 ```
 
+#### `status` (Function)
+- **Signature**: `const status = useBackendTradingStore((state) => state.status)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `connectionStatus` (Function)
+- **Signature**: `const connectionStatus = useBackendTradingStore((state) => state.connectionStatus)`
+- **Description**:
+```text
+No description provided.
+```
+
 
 
 ---
@@ -6446,8 +6653,36 @@ No description provided.
 No description provided.
 ```
 
+#### `fetchSessions` (Function)
+- **Signature**: `const fetchSessions = async () => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `fetchSessionTrades` (Function)
+- **Signature**: `const fetchSessionTrades = async (sessId: number) => `
+- **Description**:
+```text
+No description provided.
+```
+
 #### `getSourceBadge` (Function)
 - **Signature**: `const getSourceBadge = (src?: string) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `sess` (Function)
+- **Signature**: `const sess = historicalSessions.find(s => s.id === selectedSessionId)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `filteredTrades` (Function)
+- **Signature**: `const filteredTrades = sessionTrades.filter(t => `
 - **Description**:
 ```text
 No description provided.
@@ -6825,6 +7060,12 @@ Wait 2 seconds and check local storage
 
 ---
 
+## scratch/persistence_audit.py
+*No description provided.*
+
+
+---
+
 ## scratch/reproduce_audit.py
 *No description provided.*
 
@@ -6903,6 +7144,21 @@ No description provided.
 
 #### `main` (Function)
 - **Signature**: `def main()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## scratch/websocket_test.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `test_websocket_sync` (Function)
+- **Signature**: `async def test_websocket_sync()`
 - **Description**:
 ```text
 No description provided.

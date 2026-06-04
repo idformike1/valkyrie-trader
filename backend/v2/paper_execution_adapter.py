@@ -54,7 +54,15 @@ class PaperExecutionAdapter:
                 
         self.config = config
         self.position_manager = position_manager
-        self.db_path = db_path
+        
+        # Ensure db_path is an absolute path pointing to the backend directory if it's relative
+        import os
+        if db_path == "valkyrie_trades.db" or not os.path.isabs(db_path):
+            backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            self.db_path = os.path.abspath(os.path.join(backend_dir, os.path.basename(db_path)))
+        else:
+            self.db_path = db_path
+            
         self.opt_loader = opt_loader
         self._local_state = threading.local()
 

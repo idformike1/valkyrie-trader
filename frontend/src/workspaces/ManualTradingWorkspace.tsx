@@ -311,14 +311,14 @@ export const TradingLeft: React.FC = () => {
                   </div>
 
                   {/* LTP */}
-                  <span className="col-span-3 text-right font-mono text-[11px]">
+                  <span className="col-span-3 text-right font-mono tabular-nums text-[11px]">
                     ₹{priceInfo.ltp.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
 
                   {/* Change & Delete */}
                   <div className="col-span-3 flex items-center justify-end gap-1.5 min-w-0">
                     <span
-                      className={`text-right font-mono text-[10px] font-semibold ${
+                      className={`text-right font-mono tabular-nums text-[10px] font-semibold ${
                         priceInfo.up ? "text-emerald-400" : "text-rose-400"
                       }`}
                     >
@@ -2101,7 +2101,7 @@ const OptionChainPanel: React.FC = () => {
 
       {/* Option Chain Table */}
       <div className="flex-1 min-h-0 overflow-auto border border-white/5 rounded">
-        <table className="w-full text-left font-mono text-[9px] border-collapse">
+        <table className="w-full text-left font-mono tabular-nums text-[9px] border-collapse">
           <thead className="sticky top-0 bg-slate-950/95 backdrop-blur border-b border-white/10 z-10">
             {/* Section header row */}
             <tr className="text-[8px] uppercase tracking-wider select-none border-b border-white/5">
@@ -2461,7 +2461,7 @@ export const TradingBottom: React.FC = () => {
 
         {/* Tab 1: Positions */}
         {activeTab === "positions" && (
-          <table className="w-full text-left font-mono text-[10px]">
+          <table className="w-full text-left font-mono tabular-nums text-[10px]">
             <thead>
               <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-[9px] tracking-wider">
                 <th className="py-1.5 pl-2">Symbol</th>
@@ -2535,7 +2535,7 @@ export const TradingBottom: React.FC = () => {
 
         {/* Tab 2: Orders */}
         {activeTab === "orders" && (
-          <table className="w-full text-left font-mono text-[10px]">
+          <table className="w-full text-left font-mono tabular-nums text-[10px]">
             <thead>
               <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-[9px] tracking-wider">
                 <th className="py-1.5 pl-2">Order ID</th>
@@ -2690,7 +2690,7 @@ export const TradingBottom: React.FC = () => {
 
         {/* Tab 3: Trades */}
         {activeTab === "trades" && (
-          <table className="w-full text-left font-mono text-[10px]">
+          <table className="w-full text-left font-mono tabular-nums text-[10px]">
             <thead>
               <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-[9px] tracking-wider">
                 <th className="py-1.5 pl-2">Trade ID</th>
@@ -2732,7 +2732,7 @@ export const TradingBottom: React.FC = () => {
 
         {/* Tab 4: Holdings */}
         {activeTab === "holdings" && (
-          <table className="w-full text-left font-mono text-[10px]">
+          <table className="w-full text-left font-mono tabular-nums text-[10px]">
             <thead>
               <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-[9px] tracking-wider">
                 <th className="py-1.5 pl-2">Symbol</th>
