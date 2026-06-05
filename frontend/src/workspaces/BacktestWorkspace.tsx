@@ -15,11 +15,12 @@ import { useBacktestStore, V2Config } from "@/store/useBacktestStore";
 import { useBackendTradingStore } from "@/services/tradingQueries";
 import { useThemeStore } from "@/store/useThemeStore";
 
-// Helper components for professional styling
-const GlowingCard: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ title, children, className = "" }) => (
+// Canonical panel wrapper — single implementation across all workspaces
+const WorkspacePanel: React.FC<{ title: string; children: React.ReactNode; className?: string; actions?: React.ReactNode }> = ({ title, children, className = "", actions }) => (
   <div className={`panel flex flex-col h-full ${className}`}>
     <div className="panel-header">
-      <span className="text-sm font-medium text-slate-200">{title}</span>
+      <span className="text-sm font-semibold text-slate-200">{title}</span>
+      {actions && <div className="flex items-center gap-1.5">{actions}</div>}
     </div>
     <div className="flex-1 overflow-y-auto min-h-0 p-3">{children}</div>
   </div>
@@ -194,7 +195,7 @@ export const BacktestLeft: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-3 h-full overflow-y-auto pr-1 pb-4 scrollbar-thin scrollbar-thumb-white/5">
-      <GlowingCard title="Strategy Repository" className="shrink-0">
+      <WorkspacePanel title="Strategy Repository" className="shrink-0">
         <div className="flex flex-col gap-2 font-sans text-xs">
           <div className="flex flex-col gap-1.5">
             <div className="relative">
@@ -240,10 +241,10 @@ export const BacktestLeft: React.FC = () => {
             )}
           </div>
         </div>
-      </GlowingCard>
+      </WorkspacePanel>
 
       {/* Preset Library Card */}
-      <GlowingCard title="Preset Library" className="shrink-0">
+      <WorkspacePanel title="Preset Library" className="shrink-0">
         <div className="flex flex-col gap-2.5 font-sans text-xs">
           {/* Header Action: Save Current Configuration */}
           {!showSaveForm ? (
@@ -370,9 +371,9 @@ export const BacktestLeft: React.FC = () => {
             </div>
           )}
         </div>
-      </GlowingCard>
+      </WorkspacePanel>
 
-      <GlowingCard title="Strategy Details" className="flex-1">
+      <WorkspacePanel title="Strategy Details" className="flex-1">
         {activeStrategyMetadata ? (
           <div className="flex flex-col gap-4 text-slate-300 font-sans text-xs pb-2">
             {/* General Specs */}
@@ -519,7 +520,7 @@ export const BacktestLeft: React.FC = () => {
             <span>Select a strategy from the repository list above to view technical details.</span>
           </div>
         )}
-      </GlowingCard>
+      </WorkspacePanel>
     </div>
   );
 };
@@ -915,7 +916,7 @@ export const BacktestRight: React.FC = () => {
   };
 
   return (
-    <GlowingCard title="Backtest Parameters">
+    <WorkspacePanel title="Backtest Parameters">
       <div className="flex flex-col gap-4 h-full font-sans text-xs select-none">
         <div className="text-xs font-bold text-slate-400 border-b border-white/5 pb-1 flex items-center gap-1.5">
           <Settings className="w-3.5 h-3.5 text-cyan-500/80" />
@@ -1147,7 +1148,7 @@ export const BacktestRight: React.FC = () => {
           </div>
         )}
       </div>
-    </GlowingCard>
+    </WorkspacePanel>
   );
 };
 
@@ -1874,8 +1875,8 @@ export const BacktestBottom: React.FC = () => {
                             <th className="py-2.5 text-center">Qty</th>
                             <th className="py-2.5 text-right">Entry Price</th>
                             <th className="py-2.5 text-right">Exit Price</th>
-                            <th className="py-2.5 text-right">P&amp;L (&amp;INR;)</th>
-                            <th className="py-2.5 text-right">P&amp;L (%)</th>
+                            <th className="py-2.5 text-right">P&L (₹)</th>
+                            <th className="py-2.5 text-right">P&L (%)</th>
                             <th className="py-2.5 text-center pr-3">Status</th>
                           </tr>
                         </thead>

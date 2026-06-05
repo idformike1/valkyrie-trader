@@ -328,17 +328,19 @@ export const DeploymentsMain: React.FC = () => {
                   <td className="py-2.5 font-bold uppercase">{c.strategyName}</td>
                   <td className="py-2.5 text-slate-400">{c.version}</td>
                   <td className="py-2.5 text-slate-400">
-                    <span className="text-xs font-sans font-bold bg-slate-900 border border-white/5 px-1 rounded mr-1.5 text-slate-500">
-                      {c.accountType}
-                    </span>
-                    {c.accountName}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-sans font-bold bg-slate-900 border border-white/5 px-1 rounded text-slate-500 shrink-0">
+                        {c.accountType}
+                      </span>
+                      <span>{c.accountName}</span>
+                    </div>
                   </td>
                   <td className="py-2.5 text-right">₹{c.capitalAllocated.toLocaleString("en-IN")}</td>
                   <td className="py-2.5 text-center">
                     <span className={`status-badge ${
                       c.status === "Running" ? "running" :
                       c.status === "Paused" ? "paused" :
-                      c.status === "Degraded" ? "warning" : "failed"
+                      c.status === "Degraded" ? "degraded" : "failed"
                     }`}>
                       {c.status}
                     </span>

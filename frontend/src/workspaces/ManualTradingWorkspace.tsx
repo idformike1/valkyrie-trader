@@ -13,11 +13,12 @@ import { useBackendTradingStore } from "@/services/tradingQueries";
 import { useEventStore } from "@/store/useEventStore";
 import { tradingApi } from "@/services/tradingApi";
 
-// Helper components for professional aesthetics
-const GlowingCard: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ title, children, className = "" }) => (
+// Canonical panel wrapper — maps to .panel + .panel-header from globals.css
+const WorkspacePanel: React.FC<{ title: string; children: React.ReactNode; className?: string; actions?: React.ReactNode }> = ({ title, children, className = "", actions }) => (
   <div className={`panel flex flex-col h-full ${className}`}>
     <div className="panel-header">
-      <span className="text-sm font-medium text-slate-200">{title}</span>
+      <span className="text-sm font-semibold text-slate-200">{title}</span>
+      {actions && <div className="flex items-center gap-1.5">{actions}</div>}
     </div>
     <div className="flex-1 overflow-y-auto min-h-0 p-3">{children}</div>
   </div>
@@ -2452,17 +2453,13 @@ export const TradingBottom: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full overflow-hidden text-xs font-sans">
-      {/* Tabs list */}
-      <div className="flex items-center gap-1 border-b border-white/5 bg-slate-950/20 px-2 shrink-0 select-none">
+      {/* Tabs list — canonical nav-tab-strip */}
+      <div className="nav-tab-strip">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-3 py-1.5 font-bold text-xs tracking-wide transition-all border-b-2 cursor-pointer ${
-              activeTab === tab.id
-                ? "border-cyan-400 text-cyan-400 bg-slate-900/30"
-                : "border-transparent text-slate-500 hover:text-slate-300"
-            }`}
+            className={`nav-tab ${activeTab === tab.id ? "active" : ""}`}
           >
             {tab.name}
           </button>
@@ -2515,7 +2512,9 @@ export const TradingBottom: React.FC = () => {
                         {Number(pos.realised || 0) >= 0 ? "+" : ""}₹{Number(pos.realised || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
                       <td className="py-1.5 text-center">
-                        <span className={`px-1.5 py-0.5 rounded text-xs font-bold font-sans border ${statusClass}`}>
+                        <span className={`status-badge ${
+                          qty === 0 ? "inactive" : qty > 0 ? "success" : "failed"
+                        }`}>
                           {statusLabel}
                         </span>
                       </td>

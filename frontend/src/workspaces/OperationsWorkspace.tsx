@@ -9,11 +9,12 @@ import {
 import { useTerminalStore } from "@/store/useTerminalStore";
 import { useEventStore } from "@/store/useEventStore";
 
-// Helper components for high-density diagnostics dashboard
-const DiagnosticCard: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ title, children, className = "" }) => (
+// Canonical panel wrapper — single implementation across all workspaces
+const WorkspacePanel: React.FC<{ title: string; children: React.ReactNode; className?: string; actions?: React.ReactNode }> = ({ title, children, className = "", actions }) => (
   <div className={`panel flex flex-col h-full ${className}`}>
     <div className="panel-header">
-      <span className="text-sm font-medium text-slate-200">{title}</span>
+      <span className="text-sm font-semibold text-slate-200">{title}</span>
+      {actions && <div className="flex items-center gap-1.5">{actions}</div>}
     </div>
     <div className="flex-1 overflow-y-auto min-h-0 p-3">{children}</div>
   </div>
@@ -106,7 +107,7 @@ export const OperationsLeft: React.FC = () => {
   ];
 
   return (
-    <DiagnosticCard title="Navigation & Filters">
+    <WorkspacePanel title="Navigation & Filters">
       <div className="flex flex-col gap-3 h-full font-sans text-xs">
         
         {/* Navigation sections */}
@@ -167,7 +168,7 @@ export const OperationsLeft: React.FC = () => {
         </div>
 
       </div>
-    </DiagnosticCard>
+    </WorkspacePanel>
   );
 };
 
@@ -267,7 +268,7 @@ export const OperationsRight: React.FC = () => {
   ];
 
   return (
-    <DiagnosticCard title="System Health">
+    <WorkspacePanel title="System Health">
       <div className="flex flex-col gap-3 h-full font-sans text-xs">
         <div className="text-xs text-slate-500 border-b border-white/5 pb-1 select-none">
           OBSERVABILITY SYSTEMS CHECKS
@@ -302,7 +303,7 @@ export const OperationsRight: React.FC = () => {
           </div>
         </div>
       </div>
-    </DiagnosticCard>
+    </WorkspacePanel>
   );
 };
 

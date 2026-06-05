@@ -1059,4 +1059,124 @@ tr:hover {
   border: 1px solid rgba(148, 163, 184, 0.2) !important;
 }
 
+/* DEGRADED — amber/orange, distinct from warning (paused) */
+.status-badge.degraded {
+  background-color: rgba(251, 146, 60, 0.1) !important;
+  color: #fb923c !important;
+  border: 1px solid rgba(251, 146, 60, 0.2) !important;
+}
+
+/* ==========================================
+   CANONICAL PANEL SYSTEM
+   ========================================== */
+.panel-footer {
+  border-top: 1px solid var(--border-subtle);
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  shrink: 0;
+}
+
+/* ==========================================
+   CANONICAL TAB SYSTEM
+   Type A: Navigation tabs (underline strip)
+   Type B: Filter tabs (segmented pill)
+   ========================================== */
+
+/* Type A — Navigation tabs */
+.nav-tab-strip {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: rgba(0, 0, 0, 0.15);
+  padding: 0 8px;
+  flex-shrink: 0;
+}
+
+.nav-tab {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-body);
+  color: var(--text-mute);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  white-space: nowrap;
+  margin-bottom: -1px;
+}
+.nav-tab:hover:not(.active) {
+  color: var(--text-main);
+}
+.nav-tab.active {
+  color: var(--cyan-neon);
+  border-bottom-color: var(--cyan-neon);
+  font-weight: 600;
+}
+
+/* Type B — Filter/segmented tabs */
+.filter-tab-strip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.filter-tab {
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  color: var(--text-mute);
+  background: var(--bg-deep);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.12s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.filter-tab:hover:not(.active) {
+  color: var(--text-main);
+  border-color: rgba(59, 130, 246, 0.25);
+}
+.filter-tab.active {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: var(--cyan-neon);
+}
+
+/* ==========================================
+   CANONICAL KPI / METRIC BLOCKS
+   ========================================== */
+.metric-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-mute);
+  font-family: var(--font-body);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.metric-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-value.positive { color: #34d399; }
+.metric-value.negative { color: #f87171; }
+.metric-value.hero {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
 

@@ -11,11 +11,12 @@ import { useEventStore } from "@/store/useEventStore";
 import { useBackendTradingStore } from "@/services/tradingQueries";
 import { useBacktestStore } from "@/store/useBacktestStore";
 
-// Helper components for professional Mission Control styling
-const MissionCard: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ title, children, className = "" }) => (
+// Canonical panel wrapper — single implementation across all workspaces
+const WorkspacePanel: React.FC<{ title: string; children: React.ReactNode; className?: string; actions?: React.ReactNode }> = ({ title, children, className = "", actions }) => (
   <div className={`panel flex flex-col h-full ${className}`}>
     <div className="panel-header">
-      <span className="text-sm font-medium text-slate-200">{title}</span>
+      <span className="text-sm font-semibold text-slate-200">{title}</span>
+      {actions && <div className="flex items-center gap-1.5">{actions}</div>}
     </div>
     <div className="flex-1 overflow-y-auto min-h-0 p-3">{children}</div>
   </div>
@@ -1221,17 +1222,13 @@ export const PaperBottom: React.FC = () => {
   return (
     <div className="flex flex-col h-full overflow-hidden text-xs font-sans">
       
-      {/* Tabs list */}
-      <div className="flex items-center gap-1 border-b border-white/5 bg-slate-950/20 px-2 shrink-0 select-none">
+      {/* Tabs list — canonical nav-tab-strip */}
+      <div className="nav-tab-strip">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-2 py-1.5 font-medium text-xs transition-all border-b-2 cursor-pointer ${
-              activeTab === tab.id
-                ? "border-cyan-400 text-cyan-400 bg-slate-900/30 font-semibold"
-                : "border-transparent text-slate-500 hover:text-slate-350"
-            }`}
+            className={`nav-tab ${activeTab === tab.id ? "active" : ""}`}
           >
             {tab.name}
           </button>

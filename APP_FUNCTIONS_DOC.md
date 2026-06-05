@@ -4733,13 +4733,6 @@ No description provided.
 No description provided.
 ```
 
-#### `isCollapsed` (Function)
-- **Signature**: `const isCollapsed = useSidebarStore((state) => state.isCollapsed)`
-- **Description**:
-```text
-No description provided.
-```
-
 #### `addEvent` (Function)
 - **Signature**: `const addEvent = useEventStore((state) => state.addEvent)`
 - **Description**:
@@ -4847,6 +4840,13 @@ Group commands by category
 No description provided.
 ```
 
+#### `handleKeyDown` (Function)
+- **Signature**: `const handleKeyDown = (e: KeyboardEvent) => `
+- **Description**:
+```text
+Keyboard shortcut Ctrl + ` to toggle expanded state
+```
+
 
 
 ---
@@ -4857,6 +4857,13 @@ No description provided.
 ### Functions & Endpoints
 #### `selectedWorkspace` (Function)
 - **Signature**: `const selectedWorkspace = useTerminalStore((state) => state.selectedWorkspace)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `setWorkspace` (Function)
+- **Signature**: `const setWorkspace = useTerminalStore((state) => state.setWorkspace)`
 - **Description**:
 ```text
 No description provided.
@@ -4892,6 +4899,34 @@ No description provided.
 
 #### `connectionStatus` (Function)
 - **Signature**: `const connectionStatus = useBackendTradingStore((state) => state.connectionStatus)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `timer` (Function)
+- **Signature**: `const timer = setInterval(() => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `fetchHeaderPnl` (Function)
+- **Signature**: `const fetchHeaderPnl = async () => `
+- **Description**:
+```text
+Dynamic positions P&L for header account indicator
+```
+
+#### `unrealised` (Function)
+- **Signature**: `const unrealised = res.data.reduce((acc: number, pos: any) => acc + Number(pos.unrealised || 0), 0)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `realised` (Function)
+- **Signature**: `const realised = res.data.reduce((acc: number, pos: any) => acc + Number(pos.realised || 0), 0)`
 - **Description**:
 ```text
 No description provided.
@@ -5353,6 +5388,13 @@ No description provided.
 
 #### `filtered` (Function)
 - **Signature**: `const filtered = AVAILABLE_STRATEGIES.filter((str) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `found` (Function)
+- **Signature**: `const found = AVAILABLE_STRATEGIES.find((str) => str.id === val)`
 - **Description**:
 ```text
 No description provided.
@@ -5931,6 +5973,13 @@ No description provided.
 No description provided.
 ```
 
+#### `fmtVol` (Function)
+- **Signature**: `const fmtVol = (v: number) => v >= 1000000 ? `${(v/1000000).toFixed(1)}M` : v >= 1000 ? `${(v/1000).toFixed(0)}K` : String(v)`
+- **Description**:
+```text
+No description provided.
+```
+
 #### `selectedInstrument` (Function)
 - **Signature**: `const selectedInstrument = useTerminalStore((state) => state.selectedInstrument)`
 - **Description**:
@@ -6166,6 +6215,20 @@ Pre-flight Daily Loss Guard Check
 
 #### `closePosition` (Function)
 - **Signature**: `const closePosition = async (sym?: string) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `totalUnrealizedPnL` (Function)
+- **Signature**: `const totalUnrealizedPnL = positions.reduce((acc, pos) => acc + Number(pos.unrealised || 0), 0)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `totalRealizedPnL` (Function)
+- **Signature**: `const totalRealizedPnL = positions.reduce((acc, pos) => acc + Number(pos.realised || 0), 0)`
 - **Description**:
 ```text
 No description provided.
