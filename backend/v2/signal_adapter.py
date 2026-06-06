@@ -1,7 +1,7 @@
 import pandas as pd
 from typing import List, Dict, Any, Tuple
 from datetime import datetime
-from strategy_heikin_ashi_gar import Strategy, HeikinAshiGarStrategy, FiveEmaScalpingStrategy
+from strategy_heikin_ashi_gar import Strategy, HeikinAshiGarStrategy, HeikinAshiGarStrategyV2, FiveEmaScalpingStrategy, OneMinuteTestStrategy, TenSecondTestStrategy
 
 class EmaCrossoverStrategy(Strategy):
     def __init__(self, fast_period: int = 9, slow_period: int = 21, cut_off_time: str = "15:15", **kwargs):
@@ -59,12 +59,18 @@ class SignalAdapter:
         
         # Normalize name
         name_lower = strategy_name.lower()
-        if name_lower in ["heikin_ashi_gar", "heikin_ashi"]:
+        if name_lower in ["heikin_ashi_v2"]:
+            self.strategy = HeikinAshiGarStrategyV2(**strategy_params)
+        elif name_lower in ["heikin_ashi_gar", "heikin_ashi"]:
             self.strategy = HeikinAshiGarStrategy(**strategy_params)
         elif name_lower in ["five_ema_scalping", "five_ema"]:
             self.strategy = FiveEmaScalpingStrategy(**strategy_params)
         elif name_lower in ["ema_crossover", "ema"]:
             self.strategy = EmaCrossoverStrategy(**strategy_params)
+        elif name_lower in ["one_minute_test"]:
+            self.strategy = OneMinuteTestStrategy(**strategy_params)
+        elif name_lower in ["ten_second_test"]:
+            self.strategy = TenSecondTestStrategy(**strategy_params)
         else:
             raise ValueError(f"Unknown strategy name: {strategy_name}")
             

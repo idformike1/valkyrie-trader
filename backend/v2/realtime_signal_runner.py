@@ -18,7 +18,7 @@ class RealtimeSignalRunner:
     - Runs SignalAdapter models on candle history.
     - Executes BUY/SELL transactions synchronously.
     """
-    def __init__(self, config: BacktestConfig, position_manager: PositionManager, db_path: Optional[str] = None):
+    def __init__(self, config: BacktestConfig, position_manager: PositionManager, db_path: Optional[str] = None, warmup: bool = True):
         self.config = config
         self.position_manager = position_manager
         self.execution_adapter = PaperExecutionAdapter(position_manager, config, db_path)
@@ -41,6 +41,201 @@ class RealtimeSignalRunner:
         self.active_contract: Optional[Dict[str, Any]] = None
         self.entry_index = 0
         self.is_paused = False
+        
+        # Check if we are running in a unit test environment to prevent real API calls and buffer pollution
+        import sys
+        is_testing = any(x in sys.modules for x in ["unittest", "pytest", "nose"])
+        
+        # Warmup the candle buffer to avoid Heikin Ashi cold start issues
+        if warmup and not is_testing:
+            self._warmup_buffer()
+
+    def _warmup_buffer(self):
+        """
+        Fetches historical 1-minute candles from the data provider/API,
+        interpolates them if the target timeframe is 10s/30s, and seeds
+        the rolling candle buffer to avoid cold start issues.
+        """
+        try:
+            logger.info("Initializing candle buffer warmup...")
+            underlying = self.config.underlying_instrument_key
+            timeframe = self.config.timeframe
+            
+            # Check if running in mock simulation mode to skip API call and generate synthetic candles
+            is_mock = False
+            try:
+                import app
+                if getattr(app, 'current_feed', None) is not None and getattr(app.current_feed, 'is_mock', False):
+                    is_mock = True
+                elif app.SYSTEM_STATUS.get("use_mock_feed", False):
+                    is_mock = True
+            except Exception:
+                pass
+                
+            if is_mock:
+                logger.info("Generating synthetic historical candles for Mock Mode warmup...")
+                count = 60
+                now = datetime.now()
+                from datetime import timedelta
+                delta_sec = 60
+                if timeframe == "10s":
+                    delta_sec = 10
+                elif timeframe == "30s":
+                    delta_sec = 30
+                elif timeframe == "1m":
+                    delta_sec = 60
+                elif timeframe == "5m":
+                    delta_sec = 300
+                elif timeframe == "15m":
+                    delta_sec = 900
+                
+                base_price = 22000.0
+                import random
+                price = base_price
+                warmed_candles = []
+                for i in range(count):
+                    ts = now - timedelta(seconds=(count - i) * delta_sec)
+                    open_p = price
+                    close_p = price + random.uniform(-10.0, 10.0)
+                    high_p = max(open_p, close_p) + random.uniform(0, 5.0)
+                    low_p = min(open_p, close_p) - random.uniform(0, 5.0)
+                    price = close_p
+                    
+                    warmed_candles.append({
+                        'timestamp': ts.replace(microsecond=0),
+                        'open': round(open_p, 2),
+                        'high': round(high_p, 2),
+                        'low': round(low_p, 2),
+                        'close': round(close_p, 2),
+                        'volume': round(random.uniform(100, 1000), 2)
+                    })
+                self.candle_buffer.extend(warmed_candles)
+                logger.info(f"Successfully warmed up candle buffer with {len(self.candle_buffer)} synthetic candles.")
+                return
+
+            # Map short name to Upstox instrument key
+            underlying_keys_map = {
+                "NIFTY": "NSE_INDEX|Nifty 50",
+                "BANKNIFTY": "NSE_INDEX|Nifty Bank",
+                "FINNIFTY": "NSE_INDEX|Nifty Fin Service",
+                "MIDCPNIFTY": "NSE_INDEX|NIFTY MID SELECT",
+                "SENSEX": "BSE_INDEX|SENSEX",
+                "BANKEX": "BSE_INDEX|BANKEX"
+            }
+            instrument_key = underlying_keys_map.get(underlying.upper(), "NSE_INDEX|Nifty 50")
+            
+            # Load token
+            from v2.upstox_expired_loader import load_upstox_token
+            import urllib.parse
+            import requests
+            
+            token = load_upstox_token()
+            if not token:
+                logger.warning("Token missing, skipping warmup.")
+                return
+                
+            encoded_key = urllib.parse.quote(instrument_key)
+            headers = {"Accept": "application/json", "Authorization": f"Bearer {token}"}
+            url = f"https://api.upstox.com/v2/historical-candle/intraday/{encoded_key}/1minute"
+            
+            resp = requests.get(url, headers=headers, timeout=5)
+            if resp.status_code != 200:
+                logger.warning(f"Failed to fetch historical candles: {resp.status_code}. Seeding skipped.")
+                return
+                
+            data = resp.json()
+            candles_raw = data.get('data', {}).get('candles', [])
+            if not candles_raw:
+                logger.warning("No historical candles found. Seeding skipped.")
+                return
+                
+            # API returns newest first, reverse to chronological
+            candles_raw.reverse()
+            
+            # Parse 1m candles
+            candles_1m = []
+            for c in candles_raw:
+                # Convert to naive local datetime
+                ts_aware = datetime.fromisoformat(c[0].replace('Z', '+00:00'))
+                ts = ts_aware.astimezone(None).replace(tzinfo=None)
+                candles_1m.append({
+                    'timestamp': ts,
+                    'open': float(c[1]),
+                    'high': float(c[2]),
+                    'low': float(c[3]),
+                    'close': float(c[4]),
+                    'volume': float(c[5]) if len(c) > 5 else 0.0
+                })
+                
+            count = 60  # Seed with 60 candles to ensure excellent Heikin Ashi smoothing
+            warmed_candles = []
+            
+            if timeframe not in ["10s", "30s"]:
+                if timeframe == "1m":
+                    warmed_candles = candles_1m[-count:]
+                else:
+                    tf_minutes = 5 if timeframe == "5m" else (15 if timeframe == "15m" else 1)
+                    import pandas as pd
+                    df = pd.DataFrame(candles_1m)
+                    df.set_index('timestamp', inplace=True)
+                    resampled = df.resample(f"{tf_minutes}min").agg({
+                        'open': 'first',
+                        'high': 'max',
+                        'low': 'min',
+                        'close': 'last',
+                        'volume': 'sum'
+                    }).dropna()
+                    
+                    for ts, row in resampled.iterrows():
+                        warmed_candles.append({
+                            'timestamp': ts.to_pydatetime(),
+                            'open': row['open'],
+                            'high': row['high'],
+                            'low': row['low'],
+                            'close': row['close'],
+                            'volume': row['volume']
+                        })
+                    warmed_candles = warmed_candles[-count:]
+            else:
+                # Sub-minute interpolation
+                from datetime import timedelta
+                sub_candles = []
+                splits = 6 if timeframe == "10s" else 2
+                delta_sec = 10 if timeframe == "10s" else 30
+                
+                for c in candles_1m:
+                    o, h, l, cl = c['open'], c['high'], c['low'], c['close']
+                    ts = c['timestamp']
+                    
+                    for step in range(splits):
+                        step_ts = ts + timedelta(seconds=step * delta_sec)
+                        frac_start = step / splits
+                        frac_end = (step + 1) / splits
+                        sub_open = o + (cl - o) * frac_start
+                        sub_close = o + (cl - o) * frac_end
+                        
+                        sub_high = max(sub_open, sub_close)
+                        sub_low = min(sub_open, sub_close)
+                        
+                        if step == splits // 2:
+                            sub_high = max(sub_high, h)
+                            sub_low = min(sub_low, l)
+                            
+                        sub_candles.append({
+                            'timestamp': step_ts,
+                            'open': round(sub_open, 2),
+                            'high': round(sub_high, 2),
+                            'low': round(sub_low, 2),
+                            'close': round(sub_close, 2),
+                            'volume': round(c['volume'] / splits, 2)
+                        })
+                warmed_candles = sub_candles[-count:]
+                
+            self.candle_buffer.extend(warmed_candles)
+            logger.info(f"Successfully warmed up candle buffer with {len(self.candle_buffer)} historical {timeframe} candles.")
+        except Exception as e:
+            logger.error(f"Error during candle buffer warmup: {e}")
+
 
     def on_candle(self, candle: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
         """

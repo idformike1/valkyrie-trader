@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from strategy_heikin_ashi_gar import calculate_heikin_ashi, HeikinAshiGarStrategy
+from strategy_heikin_ashi_gar import calculate_heikin_ashi, HeikinAshiGarStrategy, HeikinAshiGarStrategyV2
 
 def test_heikin_ashi_calculation():
     print("Testing Heikin Ashi calculation math...")
@@ -127,7 +127,67 @@ def test_strategy_signals():
     
     print("✅ Strategy Entry and Exit triggers behave exactly as expected!")
 
+def test_strategy_v2_signals():
+    print("Testing Strategy V2 Entry and Exit triggers (no wick restriction, SL at red low, immediate exit on red)...")
+    
+    # For V2, we evaluate the latest closed candle (iloc[-1]) and the one before it (iloc[-2]).
+    # We pass 3 candles:
+    # C0: Neutral / green
+    # C1: Red candle (index 1, prior completed)
+    # C2: Green candle (index 2, completed - should trigger BUY immediately on close, despite bottom wick)
+    data = {
+        'timestamp': [
+            '2026-05-25 09:15:00',
+            '2026-05-25 09:16:00',
+            '2026-05-25 09:17:00'
+        ],
+        'open':  [100.0, 100.0, 95.0],
+        'high':  [100.0, 101.0, 110.0],
+        'low':   [100.0, 90.0, 92.0], # C1 low is 90.0 (previous red low point)
+        'close': [100.0, 92.0, 108.0]  # C2 close is 108.0 (green)
+    }
+    df = pd.DataFrame(data)
+    ha_df = calculate_heikin_ashi(df)
+    
+    c_prior = ha_df.iloc[-2] # C1
+    c_comp = ha_df.iloc[-1]  # C2
+    
+    print(f"V2 Prior: Open={c_prior['open']:.2f}, Close={c_prior['close']:.2f} (Red: {c_prior['close'] < c_prior['open']})")
+    print(f"V2 Completed: Open={c_comp['open']:.2f}, Low={c_comp['low']:.2f}, Close={c_comp['close']:.2f} (Green: {c_comp['close'] > c_comp['open']})")
+    
+    strat = HeikinAshiGarStrategyV2()
+    signal, meta = strat.evaluate(df)
+    print(f"Triggered V2 Signal: {signal} | Meta: {meta}")
+    
+    assert signal == "BUY"
+    assert strat.is_holding == True
+    # Stop loss level should be equal to previous red low (raw low of C1 = 90.0)
+    assert strat.stop_loss_level == 90.0
+    
+    # Now test exit: add C3 closed as a Red candle
+    data_exit = {
+        'timestamp': [
+            '2026-05-25 09:15:00',
+            '2026-05-25 09:16:00',
+            '2026-05-25 09:17:00',
+            '2026-05-25 09:18:00'
+        ],
+        'open':  [100.0, 100.0, 95.0, 98.0],
+        'high':  [100.0, 101.0, 110.0, 98.0],
+        'low':   [100.0, 90.0, 92.0, 94.0],
+        'close': [100.0, 92.0, 108.0, 95.0]  # C3 closed red (open 98, close 95)
+    }
+    df_exit = pd.DataFrame(data_exit)
+    signal_exit, meta_exit = strat.evaluate(df_exit)
+    print(f"Triggered V2 Exit Signal: {signal_exit} | Meta: {meta_exit}")
+    
+    assert signal_exit == "EXIT"
+    assert meta_exit["reason"] == "TECHNICAL_REVERSAL"
+    assert strat.is_holding == False
+    print("✅ Strategy V2 Entry and Exit triggers behave exactly as expected!")
+
 if __name__ == "__main__":
     test_heikin_ashi_calculation()
     test_strategy_signals()
+    test_strategy_v2_signals()
     print("🎉 All verification tests passed successfully!")

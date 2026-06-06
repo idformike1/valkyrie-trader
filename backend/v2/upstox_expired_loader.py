@@ -10,13 +10,38 @@ from v2.cache.manager import HistoricalDataCacheManager
 logger = logging.getLogger("Valkyrie.UpstoxExpiredLoader")
 logger.setLevel(logging.INFO)
 
-def load_upstox_token(token_path: str = "/Users/rajumaharjan/Documents/Anit Gravity Projects/Valkyrie/token.txt") -> str:
-    try:
-        with open(token_path, "r") as f:
-            return f.read().strip()
-    except Exception as e:
-        logger.error(f"Failed to load Upstox access token: {e}")
-        raise ValueError(f"Upstox token file missing at {token_path}")
+def load_upstox_token(token_path: Optional[str] = None) -> str:
+    import os
+    # Determine the project root directory
+    backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    root_dir = os.path.dirname(backend_dir)
+    
+    paths_to_try = []
+    if token_path:
+        paths_to_try.append(token_path)
+    
+    # Prioritize backend/token.txt, then root token.txt
+    paths_to_try.extend([
+        os.path.join(backend_dir, "token.txt"),
+        os.path.join(root_dir, "token.txt"),
+        "/Users/rajumaharjan/Documents/Anit Gravity Projects/Valkyrie/backend/token.txt",
+        "/Users/rajumaharjan/Documents/Anit Gravity Projects/Valkyrie/token.txt"
+    ])
+    
+    errors = []
+    for path in paths_to_try:
+        if os.path.exists(path):
+            try:
+                with open(path, "r") as f:
+                    token = f.read().strip()
+                    if token:
+                        return token
+            except Exception as e:
+                errors.append(f"{path}: {e}")
+                
+    err_msg = "; ".join(errors) if errors else "No token files found."
+    logger.error(f"Failed to load Upstox access token: {err_msg}")
+    raise ValueError(f"Upstox token file missing or unreadable. Searched: {paths_to_try}")
 
 class UpstoxExpiredOptionDownloader:
     _unauthorized = False

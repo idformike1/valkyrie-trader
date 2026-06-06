@@ -1,5 +1,7 @@
 import os
 import sys
+if __name__ == '__main__':
+    sys.modules['app'] = sys.modules['__main__']
 import json
 import asyncio
 import threading
@@ -32,7 +34,7 @@ sys.path.append(os.path.join(ROOT_DIR, "backend"))
 
 import database as db
 import auth
-from strategy_heikin_ashi_gar import HeikinAshiGarStrategy, FiveEmaScalpingStrategy, calculate_heikin_ashi
+from strategy_heikin_ashi_gar import HeikinAshiGarStrategy, HeikinAshiGarStrategyV2, FiveEmaScalpingStrategy, OneMinuteTestStrategy, TenSecondTestStrategy, calculate_heikin_ashi
 import MarketDataFeed_pb2 as pb
 
 TOKEN_FILE = os.path.join(ROOT_DIR, "token.txt")
@@ -47,7 +49,10 @@ PROXIES = {
 
 STRATEGY_REGISTRY = {
     "heikin_ashi_gar": HeikinAshiGarStrategy,
-    "five_ema_scalping": FiveEmaScalpingStrategy
+    "heikin_ashi_v2": HeikinAshiGarStrategyV2,
+    "five_ema_scalping": FiveEmaScalpingStrategy,
+    "one_minute_test": OneMinuteTestStrategy,
+    "ten_second_test": TenSecondTestStrategy
 }
 
 CURRENT_SESSION_ID = None
@@ -82,7 +87,7 @@ SYSTEM_STATUS = {
     "live_protection": False,
     "is_real_execution": False,
     "lot_size": 1,
-    "lot_size_multiplier": 75,
+    "lot_size_multiplier": 65,
     "spot_price": 0.0,
     "total_pnl": 0.0,
     "return_percent": 0.0,
@@ -96,7 +101,7 @@ SYSTEM_STATUS = {
     # Scalper targets
     "scalper_instrument_key": None,
     "scalper_trading_symbol": None,
-    "scalper_lot_multiplier": 75,
+    "scalper_lot_multiplier": 65,
     "scalper_option_type": None,
     "scalper_strike": None,
     "scalper_spot_price": 0.0,
@@ -357,6 +362,21 @@ def execute_order(instrument_token, quantity, transaction_type):
 def update_telemetry_metrics():
     global SYSTEM_STATUS, TRADE_LOGS, EQUITY_CURVE, EVENT_LOGS, current_v2_runner
     
+    # Dynamically inject status properties for WebSocket/telemetry clients
+    auth_status = "Valid" if check_broker_auth() else "Expired"
+    feed_status = check_market_feed_status()
+    state = SYSTEM_STATUS.get("state", "IDLE")
+    if state in ["LIVE_MONITORING", "PROCESSING"]:
+        engine_status = "Running"
+    elif state == "PAUSED":
+        engine_status = "Paused"
+    else:
+        engine_status = "Stopped"
+        
+    SYSTEM_STATUS["broker_auth"] = auth_status
+    SYSTEM_STATUS["market_feed"] = feed_status
+    SYSTEM_STATUS["execution_engine"] = engine_status
+    
     if current_v2_runner:
         from v2.position_models import PositionStatus
         from v2.metrics_engine import MetricsEngine
@@ -396,7 +416,8 @@ def update_telemetry_metrics():
                 "qty": active_pos.quantity,
                 "ltp": ltp,
                 "pnl": round((ltp - entry_premium) * active_pos.quantity, 2),
-                "side": "BUY"
+                "side": "BUY",
+                "execution_source": active_pos.entry_execution_source or active_pos.execution_source or "SYNTHETIC_MODEL"
             }
         else:
             SYSTEM_STATUS["position"] = None
@@ -418,7 +439,8 @@ def update_telemetry_metrics():
                 "reason": "Strategy Signal",
                 "pnl": 0.0,
                 "timestamp": buy_time,
-                "upstox_order_id": ""
+                "upstox_order_id": "",
+                "execution_source": pos.entry_execution_source or pos.execution_source or "SYNTHETIC_MODEL"
             })
             
             if pos.status == PositionStatus.CLOSED or pos.exit_time is not None:
@@ -438,7 +460,8 @@ def update_telemetry_metrics():
                     "reason": pos.exit_signal or "Target/SL Hit",
                     "pnl": net_pnl,
                     "timestamp": exit_time,
-                    "upstox_order_id": ""
+                    "upstox_order_id": "",
+                    "execution_source": pos.exit_execution_source or "SYNTHETIC_MODEL"
                 })
         TRADE_LOGS = temp_trades
         
@@ -699,6 +722,7 @@ class LiveFeed:
         self.running = True
         self.ws = None
         self.interval = SYSTEM_STATUS.get("chart_interval", "1minute")
+        self.is_mock = False
         # Candle observer registry — thread-safe list of callables
         self._candle_listeners = []
         self._candle_listeners_lock = threading.Lock()
@@ -747,6 +771,57 @@ class LiveFeed:
         return data['data']['authorizedRedirectUri'] or data['data']['authorized_redirect_uri']
 
     async def connect(self):
+        global SESSION_START_TIME
+        is_mock_test = False
+        try:
+            token_valid = False
+            if os.path.exists(TOKEN_FILE):
+                with open(TOKEN_FILE, "r") as f:
+                    token_valid = bool(f.read().strip())
+            is_test_strat = (
+                getattr(self.strategy, 'strategy_name', '') in ['one_minute_test', 'ten_second_test'] or
+                SYSTEM_STATUS.get("strategy") in ['one_minute_test', 'ten_second_test']
+            )
+            use_mock_force = SYSTEM_STATUS.get("use_mock_feed", False)
+            if use_mock_force or (is_test_strat and not token_valid):
+                is_mock_test = True
+        except Exception:
+            pass
+            
+        if is_mock_test:
+            self.is_mock = True
+            log_event("Starting Mock Simulation Feed...", "WS")
+            SYSTEM_STATUS["state"] = "LIVE_MONITORING"
+            SESSION_START_TIME = time.time()
+            
+            # Pre-populate some dummy candles so len(candles_history) >= 3
+            base_price = 22000.0
+            now = datetime.now()
+            for i in range(5):
+                ts = now - timedelta(minutes=5 - i)
+                self.candles_history.append({
+                    'timestamp': ts.replace(second=0, microsecond=0),
+                    'open': base_price,
+                    'high': base_price + 10.0,
+                    'low': base_price - 10.0,
+                    'close': base_price
+                })
+            rebuild_telemetry_candles()
+            
+            # Mock tick generation loop
+            price = base_price
+            while self.running:
+                import random
+                price += random.uniform(-2.0, 2.0)
+                SYSTEM_STATUS["spot_price"] = price
+                self.on_tick(price, datetime.now())
+                try:
+                    update_mock_option_quotes(price)
+                except Exception as e:
+                    log_event(f"Error updating mock quotes: {e}", "ERROR")
+                await asyncio.sleep(1.0)
+            return
+
         retry_delay = 2.0  # seconds
         max_retry_delay = 60.0
         
@@ -782,7 +857,14 @@ class LiveFeed:
                     except Exception as e:
                         log_event(f"Failed to pre-populate candles: {e}", "WARNING")
 
-                    keys_to_subscribe = list(filter(None, list(set([self.instrument_key, self.scalper_key]))))
+                    active_opts = []
+                    try:
+                        from v2.option_chain_manager import OptionChainManager
+                        active_opts = OptionChainManager().get_active_contracts()
+                    except Exception as e:
+                        log_event(f"Failed to fetch active option contracts for subscription: {e}", "WARNING")
+
+                    keys_to_subscribe = list(filter(None, list(set([self.instrument_key, self.scalper_key] + active_opts))))
                     subscribe_msg = {
                         "guid": "valkyrie_heikin_ashi_gar",
                         "method": "sub",
@@ -793,7 +875,6 @@ class LiveFeed:
                     SYSTEM_STATUS["state"] = "LIVE_MONITORING"
                     
                     # Record connect time
-                    global SESSION_START_TIME
                     SESSION_START_TIME = time.time()
                     
                     while self.running:
@@ -1099,19 +1180,26 @@ class LiveFeed:
             details = meta.get("details", "")
             
             if not details:
-                if isinstance(self.strategy, HeikinAshiGarStrategy):
+                if isinstance(self.strategy, (HeikinAshiGarStrategy, HeikinAshiGarStrategyV2)):
                     prior_ha_open = meta.get("prior_ha_open", 0.0)
                     prior_ha_close = meta.get("prior_ha_close", 0.0)
                     comp_ha_open = meta.get("comp_ha_open", 0.0)
                     comp_ha_close = meta.get("comp_ha_close", 0.0)
                     comp_ha_low = meta.get("comp_ha_low", 0.0)
                     comp_ha_open_low_diff = abs(comp_ha_open - comp_ha_low)
-                    details = (
-                        f"GAR Pattern confirmed. Prior RED HA candle closed (O: ₹{prior_ha_open:.2f}, C: ₹{prior_ha_close:.2f}). "
-                        f"Completed GREEN HA candle closed (O: ₹{comp_ha_open:.2f}, C: ₹{comp_ha_close:.2f}) "
-                        f"with bottom-wick low deviation of {comp_ha_open_low_diff:.3f}. "
-                        f"Stop Loss anchored at prior raw candle open (₹{stop_loss:.2f})."
-                    )
+                    if isinstance(self.strategy, HeikinAshiGarStrategyV2):
+                        details = (
+                            f"V2 Reversal Pattern confirmed. Prior RED HA candle closed (O: ₹{prior_ha_open:.2f}, C: ₹{prior_ha_close:.2f}). "
+                            f"Completed GREEN HA candle closed (O: ₹{comp_ha_open:.2f}, C: ₹{comp_ha_close:.2f}). "
+                            f"Stop Loss anchored at prior candle low point (₹{stop_loss:.2f})."
+                        )
+                    else:
+                        details = (
+                            f"GAR Pattern confirmed. Prior RED HA candle closed (O: ₹{prior_ha_open:.2f}, C: ₹{prior_ha_close:.2f}). "
+                            f"Completed GREEN HA candle closed (O: ₹{comp_ha_open:.2f}, C: ₹{comp_ha_close:.2f}) "
+                            f"with bottom-wick low deviation of {comp_ha_open_low_diff:.3f}. "
+                            f"Stop Loss anchored at prior raw candle open (₹{stop_loss:.2f})."
+                        )
                 else:
                     details = f"5 EMA Scalping entry at ₹{candle['close']:.2f}. SL: ₹{stop_loss:.2f}, Target: ₹{target:.2f}."
             
@@ -1313,17 +1401,27 @@ def run_historical_backtest(instrument_key, lot_size, start_date, end_date, time
             stop_loss = meta.get("stop_loss", 0.0)
             target = meta.get("target_price", 0.0)
             details = ""
-            if isinstance(backtest_strategy, HeikinAshiGarStrategy):
-                raw_prior_open = raw_df.iloc[i-2]['open']
-                candle_prior = ha_df.iloc[i-2]
-                candle_completed = ha_df.iloc[i-1]
-                details = (
-                    f"GAR Pattern confirmed. "
-                    f"Prior RED HA candle closed (O: ₹{candle_prior['open']:.2f}, C: ₹{candle_prior['close']:.2f}). "
-                    f"Completed GREEN HA candle closed (O: ₹{candle_completed['open']:.2f}, C: ₹{candle_completed['close']:.2f}) "
-                    f"with low deviation of {abs(candle_completed['open'] - candle_completed['low']):.3f}. "
-                    f"Stop Loss anchored at prior raw candle open (₹{raw_prior_open:.2f})."
-                )
+            if isinstance(backtest_strategy, (HeikinAshiGarStrategy, HeikinAshiGarStrategyV2)):
+                if isinstance(backtest_strategy, HeikinAshiGarStrategyV2):
+                    candle_prior = ha_df.iloc[i-1]
+                    candle_completed = ha_df.iloc[i]
+                    details = (
+                        f"V2 Reversal Pattern confirmed. "
+                        f"Prior RED HA candle closed (O: ₹{candle_prior['open']:.2f}, C: ₹{candle_prior['close']:.2f}). "
+                        f"Completed GREEN HA candle closed (O: ₹{candle_completed['open']:.2f}, C: ₹{candle_completed['close']:.2f}). "
+                        f"Stop Loss anchored at prior candle low point (₹{stop_loss:.2f})."
+                    )
+                else:
+                    raw_prior_open = raw_df.iloc[i-2]['open']
+                    candle_prior = ha_df.iloc[i-2]
+                    candle_completed = ha_df.iloc[i-1]
+                    details = (
+                        f"GAR Pattern confirmed. "
+                        f"Prior RED HA candle closed (O: ₹{candle_prior['open']:.2f}, C: ₹{candle_prior['close']:.2f}). "
+                        f"Completed GREEN HA candle closed (O: ₹{candle_completed['open']:.2f}, C: ₹{candle_completed['close']:.2f}) "
+                        f"with low deviation of {abs(candle_completed['open'] - candle_completed['low']):.3f}. "
+                        f"Stop Loss anchored at prior raw candle open (₹{raw_prior_open:.2f})."
+                    )
             else:
                 details = f"5 EMA Scalping entry at ₹{current_tick['close']:.2f}. SL: ₹{stop_loss:.2f}, Target: ₹{target:.2f}."
                 
@@ -1335,8 +1433,8 @@ def run_historical_backtest(instrument_key, lot_size, start_date, end_date, time
         elif signal == "EXIT":
             reason = meta.get("reason", "TECHNICAL_REVERSAL")
             details = ""
-            if reason == "TECHNICAL_REVERSAL" and isinstance(backtest_strategy, HeikinAshiGarStrategy):
-                candle_completed = ha_df.iloc[i-1]
+            if reason == "TECHNICAL_REVERSAL" and isinstance(backtest_strategy, (HeikinAshiGarStrategy, HeikinAshiGarStrategyV2)):
+                candle_completed = ha_df.iloc[i] if isinstance(backtest_strategy, HeikinAshiGarStrategyV2) else ha_df.iloc[i-1]
                 details = (
                     f"Technical trend reversal detected. Completed Heikin Ashi candle closed RED "
                     f"(Open: ₹{candle_completed['open']:.2f}, Close: ₹{candle_completed['close']:.2f})."
@@ -1371,6 +1469,66 @@ def run_historical_backtest(instrument_key, lot_size, start_date, end_date, time
         
     db.close_session(CURRENT_SESSION_ID, SYSTEM_STATUS["balance"], DB_PATH)
     log_event("Historical backtest sequence execution complete.", "BACKTEST")
+
+def update_mock_option_quotes(price):
+    import math
+    from datetime import datetime
+    from v2.option_quote_cache import OptionQuoteCache, get_subscribed_keys
+    import sqlite3
+    from v2.cache.database import DEFAULT_CACHE_DB_PATH
+    
+    keys = get_subscribed_keys()
+    if not keys:
+        return
+        
+    try:
+        conn = sqlite3.connect(DEFAULT_CACHE_DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        for key in keys:
+            cursor.execute(
+                "SELECT underlying, strike, option_type, expiry_date FROM historical_contracts WHERE instrument_key = ?",
+                (key,)
+            )
+            row = cursor.fetchone()
+            if row:
+                strike = float(row["strike"])
+                option_type = row["option_type"]
+                
+                # High-fidelity analytical premium decay model
+                atm_extrinsic = price * 0.015  # 1.5% ATM extrinsic factor
+                if option_type == "CE":
+                    if price > strike:
+                        intrinsic = price - strike
+                        premium = intrinsic + atm_extrinsic
+                    else:
+                        dist = strike - price
+                        premium = atm_extrinsic * math.exp(-2.5 * dist / price)
+                else:  # PE
+                    if price < strike:
+                        intrinsic = strike - price
+                        premium = intrinsic + atm_extrinsic
+                    else:
+                        dist = price - strike
+                        premium = atm_extrinsic * math.exp(-2.5 * dist / price)
+                
+                premium = max(round(premium, 2), 1.0)
+                bid = max(round(premium - 0.15, 2), 0.5)
+                ask = round(premium + 0.15, 2)
+                
+                OptionQuoteCache.update(
+                    instrument_key=key,
+                    ltp=premium,
+                    bid=bid,
+                    ask=ask,
+                    volume=1000,
+                    oi=5000,
+                    timestamp=datetime.now()
+                )
+        conn.close()
+    except Exception as e:
+        log_event(f"Failed to update mock option quotes: {e}", "WARNING")
 
 def rebuild_telemetry_candles():
     global HEIKIN_ASHI_CANDLES, current_feed, SYSTEM_STATUS
@@ -1506,7 +1664,34 @@ def get_atr(period: int = 14):
 
 @app.get('/api/options/metadata')
 def get_options_metadata(exchange: str = 'NSE', index: str = 'NIFTY'):
-    sync_nifty_options_csv()
+    use_mock = SYSTEM_STATUS.get("use_mock_feed", False)
+    
+    underlying_keys_map = {
+        "NIFTY": "NSE_INDEX|Nifty 50",
+        "BANKNIFTY": "NSE_INDEX|Nifty Bank",
+        "FINNIFTY": "NSE_INDEX|Nifty Fin Service",
+        "MIDCPNIFTY": "NSE_INDEX|NIFTY MID SELECT",
+        "SENSEX": "BSE_INDEX|SENSEX",
+        "BANKEX": "BSE_INDEX|BANKEX"
+    }
+    underlying_key = underlying_keys_map.get(index, "NSE_INDEX|Nifty 50")
+    
+    if use_mock:
+        # Provide fully-synthetic metadata centred on the current mock spot price
+        from v2.resolvers import MockExpiryProvider
+        spot_price = SYSTEM_STATUS.get("spot_price", 22000.0)
+        step = 50 if index.upper() in ["NIFTY", "MIDCPNIFTY", "FINNIFTY"] else 100
+        atm_strike = round(spot_price / step) * step
+        expiries = MockExpiryProvider().get_expiries(index)
+        strikes = [float(atm_strike + i * step) for i in range(-20, 21)]
+        return {
+            "expiries": expiries,
+            "spot_price": spot_price,
+            "atm_strike": atm_strike,
+            "strikes": strikes
+        }
+    
+    sync_nifty_options_csv(exchange)
     if not os.path.exists(CSV_PATH):
         raise HTTPException(status_code=404, detail="CSV file missing")
         
@@ -1522,16 +1707,6 @@ def get_options_metadata(exchange: str = 'NSE', index: str = 'NIFTY'):
     sub_df = sub_df[sub_df['expiry_date'] >= today_str]
     expiries = sorted(sub_df['expiry_date'].dropna().unique())
     
-    underlying_keys_map = {
-        "NIFTY": "NSE_INDEX|Nifty 50",
-        "BANKNIFTY": "NSE_INDEX|Nifty Bank",
-        "FINNIFTY": "NSE_INDEX|Nifty Fin Service",
-        "MIDCPNIFTY": "NSE_INDEX|NIFTY MID SELECT",
-        "SENSEX": "BSE_INDEX|SENSEX",
-        "BANKEX": "BSE_INDEX|BANKEX"
-    }
-    
-    underlying_key = underlying_keys_map.get(index, "NSE_INDEX|Nifty 50")
     spot_price = get_index_spot_price(underlying_key)
     
     atm_strike = 0.0
@@ -1578,28 +1753,30 @@ def get_options_chain(expiry: str, index: str = 'NIFTY', exchange: str = 'NSE'):
     underlying_key = underlying_keys_map.get(index, "NSE_INDEX|Nifty 50")
 
     token = load_upstox_token()
-    if not token:
+    use_mock = SYSTEM_STATUS.get("use_mock_feed", False)
+
+    if not use_mock and not token:
         raise HTTPException(status_code=401, detail="Token Expired: No upstox token found.")
 
-    url = "https://api.upstox.com/v2/option/chain"
-    params = {
-        "instrument_key": underlying_key,
-        "expiry_date": expiry
-    }
-    headers = {
-        "Accept": "application/json",
-        "Authorization": f"Bearer {token}"
-    }
-
     raw_data = []
-    try:
-        resp = requests.get(url, params=params, headers=headers, timeout=15)
-        if resp.status_code == 200:
-            raw_data = resp.json().get("data", [])
-        else:
-            log_event(f"Upstox option chain status {resp.status_code}, falling back to CSV", "WARNING")
-    except Exception as e:
-        log_event(f"Error calling Upstox option chain: {e}, falling back to CSV", "WARNING")
+    if token and not use_mock:
+        url = "https://api.upstox.com/v2/option/chain"
+        params = {
+            "instrument_key": underlying_key,
+            "expiry_date": expiry
+        }
+        headers = {
+            "Accept": "application/json",
+            "Authorization": f"Bearer {token}"
+        }
+        try:
+            resp = requests.get(url, params=params, headers=headers, timeout=15)
+            if resp.status_code == 200:
+                raw_data = resp.json().get("data", [])
+            else:
+                log_event(f"Upstox option chain status {resp.status_code}, falling back to CSV/Synthetic", "WARNING")
+        except Exception as e:
+            log_event(f"Error calling Upstox option chain: {e}, falling back to CSV/Synthetic", "WARNING")
 
     if not raw_data:
         # Fallback to local CSV matching
@@ -1648,7 +1825,126 @@ def get_options_chain(expiry: str, index: str = 'NIFTY', exchange: str = 'NSE'):
                             strikes_map[strike]["put_options"] = opt_obj
                     raw_data = [strikes_map[s] for s in sorted(strikes_map.keys())]
         except Exception as e:
-            log_event(f"Mock option chain generation failed: {e}", "ERROR")
+            log_event(f"Mock CSV option chain generation failed: {e}", "ERROR")
+
+    if not raw_data:
+        # Ultimate fallback: Generate dynamic synthetic option chain centered around current spot price
+        try:
+            import math
+            import hashlib
+            import sqlite3
+            from v2.cache.database import DEFAULT_CACHE_DB_PATH
+            spot_price = SYSTEM_STATUS.get("spot_price", 22000.0)
+            step = 50
+            if index.upper() in ["BANKNIFTY", "SENSEX", "BANKEX"]:
+                step = 100
+            atm_strike = round(spot_price / step) * step
+            
+            strikes_map = {}
+            for offset in range(-15, 16):
+                strike = float(atm_strike + offset * step)
+                
+                # CE premium calculation
+                atm_extrinsic_ce = spot_price * 0.015
+                if spot_price > strike:
+                    intrinsic_ce = spot_price - strike
+                    ce_premium = intrinsic_ce + atm_extrinsic_ce
+                else:
+                    dist_ce = strike - spot_price
+                    ce_premium = atm_extrinsic_ce * math.exp(-2.5 * dist_ce / spot_price)
+                ce_premium = max(round(ce_premium, 2), 1.0)
+                
+                # PE premium calculation
+                atm_extrinsic_pe = spot_price * 0.015
+                if spot_price < strike:
+                    intrinsic_pe = strike - spot_price
+                    pe_premium = intrinsic_pe + atm_extrinsic_pe
+                else:
+                    dist_pe = spot_price - strike
+                    pe_premium = atm_extrinsic_pe * math.exp(-2.5 * dist_pe / spot_price)
+                pe_premium = max(round(pe_premium, 2), 1.0)
+                
+                # Option keys
+                exch_segment = "NSE_FO" if index.upper() not in ["SENSEX", "BANKEX"] else "BSE_FO"
+                h_ce = hashlib.md5(f"{index}_{expiry}_{strike}_CE".encode()).hexdigest()
+                h_pe = hashlib.md5(f"{index}_{expiry}_{strike}_PE".encode()).hexdigest()
+                key_ce = f"{exch_segment}|{int(h_ce[:6], 16)}"
+                key_pe = f"{exch_segment}|{int(h_pe[:6], 16)}"
+                
+                # Save contracts to SQLite cache immediately so they can be resolved & quoted in option quote cache
+                try:
+                    conn = sqlite3.connect(DEFAULT_CACHE_DB_PATH)
+                    cursor = conn.cursor()
+                    now_str = datetime.now().isoformat()
+                    cursor.execute(
+                        """
+                        INSERT OR REPLACE INTO historical_contracts 
+                        (underlying, expiry_date, strike, option_type, instrument_key, exchange, discovered_at, source)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (index.upper(), expiry, strike, "CE", key_ce, "NSE" if exch_segment == "NSE_FO" else "BSE", now_str, "SYNTHETIC_GENERATOR")
+                    )
+                    cursor.execute(
+                        """
+                        INSERT OR REPLACE INTO historical_contracts 
+                        (underlying, expiry_date, strike, option_type, instrument_key, exchange, discovered_at, source)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (index.upper(), expiry, strike, "PE", key_pe, "NSE" if exch_segment == "NSE_FO" else "BSE", now_str, "SYNTHETIC_GENERATOR")
+                    )
+                    conn.commit()
+                    conn.close()
+                except Exception as db_err:
+                    pass
+                
+                strikes_map[strike] = {
+                    "strike_price": strike,
+                    "pcr": round(pe_premium / ce_premium if ce_premium > 0 else 1.0, 2),
+                    "underlying_spot_price": spot_price,
+                    "call_options": {
+                        "instrument_key": key_ce,
+                        "market_data": {
+                            "ltp": ce_premium,
+                            "volume": int(10000 * math.exp(-abs(offset)/5)),
+                            "oi": int(50000 * math.exp(-abs(offset)/5)),
+                            "prev_oi": int(48000 * math.exp(-abs(offset)/5)),
+                            "bid_price": round(ce_premium - 0.15, 2),
+                            "bid_qty": 1500,
+                            "ask_price": round(ce_premium + 0.15, 2),
+                            "ask_qty": 1200
+                        },
+                        "option_greeks": {
+                            "delta": round(0.5 * math.exp(-offset/10), 2),
+                            "gamma": 0.002,
+                            "theta": -10.0,
+                            "vega": 15.0,
+                            "iv": 20.0
+                        }
+                    },
+                    "put_options": {
+                        "instrument_key": key_pe,
+                        "market_data": {
+                            "ltp": pe_premium,
+                            "volume": int(10000 * math.exp(-abs(offset)/5)),
+                            "oi": int(50000 * math.exp(-abs(offset)/5)),
+                            "prev_oi": int(48000 * math.exp(-abs(offset)/5)),
+                            "bid_price": round(pe_premium - 0.15, 2),
+                            "bid_qty": 1500,
+                            "ask_price": round(pe_premium + 0.15, 2),
+                            "ask_qty": 1200
+                        },
+                        "option_greeks": {
+                            "delta": round(-0.5 * math.exp(offset/10), 2),
+                            "gamma": 0.002,
+                            "theta": -10.0,
+                            "vega": 15.0,
+                            "iv": 20.0
+                        }
+                    }
+                }
+            raw_data = [strikes_map[s] for s in sorted(strikes_map.keys())]
+        except Exception as e:
+            log_event(f"Synthetic option chain generation failed: {e}", "ERROR")
 
     if not raw_data:
         return {"spot_price": 0.0, "atm_strike": 0.0, "strikes": []}
@@ -2472,6 +2768,7 @@ class StartEngineModel(BaseModel):
     
     live_trading: bool = False
     engine_version: str = "v1"
+    use_mock_feed: bool = False
 
 @app.post('/start')
 def start_engine(req_data: StartEngineModel):
@@ -2520,7 +2817,7 @@ def start_engine(req_data: StartEngineModel):
 
             strategy_name_v2 = req_data.strategy
             strategy_params_v2 = {}
-            if strategy_name_v2 == "heikin_ashi_gar":
+            if strategy_name_v2 in ["heikin_ashi_gar", "heikin_ashi_v2"]:
                 strategy_params_v2 = {
                     "candle_limit": int(req_data.max_candles),
                     "cut_off_time": req_data.cutoff_time
@@ -2584,12 +2881,36 @@ def start_engine(req_data: StartEngineModel):
                 if SYSTEM_STATUS["state"] in ["PROCESSING", "LIVE_MONITORING", "RUNNING_BACKTEST"]:
                     raise HTTPException(status_code=400, detail="Session already active. Stop it first.")
 
+                # Check market hours if not in mock simulation mode and not running test strategies
+                is_test_strat = strategy_name_v2 in ['one_minute_test', 'ten_second_test']
+                use_mock = getattr(req_data, "use_mock_feed", False)
+                
+                if not use_mock and not is_test_strat:
+                    # Check if current time is within Indian market hours (Mon-Fri 9:15 AM - 3:30 PM)
+                    now = datetime.now()
+                    is_weekend = now.weekday() in [5, 6]
+                    market_start = now.replace(hour=9, minute=15, second=0, microsecond=0)
+                    market_end = now.replace(hour=15, minute=30, second=0, microsecond=0)
+                    is_outside_hours = now < market_start or now > market_end
+                    
+                    if is_weekend or is_outside_hours:
+                        raise HTTPException(status_code=400, detail="MARKET_CLOSED")
+
                 # --- Reset global state ---
                 TRADE_LOGS = []
                 EVENT_LOGS = []
                 EQUITY_CURVE = [{"timestamp": datetime.now().isoformat(), "equity": req_data.initial_balance}]
                 HEIKIN_ASHI_CANDLES = []
                 current_v2_runner = None
+
+                try:
+                    from v2.option_quote_cache import OptionQuoteCache
+                    from v2.option_chain_manager import OptionChainManager
+                    OptionQuoteCache.clear()
+                    OptionChainManager().reset()
+                    log_event("V2 option quote cache and chain manager successfully reset.", "V2")
+                except Exception as e:
+                    log_event(f"Failed to reset options quote cache/manager: {e}", "WARNING")
 
                 SYSTEM_STATUS.update({
                     "state": "PROCESSING",
@@ -2599,7 +2920,10 @@ def start_engine(req_data: StartEngineModel):
                     "position": None,
                     "instrument_key": underlying_key,
                     "index_name": index_name,
-                    "engine": "v2"
+                    "engine": "v2",
+                    "strategy": strategy_name_v2,
+                    "chart_interval": timeframe_mapped,
+                    "use_mock_feed": use_mock
                 })
 
                 # --- Instantiate V2 runtime components ---
@@ -2633,11 +2957,24 @@ def start_engine(req_data: StartEngineModel):
                 # We still need LiveFeed for WebSocket market data ingestion.
                 # The strategy engine and account are stubs — V2 runner handles execution.
                 current_strategy = STRATEGY_REGISTRY.get("heikin_ashi_gar", HeikinAshiGarStrategy)()
+                v2_lot_mult = 65
+                idx_upper = index_name.upper()
+                if "BANKNIFTY" in idx_upper:
+                    v2_lot_mult = 30
+                elif "FINNIFTY" in idx_upper:
+                    v2_lot_mult = 60
+                elif "MIDCPNIFTY" in idx_upper:
+                    v2_lot_mult = 120
+                elif "SENSEX" in idx_upper:
+                    v2_lot_mult = 20
+                elif "BANKEX" in idx_upper:
+                    v2_lot_mult = 30
+                
                 engine_account = EngineAccount(
                     initial_balance=req_data.initial_balance,
                     is_real=False,
                     lot_size=req_data.lot_size,
-                    lot_size_multiplier=75
+                    lot_size_multiplier=v2_lot_mult
                 )
 
                 # Instrument key for underlying index feed subscription
@@ -2810,6 +3147,7 @@ def start_engine(req_data: StartEngineModel):
         "option_type": option_type,
         "exchange": exchange,
         "index_name": index_name,
+        "strategy": strategy_name,
         
         "scalper_instrument_key": scalper_key,
         "scalper_trading_symbol": scalper_symbol,
@@ -2864,6 +3202,15 @@ def start_engine(req_data: StartEngineModel):
         CURRENT_SESSION_ID = db.create_session(mode, initial_balance, DB_PATH)
         SYSTEM_STATUS["session_id"] = CURRENT_SESSION_ID
         SYSTEM_STATUS["session_start_timestamp"] = datetime.now().isoformat()
+        
+        try:
+            from v2.option_quote_cache import OptionQuoteCache
+            from v2.option_chain_manager import OptionChainManager
+            OptionQuoteCache.clear()
+            OptionChainManager().reset()
+            log_event("Option quote cache and chain manager successfully reset.", "SYSTEM")
+        except Exception as e:
+            log_event(f"Failed to reset options quote cache/manager: {e}", "WARNING")
         
         account_is_real = (mode == "LIVE" or (mode == "MANUAL" and req_data.live_trading)) and live_protection
         log_event(f"Starting {mode} session engine. Real Execution active: {account_is_real} | Session ID: {CURRENT_SESSION_ID}", "SYSTEM")
@@ -2934,6 +3281,15 @@ def stop_engine():
     SYSTEM_STATUS["session_id"] = None
     SYSTEM_STATUS["session_start_timestamp"] = None
     SYSTEM_STATUS["state"] = "IDLE"
+    
+    try:
+        from v2.option_quote_cache import OptionQuoteCache
+        from v2.option_chain_manager import OptionChainManager
+        OptionQuoteCache.clear()
+        OptionChainManager().reset()
+    except Exception as e:
+        log_event(f"Failed to reset options quote cache/manager: {e}", "WARNING")
+
     return {"message": "Session engine successfully halted.", "status": SYSTEM_STATUS}
 
 @app.post('/pause')
@@ -2987,6 +3343,8 @@ def check_broker_auth():
 def check_market_feed_status():
     from v2.option_quote_cache import OptionQuoteCache
     global current_feed, active_thread
+    if current_feed and getattr(current_feed, 'is_mock', False):
+        return "Mock"
     if current_feed and current_feed.ws and not getattr(current_feed.ws, 'closed', False):
         if OptionQuoteCache.is_feed_available():
             return "Live"
@@ -3002,6 +3360,8 @@ def get_telemetry():
             is_alive = False
             if current_feed and active_thread and active_thread.is_alive():
                 if SYSTEM_STATUS.get("state") == "PROCESSING":
+                    is_alive = True
+                elif getattr(current_feed, 'is_mock', False):
                     is_alive = True
                 elif current_feed.ws and not getattr(current_feed.ws, 'closed', False):
                     is_alive = True
@@ -3981,6 +4341,8 @@ async def start_hedge_monitor():
 
 @app.on_event("startup")
 async def startup_event():
+    global main_event_loop
+    main_event_loop = asyncio.get_running_loop()
     sync_nifty_options_csv()
     resume_active_session_if_any()
     # Trigger initial docs generation at startup
@@ -3997,4 +4359,4 @@ async def startup_event():
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run(app, host='0.0.0.0', port=8081)
+    uvicorn.run(app, host='0.0.0.0', port=8657)

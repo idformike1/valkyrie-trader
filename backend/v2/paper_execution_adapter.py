@@ -100,12 +100,27 @@ class PaperExecutionAdapter:
         subscribe_option_contract(instrument_key)
 
         quote = OptionQuoteCache.get(instrument_key)
-        
         is_quote_valid = False
-        if quote is not None:
-            age_ms = int(time.time() * 1000) - quote.last_update_ms
-            if age_ms <= 1500:
-                is_quote_valid = True
+        
+        # Wait up to 3s (30 retries * 100ms) for the first live option quote to arrive in cache
+        retries = 30
+        while retries > 0:
+            quote = OptionQuoteCache.get(instrument_key)
+            if quote is not None:
+                age_ms = int(time.time() * 1000) - quote.last_update_ms
+                if age_ms <= 3000:
+                    is_quote_valid = True
+                    break
+            
+            # Optimization: check if feed is actually running and not in mock mode
+            import app
+            if getattr(app, 'current_feed', None) is None or not getattr(app.current_feed, 'running', False):
+                break
+            if getattr(app.current_feed, 'is_mock', False):
+                break
+                
+            time.sleep(0.1)
+            retries -= 1
 
         if not hasattr(self._local_state, 'last_quote_quality'):
             self._local_state.last_quote_quality = None
@@ -152,7 +167,50 @@ class PaperExecutionAdapter:
                 )
                 return fill_price
 
-        # Record a miss if we couldn't use Tier 1
+        # --- TIER 1.5: REST API QUOTE FALLBACK ---
+        # If WebSocket subscription hasn't delivered ticks yet, try a synchronous REST call
+        try:
+            from v2.upstox_expired_loader import load_upstox_token
+            import requests as _requests
+            _token = load_upstox_token()
+            if _token and (instrument_key.startswith("NSE_FO|") or instrument_key.startswith("BSE_FO|")):
+                _url = "https://api.upstox.com/v2/market-quote/quotes"
+                _headers = {"Accept": "application/json", "Authorization": f"Bearer {_token}"}
+                _params = {"instrument_key": instrument_key}
+                _resp = _requests.get(_url, headers=_headers, params=_params, timeout=3)
+                if _resp.status_code == 200:
+                    _data = _resp.json().get("data", {})
+                    for _k, _v in _data.items():
+                        _ltp = float(_v.get("last_price", 0.0))
+                        _depth = _v.get("depth", {})
+                        _buy_depth = _depth.get("buy", [])
+                        _sell_depth = _depth.get("sell", [])
+                        _bid_p = float(_buy_depth[0].get("price", 0.0)) if _buy_depth else 0.0
+                        _ask_p = float(_sell_depth[0].get("price", 0.0)) if _sell_depth else 0.0
+                        
+                        if _ltp > 0 or _bid_p > 0 or _ask_p > 0:
+                            if side == "BUY":
+                                _fill = _ask_p if _ask_p > 0 else _ltp
+                            else:
+                                _fill = _bid_p if _bid_p > 0 else _ltp
+                            
+                            if _fill and _fill > 0:
+                                self._local_state.last_source = "LIVE_REST_QUOTE"
+                                self._local_state.last_quote_quality = {
+                                    "bid": float(_bid_p), "ask": float(_ask_p),
+                                    "spread": float(_ask_p - _bid_p), "tick_age_ms": 0
+                                }
+                                QuoteHealthTracker.record_hit()
+                                TelemetryLogger.log(
+                                    "POSITION", "INFO",
+                                    f"REST_FILL_USED: Filled {side} order via REST API quote: {_fill:.2f} (LTP={_ltp}, Bid={_bid_p}, Ask={_ask_p})",
+                                    {"instrument_key": instrument_key, "side": side, "fill_price": _fill, "source": "LIVE_REST_QUOTE"}
+                                )
+                                return _fill
+        except Exception as _rest_err:
+            logger.debug(f"REST API quote fallback failed for {instrument_key}: {_rest_err}")
+
+        # Record a miss if we couldn't use Tier 1 or Tier 1.5
         QuoteHealthTracker.record_miss()
         self._local_state.last_quote_quality = None
 
@@ -253,11 +311,20 @@ class PaperExecutionAdapter:
         quote_quality = getattr(self._local_state, 'last_quote_quality', None)
 
         # Quantity logic
-        idx_lot = 75
-        if "BANKNIFTY" in underlying:
-            idx_lot = 15
-        elif "FINNIFTY" in underlying:
-            idx_lot = 40
+        idx_lot = 65
+        underlying_upper = underlying.upper()
+        if "BANKNIFTY" in underlying_upper:
+            idx_lot = 30
+        elif "FINNIFTY" in underlying_upper:
+            idx_lot = 60
+        elif "MIDCPNIFTY" in underlying_upper:
+            idx_lot = 120
+        elif "SENSEX" in underlying_upper:
+            idx_lot = 20
+        elif "BANKEX" in underlying_upper:
+            idx_lot = 30
+        elif "NIFTY" in underlying_upper:
+            idx_lot = 65
         num_lots = self.config.execution.lot_size
         quantity = num_lots * idx_lot
 

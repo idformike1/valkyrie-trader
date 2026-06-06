@@ -46,10 +46,23 @@ class TestRealtimePaperEngine(unittest.TestCase):
                 "initial_balance": 100000.0
             }
         }
+        # Force a mock expiry provider for deterministic tests
+        from v2.resolvers import HistoricalExpiryResolver, ExpiryCalendarProvider, LiveExpiryProvider
+        class TestExpiryProvider(ExpiryCalendarProvider):
+            def get_expiries(self, index_name: str) -> list:
+                return ["2026-06-04", "2026-06-11"]
+        self.original_provider = LiveExpiryProvider()
+        HistoricalExpiryResolver.set_provider(TestExpiryProvider())
+
         self.config = BacktestConfig(**self.payload)
         self.ledger = PositionLedger()
         self.position_manager = PositionManager(ledger=self.ledger)
         self.runner = RealtimeSignalRunner(self.config, self.position_manager)
+
+    def tearDown(self):
+        from v2.resolvers import HistoricalExpiryResolver
+        if hasattr(self, "original_provider"):
+            HistoricalExpiryResolver.set_provider(self.original_provider)
 
     def test_end_to_end_realtime_execution(self):
         TelemetryLogger.start_session()
@@ -147,10 +160,10 @@ class TestRealtimePaperEngine(unittest.TestCase):
 
         # Verify exact fills
         trade = self.ledger.accounting_records[0]
-        # Gross PnL: (98.0 - 102.0) * 75 = -300.0 INR
+        # Gross PnL: (98.0 - 102.0) * 65 = -260.0 INR
         self.assertAlmostEqual(trade.entry_premium, 102.0)  # BUY filled at Ask
         self.assertAlmostEqual(trade.exit_premium, 98.0)    # SELL filled at Bid
-        self.assertAlmostEqual(trade.gross_pnl, -300.0)
+        self.assertAlmostEqual(trade.gross_pnl, -260.0)
 
         # Check Telemetry logs
         logs = TelemetryLogger.get_logs()

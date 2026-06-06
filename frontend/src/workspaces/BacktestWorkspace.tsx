@@ -57,6 +57,15 @@ const AVAILABLE_STRATEGIES: StrategyRepoItem[] = [
     lastRun: "Never"
   },
   {
+    id: "heikin_ashi_v2",
+    name: "Heikin Ashi V2 Strategy",
+    version: "v2.0",
+    status: "Validated",
+    promotionState: "Live Approved",
+    createdDate: "2026-06-05",
+    lastRun: "Never"
+  },
+  {
     id: "five_ema_scalping",
     name: "5 EMA Scalping Strategy",
     version: "v1.5",
@@ -126,6 +135,7 @@ export const BacktestLeft: React.FC = () => {
       if (preset.strategy_id === "five_ema") return s.id === "five_ema_scalping";
       if (preset.strategy_id === "ema") return s.id === "EMA";
       if (preset.strategy_id === "heikin_ashi") return s.id === "heikin_ashi_gar";
+      if (preset.strategy_id === "heikin_ashi_v2") return s.id === "heikin_ashi_v2";
       return s.id === preset.strategy_id;
     });
     if (matchedRepo) {
@@ -145,6 +155,7 @@ export const BacktestLeft: React.FC = () => {
     if (v2Config.strategy_name === "five_ema_scalping") strategy_id = "five_ema";
     if (v2Config.strategy_name === "EMA") strategy_id = "ema";
     if (v2Config.strategy_name === "heikin_ashi_gar") strategy_id = "heikin_ashi";
+    if (v2Config.strategy_name === "heikin_ashi_v2") strategy_id = "heikin_ashi_v2";
 
     const presetPayload = {
       name: newPresetName,

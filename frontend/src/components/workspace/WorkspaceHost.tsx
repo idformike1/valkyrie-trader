@@ -95,12 +95,14 @@ export const WorkspaceHost: React.FC = () => {
           </div>
         )}
 
-        {/* Left Resize Handle (Subtle 1px vertical separator line) */}
+        {/* Left Resize Handle (Enhanced hit area & hover visualization) */}
         {LeftPanel && !layout.leftCollapsed && (
           <div
-            className="w-[1px] bg-white/5 hover:bg-cyan-500/40 cursor-col-resize transition-all shrink-0 self-stretch"
+            className="group relative w-2 cursor-col-resize shrink-0 self-stretch flex items-center justify-center z-10"
             onMouseDown={handleResize("left")}
-          />
+          >
+            <div className="absolute inset-y-0 w-[1px] bg-transparent group-hover:bg-cyan-500/60 group-active:bg-cyan-400 transition-colors" />
+          </div>
         )}
 
         {/* Main Panel */}
@@ -110,12 +112,14 @@ export const WorkspaceHost: React.FC = () => {
           </Panel>
         </div>
 
-        {/* Right Resize Handle (Subtle 1px vertical separator line) */}
+        {/* Right Resize Handle (Enhanced hit area & hover visualization) */}
         {RightPanel && !layout.rightCollapsed && (
           <div
-            className="w-[1px] bg-white/5 hover:bg-cyan-500/40 cursor-col-resize transition-all shrink-0 self-stretch"
+            className="group relative w-2 cursor-col-resize shrink-0 self-stretch flex items-center justify-center z-10"
             onMouseDown={handleResize("right")}
-          />
+          >
+            <div className="absolute inset-y-0 w-[1px] bg-transparent group-hover:bg-cyan-500/60 group-active:bg-cyan-400 transition-colors" />
+          </div>
         )}
 
         {/* Right Panel */}
@@ -141,12 +145,14 @@ export const WorkspaceHost: React.FC = () => {
       {/* Bottom Section: Bottom Panel */}
       {BottomPanel && (
         <>
-          {/* Bottom Resize Handle (Subtle 1px horizontal separator line) */}
+          {/* Bottom Resize Handle (Enhanced hit area & hover visualization) */}
           {!layout.bottomCollapsed && (
             <div
-              className="h-[1px] bg-white/5 hover:bg-cyan-500/40 cursor-row-resize transition-all shrink-0 w-full"
+              className="group relative h-2 cursor-row-resize shrink-0 w-full flex flex-col items-center justify-center z-10"
               onMouseDown={handleResize("bottom")}
-            />
+            >
+              <div className="absolute inset-x-0 h-[1px] bg-transparent group-hover:bg-cyan-500/60 group-active:bg-cyan-400 transition-colors" />
+            </div>
           )}
 
           <div

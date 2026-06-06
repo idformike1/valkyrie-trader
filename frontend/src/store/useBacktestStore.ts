@@ -471,6 +471,7 @@ export const useBacktestStore = create<BacktestStoreState>((set, get) => ({
       if (preset.strategy_id === "five_ema") strategy_name = "five_ema_scalping";
       if (preset.strategy_id === "ema") strategy_name = "EMA";
       if (preset.strategy_id === "heikin_ashi") strategy_name = "heikin_ashi_gar";
+      if (preset.strategy_id === "heikin_ashi_v2") strategy_name = "heikin_ashi_v2";
 
       const normalizedParams = { ...preset.parameters };
       if (strategy_name === "EMA") {
@@ -481,7 +482,7 @@ export const useBacktestStore = create<BacktestStoreState>((set, get) => ({
           normalizedParams.slowEma = normalizedParams.slow_period;
         }
       }
-      if (strategy_name === "heikin_ashi_gar") {
+      if (strategy_name === "heikin_ashi_gar" || strategy_name === "heikin_ashi_v2") {
         if (normalizedParams.candle_limit !== undefined) {
           normalizedParams.max_candles = normalizedParams.candle_limit;
         }

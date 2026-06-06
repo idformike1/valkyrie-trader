@@ -57,7 +57,10 @@ export const PaperLeft: React.FC = () => {
     return dep.name.toLowerCase().includes(search.toLowerCase());
   });
 
+  const isEngineRunning = status?.state && status.state !== "IDLE";
+
   const handleSelect = (item: any) => {
+    if (isEngineRunning) return;
     setStrategy({
       strategyId: item.id,
       strategyName: item.name,
@@ -93,10 +96,12 @@ export const PaperLeft: React.FC = () => {
             <div
               key={item.id}
               onClick={() => handleSelect(item)}
-              className={`p-2 rounded transition-all cursor-pointer flex items-center border ${
+              className={`p-2 rounded transition-all flex items-center border ${
                 isSelected
-                  ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400 font-medium"
-                  : "bg-transparent border-transparent hover:bg-white/5 text-slate-350"
+                  ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400 font-medium cursor-default"
+                  : isEngineRunning
+                    ? "bg-transparent border-transparent opacity-40 cursor-not-allowed text-slate-550"
+                    : "bg-transparent border-transparent hover:bg-white/5 text-slate-350 cursor-pointer"
               }`}
             >
               <span className={`text-xs font-bold mr-2 shrink-0 ${
@@ -163,6 +168,7 @@ export const PaperMain: React.FC = () => {
 
   // Session Runtime Clock logic
   const [isSessionRestored, setIsSessionRestored] = useState(false);
+  const [showMarketClosedModal, setShowMarketClosedModal] = useState(false);
 
   // Monitor status updates to detect if we connected/reconnected to a running session
   useEffect(() => {
@@ -229,7 +235,8 @@ export const PaperMain: React.FC = () => {
       (s) =>
         s.id === preset.strategy_id ||
         (preset.strategy_id === "five_ema" && s.id === "five_ema") ||
-        (preset.strategy_id === "heikin_ashi" && s.id === "heikin_ashi_gar")
+        (preset.strategy_id === "heikin_ashi" && s.id === "heikin_ashi_gar") ||
+        (preset.strategy_id === "heikin_ashi_v2" && s.id === "heikin_ashi_v2")
     );
     if (foundStrategy) {
       setStrategy({
@@ -261,8 +268,12 @@ export const PaperMain: React.FC = () => {
     }
   };
 
-  const handleDeploy = async () => {
+  const handleDeploy = async (forceMock = false) => {
     if (!selectedStrategy) return;
+    
+    // Clear previous actions error
+    useBackendTradingStore.setState({ actionError: null });
+    
     const ok = await startV2PaperSession({
       mode: "PAPER",
       strategy: selectedStrategy.strategyId,
@@ -279,14 +290,23 @@ export const PaperMain: React.FC = () => {
       slippage_pct: 0.05,
       five_ema_period: fiveEmaPeriod,
       five_ema_rr: fiveEmaRr,
+      use_mock_feed: forceMock
     });
 
     if (ok) {
       addEvent({
         type: "success",
-        message: `DEPLOYED V2 STRATEGY: ${selectedStrategy.strategyName}`,
+        message: forceMock 
+          ? `DEPLOYED MOCK SIMULATION FOR: ${selectedStrategy.strategyName}`
+          : `DEPLOYED V2 STRATEGY: ${selectedStrategy.strategyName}`,
         workspace: "Paper",
       });
+    } else {
+      const lastError = useBackendTradingStore.getState().actionError;
+      if (lastError === "MARKET_CLOSED") {
+        setShowMarketClosedModal(true);
+        useBackendTradingStore.setState({ actionError: null });
+      }
     }
   };
 
@@ -351,7 +371,39 @@ export const PaperMain: React.FC = () => {
   const drawdown = status?.max_drawdown ? Math.round((status.max_drawdown / 100) * (status.initial_balance || 100000)) : 0;
 
   return (
-    <div className="flex flex-col h-full bg-slate-955/60 border border-white/5 rounded-lg overflow-hidden font-sans text-xs">
+    <div className="flex flex-col h-full bg-slate-955/60 border border-white/5 rounded-lg overflow-hidden font-sans text-xs relative">
+      
+      {showMarketClosedModal && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-lg max-w-md w-full p-6 shadow-2xl relative animate-in fade-in duration-200">
+            <h3 className="text-base font-semibold text-slate-100 flex items-center gap-2 mb-3">
+              <span className="text-amber-500 text-lg">⚠️</span> Market is Closed
+            </h3>
+            <p className="text-slate-350 text-xs leading-relaxed mb-6">
+              The Indian Stock Market is currently closed (Trading hours: Mon-Fri 9:15 AM - 3:30 PM). 
+              <br /><br />
+              Would you like to deploy this strategy in <strong>Mock Simulation Mode</strong> to test it offline with a simulated price feed?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowMarketClosedModal(false)}
+                className="px-4 py-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  setShowMarketClosedModal(false);
+                  await handleDeploy(true);
+                }}
+                className="px-4 py-2 rounded bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold shadow-lg shadow-cyan-900/20 transition"
+              >
+                Run Mock Simulator
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Safety Banner */}
       {status?.mode === "LIVE" && (
@@ -409,7 +461,7 @@ export const PaperMain: React.FC = () => {
               value={allocation}
               onChange={(e) => setAllocation(Number(e.target.value))}
               disabled={isEngineRunning}
-              className="bg-transparent border-none text-xs text-slate-300 focus:outline-none font-mono w-16 py-0.5"
+              className="bg-transparent border-none text-xs text-slate-300 focus:outline-none font-mono w-24 py-0.5"
             />
           </div>
         </div>
@@ -418,7 +470,7 @@ export const PaperMain: React.FC = () => {
         <div className="flex items-center gap-2">
           {!isEngineRunning ? (
             <button
-              onClick={handleDeploy}
+              onClick={() => handleDeploy(false)}
               disabled={!selectedStrategy}
               className="btn-buy flex items-center gap-1 cursor-pointer disabled:opacity-50"
             >
@@ -597,7 +649,7 @@ export const PaperMain: React.FC = () => {
                   <div className="flex flex-col gap-0.5">
                     <span className="text-slate-500 font-semibold mb-0.5">Timeframe</span>
                     <div className="flex gap-0.5 bg-slate-950 p-0.5 rounded border border-white/10">
-                      {["1m", "3m", "5m", "15m"].map((tf) => {
+                      {["10s", "1m", "3m", "5m", "15m"].map((tf) => {
                         const active = timeframe === tf;
                         return (
                           <button
@@ -940,8 +992,10 @@ export const PaperRight: React.FC = () => {
       return { label: ok ? "Valid" : "Expired", ok };
     }
     if (key === "feed") {
-      const ok = status.market_feed === "Live";
-      return { label: ok ? "Live" : "Offline", ok };
+      const isMock = status.market_feed === "Mock";
+      const isLive = status.market_feed === "Live";
+      const ok = isLive || isMock;
+      return { label: isMock ? "Mock Sim" : isLive ? "Live" : "Offline", ok, isMock };
     }
     if (key === "engine") {
       const label = status.execution_engine || "Stopped";
@@ -1029,10 +1083,11 @@ export const PaperRight: React.FC = () => {
           <div className="flex flex-col font-mono text-xs gap-2">
             {/* System Health Indicators */}
             <div className="flex flex-col gap-1.5">
-              {systemItems.map((item, idx) => (
+              {systemItems.map((item: any, idx) => (
                 <div key={idx} className="flex justify-between items-center py-1 border-b border-white/[0.02]">
                   <span className="text-slate-400 font-sans text-xs">{item.name}</span>
                   <span className={`status-badge ${
+                    item.label === "Mock Sim" ? "warning" :
                     item.ok ? (
                       item.label === "Connected" || item.label === "Live" || item.label === "Valid" || item.label === "Running" ? "success" : "connected"
                     ) : (

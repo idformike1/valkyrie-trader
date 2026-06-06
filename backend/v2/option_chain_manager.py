@@ -41,6 +41,12 @@ class OptionChainManager:
                 cls._instance.expiry_mode = ExpiryMode.CURRENT_WEEKLY
             return cls._instance
 
+    def reset(self):
+        with self._lock:
+            self.active_universes = {}
+            self.current_atms = {}
+            self.expiry_mode = ExpiryMode.CURRENT_WEEKLY
+
     def get_active_contracts(self) -> List[str]:
         """
         Returns a list of all currently active/subscribed option contract keys across all indices.

@@ -270,8 +270,14 @@ export const Header: React.FC = () => {
               <span>AUTH</span>
             </span>
             <span className="flex items-center gap-1 pl-2 border-l border-white/5" title={`FEED: ${status?.market_feed}`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${status?.market_feed === "Live" ? "bg-emerald-500" : "bg-rose-500 animate-pulse"}`} />
-              <span>FEED</span>
+              <span className={`w-1.5 h-1.5 rounded-full ${
+                status?.market_feed === "Live" ? "bg-emerald-500" :
+                status?.market_feed === "Mock" ? "bg-amber-500" :
+                "bg-rose-500 animate-pulse"
+              }`} />
+              <span className={status?.market_feed === "Mock" ? "text-amber-400" : ""}>
+                {status?.market_feed === "Mock" ? "MOCK" : "FEED"}
+              </span>
             </span>
             <span className="flex items-center gap-1 pl-2 border-l border-white/5" title={`ENG: ${status?.execution_engine}`}>
               <span className={`w-1.5 h-1.5 rounded-full ${

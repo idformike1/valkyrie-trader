@@ -1,6 +1,6 @@
 import os
 import abc
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 from typing import Optional, Dict, Tuple
 from v2.types import StrikeMode, ExpiryMode, OptionType
@@ -96,16 +96,146 @@ class ExpiryCalendarProvider(abc.ABC):
 
 class MockExpiryProvider(ExpiryCalendarProvider):
     MOCK_EXPIRIES = [
-        "2026-05-28",  # Monthly/Weekly (last Thursday of May 2026)
-        "2026-06-04",  # Weekly
-        "2026-06-11",  # Weekly
-        "2026-06-18",  # Weekly
-        "2026-06-25",  # Monthly/Weekly (last Thursday of June 2026)
-        "2026-07-02",  # Weekly
+        "2026-05-05",  # Weekly (Tuesday)
+        "2026-05-12",  # Weekly (Tuesday)
+        "2026-05-19",  # Weekly (Tuesday)
+        "2026-05-26",  # Weekly (Tuesday)
+        "2026-06-02",  # Weekly (Tuesday)
+        "2026-06-09",  # Weekly (Tuesday)
+        "2026-06-16",  # Weekly (Tuesday)
+        "2026-06-23",  # Weekly (Tuesday)
+        "2026-06-30",  # Weekly (Tuesday)
+        "2026-07-07",  # Weekly (Tuesday)
+    ]
+    MOCK_EXPIRIES_BSE = [
+        "2026-05-07",  # Weekly (Thursday)
+        "2026-05-14",  # Weekly (Thursday)
+        "2026-05-21",  # Weekly (Thursday)
+        "2026-05-28",  # Weekly (Thursday)
+        "2026-06-04",  # Weekly (Thursday)
+        "2026-06-11",  # Weekly (Thursday)
+        "2026-06-18",  # Weekly (Thursday)
+        "2026-06-25",  # Weekly (Thursday)
+        "2026-07-02",  # Weekly (Thursday)
     ]
 
     def get_expiries(self, index_name: str) -> list:
+        if index_name.upper() in ["SENSEX", "BANKEX"]:
+            return self.MOCK_EXPIRIES_BSE
         return self.MOCK_EXPIRIES
+
+class LiveExpiryProvider(ExpiryCalendarProvider):
+    """Discovers real expiry dates by probing the Upstox live option chain API and caching in SQLite."""
+    
+    _cache: Dict[str, list] = {}  # In-memory cache per session to avoid repeated API calls
+    
+    UNDERLYING_KEYS = {
+        "NIFTY": "NSE_INDEX|Nifty 50",
+        "BANKNIFTY": "NSE_INDEX|Nifty Bank",
+        "FINNIFTY": "NSE_INDEX|Nifty Fin Service",
+        "MIDCPNIFTY": "NSE_INDEX|NIFTY MID SELECT",
+        "SENSEX": "BSE_INDEX|SENSEX",
+        "BANKEX": "BSE_INDEX|BANKEX",
+    }
+    
+    def get_expiries(self, index_name: str) -> list:
+        import logging
+        _log = logging.getLogger('Valkyrie.LiveExpiryProvider')
+        
+        idx = index_name.upper()
+        
+        # Return in-memory cache if available
+        if idx in self._cache and self._cache[idx]:
+            return self._cache[idx]
+        
+        # Try HistoricalContractProvider first (reads SQLite + Upstox expired API)
+        try:
+            from v2.expired_contract_provider import HistoricalContractProvider
+            provider = HistoricalContractProvider()
+            expiries = provider.get_expiries(idx)
+            
+            # Verify the nearest future expiry actually has live contracts on Upstox
+            today_str = datetime.now().strftime("%Y-%m-%d")
+            future_expiries = [e for e in expiries if e >= today_str]
+            
+            if future_expiries:
+                # Quick probe: check if nearest future expiry returns data from live option chain
+                from v2.upstox_expired_loader import load_upstox_token
+                import requests as _req
+                token = load_upstox_token()
+                underlying_key = self.UNDERLYING_KEYS.get(idx, "NSE_INDEX|Nifty 50")
+                
+                if token:
+                    test_expiry = future_expiries[0]
+                    try:
+                        resp = _req.get(
+                            "https://api.upstox.com/v2/option/chain",
+                            headers={"Accept": "application/json", "Authorization": f"Bearer {token}"},
+                            params={"instrument_key": underlying_key, "expiry_date": test_expiry},
+                            timeout=5
+                        )
+                        if resp.status_code == 200 and resp.json().get("data"):
+                            # Cached expiry is valid — use it
+                            self._cache[idx] = expiries
+                            return expiries
+                    except Exception:
+                        pass
+                    
+                    # Cached nearest expiry is invalid — probe for real dates
+                    _log.info(f"Cached expiry {test_expiry} invalid for {idx}. Probing live option chain...")
+                    real_expiries = self._probe_live_expiries(token, underlying_key, idx)
+                    if real_expiries:
+                        # Merge discovered future expiries with historical past expiries
+                        past = [e for e in expiries if e < today_str]
+                        merged = sorted(set(past + real_expiries))
+                        self._cache[idx] = merged
+                        # Cache in SQLite for subsequent calls
+                        try:
+                            provider._save_expiries_to_cache(idx, real_expiries, "UPSTOX_LIVE_OPTION_CHAIN")
+                        except Exception:
+                            pass
+                        return merged
+            
+            if expiries:
+                self._cache[idx] = expiries
+                return expiries
+                
+        except Exception as e:
+            _log.warning(f"Live expiry lookup failed for {idx}: {e}")
+        
+        # Ultimate fallback (cache it to avoid hitting network again)
+        fallback = MockExpiryProvider().get_expiries(idx)
+        self._cache[idx] = fallback
+        return fallback
+    
+    def _probe_live_expiries(self, token: str, underlying_key: str, index_name: str) -> list:
+        """Probe the next 30 days to discover valid expiry dates from the live option chain API."""
+        import requests as _req
+        import logging
+        _log = logging.getLogger('Valkyrie.LiveExpiryProvider')
+        
+        discovered = []
+        today = datetime.now().date()
+        
+        for day_offset in range(30):
+            probe_date = today + timedelta(days=day_offset)
+            probe_str = probe_date.strftime("%Y-%m-%d")
+            try:
+                resp = _req.get(
+                    "https://api.upstox.com/v2/option/chain",
+                    headers={"Accept": "application/json", "Authorization": f"Bearer {token}"},
+                    params={"instrument_key": underlying_key, "expiry_date": probe_str},
+                    timeout=3
+                )
+                if resp.status_code == 200:
+                    data = resp.json().get("data", [])
+                    if data and len(data) > 0:
+                        discovered.append(probe_str)
+                        _log.info(f"Discovered live expiry for {index_name}: {probe_str} ({len(data)} strikes)")
+            except Exception:
+                continue
+        
+        return sorted(discovered)
 
 class HistoricalExpiryProvider(ExpiryCalendarProvider):
     def get_expiries(self, index_name: str) -> list:
@@ -113,7 +243,7 @@ class HistoricalExpiryProvider(ExpiryCalendarProvider):
         raise NotImplementedError("HistoricalExpiryProvider will be implemented in Phase 13C.")
 
 class HistoricalExpiryResolver:
-    _provider: ExpiryCalendarProvider = MockExpiryProvider()
+    _provider: ExpiryCalendarProvider = LiveExpiryProvider()
 
     @classmethod
     def set_provider(cls, provider: ExpiryCalendarProvider):
@@ -168,7 +298,13 @@ class HistoricalExpiryResolver:
                 raise ValueError("Next weekly expiry requested but only one expiry remains in calendar database.")
             return valid_expiries[1][1]
         elif expiry_mode == ExpiryMode.CURRENT_MONTHLY:
-            monthly_expiries = ["2026-05-28", "2026-06-25"]
+            from collections import defaultdict
+            monthly_map = defaultdict(list)
+            for exp_date, exp_str in expiries:
+                monthly_map[(exp_date.year, exp_date.month)].append((exp_date, exp_str))
+            
+            monthly_expiries = {max(lst, key=lambda x: x[0])[1] for lst in monthly_map.values()}
+            
             for exp_date, exp_str in valid_expiries:
                 if exp_str in monthly_expiries:
                     return exp_str

@@ -386,11 +386,20 @@ class HistoricalReplayEngine:
                     log_replay_event(current_ts, "BUY_INTENT", f"{strike} {option_type} ({expiry})", premium, source)
                     
                     # Open position in PositionManager
-                    idx_lot = 75
-                    if "BANKNIFTY" in underlying_name:
-                        idx_lot = 15
-                    elif "FINNIFTY" in underlying_name:
-                        idx_lot = 40
+                    idx_lot = 65
+                    underlying_upper = underlying_name.upper()
+                    if "BANKNIFTY" in underlying_upper:
+                        idx_lot = 30
+                    elif "FINNIFTY" in underlying_upper:
+                        idx_lot = 60
+                    elif "MIDCPNIFTY" in underlying_upper:
+                        idx_lot = 120
+                    elif "SENSEX" in underlying_upper:
+                        idx_lot = 20
+                    elif "BANKEX" in underlying_upper:
+                        idx_lot = 30
+                    elif "NIFTY" in underlying_upper:
+                        idx_lot = 65
                     num_lots = config.execution.lot_size if (hasattr(config, "execution") and config.execution) else 1
                     quantity = num_lots * idx_lot
                     

@@ -152,8 +152,12 @@ class MetricsEngine:
             ))
 
         # 10. Return Metrics & CAGR
+        # 10. Return Metrics & CAGR
         final_equity = running_equity
-        absolute_return_pct = ((final_equity - self.initial_capital) / self.initial_capital) * 100.0
+        if self.initial_capital > 0:
+            absolute_return_pct = ((final_equity - self.initial_capital) / self.initial_capital) * 100.0
+        else:
+            absolute_return_pct = 0.0
         net_return_pct = absolute_return_pct
         capital_growth_pct = absolute_return_pct
         
@@ -165,7 +169,7 @@ class MetricsEngine:
             
             if final_equity <= 0:
                 cagr = -100.0
-            elif years >= (1.0 / 365.25):  # At least 1 day duration to annualize CAGR
+            elif years >= (1.0 / 365.25) and self.initial_capital > 0:  # At least 1 day duration to annualize CAGR
                 cagr = ((final_equity / self.initial_capital) ** (1.0 / years) - 1.0) * 100.0
             else:
                 cagr = absolute_return_pct
@@ -194,7 +198,10 @@ class MetricsEngine:
                     all_days_pnls.append(daily_pnls.get(day_str, 0.0))
                 curr_date += timedelta(days=1)
                 
-            daily_returns = [pnl / self.initial_capital for pnl in all_days_pnls]
+            if self.initial_capital > 0:
+                daily_returns = [pnl / self.initial_capital for pnl in all_days_pnls]
+            else:
+                daily_returns = [0.0 for pnl in all_days_pnls]
             avg_daily_ret = statistics.mean(daily_returns)
             std_daily_ret = statistics.stdev(daily_returns) if len(daily_returns) > 1 else 0.0
             
@@ -218,7 +225,10 @@ class MetricsEngine:
                 sortino_ratio = 0.0
         else:
             # Single-day backtest or single trade fallback: Trade-by-trade method
-            trade_returns = [t.net_pnl / self.initial_capital for t in sorted_trades]
+            if self.initial_capital > 0:
+                trade_returns = [t.net_pnl / self.initial_capital for t in sorted_trades]
+            else:
+                trade_returns = [0.0 for t in sorted_trades]
             avg_trade_ret = statistics.mean(trade_returns) if trade_returns else 0.0
             std_trade_ret = statistics.stdev(trade_returns) if len(trade_returns) > 1 else 0.0
             

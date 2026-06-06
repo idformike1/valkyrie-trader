@@ -104,6 +104,76 @@ STRATEGY_METADATA_STORE: Dict[str, StrategyMetadata] = {
         weaknesses=["Entry signal delays due to averaging calculations can lead to poor entry fills during flash moves"],
         best_market_conditions="Clean trends with consistent follow-through",
         worst_market_conditions="Alternating red/green noise in choppy sideways markets"
+    ),
+    "heikin_ashi_v2": StrategyMetadata(
+        id="heikin_ashi_v2",
+        name="Heikin Ashi V2 Strategy",
+        category="Reversal / Momentum",
+        description="An optimized version of the Heikin Ashi strategy that executes entries on green candles immediately following red candles, anchors stop losses to the prior red low, and exits on the next completed red candle.",
+        market_type="Trending / Momentum",
+        recommended_timeframes=["10s", "1m", "5m"],
+        risk_level="Medium",
+        expected_trade_frequency="High (5-15 trades per session)",
+        entry_logic="Enters LONG when a completed Heikin-Ashi candle closes green after a red candle. No wick restrictions.",
+        exit_logic="Exits when the next completed Heikin-Ashi candle closes red, or when the stop loss or session cutoff is hit.",
+        strike_selection_logic="Dynamically targets ATM strikes.",
+        expiry_selection_logic="Targets current weekly options contract.",
+        stop_loss_logic="Fixed structural stop loss set at the previous red candle's low.",
+        target_logic="Exits dynamically on reversal (no fixed target).",
+        supported_parameters=[
+            StrategyParameterMetadata(name="candle_limit", type="int", default=10, description="Maximum holding duration limit in bars"),
+            StrategyParameterMetadata(name="cut_off_time", type="str", default="15:25", description="Time of day to exit remaining open positions")
+        ],
+        strengths=["Eliminates entry lag, higher trade frequency, adapts to fast 10s timeframe"],
+        weaknesses=["Susceptible to choppy/sideways markets where colors alternate frequently"],
+        best_market_conditions="Clean trends with solid momentum follow-through",
+        worst_market_conditions="Low volume sideways chop"
+    ),
+    "one_minute_test": StrategyMetadata(
+        id="one_minute_test",
+        name="One Minute Test Strategy",
+        category="Testing / Lifecycle",
+        description="A specialized testing strategy designed to verify backend paper-trading logic and execution immediately. Automatically buys on the first completed candle, and exits/sells on the second candle.",
+        market_type="Mock Regime / Simulation",
+        recommended_timeframes=["1m"],
+        risk_level="Low",
+        expected_trade_frequency="Exactly 1 trade (Entry then Exit)",
+        entry_logic="Triggers BUY automatically on the first closed candle bar.",
+        exit_logic="Triggers exit automatically on the second closed candle bar.",
+        strike_selection_logic="Static ATM strike selection.",
+        expiry_selection_logic="Static current weekly contract selection.",
+        stop_loss_logic="Large fallback cushion stop-loss.",
+        target_logic="Large fallback cushion target.",
+        supported_parameters=[
+            StrategyParameterMetadata(name="cut_off_time", type="str", default="15:25", description="Time of day to exit remaining open positions")
+        ],
+        strengths=["Immediate execution feedback for verification", "Bypasses external live feed dependency using mock ticks when market is closed"],
+        weaknesses=["Not intended for actual trading or live market use"],
+        best_market_conditions="Validation sessions, QA checks, off-market runs",
+        worst_market_conditions="Live market production environments"
+    ),
+    "ten_second_test": StrategyMetadata(
+        id="ten_second_test",
+        name="Ten Second Test Strategy",
+        category="Testing / Lifecycle",
+        description="A specialized testing strategy designed to verify 10-second candlestick resolution and live execution. Automatically buys on the first completed 10-second candle, and exits/sells on the second candle.",
+        market_type="Mock Regime / Simulation",
+        recommended_timeframes=["10s"],
+        risk_level="Low",
+        expected_trade_frequency="Exactly 1 trade (Entry then Exit)",
+        entry_logic="Triggers BUY automatically on the first closed 10-second candle bar.",
+        exit_logic="Triggers exit automatically on the second closed 10-second candle bar.",
+        strike_selection_logic="Static ATM strike selection.",
+        expiry_selection_logic="Static current weekly contract selection.",
+        stop_loss_logic="Large fallback cushion stop-loss.",
+        target_logic="Large fallback cushion target.",
+        supported_parameters=[
+            StrategyParameterMetadata(name="cut_off_time", type="str", default="15:25", description="Time of day to exit remaining open positions")
+        ],
+        strengths=["Immediate execution feedback for verification", "Bypasses external live feed dependency using mock ticks when market is closed"],
+        weaknesses=["Not intended for actual trading or live market use"],
+        best_market_conditions="Validation sessions, QA checks, off-market runs",
+        worst_market_conditions="Live market production environments"
     )
 }
 
@@ -114,7 +184,11 @@ STRATEGY_ALIAS_MAP = {
     "ema": "ema",
     "ema_crossover": "ema",
     "heikin_ashi": "heikin_ashi",
-    "heikin_ashi_gar": "heikin_ashi"
+    "heikin_ashi_gar": "heikin_ashi",
+    "heikin_ashi_v2": "heikin_ashi_v2",
+    "heikin_ashi_gar_v2": "heikin_ashi_v2",
+    "one_minute_test": "one_minute_test",
+    "ten_second_test": "ten_second_test"
 }
 
 def get_strategy_metadata(strategy_id: str) -> Optional[StrategyMetadata]:

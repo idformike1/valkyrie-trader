@@ -11,6 +11,7 @@
 - [backend/database.py](#backenddatabasepy)
 - [backend/run_fast_audit.py](#backendrun_fast_auditpy)
 - [backend/scratch/test_transparency.py](#backendscratchtest_transparencypy)
+- [backend/scratch/test_ws.py](#backendscratchtest_wspy)
 - [backend/strategy_heikin_ashi_gar.py](#backendstrategy_heikin_ashi_garpy)
 - [backend/test_backend.py](#backendtest_backendpy)
 - [backend/test_heikin_ashi_gar.py](#backendtest_heikin_ashi_garpy)
@@ -371,6 +372,13 @@ No description provided.
 
 #### `run_historical_backtest` (Function)
 - **Signature**: `def run_historical_backtest(instrument_key, lot_size, start_date, end_date, timeframe, max_candles, cutoff_time, brokerage_flat, slippage_pct, initial_balance, strategy_name, strategy_params)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `update_mock_option_quotes` (Function)
+- **Signature**: `def update_mock_option_quotes(price)`
 - **Description**:
 ```text
 No description provided.
@@ -970,6 +978,21 @@ No description provided.
 
 ---
 
+## backend/scratch/test_ws.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `test_ws` (Function)
+- **Signature**: `async def test_ws()`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
 ## backend/strategy_heikin_ashi_gar.py
 *No description provided.*
 
@@ -1002,12 +1025,56 @@ No description provided.
   *Signature*: `def evaluate(self, raw_df)`
   *Description*: No description provided.
 
+#### class `HeikinAshiGarStrategyV2`
+No description provided.
+
+##### Methods:
+- **`__init__`**
+  *Signature*: `def __init__(self, candle_limit, cut_off_time)`
+  *Description*: No description provided.
+
+- **`evaluate`**
+  *Signature*: `def evaluate(self, raw_df)`
+  *Description*: No description provided.
+
 #### class `FiveEmaScalpingStrategy`
 No description provided.
 
 ##### Methods:
 - **`__init__`**
   *Signature*: `def __init__(self, ema_period, rr_ratio, cut_off_time)`
+  *Description*: No description provided.
+
+- **`reset_state`**
+  *Signature*: `def reset_state(self)`
+  *Description*: No description provided.
+
+- **`evaluate`**
+  *Signature*: `def evaluate(self, raw_df)`
+  *Description*: No description provided.
+
+#### class `OneMinuteTestStrategy`
+No description provided.
+
+##### Methods:
+- **`__init__`**
+  *Signature*: `def __init__(self)`
+  *Description*: No description provided.
+
+- **`reset_state`**
+  *Signature*: `def reset_state(self)`
+  *Description*: No description provided.
+
+- **`evaluate`**
+  *Signature*: `def evaluate(self, raw_df)`
+  *Description*: No description provided.
+
+#### class `TenSecondTestStrategy`
+No description provided.
+
+##### Methods:
+- **`__init__`**
+  *Signature*: `def __init__(self)`
   *Description*: No description provided.
 
 - **`reset_state`**
@@ -1059,6 +1126,13 @@ No description provided.
 
 #### `test_strategy_signals` (Function)
 - **Signature**: `def test_strategy_signals()`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `test_strategy_v2_signals` (Function)
+- **Signature**: `def test_strategy_v2_signals()`
 - **Description**:
 ```text
 No description provided.
@@ -1654,6 +1728,10 @@ No description provided.
 No description provided.
 
 ##### Methods:
+- **`reset`**
+  *Signature*: `def reset(self)`
+  *Description*: No description provided.
+
 - **`get_active_contracts`**
   *Signature*: `def get_active_contracts(self)`
   *Description*: Returns a list of all currently active/subscribed option contract keys across all indices.
@@ -2037,7 +2115,7 @@ Orchestrator for V2 real-time strategy signal processing and paper execution.
 
 ##### Methods:
 - **`__init__`**
-  *Signature*: `def __init__(self, config, position_manager, db_path)`
+  *Signature*: `def __init__(self, config, position_manager, db_path, warmup)`
   *Description*: No description provided.
 
 - **`on_candle`**
@@ -2164,6 +2242,14 @@ No description provided.
 
 #### class `MockExpiryProvider`
 No description provided.
+
+##### Methods:
+- **`get_expiries`**
+  *Signature*: `def get_expiries(self, index_name)`
+  *Description*: No description provided.
+
+#### class `LiveExpiryProvider`
+Discovers real expiry dates by probing the Upstox live option chain API and caching in SQLite.
 
 ##### Methods:
 - **`get_expiries`**
@@ -4071,6 +4157,10 @@ No description provided.
 ##### Methods:
 - **`setUp`**
   *Signature*: `def setUp(self)`
+  *Description*: No description provided.
+
+- **`tearDown`**
+  *Signature*: `def tearDown(self)`
   *Description*: No description provided.
 
 - **`test_end_to_end_realtime_execution`**
@@ -6608,13 +6698,6 @@ No description provided.
 
 #### `preset` (Function)
 - **Signature**: `const preset = presets.find((p) => p.id === presetId)`
-- **Description**:
-```text
-No description provided.
-```
-
-#### `handleDeploy` (Function)
-- **Signature**: `const handleDeploy = async () => `
 - **Description**:
 ```text
 No description provided.

@@ -19,7 +19,7 @@ export interface Strategy {
   version: string;
 }
 
-export type Timeframe = "1m" | "3m" | "5m" | "15m" | "1h" | "1d";
+export type Timeframe = "10s" | "30s" | "1m" | "3m" | "5m" | "15m" | "1h" | "1d";
 
 export type ActiveMode = "manual" | "scalper" | "paper" | "backtest" | "live";
 

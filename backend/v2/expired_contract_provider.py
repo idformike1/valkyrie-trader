@@ -143,22 +143,38 @@ class HistoricalContractProvider:
     def _generate_fallback_expiries(self, underlying: str) -> List[str]:
         import calendar
         weekday_map = {
-            "NIFTY": 3,        # Thursday
-            "BANKNIFTY": 2,    # Wednesday
-            "FINNIFTY": 1,     # Tuesday
-            "MIDCPNIFTY": 0,   # Monday
-            "SENSEX": 4,       # Friday
-            "BANKEX": 0,       # Monday
+            "NIFTY": 1,        # Tuesday (NSE weekly options primary benchmark)
+            "BANKNIFTY": 1,    # Tuesday (NSE monthly options expiry)
+            "FINNIFTY": 1,     # Tuesday (NSE monthly options expiry)
+            "MIDCPNIFTY": 1,   # Tuesday (NSE monthly options expiry)
+            "SENSEX": 3,       # Thursday (BSE weekly options primary benchmark)
+            "BANKEX": 3,       # Thursday (BSE monthly options expiry)
         }
-        day_idx = weekday_map.get(underlying.upper(), 3)
+        
+        underlying_upper = underlying.upper()
+        day_idx = weekday_map.get(underlying_upper, 3)
+        
+        # Identify if index only has monthly contracts (weekly is discontinued per 2024 SEBI rules)
+        monthly_only = underlying_upper in ["BANKNIFTY", "FINNIFTY", "MIDCPNIFTY", "BANKEX"]
+        
         expiries = []
         for year in [2025, 2026, 2027]:
             for month in range(1, 13):
                 cal = calendar.monthcalendar(year, month)
+                month_days = []
                 for week in cal:
                     day = week[day_idx]
                     if day != 0:
-                        expiries.append(f"{year:04d}-{month:02d}-{day:02d}")
+                        month_days.append(f"{year:04d}-{month:02d}-{day:02d}")
+                
+                if month_days:
+                    if monthly_only:
+                        # Only include the last expiry day of the month
+                        expiries.append(month_days[-1])
+                    else:
+                        # Include all weekly expiry days
+                        expiries.extend(month_days)
+                        
         return sorted(list(set(expiries)))
 
     def _save_expiries_to_cache(self, underlying: str, expiries: List[str], source: str):
@@ -204,6 +220,76 @@ class HistoricalContractProvider:
         token = load_upstox_token()
         underlying_key = self.UNDERLYING_MAP[underlying]
         
+        # Try live option chain API first if expiry is today or in the future
+        today_str = datetime.now().strftime("%Y-%m-%d")
+        if expiry_date >= today_str:
+            try:
+                url = "https://api.upstox.com/v2/option/chain"
+                headers = {
+                    "Accept": "application/json",
+                    "Authorization": f"Bearer {token}"
+                }
+                params = {
+                    "instrument_key": underlying_key,
+                    "expiry_date": expiry_date
+                }
+                response = requests.get(url, headers=headers, params=params, timeout=15)
+                if response.status_code == 200:
+                    data = response.json().get("data", [])
+                    if data:
+                        now_str = datetime.now().isoformat()
+                        data_to_insert = []
+                        for row in data:
+                            strike = float(row["strike_price"])
+                            exch = "NSE" if underlying not in ["SENSEX", "BANKEX"] else "BSE"
+                            
+                            if row.get("call_options"):
+                                c_key = row["call_options"]["instrument_key"]
+                                contracts.append({
+                                    "underlying": underlying,
+                                    "expiry_date": expiry_date,
+                                    "strike": strike,
+                                    "option_type": "CE",
+                                    "instrument_key": c_key,
+                                    "exchange": exch,
+                                    "discovered_at": now_str,
+                                    "source": "UPSTOX_LIVE_OPTION_CHAIN"
+                                })
+                                data_to_insert.append((
+                                    underlying, expiry_date, strike, "CE", c_key, exch, now_str, "UPSTOX_LIVE_OPTION_CHAIN"
+                                ))
+                                
+                            if row.get("put_options"):
+                                p_key = row["put_options"]["instrument_key"]
+                                contracts.append({
+                                    "underlying": underlying,
+                                    "expiry_date": expiry_date,
+                                    "strike": strike,
+                                    "option_type": "PE",
+                                    "instrument_key": p_key,
+                                    "exchange": exch,
+                                    "discovered_at": now_str,
+                                    "source": "UPSTOX_LIVE_OPTION_CHAIN"
+                                })
+                                data_to_insert.append((
+                                    underlying, expiry_date, strike, "PE", p_key, exch, now_str, "UPSTOX_LIVE_OPTION_CHAIN"
+                                ))
+                                
+                        if data_to_insert:
+                            cursor.executemany(
+                                """
+                                INSERT OR REPLACE INTO historical_contracts 
+                                (underlying, expiry_date, strike, option_type, instrument_key, exchange, discovered_at, source)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                                """,
+                                data_to_insert
+                            )
+                            conn.commit()
+                            conn.close()
+                            return contracts
+            except Exception as e:
+                print(f"[WARNING] Live option chain API lookup failed for {underlying} on {expiry_date}: {e}")
+
         try:
             url = "https://api.upstox.com/v2/expired-instruments/option/contract"
             headers = {

@@ -49,6 +49,7 @@ class PositionManager:
             broker="Upstox",
             entry_signal=data.get("signal", "BUY_INTENT"),
             execution_source=execution_source,
+            entry_execution_source=execution_source,
             entry_reason=data.get("entry_reason"),
             exit_reason=data.get("exit_reason"),
             metadata=data.get("metadata", {})
@@ -107,6 +108,7 @@ class PositionManager:
         pos.exit_value = exit_value
         pos.exit_signal = data.get("signal", "SELL_INTENT")
         pos.execution_source = execution_source
+        pos.exit_execution_source = execution_source
         pos.exit_reason = data.get("exit_reason")
         pos.status = PositionStatus.CLOSED
         if "metadata" in data and data["metadata"]:

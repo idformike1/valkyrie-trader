@@ -28,6 +28,8 @@ class Position(BaseModel):
     entry_signal: str
     exit_signal: Optional[str] = None
     execution_source: Optional[str] = "SYNTHETIC_MODEL"
+    entry_execution_source: Optional[str] = "SYNTHETIC_MODEL"
+    exit_execution_source: Optional[str] = None
     entry_reason: Optional[str] = None
     exit_reason: Optional[str] = None
     metadata: Dict[str, Any] = {}
