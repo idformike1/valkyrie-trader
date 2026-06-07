@@ -568,7 +568,28 @@ export const BacktestMain: React.FC = () => {
       workspace: "Backtest",
     });
 
-    const success = await runV2Backtest();
+    let override: Partial<typeof v2Config> = {};
+    if (v2Config.walk_forward_enabled) {
+      let ranges: any[] = [];
+      if (v2Config.strategy_name === "EMA") {
+        ranges = [
+          { name: "fastEma", type: "int", min_val: Math.max(2, (v2Config.strategy_params.fastEma || 2) - 2), max_val: (v2Config.strategy_params.fastEma || 2) + 2, step: 2 },
+          { name: "slowEma", type: "int", min_val: Math.max(3, (v2Config.strategy_params.slowEma || 3) - 2), max_val: (v2Config.strategy_params.slowEma || 3) + 2, step: 2 }
+        ];
+      } else if (v2Config.strategy_name === "five_ema_scalping") {
+        ranges = [
+          { name: "five_ema_period", type: "int", min_val: Math.max(2, (v2Config.strategy_params.five_ema_period || 5) - 2), max_val: (v2Config.strategy_params.five_ema_period || 5) + 2, step: 2 },
+          { name: "five_ema_rr", type: "float", min_val: Math.max(1.0, (v2Config.strategy_params.five_ema_rr || 3.0) - 1.0), max_val: (v2Config.strategy_params.five_ema_rr || 3.0) + 1.0, step: 1.0 }
+        ];
+      } else {
+        ranges = [
+          { name: "candle_limit", type: "int", min_val: Math.max(5, (v2Config.strategy_params.candle_limit || 10) - 5), max_val: (v2Config.strategy_params.candle_limit || 10) + 5, step: 5 }
+        ];
+      }
+      override = { walk_forward_ranges: ranges };
+    }
+
+    const success = await runV2Backtest(override);
     if (success) {
       const metrics = useBacktestStore.getState().v2BacktestResult?.report;
       addEvent({
@@ -1026,6 +1047,64 @@ export const BacktestRight: React.FC = () => {
                 className="input font-mono font-medium"
               />
             </FormField>
+
+            <FormField label="Execution Reality Model">
+              <select
+                value={v2Config.execution_model || "THEORETICAL"}
+                onChange={(e) => setV2Config({ execution_model: e.target.value })}
+                className="input cursor-pointer font-medium border border-cyan-500/20 text-cyan-400 bg-cyan-950/20"
+              >
+                <option value="THEORETICAL" className="bg-slate-900 text-slate-100">Theoretical</option>
+                <option value="REALISTIC" className="bg-slate-900 text-slate-100">Realistic</option>
+                <option value="CONSERVATIVE" className="bg-slate-900 text-slate-100">Conservative</option>
+                <option value="STRESS_TEST" className="bg-slate-900 text-slate-100">Stress Test</option>
+              </select>
+            </FormField>
+
+            <div className="flex items-center gap-2 mt-4 p-2 bg-slate-950/50 border border-slate-800 rounded-md">
+              <input
+                id="wf-enabled"
+                type="checkbox"
+                checked={v2Config.walk_forward_enabled || false}
+                onChange={(e) => setV2Config({ walk_forward_enabled: e.target.checked })}
+                className="w-4 h-4 cursor-pointer text-cyan-500 focus:ring-0 focus:ring-offset-0 bg-slate-900 border-slate-700 rounded"
+              />
+              <label htmlFor="wf-enabled" className="text-xs font-semibold tracking-wider text-slate-200 cursor-pointer select-none">
+                WALK FORWARD TESTING
+              </label>
+            </div>
+
+            {v2Config.walk_forward_enabled && (
+              <div className="flex flex-col gap-3 mt-3 p-3 bg-slate-950/40 border border-cyan-500/10 rounded-md">
+                <FormField label="Train Days">
+                  <input
+                    type="number"
+                    min="1"
+                    value={v2Config.walk_forward_train_days || 2}
+                    onChange={(e) => setV2Config({ walk_forward_train_days: Number(e.target.value) })}
+                    className="input font-mono font-medium"
+                  />
+                </FormField>
+                <FormField label="Test Days">
+                  <input
+                    type="number"
+                    min="1"
+                    value={v2Config.walk_forward_test_days || 1}
+                    onChange={(e) => setV2Config({ walk_forward_test_days: Number(e.target.value) })}
+                    className="input font-mono font-medium"
+                  />
+                </FormField>
+                <FormField label="Step Days">
+                  <input
+                    type="number"
+                    min="1"
+                    value={v2Config.walk_forward_step_days || 1}
+                    onChange={(e) => setV2Config({ walk_forward_step_days: Number(e.target.value) })}
+                    className="input font-mono font-medium"
+                  />
+                </FormField>
+              </div>
+            )}
           </div>
         </FormSection>
 
@@ -1135,7 +1214,7 @@ export const BacktestRight: React.FC = () => {
 // 4. BOTTOM PANEL: TABBED ANALYSIS RESULTS
 // ==========================================
 export const BacktestBottom: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<"overview" | "trades" | "equity" | "drawdown" | "metrics" | "optimization" | "runtime">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "trades" | "equity" | "drawdown" | "metrics" | "optimization" | "runtime" | "walkforward">("overview");
   const equityContainerRef = useRef<HTMLDivElement>(null);
   const drawdownContainerRef = useRef<HTMLDivElement>(null);
 
@@ -1155,6 +1234,7 @@ export const BacktestBottom: React.FC = () => {
   const setReplayTradeId = useBacktestStore((state) => state.setReplayTradeId);
   const replayCurrentTime = useBacktestStore((state) => state.replayCurrentTime);
   const setReplayCurrentTime = useBacktestStore((state) => state.setReplayCurrentTime);
+  const addEvent = useEventStore((state) => state.addEvent);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [playSpeed, setPlaySpeed] = useState<1 | 2 | 5 | 10>(1);
@@ -1650,6 +1730,7 @@ export const BacktestBottom: React.FC = () => {
     { id: "metrics" as const, name: "Performance Metrics" },
     { id: "optimization" as const, name: "Sweep & Optimization" },
     { id: "runtime" as const, name: "Runtime Logs" },
+    { id: "walkforward" as const, name: "Walk Forward" },
   ];
 
   // Helper to extract parameters list from top ranking
@@ -2297,6 +2378,49 @@ export const BacktestBottom: React.FC = () => {
                             </div>
                           </div>
                         </div>
+
+                        {/* Execution Analysis Group */}
+                        {selectedTrade.execution_analysis && selectedTrade.execution_analysis.execution_model !== "THEORETICAL" && (
+                          <div className="bg-cyan-950/25 border border-cyan-800/40 p-2 rounded flex flex-col gap-1.5">
+                            <span className="text-cyan-400 font-semibold vdl-body flex items-center justify-between">
+                              <span>Execution Reality</span>
+                              <span className="text-[9px] bg-cyan-950/60 text-cyan-400 px-1 py-0.5 rounded font-mono border border-cyan-800/30">
+                                {selectedTrade.execution_analysis.execution_model}
+                              </span>
+                            </span>
+                            <div className="flex flex-col gap-1 vdl-body font-mono text-[11px]">
+                              <div className="flex justify-between border-b border-subtle pb-0.5">
+                                <span className="text-slate-500">Theo Entry:</span>
+                                <span className="text-slate-400">₹{selectedTrade.execution_analysis.theoretical_entry.toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between border-b border-subtle pb-0.5">
+                                <span className="text-slate-500">Real Entry:</span>
+                                <span className="text-slate-300 font-semibold text-cyan-400">₹{selectedTrade.execution_analysis.effective_entry.toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between border-b border-subtle pb-0.5">
+                                <span className="text-slate-500">Theo Exit:</span>
+                                <span className="text-slate-400">₹{selectedTrade.execution_analysis.theoretical_exit.toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between border-b border-subtle pb-0.5">
+                                <span className="text-slate-500">Real Exit:</span>
+                                <span className="text-slate-300 font-semibold text-cyan-400">₹{selectedTrade.execution_analysis.effective_exit.toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between border-b border-subtle pb-0.5">
+                                <span className="text-slate-500">Spread Cost:</span>
+                                <span className="text-amber-500">₹{selectedTrade.execution_analysis.spread_cost.toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between border-b border-subtle pb-0.5">
+                                <span className="text-slate-500">Vol Cost:</span>
+                                <span className="text-amber-500">₹{selectedTrade.execution_analysis.volatility_cost.toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between pt-0.5">
+                                <span className="text-slate-400 font-medium">Degradation:</span>
+                                <span className="text-rose-400 font-semibold">₹{selectedTrade.execution_analysis.pnl_degradation.toFixed(2)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
                         {/* Dynamic Trade Replay CTA */}
                         <button
                           onClick={() => {
@@ -2395,6 +2519,152 @@ export const BacktestBottom: React.FC = () => {
                       <span className="text-slate-300 font-semibold">{report.performance.max_consecutive_wins} wins / {report.performance.max_consecutive_losses} losses</span>
                     </div>
                   </div>
+
+                  {/* Execution Aware Performance Card */}
+                  {report.execution_adjusted_profit !== undefined &&
+                   report.execution_adjusted_return !== undefined &&
+                   report.average_slippage_cost !== undefined &&
+                   report.average_spread_cost !== undefined &&
+                   report.average_volatility_cost !== undefined && (
+                    <div className="col-span-2 mt-2 bg-cyan-950/20 border border-cyan-800/30 rounded p-3 flex flex-col gap-2">
+                      <span className="text-cyan-400 font-semibold border-b border-cyan-800/30 pb-1.5 flex items-center justify-between">
+                        <span>EXECUTION REALITY PERFORMANCE SUMMARY</span>
+                        <span className="text-xs font-mono font-normal text-slate-400 bg-cyan-900/30 px-2 py-0.5 rounded border border-cyan-800/40">
+                          {v2Config.execution_model || "THEORETICAL"}
+                        </span>
+                      </span>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-1.5">
+                          <div className="flex justify-between border-b border-subtle py-1">
+                            <span className="text-slate-500">THEORETICAL NET PROFIT:</span>
+                            <span className="text-slate-300 font-semibold">₹{report.performance.net_profit.toLocaleString("en-IN")}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-subtle py-1">
+                            <span className="text-slate-500">EXECUTION ADJUSTED PROFIT:</span>
+                            <span className={`font-semibold ${report.execution_adjusted_profit >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                              ₹{report.execution_adjusted_profit.toLocaleString("en-IN")}
+                            </span>
+                          </div>
+                          <div className="flex justify-between border-b border-subtle py-1">
+                            <span className="text-slate-500">EXECUTION ADJUSTED RETURN:</span>
+                            <span className={`font-semibold ${report.execution_adjusted_return >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                              {report.execution_adjusted_return.toFixed(2)}%
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <div className="flex justify-between border-b border-subtle py-1">
+                            <span className="text-slate-500">AVG SLIPPAGE COST:</span>
+                            <span className="text-amber-400 font-semibold">₹{report.average_slippage_cost.toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-subtle py-1">
+                            <span className="text-slate-500">AVG SPREAD COST:</span>
+                            <span className="text-amber-400/90">₹{report.average_spread_cost.toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-subtle py-1">
+                            <span className="text-slate-500">AVG VOLATILITY COST:</span>
+                            <span className="text-amber-400/90">₹{report.average_volatility_cost.toFixed(2)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Execution Robustness Card */}
+                  {v2Result?.robustness_analysis && (
+                    <div className="col-span-2 mt-2 bg-slate-950/40 border border-slate-800/60 rounded p-4 flex flex-col gap-4">
+                      <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-semibold tracking-wider text-slate-250">EXECUTION ROBUSTNESS PROFILE</span>
+                          <span className="text-xs text-slate-500">Quantifying edge survival across simulated execution degradation regimes</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-slate-400 font-mono">CLASSIFICATION:</span>
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
+                            v2Result.robustness_analysis.classification === "Excellent" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" :
+                            v2Result.robustness_analysis.classification === "Strong" ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20" :
+                            v2Result.robustness_analysis.classification === "Fragile" ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" :
+                            "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                          }`}>
+                            {v2Result.robustness_analysis.classification}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-6 items-center">
+                        {/* Big Score Dial */}
+                        <div className="flex flex-col items-center justify-center border-r border-slate-800/50 pr-4">
+                          <div className="relative flex items-center justify-center">
+                            <span className={`text-4xl font-extrabold font-mono ${
+                              v2Result.robustness_analysis.robustness_score >= 85 ? "text-emerald-400" :
+                              v2Result.robustness_analysis.robustness_score >= 70 ? "text-cyan-400" :
+                              v2Result.robustness_analysis.robustness_score >= 50 ? "text-amber-400" :
+                              "text-rose-400"
+                            }`}>
+                              {v2Result.robustness_analysis.robustness_score.toFixed(1)}
+                            </span>
+                            <span className="text-xs text-slate-550 ml-0.5">/100</span>
+                          </div>
+                          <span className="text-[10px] font-mono tracking-wider text-slate-500 mt-1 uppercase">Robustness Score</span>
+                        </div>
+
+                        {/* Stability Metrics */}
+                        <div className="col-span-2 grid grid-cols-2 gap-x-4 gap-y-2">
+                          {[
+                            { label: "PROFIT STABILITY", val: v2Result.robustness_analysis.metrics_stability.profit_stability },
+                            { label: "RETURN STABILITY", val: v2Result.robustness_analysis.metrics_stability.return_stability },
+                            { label: "WIN RATE STABILITY", val: v2Result.robustness_analysis.metrics_stability.win_rate_stability },
+                            { label: "PROFIT FACTOR STABILITY", val: v2Result.robustness_analysis.metrics_stability.pf_stability },
+                            { label: "DRAWDOWN STABILITY", val: v2Result.robustness_analysis.metrics_stability.drawdown_stability },
+                          ].map((item, idx) => (
+                            <div key={idx} className="flex flex-col gap-0.5">
+                              <div className="flex justify-between items-center text-[10px]">
+                                <span className="text-slate-500 font-mono uppercase">{item.label}</span>
+                                <span className="font-semibold font-mono text-slate-300">{(item.val * 100).toFixed(1)}%</span>
+                              </div>
+                              <div className="h-1 w-full bg-slate-900 rounded-full overflow-hidden">
+                                <div 
+                                  className={`h-full rounded-full ${
+                                    item.val >= 0.85 ? "bg-emerald-500" :
+                                    item.val >= 0.70 ? "bg-cyan-500" :
+                                    item.val >= 0.50 ? "bg-amber-500" :
+                                    "bg-rose-500"
+                                  }`} 
+                                  style={{ width: `${item.val * 100}%` }}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Side-by-Side Model Comparison Table */}
+                      <div className="border border-slate-800/80 rounded overflow-hidden">
+                        <div className="bg-slate-900/40 grid grid-cols-5 text-[10px] font-mono font-semibold text-slate-400 py-1.5 px-3 border-b border-slate-800/85">
+                          <span>MODE</span>
+                          <span className="text-right">NET PROFIT</span>
+                          <span className="text-right">NET RETURN</span>
+                          <span className="text-right">WIN RATE</span>
+                          <span className="text-right">MAX DRAWDOWN</span>
+                        </div>
+                        <div className="flex flex-col divide-y divide-slate-800/50">
+                          {["THEORETICAL", "REALISTIC", "CONSERVATIVE", "STRESS_TEST"].map((mode) => {
+                            const data = v2Result.robustness_analysis?.mode_results[mode];
+                            if (!data) return null;
+                            return (
+                              <div key={mode} className="grid grid-cols-5 text-xs text-slate-350 py-2 px-3 hover:bg-slate-900/20 transition-colors">
+                                <span className="font-mono text-[10px] font-bold text-slate-400">{mode}</span>
+                                <span className="text-right font-mono">₹{data.net_profit.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                <span className="text-right font-mono">{data.net_return.toFixed(2)}%</span>
+                                <span className="text-right font-mono">{data.win_rate.toFixed(1)}%</span>
+                                <span className={`text-right font-mono ${data.max_drawdown > 0 ? "text-rose-400" : ""}`}>{data.max_drawdown.toFixed(2)}%</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )
             )}
@@ -2861,6 +3131,247 @@ export const BacktestBottom: React.FC = () => {
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Walk Forward Panel */}
+        {activeTab === "walkforward" && (
+          <div className="flex flex-col gap-6 font-sans">
+            {v2Result?.walk_forward_analysis ? (
+              <>
+                {/* Score & Stability row */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Score Card */}
+                  <div className="bg-card/30 border border-slate-800 rounded-lg p-5 flex flex-col items-center justify-center relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-3">
+                      <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase border ${
+                        v2Result.walk_forward_analysis.classification === "Institutional" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
+                        v2Result.walk_forward_analysis.classification === "Strong" ? "bg-cyan-500/10 text-cyan-400 border-cyan-500/20" :
+                        v2Result.walk_forward_analysis.classification === "Tradable" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" :
+                        v2Result.walk_forward_analysis.classification === "Fragile" ? "bg-amber-500/10 text-amber-400 border-amber-500/20" :
+                        "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                      }`}>
+                        {v2Result.walk_forward_analysis.classification}
+                      </span>
+                    </div>
+                    
+                    <div className="w-32 h-32 flex items-center justify-center rounded-full border-4 border-slate-800 relative mt-4">
+                      {/* Radial Progress Border */}
+                      <div className="absolute inset-0 rounded-full border-4 border-cyan-500/30" />
+                      <div className="flex flex-col items-center">
+                        <span className={`text-4xl font-extrabold font-mono tracking-tight ${
+                          v2Result.walk_forward_analysis.walk_forward_score >= 75 ? "text-emerald-400" :
+                          v2Result.walk_forward_analysis.walk_forward_score >= 60 ? "text-cyan-400" :
+                          v2Result.walk_forward_analysis.walk_forward_score >= 40 ? "text-amber-400" :
+                          "text-rose-400"
+                        }`}>
+                          {v2Result.walk_forward_analysis.walk_forward_score.toFixed(1)}
+                        </span>
+                        <span className="text-[9px] font-mono tracking-wider text-slate-500 mt-1 uppercase">
+                          Walk Forward Score
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-500 text-center mt-5 max-w-xs">
+                      Quantifies the strategy's out-of-sample adaptability. Scores above 75 indicate robust, non-overfit strategies.
+                    </p>
+                  </div>
+
+                  {/* Stability Metrics Card */}
+                  <div className="bg-card/30 border border-slate-800 rounded-lg p-5 md:col-span-2 flex flex-col justify-between">
+                    <div>
+                      <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase block mb-4">
+                        Walk Forward Stability Metrics
+                      </span>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                        {[
+                          { label: "OOS Profit Stability", val: v2Result.walk_forward_analysis.stability.profit_stability, desc: "Out-of-sample profit relative to training period" },
+                          { label: "OOS PF Stability", val: v2Result.walk_forward_analysis.stability.pf_stability, desc: "Profit Factor retention across windows" },
+                          { label: "Drawdown Stability", val: v2Result.walk_forward_analysis.stability.drawdown_stability, desc: "Drawdown inflation prevention coefficient" },
+                          { label: "Robustness Stability", val: v2Result.walk_forward_analysis.stability.robustness_stability, desc: "Slippage-degradation survival rate" },
+                        ].map((m, idx) => (
+                          <div key={idx} className="flex flex-col gap-1">
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-slate-400 font-medium">{m.label}</span>
+                              <span className="font-mono font-bold text-slate-200">{(m.val * 100).toFixed(1)}%</span>
+                            </div>
+                            <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all duration-500 ${
+                                  m.val >= 0.75 ? "bg-emerald-500" :
+                                  m.val >= 0.50 ? "bg-cyan-500" :
+                                  m.val >= 0.25 ? "bg-amber-500" :
+                                  "bg-rose-500"
+                                }`}
+                                style={{ width: `${m.val * 100}%` }}
+                              />
+                            </div>
+                            <span className="text-[10px] text-slate-500 leading-tight">{m.desc}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="border-t border-slate-800/80 pt-4 mt-4 flex items-center justify-between">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-medium text-slate-400">Consistency Score (Win Windows)</span>
+                        <span className="text-[10px] text-slate-500">Percent of test periods ending in net profit</span>
+                      </div>
+                      <span className="text-xl font-bold font-mono text-cyan-400">
+                        {v2Result.walk_forward_analysis.stability.consistency_score.toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Windows Table */}
+                <div className="bg-card/25 border border-slate-800 rounded-lg overflow-hidden">
+                  <div className="px-4 py-3 border-b border-slate-800 bg-slate-900/40 flex justify-between items-center">
+                    <span className="text-xs font-semibold tracking-wider text-slate-300 uppercase">
+                      Rolling Window Walk Forward Matrix
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-500">
+                      Total Windows: {v2Result.walk_forward_analysis.windows.length}
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-800/50 text-[10px] text-slate-500 uppercase tracking-wider bg-slate-950/20 font-mono">
+                          <th className="py-2.5 px-4">Window</th>
+                          <th className="py-2.5 px-3">Parameters</th>
+                          <th className="py-2.5 px-3">Training Window (In-Sample)</th>
+                          <th className="py-2.5 px-3">Testing Window (Out-of-Sample)</th>
+                          <th className="py-2.5 px-3">Drift & Metrics Parity</th>
+                          <th className="py-2.5 px-4 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800/40 text-xs font-sans">
+                        {v2Result.walk_forward_analysis.windows.map((w) => {
+                          const profitDrift = w.train_net_profit !== 0 ? ((w.test_net_profit - w.train_net_profit) / Math.abs(w.train_net_profit)) * 100 : 0;
+                          return (
+                            <tr key={w.window_index} className="hover:bg-slate-900/10 transition-colors">
+                              <td className="py-3.5 px-4 font-mono font-bold text-slate-400">
+                                #{w.window_index + 1}
+                              </td>
+                              <td className="py-3.5 px-3">
+                                <div className="flex flex-wrap gap-1 max-w-[180px]">
+                                  {Object.entries(w.best_params).map(([k, v]) => (
+                                    <span key={k} className="px-1.5 py-0.5 bg-slate-800 border border-slate-700 text-slate-300 rounded font-mono text-[10px]">
+                                      {k}:{v}
+                                    </span>
+                                  ))}
+                                </div>
+                              </td>
+                              <td className="py-3.5 px-3">
+                                <div className="flex flex-col">
+                                  <span className="text-[10px] text-slate-500 font-mono">{w.train_start} to {w.train_end}</span>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <span className="text-slate-300 font-mono font-medium">₹{w.train_net_profit.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</span>
+                                    <span className="text-[10px] text-slate-500">PF: {w.train_profit_factor.toFixed(2)}</span>
+                                    <span className="text-[10px] text-slate-500">DD: {w.train_max_drawdown.toFixed(1)}%</span>
+                                    <span className={`text-[10px] px-1 rounded ${
+                                      w.train_classification === "Excellent" || w.train_classification === "Strong" ? "text-emerald-400" : "text-amber-400"
+                                    }`}>
+                                      R: {w.train_robustness_score.toFixed(0)}
+                                    </span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="py-3.5 px-3">
+                                <div className="flex flex-col">
+                                  <span className="text-[10px] text-slate-500 font-mono">{w.test_start} to {w.test_end}</span>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <span className={`font-mono font-medium ${w.test_net_profit >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                                      ₹{w.test_net_profit.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+                                    </span>
+                                    <span className="text-[10px] text-slate-500">PF: {w.test_profit_factor.toFixed(2)}</span>
+                                    <span className="text-[10px] text-slate-500">DD: {w.test_max_drawdown.toFixed(1)}%</span>
+                                    <span className={`text-[10px] px-1 rounded ${
+                                      w.test_classification === "Excellent" || w.test_classification === "Strong" ? "text-emerald-400" : "text-amber-400"
+                                    }`}>
+                                      R: {w.test_robustness_score.toFixed(0)}
+                                    </span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="py-3.5 px-3">
+                                <div className="flex flex-col justify-center">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-[10px] text-slate-500 uppercase">Profit Drift:</span>
+                                    <span className={`font-mono text-[10px] font-bold ${profitDrift >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                                      {profitDrift >= 0 ? "+" : ""}{profitDrift.toFixed(1)}%
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-1.5 mt-0.5">
+                                    <span className="text-[10px] text-slate-500 uppercase">PF Decay:</span>
+                                    <span className={`font-mono text-[10px] font-bold ${w.test_profit_factor >= w.train_profit_factor ? "text-emerald-400" : "text-amber-400"}`}>
+                                      {w.train_profit_factor > 0 ? ((w.test_profit_factor / w.train_profit_factor) * 100).toFixed(0) : 100}%
+                                    </span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="py-3.5 px-4 text-right">
+                                <div className="flex justify-end gap-2">
+                                  <button
+                                    onClick={async () => {
+                                      addEvent({
+                                        type: "info",
+                                        message: `Forensic focus: Loading training period parameters for Window #${w.window_index + 1}`,
+                                        workspace: "Backtest"
+                                      });
+                                      await runV2Backtest({
+                                        start_date: w.train_start,
+                                        end_date: w.train_end,
+                                        strategy_params: {
+                                          ...v2Config.strategy_params,
+                                          ...w.best_params
+                                        }
+                                      });
+                                    }}
+                                    className="px-2.5 py-1 border border-slate-700 hover:border-cyan-500/50 hover:bg-cyan-950/20 text-slate-300 hover:text-cyan-400 rounded transition-all cursor-pointer font-sans font-medium text-[10px]"
+                                  >
+                                    Inspect Train
+                                  </button>
+                                  <button
+                                    onClick={async () => {
+                                      addEvent({
+                                        type: "info",
+                                        message: `Forensic focus: Loading testing period parameters for Window #${w.window_index + 1}`,
+                                        workspace: "Backtest"
+                                      });
+                                      await runV2Backtest({
+                                        start_date: w.test_start,
+                                        end_date: w.test_end,
+                                        strategy_params: {
+                                          ...v2Config.strategy_params,
+                                          ...w.best_params
+                                        }
+                                      });
+                                    }}
+                                    className="px-2.5 py-1 border border-slate-700 hover:border-cyan-500/50 hover:bg-cyan-950/20 text-slate-300 hover:text-cyan-400 rounded transition-all cursor-pointer font-sans font-medium text-[10px]"
+                                  >
+                                    Inspect Test
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="bg-card/10 border border-slate-800 rounded-lg p-10 flex flex-col items-center justify-center text-center">
+                <span className="text-slate-500 italic mb-2 select-none">No Walk Forward analysis found.</span>
+                <p className="text-xs text-slate-600 max-w-sm">
+                  Enable "Walk Forward Testing" in the configuration panel, specify your parameters range, and click "Run Backtest".
+                </p>
               </div>
             )}
           </div>

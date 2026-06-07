@@ -15,6 +15,12 @@ export interface V2Config {
   brokerage_flat: number;
   slippage_pct: number;
   signal_source: string;
+  execution_model: string;
+  walk_forward_enabled?: boolean;
+  walk_forward_train_days?: number;
+  walk_forward_test_days?: number;
+  walk_forward_step_days?: number;
+  walk_forward_ranges?: Array<{ name: string; type: string; min_val: number; max_val: number; step: number; options?: string[] }>;
 }
 
 export interface V2BacktestResult {
@@ -60,6 +66,11 @@ export interface V2BacktestResult {
     sortino_ratio: number;
     grade: string;
     scorecard: Record<string, any>;
+    execution_adjusted_profit?: number;
+    execution_adjusted_return?: number;
+    average_slippage_cost?: number;
+    average_spread_cost?: number;
+    average_volatility_cost?: number;
   };
   trades: Array<{
     position_id: string;
@@ -89,6 +100,16 @@ export interface V2BacktestResult {
       risk_snapshot: Record<string, any>;
       market_snapshot: Record<string, any>;
     };
+    execution_analysis?: {
+      execution_model: string;
+      theoretical_entry: number;
+      effective_entry: number;
+      theoretical_exit: number;
+      effective_exit: number;
+      spread_cost: number;
+      volatility_cost: number;
+      pnl_degradation: number;
+    };
   }>;
   candles: Array<{ time: number; open: number; high: number; low: number; close: number }>;
   chart_trades: Array<{
@@ -110,6 +131,64 @@ export interface V2BacktestResult {
     message: string;
     metadata: Record<string, any>;
   }>;
+  robustness_analysis?: {
+    robustness_score: number;
+    classification: string;
+    metrics_stability: {
+      profit_stability: number;
+      win_rate_stability: number;
+      pf_stability: number;
+      drawdown_stability: number;
+      return_stability: number;
+    };
+    mode_results: Record<string, {
+      net_profit: number;
+      win_rate: number;
+      profit_factor: number;
+      max_drawdown: number;
+      net_return: number;
+    }>;
+  };
+  walk_forward_analysis?: {
+    walk_forward_score: number;
+    classification: string;
+    stability: {
+      profit_stability: number;
+      pf_stability: number;
+      drawdown_stability: number;
+      robustness_stability: number;
+      consistency_score: number;
+    };
+    windows: Array<{
+      window_index: number;
+      train_start: string;
+      train_end: string;
+      test_start: string;
+      test_end: string;
+      best_params: Record<string, any>;
+      train_net_profit: number;
+      train_win_rate: number;
+      train_profit_factor: number;
+      train_max_drawdown: number;
+      train_net_return: number;
+      train_robustness_score: number;
+      train_classification: string;
+      test_net_profit: number;
+      test_win_rate: number;
+      test_profit_factor: number;
+      test_max_drawdown: number;
+      test_net_return: number;
+      test_robustness_score: number;
+      test_classification: string;
+      test_mode_results: Record<string, {
+        net_profit: number;
+        win_rate: number;
+        profit_factor: number;
+        max_drawdown: number;
+        net_return: number;
+      }>;
+    }>;
+  };
 }
 
 export interface OptimizationResult {
@@ -242,6 +321,8 @@ interface BacktestStoreState {
   loadPreset: (preset: StrategyPreset) => void;
 }
 
+
+
 const DEFAULT_CONFIG: V2Config = {
   underlying_instrument_key: "NSE_INDEX|Nifty 50",
   timeframe: "5m",
@@ -256,7 +337,13 @@ const DEFAULT_CONFIG: V2Config = {
   lot_multiplier: 1,
   brokerage_flat: 20.0,
   slippage_pct: 0.05,
-  signal_source: "SPOT"
+  signal_source: "SPOT",
+  execution_model: "THEORETICAL",
+  walk_forward_enabled: false,
+  walk_forward_train_days: 2,
+  walk_forward_test_days: 1,
+  walk_forward_step_days: 1,
+  walk_forward_ranges: []
 };
 
 export const useBacktestStore = create<BacktestStoreState>((set, get) => ({

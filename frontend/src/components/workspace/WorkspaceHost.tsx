@@ -259,31 +259,31 @@ const DevContextHUD: React.FC = () => {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <div className="flex justify-between border-b border-white/[0.02] py-0.5">
+        <div className="flex justify-between border-b border-subtle py-0.5">
           <span className="text-slate-500">Account:</span>
           <span className="text-slate-200 font-semibold">{context.currentAccount.name} ({context.currentAccount.type})</span>
         </div>
-        <div className="flex justify-between border-b border-white/[0.02] py-0.5">
+        <div className="flex justify-between border-b border-subtle py-0.5">
           <span className="text-slate-500">Instrument:</span>
           <span className="text-cyan-400 font-semibold">
             {context.selectedInstrument ? `${context.selectedInstrument.symbol} [${context.selectedInstrument.exchange}]` : "NONE"}
           </span>
         </div>
-        <div className="flex justify-between border-b border-white/[0.02] py-0.5">
+        <div className="flex justify-between border-b border-subtle py-0.5">
           <span className="text-slate-500">Strategy:</span>
           <span className="text-amber-400 font-semibold">
             {context.selectedStrategy ? `${context.selectedStrategy.strategyName} (${context.selectedStrategy.version})` : "NONE"}
           </span>
         </div>
-        <div className="flex justify-between border-b border-white/[0.02] py-0.5">
+        <div className="flex justify-between border-b border-subtle py-0.5">
           <span className="text-slate-500">Timeframe:</span>
           <span className="text-purple-400 font-semibold">{context.selectedTimeframe}</span>
         </div>
-        <div className="flex justify-between border-b border-white/[0.02] py-0.5">
+        <div className="flex justify-between border-b border-subtle py-0.5">
           <span className="text-slate-500">Workspace:</span>
           <span className="text-pink-400 font-semibold uppercase">{context.selectedWorkspace}</span>
         </div>
-        <div className="flex justify-between border-b border-white/[0.02] py-0.5">
+        <div className="flex justify-between border-b border-subtle py-0.5">
           <span className="text-slate-500">Active Mode:</span>
           <span className="text-emerald-400 font-bold uppercase">{context.activeMode}</span>
         </div>

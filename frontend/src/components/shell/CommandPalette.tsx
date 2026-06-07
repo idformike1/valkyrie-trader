@@ -196,7 +196,7 @@ export const CommandPalette: React.FC = () => {
 
                   return (
                     <div key={cat} className="flex flex-col gap-1">
-                      <div className="text-[9px] font-bold text-slate-500 uppercase tracking-widest px-3 py-1.5 mt-1 border-b border-white/[0.02]">
+                      <div className="text-[9px] font-bold text-slate-500 uppercase tracking-widest px-3 py-1.5 mt-1 border-b border-subtle">
                         {cat}
                       </div>
                       {itemsInCat.map((cmd) => {

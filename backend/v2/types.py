@@ -50,3 +50,9 @@ class TargetStopLossType(str, Enum):
     PERCENT = "percent"
     UNDERLYING_POINTS = "underlying_points"
     NONE = "none"
+
+class ExecutionModel(str, Enum):
+    THEORETICAL = "THEORETICAL"
+    REALISTIC = "REALISTIC"
+    CONSERVATIVE = "CONSERVATIVE"
+    STRESS_TEST = "STRESS_TEST"

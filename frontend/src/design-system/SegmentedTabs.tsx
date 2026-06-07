@@ -36,7 +36,7 @@ export const SegmentedTabs: React.FC<SegmentedTabsProps> = ({
             <span className="flex items-center gap-1.5">
               {tab.label}
               {tab.count !== undefined && (
-                <span className={`vdl-mono text-[10px] px-1 py-0.2 rounded bg-white/5 border border-white/10 ${
+                <span className={`vdl-mono text-[10px] px-1 py-0.2 rounded bg-card border border-subtle ${
                   isActive ? "text-cyan-neon border-cyan-neon/20 bg-cyan-neon/5" : "text-slate-500"
                 }`}>
                   [{tab.count}]

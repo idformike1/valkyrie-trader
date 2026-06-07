@@ -247,6 +247,28 @@ class MetricsEngine:
             else:
                 sortino_ratio = 0.0
 
+        # Execution reality metrics
+        total_spread_cost = 0.0
+        total_volatility_cost = 0.0
+        adjusted_net_pnls = []
+        for t in sorted_trades:
+            if t.execution_analysis is not None:
+                total_spread_cost += t.execution_analysis.spread_cost
+                total_volatility_cost += t.execution_analysis.volatility_cost
+                eff_gross = round((t.execution_analysis.effective_exit - t.execution_analysis.effective_entry) * t.quantity, 2)
+                eff_net = round(eff_gross - t.charges.total_charges, 2)
+                adjusted_net_pnls.append(eff_net)
+            else:
+                adjusted_net_pnls.append(t.net_pnl)
+
+        execution_adjusted_profit = sum(adjusted_net_pnls)
+        execution_adjusted_return = (execution_adjusted_profit / self.initial_capital * 100.0) if self.initial_capital > 0 else 0.0
+        total_slippage_cost = total_spread_cost + total_volatility_cost
+        
+        avg_spread_cost = (total_spread_cost / total_trades) if total_trades > 0 else 0.0
+        avg_volatility_cost = (total_volatility_cost / total_trades) if total_trades > 0 else 0.0
+        avg_slippage_cost = (total_slippage_cost / total_trades) if total_trades > 0 else 0.0
+
         # 12. Scorecard & Grading Logic
         grade = "F"
         if net_profit > 0 and total_trades > 0:
@@ -326,5 +348,10 @@ class MetricsEngine:
             sharpe_ratio=round(sharpe_ratio, 2),
             sortino_ratio=round(sortino_ratio, 2),
             grade=grade,
-            scorecard=scorecard
+            scorecard=scorecard,
+            execution_adjusted_profit=round(execution_adjusted_profit, 2),
+            execution_adjusted_return=round(execution_adjusted_return, 2),
+            average_slippage_cost=round(avg_slippage_cost, 2),
+            average_spread_cost=round(avg_spread_cost, 2),
+            average_volatility_cost=round(avg_volatility_cost, 2)
         )

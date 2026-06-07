@@ -26,6 +26,16 @@ class TradeExplanation(BaseModel):
     risk_snapshot: Dict[str, Any]
     market_snapshot: Dict[str, Any]
 
+class ExecutionAnalysis(BaseModel):
+    execution_model: str
+    theoretical_entry: float
+    effective_entry: float
+    theoretical_exit: float
+    effective_exit: float
+    spread_cost: float
+    volatility_cost: float
+    pnl_degradation: float
+
 class TradeAccountingResult(BaseModel):
     position_id: str = Field(..., description="Unique position identifier")
     entry_time: datetime = Field(..., description="Position entry timestamp")
@@ -38,6 +48,7 @@ class TradeAccountingResult(BaseModel):
     charges: TradeCharges = Field(..., description="Detailed breakdown of charges")
     net_pnl: float = Field(..., description="Net PnL of the trade")
     explanation: Optional[TradeExplanation] = None
+    execution_analysis: Optional[ExecutionAnalysis] = None
 
 class BacktestAccountingResult(BaseModel):
     trades: List[TradeAccountingResult] = Field(default_factory=list, description="List of all completed trades")

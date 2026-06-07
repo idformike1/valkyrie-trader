@@ -58,3 +58,9 @@ class MetricsReport(BaseModel):
     sortino_ratio: float = Field(..., description="Sortino ratio")
     grade: str = Field(..., description="Performance grade (A+, A, B, C, D, F)")
     scorecard: Dict[str, Any] = Field(..., description="Performance scorecard details")
+    
+    execution_adjusted_profit: float = Field(default=0.0, description="Total net profit after execution adjustments (INR)")
+    execution_adjusted_return: float = Field(default=0.0, description="Return rate after execution adjustments (%)")
+    average_slippage_cost: float = Field(default=0.0, description="Average slippage (volatility) cost per trade (INR)")
+    average_spread_cost: float = Field(default=0.0, description="Average spread cost per trade (INR)")
+    average_volatility_cost: float = Field(default=0.0, description="Average volatility cost per trade (INR)")

@@ -57,7 +57,7 @@ export const WorkspaceSidebarItem: React.FC<SidebarItemProps> = ({
 
       {!isCollapsed && count !== undefined && count > 0 && (
         <span
-          className={`text-[10px] font-mono font-medium px-1 rounded bg-white/5 border border-white/10 ${
+          className={`text-[10px] font-mono font-medium px-1 rounded bg-card border border-subtle ${
             isActive ? "text-cyan-neon border-cyan-neon/20 bg-cyan-neon/5" : "text-slate-500"
           }`}
         >

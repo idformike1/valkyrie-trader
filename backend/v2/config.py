@@ -1,6 +1,6 @@
 from typing import Dict, Any, Literal, Optional
 from pydantic import BaseModel, Field
-from v2.types import StrikeMode, ExpiryMode, Timeframe, TargetStopLossType
+from v2.types import StrikeMode, ExpiryMode, Timeframe, TargetStopLossType, ExecutionModel
 
 class StrikeConfig(BaseModel):
     mode: StrikeMode = StrikeMode.ATM
@@ -50,4 +50,5 @@ class BacktestConfig(BaseModel):
     expiry_selection: ExpiryConfig = Field(default_factory=ExpiryConfig)
     risk_management: RiskConfig = Field(default_factory=RiskConfig)
     execution: ExecutionConfig = Field(default_factory=ExecutionConfig)
+    execution_model: ExecutionModel = Field(default=ExecutionModel.THEORETICAL, description="Execution reality engine model mode.")
 

@@ -31,7 +31,29 @@ def get_index_short_name(instrument_key: str) -> str:
         return "SENSEX"
     elif "BANKEX" in key_upper:
         return "BANKEX"
-    return instrument_key
+def calculate_atr_series(candles: List[Dict[str, Any]], period: int = 14) -> List[float]:
+    atr_values = []
+    tr_values = []
+    for i in range(len(candles)):
+        c = candles[i]
+        high = c.get("high", c.get("close", 0.0))
+        low = c.get("low", c.get("close", 0.0))
+        if i == 0:
+            tr = high - low
+        else:
+            prev_close = candles[i-1]["close"]
+            tr = max(high - low, abs(high - prev_close), abs(low - prev_close))
+        tr_values.append(tr)
+        
+        if len(tr_values) < period:
+            atr = sum(tr_values) / len(tr_values)
+        else:
+            if len(atr_values) < period:
+                atr = sum(tr_values[-period:]) / period
+            else:
+                atr = (atr_values[-1] * (period - 1) + tr) / period
+        atr_values.append(atr)
+    return atr_values
 
 def resample_candles(candles: List[Dict[str, Any]], timeframe: str) -> List[Dict[str, Any]]:
     """
@@ -158,6 +180,11 @@ class HistoricalReplayEngine:
         # 2. Resample base candles to requested timeframe
         tf_val = config.timeframe.value if hasattr(config.timeframe, "value") else str(config.timeframe)
         underlying_candles = resample_candles(raw_candles, tf_val)
+        
+        # Precompute ATR for spot candles
+        atr_vals = calculate_atr_series(underlying_candles)
+        for idx, val in enumerate(atr_vals):
+            underlying_candles[idx]["atr"] = val
         
         TelemetryLogger.log(
             "SYSTEM",
@@ -514,7 +541,14 @@ class HistoricalReplayEngine:
                         "lot_size": idx_lot,
                         "quantity": quantity,
                         "signal": "BUY_INTENT",
-                        "metadata": {"explanation": explanation_data}
+                        "metadata": {
+                            "explanation": explanation_data,
+                            "execution_model": getattr(config, "execution_model", "THEORETICAL"),
+                            "entry_spot_price": float(spot_price),
+                            "entry_atr": float(current_candle.get("atr", 10.0)),
+                            "entry_candle_range": float(current_candle.get("high", spot_price) - current_candle.get("low", spot_price)),
+                            "entry_strike_distance": float(abs(float(strike) - float(spot_price)))
+                        }
                     }
                     self.position_manager.open_position(pos_data, current_ts)
                     opened_this_candle = True
@@ -615,7 +649,11 @@ class HistoricalReplayEngine:
                                     **current_exp.get("market_snapshot", {}),
                                     "exit_premium": float(premium)
                                 }
-                            }
+                            },
+                            "exit_spot_price": float(spot_price),
+                            "exit_atr": float(current_candle.get("atr", 10.0)),
+                            "exit_candle_range": float(current_candle.get("high", spot_price) - current_candle.get("low", spot_price)),
+                            "exit_strike_distance": float(abs(float(active_contract["strike"]) - float(spot_price)))
                         }
                     }
                     

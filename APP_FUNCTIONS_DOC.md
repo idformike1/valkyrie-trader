@@ -27,6 +27,7 @@
 - [backend/v2/cost_models.py](#backendv2cost_modelspy)
 - [backend/v2/data_loader.py](#backendv2data_loaderpy)
 - [backend/v2/engine_v2.py](#backendv2engine_v2py)
+- [backend/v2/execution_reality_engine.py](#backendv2execution_reality_enginepy)
 - [backend/v2/expired_contract_provider.py](#backendv2expired_contract_providerpy)
 - [backend/v2/metrics_engine.py](#backendv2metrics_enginepy)
 - [backend/v2/metrics_models.py](#backendv2metrics_modelspy)
@@ -51,6 +52,7 @@
 - [backend/v2/replay_engine.py](#backendv2replay_enginepy)
 - [backend/v2/replay_models.py](#backendv2replay_modelspy)
 - [backend/v2/resolvers.py](#backendv2resolverspy)
+- [backend/v2/robustness_analyzer.py](#backendv2robustness_analyzerpy)
 - [backend/v2/run_expired_api_reality_check.py](#backendv2run_expired_api_reality_checkpy)
 - [backend/v2/run_fast_audit.py](#backendv2run_fast_auditpy)
 - [backend/v2/run_real_websocket_certification.py](#backendv2run_real_websocket_certificationpy)
@@ -82,6 +84,7 @@
 - [backend/v2/telemetry_logger.py](#backendv2telemetry_loggerpy)
 - [backend/v2/test_backtest_runner.py](#backendv2test_backtest_runnerpy)
 - [backend/v2/test_cache_layer.py](#backendv2test_cache_layerpy)
+- [backend/v2/test_execution_reality.py](#backendv2test_execution_realitypy)
 - [backend/v2/test_historical_contract_provider.py](#backendv2test_historical_contract_providerpy)
 - [backend/v2/test_livefeed_v2_integration.py](#backendv2test_livefeed_v2_integrationpy)
 - [backend/v2/test_metrics_engine.py](#backendv2test_metrics_enginepy)
@@ -93,9 +96,12 @@
 - [backend/v2/test_preset_manager.py](#backendv2test_preset_managerpy)
 - [backend/v2/test_realtime_paper_engine.py](#backendv2test_realtime_paper_enginepy)
 - [backend/v2/test_replay_engine.py](#backendv2test_replay_enginepy)
+- [backend/v2/test_robustness_analyzer.py](#backendv2test_robustness_analyzerpy)
 - [backend/v2/test_strategy_api.py](#backendv2test_strategy_apipy)
 - [backend/v2/test_strategy_registry.py](#backendv2test_strategy_registrypy)
 - [backend/v2/test_v2.py](#backendv2test_v2py)
+- [backend/v2/test_walk_forward.py](#backendv2test_walk_forwardpy)
+- [backend/v2/test_walk_forward_api.py](#backendv2test_walk_forward_apipy)
 - [backend/v2/trade_explainer.py](#backendv2trade_explainerpy)
 - [backend/v2/types.py](#backendv2typespy)
 - [backend/v2/upstox_expired_loader.py](#backendv2upstox_expired_loaderpy)
@@ -105,6 +111,7 @@
 - [backend/v2/walk_forward/walk_forward_engine.py](#backendv2walk_forwardwalk_forward_enginepy)
 - [backend/v2/walk_forward/walk_forward_models.py](#backendv2walk_forwardwalk_forward_modelspy)
 - [backend/v2/walk_forward/walk_forward_report.py](#backendv2walk_forwardwalk_forward_reportpy)
+- [backend/v2/walk_forward_engine.py](#backendv2walk_forward_enginepy)
 - [check_metadata.py](#check_metadatapy)
 - [frontend/next-env.d.ts](#frontendnext-envdts)
 - [frontend/next.config.ts](#frontendnextconfigts)
@@ -115,7 +122,6 @@
 - [frontend/src/components/shell/EventBar.tsx](#frontendsrccomponentsshelleventbartsx)
 - [frontend/src/components/shell/Header.tsx](#frontendsrccomponentsshellheadertsx)
 - [frontend/src/components/shell/Sidebar.tsx](#frontendsrccomponentsshellsidebartsx)
-- [frontend/src/components/workspace/Panel.tsx](#frontendsrccomponentsworkspacepaneltsx)
 - [frontend/src/components/workspace/WorkspaceHost.tsx](#frontendsrccomponentsworkspaceworkspacehosttsx)
 - [frontend/src/design-system/DataTable.tsx](#frontendsrcdesign-systemdatatabletsx)
 - [frontend/src/design-system/EmptyState.tsx](#frontendsrcdesign-systememptystatetsx)
@@ -146,7 +152,6 @@
 - [frontend/src/workspaces/OperationsWorkspace.tsx](#frontendsrcworkspacesoperationsworkspacetsx)
 - [frontend/src/workspaces/PaperWorkspace.tsx](#frontendsrcworkspacespaperworkspacetsx)
 - [frontend/src/workspaces/ScalperWorkspace.tsx](#frontendsrcworkspacesscalperworkspacetsx)
-- [frontend/src/workspaces/mockPanels.tsx](#frontendsrcworkspacesmockpanelstsx)
 - [frontend/src/workspaces/registry.ts](#frontendsrcworkspacesregistryts)
 - [frontend/src/workspaces/types.ts](#frontendsrcworkspacestypests)
 - [run_backtest_audit_query.py](#run_backtest_audit_querypy)
@@ -274,10 +279,10 @@ No description provided.
 #### class `CancelGttModel`
 No description provided.
 
-#### class `V2BacktestRequest`
+#### class `V2ParameterRange`
 No description provided.
 
-#### class `V2ParameterRange`
+#### class `V2BacktestRequest`
 No description provided.
 
 #### class `V2OptimizationRequest`
@@ -1434,6 +1439,41 @@ Executes a high-fidelity option backtest using the BacktestRunner.
 
 ---
 
+## backend/v2/execution_reality_engine.py
+*No description provided.*
+
+### Functions & Endpoints
+#### `calculate_spread_penalty` (Function)
+- **Signature**: `def calculate_spread_penalty(option_premium, spot_price, strike_distance, option_type, mode)`
+- **Description**:
+```text
+Calculates the bid-ask spread penalty.
+ATM options have the smallest spread.
+OTM and deep OTM options have progressively larger spreads.
+```
+
+#### `calculate_volatility_penalty` (Function)
+- **Signature**: `def calculate_volatility_penalty(atr, spot_candle_range, entry_premium, mode)`
+- **Description**:
+```text
+Calculates execution slippage due to market volatility.
+Higher volatility relative to ATR increases execution degradation.
+```
+
+#### `calculate_effective_fill` (Function)
+- **Signature**: `def calculate_effective_fill(theoretical_entry, theoretical_exit, spread_cost_entry, volatility_cost_entry, spread_cost_exit, volatility_cost_exit, mode)`
+- **Description**:
+```text
+Computes effective fill prices.
+For standard option buyers:
+- Effective entry price increases (buy at higher price due to slippage).
+- Effective exit price decreases (sell at lower price due to slippage).
+```
+
+
+
+---
+
 ## backend/v2/expired_contract_provider.py
 *No description provided.*
 
@@ -1896,6 +1936,9 @@ No description provided.
 #### class `TradeExplanation`
 No description provided.
 
+#### class `ExecutionAnalysis`
+No description provided.
+
 #### class `TradeAccountingResult`
 No description provided.
 
@@ -2188,6 +2231,13 @@ No description provided.
 No description provided.
 ```
 
+#### `calculate_atr_series` (Function)
+- **Signature**: `def calculate_atr_series(candles, period)`
+- **Description**:
+```text
+No description provided.
+```
+
 #### `resample_candles` (Function)
 - **Signature**: `def resample_candles(candles, timeframe)`
 - **Description**:
@@ -2310,6 +2360,31 @@ No description provided.
 - **`resolve`**
   *Signature*: `def resolve(cls, index_name, strike_price, expiry_date, option_type, csv_path)`
   *Description*: Resolves the instrument_key using the HistoricalContractProvider.
+
+
+
+---
+
+## backend/v2/robustness_analyzer.py
+*No description provided.*
+
+### Classes
+#### class `RobustnessMetricStability`
+No description provided.
+
+#### class `ModeSummary`
+No description provided.
+
+#### class `RobustnessAnalysisResult`
+No description provided.
+
+#### class `ExecutionRobustnessAnalyzer`
+No description provided.
+
+##### Methods:
+- **`analyze`**
+  *Signature*: `def analyze(config)`
+  *Description*: No description provided.
 
 
 
@@ -3171,6 +3246,46 @@ No description provided.
 
 - **`test_benchmarks`**
   *Signature*: `def test_benchmarks(self)`
+  *Description*: No description provided.
+
+
+
+---
+
+## backend/v2/test_execution_reality.py
+*No description provided.*
+
+### Classes
+#### class `TestExecutionReality`
+No description provided.
+
+##### Methods:
+- **`setUp`**
+  *Signature*: `def setUp(self)`
+  *Description*: No description provided.
+
+- **`test_spread_penalty_scaling`**
+  *Signature*: `def test_spread_penalty_scaling(self)`
+  *Description*: No description provided.
+
+- **`test_volatility_penalty_scaling`**
+  *Signature*: `def test_volatility_penalty_scaling(self)`
+  *Description*: No description provided.
+
+- **`test_execution_modes_effective_fills`**
+  *Signature*: `def test_execution_modes_effective_fills(self)`
+  *Description*: No description provided.
+
+- **`test_pnl_engine_theoretical_mode`**
+  *Signature*: `def test_pnl_engine_theoretical_mode(self)`
+  *Description*: No description provided.
+
+- **`test_pnl_engine_realistic_mode`**
+  *Signature*: `def test_pnl_engine_realistic_mode(self)`
+  *Description*: No description provided.
+
+- **`test_metrics_engine_execution_adjusted_integration`**
+  *Signature*: `def test_metrics_engine_execution_adjusted_integration(self)`
   *Description*: No description provided.
 
 
@@ -4323,6 +4438,30 @@ No description provided.
 
 ---
 
+## backend/v2/test_robustness_analyzer.py
+*No description provided.*
+
+### Classes
+#### class `TestRobustnessAnalyzer`
+No description provided.
+
+##### Methods:
+- **`setUp`**
+  *Signature*: `def setUp(self)`
+  *Description*: No description provided.
+
+- **`test_robustness_analyzer_flow`**
+  *Signature*: `def test_robustness_analyzer_flow(self)`
+  *Description*: No description provided.
+
+- **`test_empty_robustness_handling`**
+  *Signature*: `def test_empty_robustness_handling(self)`
+  *Description*: No description provided.
+
+
+
+---
+
 ## backend/v2/test_strategy_api.py
 *No description provided.*
 
@@ -4451,6 +4590,36 @@ No description provided.
 
 ---
 
+## backend/v2/test_walk_forward.py
+*No description provided.*
+
+### Classes
+#### class `TestWalkForwardEngine`
+No description provided.
+
+##### Methods:
+- **`setUp`**
+  *Signature*: `def setUp(self)`
+  *Description*: No description provided.
+
+- **`test_window_generation`**
+  *Signature*: `def test_window_generation(self)`
+  *Description*: No description provided.
+
+- **`test_end_to_end_walk_forward`**
+  *Signature*: `def test_end_to_end_walk_forward(self)`
+  *Description*: No description provided.
+
+
+
+---
+
+## backend/v2/test_walk_forward_api.py
+*No description provided.*
+
+
+---
+
 ## backend/v2/trade_explainer.py
 *No description provided.*
 
@@ -4495,6 +4664,9 @@ No description provided.
 No description provided.
 
 #### class `TargetStopLossType`
+No description provided.
+
+#### class `ExecutionModel`
 No description provided.
 
 
@@ -4652,6 +4824,39 @@ Writes a human‑readable markdown report for the walk‑forward run.
 The report includes window details, selected EMA parameters, training & testing
 metrics, the aggregated WalkForwardScore and a PASS/FAIL status.
 ```
+
+
+
+---
+
+## backend/v2/walk_forward_engine.py
+*No description provided.*
+
+### Classes
+#### class `WalkForwardWindow`
+No description provided.
+
+#### class `WalkForwardStability`
+No description provided.
+
+#### class `WalkForwardReport`
+No description provided.
+
+#### class `WalkForwardAnalyzer`
+No description provided.
+
+##### Methods:
+- **`get_active_trading_days`**
+  *Signature*: `def get_active_trading_days(db_path, start_date, end_date)`
+  *Description*: Query distinct trading days present in the underlying candles database.
+
+- **`generate_windows_by_days`**
+  *Signature*: `def generate_windows_by_days(days, train_len, test_len, step_len)`
+  *Description*: Generates rolling training/testing window boundaries from a list of trading days.
+
+- **`analyze`**
+  *Signature*: `def analyze(base_config, ranges, train_days, test_days, step_days, db_path)`
+  *Description*: Executes the walk-forward testing validation pipeline.
 
 
 
@@ -5065,12 +5270,6 @@ No description provided.
 No description provided.
 ```
 
-
-
----
-
-## frontend/src/components/workspace/Panel.tsx
-*TypeScript/JavaScript Source Component*
 
 
 ---
@@ -7189,12 +7388,6 @@ Sync positions from chart updates
 No description provided.
 ```
 
-
-
----
-
-## frontend/src/workspaces/mockPanels.tsx
-*TypeScript/JavaScript Source Component*
 
 
 ---

@@ -3770,6 +3770,14 @@ def start_docs_watcher():
 from typing import Dict, Any, List, Optional
 from pydantic import BaseModel, Field
 
+class V2ParameterRange(BaseModel):
+    name: str
+    type: str
+    min_val: float
+    max_val: float
+    step: float
+    options: Optional[List[str]] = None
+
 class V2BacktestRequest(BaseModel):
     underlying_instrument_key: str
     timeframe: str
@@ -3784,14 +3792,13 @@ class V2BacktestRequest(BaseModel):
     lot_multiplier: int = 1
     brokerage_flat: float = 20.0
     slippage_pct: float = 0.05
+    execution_model: Optional[str] = "THEORETICAL"
+    walk_forward_enabled: Optional[bool] = False
+    walk_forward_train_days: Optional[int] = 2
+    walk_forward_test_days: Optional[int] = 1
+    walk_forward_step_days: Optional[int] = 1
+    walk_forward_ranges: Optional[List[V2ParameterRange]] = None
 
-class V2ParameterRange(BaseModel):
-    name: str
-    type: str
-    min_val: float
-    max_val: float
-    step: float
-    options: Optional[List[str]] = None
 
 class V2OptimizationRequest(BaseModel):
     base_config: V2BacktestRequest
@@ -3808,7 +3815,7 @@ def run_v2_backtest(req: V2BacktestRequest):
     V2_BACKTEST_STATUS = {"state": "RUNNING", "progress": 20, "error": None}
     try:
         from v2.config import BacktestConfig, StrikeConfig, ExpiryConfig, RiskConfig, ExecutionConfig
-        from v2.types import StrikeMode, ExpiryMode, Timeframe as V2Timeframe
+        from v2.types import StrikeMode, ExpiryMode, Timeframe as V2Timeframe, ExecutionModel
         from v2.replay_engine import HistoricalReplayEngine
         from v2.pnl_engine import PnLEngine
         from v2.metrics_engine import MetricsEngine
@@ -3850,6 +3857,7 @@ def run_v2_backtest(req: V2BacktestRequest):
             strategy_name=req.strategy_name,
             strategy_params=strat_params,
             option_type_preference=req.option_type_preference,
+            execution_model=ExecutionModel(req.execution_model or "THEORETICAL"),
             strike_selection=StrikeConfig(mode=strike_m),
             expiry_selection=ExpiryConfig(mode=expiry_m),
             risk_management=RiskConfig(
@@ -3934,12 +3942,44 @@ def run_v2_backtest(req: V2BacktestRequest):
                 "option_type": getattr(pos_dict, "option_type", "") if pos_dict else ""
             })
 
+        from v2.robustness_analyzer import ExecutionRobustnessAnalyzer
+        robustness_result = ExecutionRobustnessAnalyzer.analyze(config)
+
+        # Walk Forward Analysis (optional)
+        walk_forward_analysis = None
+        if req.walk_forward_enabled and req.walk_forward_ranges:
+            from v2.walk_forward_engine import WalkForwardAnalyzer
+            from v2.optimization_engine import ParameterRange as EngineParameterRange
+            
+            engine_ranges = []
+            for r in req.walk_forward_ranges:
+                engine_ranges.append(EngineParameterRange(
+                    name=r.name,
+                    type=r.type,
+                    min_val=r.min_val,
+                    max_val=r.max_val,
+                    step=r.step,
+                    options=r.options
+                ))
+            
+            wf_report = WalkForwardAnalyzer.analyze(
+                base_config=config,
+                ranges=engine_ranges,
+                train_days=req.walk_forward_train_days or 2,
+                test_days=req.walk_forward_test_days or 1,
+                step_days=req.walk_forward_step_days or 1
+            )
+            walk_forward_analysis = wf_report.model_dump()
+
         LATEST_V2_BACKTEST_RESULT = {
             "report": report.model_dump(),
             "trades": [t.model_dump() for t in trades],
             "candles": formatted_candles,
             "chart_trades": formatted_trades,
-            "runtime_logs": [log.model_dump() for log in runner_result.runtime_logs]
+            "runtime_logs": [log.model_dump() for log in runner_result.runtime_logs],
+            "configuration": config.model_dump(),
+            "robustness_analysis": robustness_result.model_dump(),
+            "walk_forward_analysis": walk_forward_analysis
         }
         
         V2_BACKTEST_STATUS = {"state": "COMPLETED", "progress": 100, "error": None}
