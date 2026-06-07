@@ -43,12 +43,18 @@ class EmaCrossoverStrategy(Strategy):
         else:
             if current_time >= self.cut_off_time:
                 return "HOLD", {}
-            # Entry on crossover up
             if prev_fast <= prev_slow and curr_fast > curr_slow:
                 self.is_holding = True
                 self.entry_price = float(current_tick['close'])
                 self.entry_timestamp = ts
-                return "BUY", {"entry_price": self.entry_price, "timestamp": self.entry_timestamp}
+                return "BUY", {
+                    "entry_price": self.entry_price,
+                    "timestamp": self.entry_timestamp,
+                    "prev_fast": float(prev_fast),
+                    "prev_slow": float(prev_slow),
+                    "curr_fast": float(curr_fast),
+                    "curr_slow": float(curr_slow)
+                }
                 
         return "HOLD", {}
 

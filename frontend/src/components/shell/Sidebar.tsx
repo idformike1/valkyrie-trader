@@ -1,30 +1,12 @@
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { 
-  TrendingUp, Zap, BarChart2, Layers, Server, Settings, 
-  ChevronLeft, ChevronRight 
-} from "lucide-react";
-import { useTerminalStore } from "@/store/useTerminalStore";
+import { motion } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useSidebarStore } from "@/store/useSidebarStore";
-import { getAllWorkspaces } from "@/workspaces/registry";
-
-const iconMap: Record<string, React.ComponentType<any>> = {
-  TrendingUp,
-  Zap,
-  BarChart2,
-  Layers,
-  Server,
-  Settings,
-};
+import { WorkspaceSidebar } from "@/design-system/WorkspaceSidebar";
 
 export const Sidebar: React.FC = () => {
-  const selectedWorkspace = useTerminalStore((state) => state.selectedWorkspace);
-  const setWorkspace = useTerminalStore((state) => state.setWorkspace);
-
   const isCollapsed = useSidebarStore((state) => state.isCollapsed);
   const toggleCollapsed = useSidebarStore((state) => state.toggleCollapsed);
-
-  const workspaces = getAllWorkspaces();
 
   return (
     <motion.aside
@@ -45,46 +27,10 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Navigation Links */}
-      <div className="flex-1 py-4 flex flex-col gap-2.5 px-2.5 overflow-y-auto">
-        {workspaces.map((ws) => {
-          const IconComponent = iconMap[ws.icon] || Settings;
-          const isActive = selectedWorkspace === ws.id;
-
-          return (
-            <button
-              key={ws.id}
-              onClick={() => setWorkspace(ws.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-sm transition-all group relative cursor-pointer font-medium ${
-                isActive
-                  ? "bg-card-hover text-cyan-neon font-bold"
-                  : "bg-transparent text-slate-400 hover:text-main hover:bg-card-hover/40"
-              }`}
-              title={isCollapsed ? ws.name : undefined}
-            >
-              <IconComponent className={`w-3.5 h-3.5 shrink-0 transition-transform ${isActive ? "scale-105 text-cyan-neon" : "group-hover:scale-102 text-slate-500"}`} />
-              
-              <AnimatePresence mode="wait">
-                {!isCollapsed && (
-                  <motion.span
-                    initial={{ opacity: 0, x: -5 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -5 }}
-                    transition={{ duration: 0.1 }}
-                    className="text-[12px] font-semibold tracking-normal text-left overflow-hidden whitespace-nowrap text-slate-200"
-                  >
-                    {ws.name}
-                  </motion.span>
-                )}
-              </AnimatePresence>
-
-              {/* Active Indicator dot or bar */}
-              {isActive && (
-                <span className="absolute right-0 top-1.5 bottom-1.5 w-0.5 bg-cyan-neon rounded-sm" />
-              )}
-            </button>
-          );
-        })}
+      <div className="flex-1 overflow-y-auto">
+        <WorkspaceSidebar />
       </div>
+
 
       {/* Bottom Market Telemetry (visible when expanded) */}
       {!isCollapsed && (

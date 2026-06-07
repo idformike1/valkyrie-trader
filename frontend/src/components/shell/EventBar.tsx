@@ -32,7 +32,7 @@ export const EventBar: React.FC = () => {
 
   return (
     <footer 
-      className={`border-t border-white/5 bg-slate-950 flex flex-col px-3 text-xs select-none shrink-0 fixed bottom-0 left-0 right-0 z-30 font-mono transition-all duration-200 ${
+      className={`border-t border-subtle bg-deep flex flex-col px-3 text-xs select-none shrink-0 fixed bottom-0 left-0 right-0 z-30 font-mono transition-all duration-200 ${
         isExpanded ? "h-32" : "h-6"
       }`}
       onMouseEnter={() => setIsExpanded(true)}
@@ -59,7 +59,7 @@ export const EventBar: React.FC = () => {
 
       {/* Expanded Log Entries Container */}
       {isExpanded && (
-        <div className="flex-1 border-t border-white/5 py-2 overflow-hidden flex flex-col min-h-0">
+        <div className="flex-1 border-t border-subtle py-2 overflow-hidden flex flex-col min-h-0">
           <div 
             ref={containerRef}
             className="flex-1 flex flex-col gap-1.5 overflow-y-auto pr-1 select-text scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent"

@@ -80,6 +80,15 @@ export interface V2BacktestResult {
       total_charges: number;
     };
     net_pnl: number;
+    explanation?: {
+      strategy_name: string;
+      entry_reason: string;
+      exit_reason: string;
+      signal_snapshot: Record<string, any>;
+      resolver_snapshot: Record<string, any>;
+      risk_snapshot: Record<string, any>;
+      market_snapshot: Record<string, any>;
+    };
   }>;
   candles: Array<{ time: number; open: number; high: number; low: number; close: number }>;
   chart_trades: Array<{

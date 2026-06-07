@@ -282,6 +282,10 @@ class FiveEmaScalpingStrategy(Strategy):
                 self.candles_held = 0
                 self.entry_timestamp = current_tick['timestamp']
                 
+                # Capture values before clearing alert candle
+                saved_alert_high = float(self.alert_high)
+                saved_alert_low = float(self.alert_low)
+                
                 # Clear alert candle
                 self.alert_high = 0.0
                 self.alert_low = 0.0
@@ -292,7 +296,12 @@ class FiveEmaScalpingStrategy(Strategy):
                     "entry_price": self.entry_price,
                     "stop_loss": self.stop_loss_level,
                     "target_price": self.target_level,
-                    "timestamp": self.entry_timestamp
+                    "timestamp": self.entry_timestamp,
+                    "ema": float(candle_completed['ema']),
+                    "candle_high": float(candle_completed['high']),
+                    "candle_low": float(candle_completed['low']),
+                    "alert_high": saved_alert_high,
+                    "alert_low": saved_alert_low
                 }
 
         return "HOLD", {}

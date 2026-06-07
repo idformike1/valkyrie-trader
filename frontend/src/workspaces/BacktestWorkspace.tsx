@@ -15,16 +15,14 @@ import { useBacktestStore, V2Config } from "@/store/useBacktestStore";
 import { useBackendTradingStore } from "@/services/tradingQueries";
 import { useThemeStore } from "@/store/useThemeStore";
 
-// Canonical panel wrapper — single implementation across all workspaces
-const WorkspacePanel: React.FC<{ title: string; children: React.ReactNode; className?: string; actions?: React.ReactNode }> = ({ title, children, className = "", actions }) => (
-  <div className={`panel flex flex-col h-full ${className}`}>
-    <div className="panel-header">
-      <span className="text-sm font-semibold text-slate-200">{title}</span>
-      {actions && <div className="flex items-center gap-1.5">{actions}</div>}
-    </div>
-    <div className="flex-1 overflow-y-auto min-h-0 p-3">{children}</div>
-  </div>
-);
+import { DataTable, ColumnDef } from "@/design-system/DataTable";
+import { StatusBadge } from "@/design-system/StatusBadge";
+import { EmptyState } from "@/design-system/EmptyState";
+import { Panel } from "@/design-system/Panel";
+import { SegmentedTabs } from "@/design-system/SegmentedTabs";
+import { FormField, FormSection } from "@/design-system/FormField";
+
+const WorkspacePanel = Panel;
 
 // STRATEGY DEFINITIONS
 interface StrategyRepoItem {
@@ -207,7 +205,7 @@ export const BacktestLeft: React.FC = () => {
   return (
     <div className="flex flex-col gap-3 h-full overflow-y-auto pr-1 pb-4 scrollbar-thin scrollbar-thumb-white/5">
       <WorkspacePanel title="Strategy Repository" className="shrink-0">
-        <div className="flex flex-col gap-2 font-sans text-xs">
+        <div className="flex flex-col gap-2 font-sans vdl-body">
           <div className="flex flex-col gap-1.5">
             <div className="relative">
               <select
@@ -219,7 +217,7 @@ export const BacktestLeft: React.FC = () => {
                     handleSelect(found);
                   }
                 }}
-                className="w-full bg-slate-900 border border-subtle rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-neon font-sans uppercase font-bold cursor-pointer appearance-none"
+                className="w-full bg-card  rounded px-2.5 py-1.5 vdl-body text-slate-200 focus:outline-none focus:border-cyan-neon font-sans font-semibold cursor-pointer appearance-none"
               >
                 <option value="" disabled>-- Select Strategy --</option>
                 {AVAILABLE_STRATEGIES.map((str) => (
@@ -233,18 +231,18 @@ export const BacktestLeft: React.FC = () => {
               </div>
             </div>
             {selectedStrategy && (
-              <div className="bg-slate-950/40 border border-white/5 rounded p-2 flex flex-col gap-1 mt-1">
-                <div className="flex justify-between items-center text-xs">
+              <div className="bg-card/45 rounded p-2 flex flex-col gap-1 mt-1">
+                <div className="flex justify-between items-center vdl-body">
                   <span className="text-slate-500">Status:</span>
-                  <span className={`px-1.5 py-0.5 rounded text-xs font-bold ${
+                  <span className={`px-1.5 py-0.5 rounded vdl-body font-semibold${
                     selectedStrategy.strategyId === "five_ema_scalping" ? "bg-amber-950/40 text-amber-400" : "bg-emerald-950/40 text-emerald-400"
                   }`}>
                     {selectedStrategy.strategyId === "five_ema_scalping" ? "Testing" : "Validated"}
                   </span>
                 </div>
-                <div className="flex justify-between items-center text-xs">
+                <div className="flex justify-between items-center vdl-body">
                   <span className="text-slate-500">Promotion State:</span>
-                  <span className="text-slate-300 font-sans font-bold uppercase text-xs text-cyan-neon">
+                  <span className="text-slate-300 font-sans font-semibold vdl-body text-cyan-neon">
                     {selectedStrategy.strategyId === "five_ema_scalping" ? "Paper Approved" : "Live Approved"}
                   </span>
                 </div>
@@ -256,44 +254,44 @@ export const BacktestLeft: React.FC = () => {
 
       {/* Preset Library Card */}
       <WorkspacePanel title="Preset Library" className="shrink-0">
-        <div className="flex flex-col gap-2.5 font-sans text-xs">
+        <div className="flex flex-col gap-2.5 font-sans vdl-body">
           {/* Header Action: Save Current Configuration */}
           {!showSaveForm ? (
             <button
               onClick={() => setShowSaveForm(true)}
-              className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded text-xs font-bold transition-all border border-cyan-500/20 bg-cyan-950/20 text-cyan-400 hover:bg-cyan-950/40 hover:border-cyan-500/40 cursor-pointer"
+              className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded vdl-body font-semibold transition-all border border-cyan-500/20 bg-cyan-950/20 text-cyan-400 hover:bg-cyan-950/40 hover:border-cyan-500/40 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Save Current Config as Preset</span>
             </button>
           ) : (
-            <div className="bg-slate-900/60 border border-white/5 rounded p-2.5 flex flex-col gap-2">
-              <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Save Strategy Preset</span>
+            <div className="bg-card rounded p-2.5 flex flex-col gap-2">
+              <span className="vdl-body font-semibold text-cyan-400">Save Strategy Preset</span>
               <input
                 type="text"
                 value={newPresetName}
                 onChange={(e) => setNewPresetName(e.target.value)}
                 placeholder="Preset Name (e.g. 5 EMA Aggressive)"
-                className="w-full bg-slate-950 border border-white/5 rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-cyan-500/40"
+                className="w-full bg-card  rounded px-2 py-1 vdl-body text-slate-300 focus:outline-none focus:border-cyan-500/40"
               />
               <input
                 type="text"
                 value={newPresetNotes}
                 onChange={(e) => setNewPresetNotes(e.target.value)}
                 placeholder="Notes/Description"
-                className="w-full bg-slate-950 border border-white/5 rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-cyan-500/40"
+                className="w-full bg-card  rounded px-2 py-1 vdl-body text-slate-300 focus:outline-none focus:border-cyan-500/40"
               />
               <input
                 type="text"
                 value={newPresetTags}
                 onChange={(e) => setNewPresetTags(e.target.value)}
                 placeholder="Tags (comma-separated)"
-                className="w-full bg-slate-950 border border-white/5 rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-cyan-500/40"
+                className="w-full bg-card  rounded px-2 py-1 vdl-body text-slate-300 focus:outline-none focus:border-cyan-500/40"
               />
-              <div className="flex gap-2 justify-end mt-1 text-xs font-bold">
+              <div className="flex gap-2 justify-end mt-1 vdl-body font-semibold">
                 <button
                   onClick={() => setShowSaveForm(false)}
-                  className="px-2 py-1 rounded bg-slate-950 border border-white/5 text-slate-400 hover:text-slate-200 cursor-pointer"
+                  className="px-2 py-1 rounded bg-card  text-slate-400 hover:text-slate-200 cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -309,12 +307,12 @@ export const BacktestLeft: React.FC = () => {
 
           {/* Presets List */}
           {presetsLoading ? (
-            <div className="flex items-center justify-center py-4 text-slate-500 gap-1.5 text-xs">
+            <div className="flex items-center justify-center py-4 text-slate-500 gap-1.5 vdl-body">
               <RefreshCw className="w-3.5 h-3.5 animate-spin" />
               <span>Loading presets...</span>
             </div>
           ) : presets.length === 0 ? (
-            <div className="text-center py-4 text-slate-500 text-xs">
+            <div className="text-center py-4 text-slate-500 vdl-body">
               No presets available. Save one above.
             </div>
           ) : (
@@ -322,14 +320,14 @@ export const BacktestLeft: React.FC = () => {
               {presets.map((preset) => (
                 <div
                   key={preset.id}
-                  className="p-2 bg-slate-950/40 border border-white/5 rounded flex flex-col gap-1.5 hover:border-white/10 transition-all"
+                  className="p-2 bg-card/45 rounded flex flex-col gap-1.5 hover:border-subtle transition-all"
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <span className="font-bold text-xs text-slate-200 block truncate max-w-[120px]">
+                      <span className="font-semibold vdl-body text-slate-200 block truncate max-w-[120px]">
                         {preset.name}
                       </span>
-                      <span className="text-xs text-cyan-500/80 font-mono tracking-wider font-semibold uppercase">
+                      <span className="vdl-body text-cyan-500/80 font-mono font-semibold">
                         {preset.strategy_id === "five_ema" ? "5 EMA" : preset.strategy_id === "ema" ? "EMA Trend" : "Heikin Ashi"} ({preset.timeframe})
                       </span>
                     </div>
@@ -360,7 +358,7 @@ export const BacktestLeft: React.FC = () => {
                   </div>
 
                   {preset.notes && (
-                    <p className="text-xs text-slate-400 leading-normal italic line-clamp-1">
+                    <p className="vdl-body text-slate-400 leading-normal italic line-clamp-1">
                       {preset.notes}
                     </p>
                   )}
@@ -370,7 +368,7 @@ export const BacktestLeft: React.FC = () => {
                       {preset.tags.map((tag) => (
                         <span
                           key={tag}
-                          className="text-[7px] font-mono font-bold text-slate-400 bg-slate-900 px-1 border border-white/5 rounded"
+                          className="text-[7px] font-mono font-semibold text-slate-400 bg-card px-1  rounded"
                         >
                           {tag}
                         </span>
@@ -386,17 +384,17 @@ export const BacktestLeft: React.FC = () => {
 
       <WorkspacePanel title="Strategy Details" className="flex-1">
         {activeStrategyMetadata ? (
-          <div className="flex flex-col gap-4 text-slate-300 font-sans text-xs pb-2">
+          <div className="flex flex-col gap-4 text-slate-300 font-sans vdl-body pb-2">
             {/* General Specs */}
-            <div className="bg-slate-900/40 border border-white/5 rounded p-3 flex flex-col gap-2.5">
+            <div className="bg-card/40 rounded p-3 flex flex-col gap-2.5">
               <div className="flex justify-between items-start gap-1">
                 <div>
-                  <h4 className="text-[12px] font-bold text-cyan-400">{activeStrategyMetadata.name}</h4>
-                  <span className="text-xs text-slate-400 font-medium bg-slate-950 px-1.5 py-0.5 border border-white/5 rounded mt-1 inline-block">
+                  <h4 className="text-[12px] font-semibold text-cyan-400">{activeStrategyMetadata.name}</h4>
+                  <span className="vdl-body text-slate-400 font-medium bg-card px-1.5 py-0.5  rounded mt-1 inline-block">
                     {activeStrategyMetadata.category}
                   </span>
                 </div>
-                <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider shrink-0 ${
+                <span className={`px-2 py-0.5 rounded vdl-body font-semibold shrink-0${
                   activeStrategyMetadata.risk_level === "High" ? "bg-rose-950/40 text-rose-400 border border-rose-800/20" :
                   activeStrategyMetadata.risk_level === "Medium" ? "bg-amber-950/40 text-amber-400 border border-amber-800/20" :
                   "bg-emerald-950/40 text-emerald-400 border border-emerald-800/20"
@@ -407,20 +405,20 @@ export const BacktestLeft: React.FC = () => {
               
               <p className="text-slate-400 leading-relaxed">{activeStrategyMetadata.description}</p>
               
-              <div className="grid grid-cols-2 gap-2 border-t border-white/5 pt-2.5 text-xs">
+              <div className="grid grid-cols-2 gap-2 border-t pt-2.5 vdl-body">
                 <div className="flex flex-col">
-                  <span className="text-slate-500 font-semibold text-xs">Market regime</span>
+                  <span className="text-slate-500 font-semibold vdl-body">Market regime</span>
                   <span className="text-slate-300 mt-0.5 font-medium">{activeStrategyMetadata.market_type}</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-slate-500 font-semibold text-xs">Trade frequency</span>
+                  <span className="text-slate-500 font-semibold vdl-body">Trade frequency</span>
                   <span className="text-slate-300 mt-0.5 font-medium">{activeStrategyMetadata.expected_trade_frequency}</span>
                 </div>
                 <div className="flex flex-col col-span-2">
-                  <span className="text-slate-500 font-semibold text-xs">Recommended timeframes</span>
+                  <span className="text-slate-500 font-semibold vdl-body">Recommended timeframes</span>
                   <div className="flex gap-1.5 mt-1">
                     {activeStrategyMetadata.recommended_timeframes.map((tf) => (
-                      <span key={tf} className="font-mono text-xs font-bold text-cyan-400 bg-cyan-950/30 px-2 py-0.5 rounded border border-cyan-800/20">
+                      <span key={tf} className="font-mono vdl-body font-semibold text-cyan-400 bg-cyan-950/30 px-2 py-0.5 rounded border border-cyan-800/20">
                         {tf}
                       </span>
                     ))}
@@ -430,37 +428,37 @@ export const BacktestLeft: React.FC = () => {
             </div>
 
             {/* Entry / Exit Rules */}
-            <div className="bg-slate-900/40 border border-white/5 rounded p-3 flex flex-col gap-3">
-              <h5 className="text-xs font-bold text-slate-400 border-b border-white/5 pb-1 flex items-center gap-1.5">
+            <div className="bg-card/40 rounded p-3 flex flex-col gap-3">
+              <h5 className="vdl-body font-semibold text-slate-400 border-b pb-1 flex items-center gap-1.5">
                 <TrendingUp className="w-3.5 h-3.5 text-cyan-500/80" />
                 <span>Execution & Signal Rules</span>
               </h5>
               <div className="flex flex-col gap-3">
                 <div>
-                  <span className="text-cyan-400/80 font-bold text-xs block">Entry trigger</span>
+                  <span className="text-cyan-400/80 font-semibold vdl-body block">Entry trigger</span>
                   <p className="text-slate-400 mt-0.5 leading-relaxed">{activeStrategyMetadata.entry_logic}</p>
                 </div>
                 <div>
-                  <span className="text-cyan-400/80 font-bold text-xs block">Exit rules</span>
+                  <span className="text-cyan-400/80 font-semibold vdl-body block">Exit rules</span>
                   <p className="text-slate-400 mt-0.5 leading-relaxed">{activeStrategyMetadata.exit_logic}</p>
                 </div>
-                <div className="grid grid-cols-2 gap-3 border-t border-white/5 pt-2">
+                <div className="grid grid-cols-2 gap-3 border-t pt-2">
                   <div>
-                    <span className="text-slate-500 font-semibold text-xs block">Strike selection</span>
+                    <span className="text-slate-500 font-semibold vdl-body block">Strike selection</span>
                     <p className="text-slate-400 mt-0.5 leading-snug">{activeStrategyMetadata.strike_selection_logic}</p>
                   </div>
                   <div>
-                    <span className="text-slate-500 font-semibold text-xs block">Expiry selection</span>
+                    <span className="text-slate-500 font-semibold vdl-body block">Expiry selection</span>
                     <p className="text-slate-400 mt-0.5 leading-snug">{activeStrategyMetadata.expiry_selection_logic}</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3 border-t border-white/5 pt-2">
+                <div className="grid grid-cols-2 gap-3 border-t pt-2">
                   <div>
-                    <span className="text-slate-500 font-semibold text-xs block">Stop loss logic</span>
+                    <span className="text-slate-500 font-semibold vdl-body block">Stop loss logic</span>
                     <p className="text-slate-400 mt-0.5 leading-snug">{activeStrategyMetadata.stop_loss_logic}</p>
                   </div>
                   <div>
-                    <span className="text-slate-500 font-semibold text-xs block">Target profit logic</span>
+                    <span className="text-slate-500 font-semibold vdl-body block">Target profit logic</span>
                     <p className="text-slate-400 mt-0.5 leading-snug">{activeStrategyMetadata.target_logic}</p>
                   </div>
                 </div>
@@ -468,18 +466,18 @@ export const BacktestLeft: React.FC = () => {
             </div>
 
             {/* Parameters Specification */}
-            <div className="bg-slate-900/40 border border-white/5 rounded p-3 flex flex-col gap-2.5">
-              <h5 className="text-xs font-bold text-slate-400 border-b border-white/5 pb-1 flex items-center gap-1.5">
+            <div className="bg-card/40 rounded p-3 flex flex-col gap-2.5">
+              <h5 className="vdl-body font-semibold text-slate-400 border-b pb-1 flex items-center gap-1.5">
                 <Settings className="w-3.5 h-3.5 text-cyan-500/80" />
                 <span>Supported Parameters</span>
               </h5>
               <div className="flex flex-col gap-2">
                 {activeStrategyMetadata.supported_parameters.map((param) => (
-                  <div key={param.name} className="p-2 bg-slate-950/60 border border-white/5 rounded flex flex-col gap-1">
+                  <div key={param.name} className="p-2 bg-card/60 rounded flex flex-col gap-1">
                     <div className="flex justify-between items-center font-mono">
-                      <span className="font-bold text-cyan-400">{param.name}</span>
-                      <div className="flex gap-1.5 text-xs font-bold">
-                        <span className="bg-slate-900 text-slate-400 px-1 py-0.5 rounded border border-white/5">
+                      <span className="font-semibold text-cyan-400">{param.name}</span>
+                      <div className="flex gap-1.5 vdl-body font-semibold">
+                        <span className="bg-card text-slate-400 px-1 py-0.5 rounded ">
                           {param.type}
                         </span>
                         <span className="bg-cyan-950/30 text-cyan-300 px-1 py-0.5 rounded border border-cyan-800/20">
@@ -487,37 +485,37 @@ export const BacktestLeft: React.FC = () => {
                         </span>
                       </div>
                     </div>
-                    <p className="text-slate-500 leading-normal text-xs">{param.description}</p>
+                    <p className="text-slate-500 leading-normal vdl-body">{param.description}</p>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Market Conditions */}
-            <div className="grid grid-cols-2 gap-2 bg-slate-900/40 border border-white/5 rounded p-3">
+            <div className="grid grid-cols-2 gap-2 bg-card/40 rounded p-3">
               <div>
-                <span className="text-emerald-400 font-bold text-xs block">Best conditions</span>
+                <span className="text-emerald-400 font-semibold vdl-body block">Best conditions</span>
                 <p className="text-slate-400 mt-0.5 leading-normal">{activeStrategyMetadata.best_market_conditions}</p>
               </div>
               <div>
-                <span className="text-rose-400 font-bold text-xs block">Worst conditions</span>
+                <span className="text-rose-400 font-semibold vdl-body block">Worst conditions</span>
                 <p className="text-slate-400 mt-0.5 leading-normal">{activeStrategyMetadata.worst_market_conditions}</p>
               </div>
             </div>
 
             {/* Strengths & Weaknesses */}
             <div className="grid grid-cols-2 gap-2.5">
-              <div className="bg-slate-900/40 border border-white/5 rounded p-3 flex flex-col">
-                <span className="text-emerald-400 font-bold text-xs block mb-1.5 border-b border-emerald-900/20 pb-0.5">Strengths</span>
-                <ul className="list-disc pl-3 text-slate-400 space-y-1 leading-relaxed text-xs">
+              <div className="bg-card/40 rounded p-3 flex flex-col">
+                <span className="text-emerald-400 font-semibold vdl-body block mb-1.5 border-b border-emerald-900/20 pb-0.5">Strengths</span>
+                <ul className="list-disc pl-3 text-slate-400 space-y-1 leading-relaxed vdl-body">
                   {activeStrategyMetadata.strengths.map((str, idx) => (
                     <li key={idx}>{str}</li>
                   ))}
                 </ul>
               </div>
-              <div className="bg-slate-900/40 border border-white/5 rounded p-3 flex flex-col">
-                <span className="text-rose-400 font-bold text-xs block mb-1.5 border-b border-rose-900/20 pb-0.5">Weaknesses</span>
-                <ul className="list-disc pl-3 text-slate-400 space-y-1 leading-relaxed text-xs">
+              <div className="bg-card/40 rounded p-3 flex flex-col">
+                <span className="text-rose-400 font-semibold vdl-body block mb-1.5 border-b border-rose-900/20 pb-0.5">Weaknesses</span>
+                <ul className="list-disc pl-3 text-slate-400 space-y-1 leading-relaxed vdl-body">
                   {activeStrategyMetadata.weaknesses.map((weak, idx) => (
                     <li key={idx}>{weak}</li>
                   ))}
@@ -526,7 +524,7 @@ export const BacktestLeft: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center text-slate-500 text-xs py-12 text-center px-4 gap-2">
+          <div className="flex flex-col items-center justify-center text-slate-500 vdl-body py-12 text-center px-4 gap-2">
             <AlertCircle className="w-5 h-5 text-slate-600 animate-pulse" />
             <span>Select a strategy from the repository list above to view technical details.</span>
           </div>
@@ -837,38 +835,38 @@ export const BacktestMain: React.FC = () => {
   }, [selectedTradeId, v2BacktestResult, isReplayMode, replayCurrentTime, theme]);
 
   return (
-    <div className="flex flex-col h-full panel overflow-hidden font-sans text-xs">
+    <div className="flex flex-col h-full panel overflow-hidden font-sans vdl-body">
       
       {/* Run Parameter Toolbar */}
-      <div className="flex items-center justify-between px-3 py-2 bg-card-hover border-b border-subtle select-none shrink-0 flex-wrap gap-2">
+      <div className="flex items-center justify-between px-3 py-2 bg-card-hover border-b select-none shrink-0 flex-wrap gap-2">
         <div className="flex items-center gap-3">
           <div className="flex flex-col gap-0.5">
-            <span className="text-xs text-slate-500 font-bold">Active strategy</span>
-            <span className="text-cyan-400 font-bold font-mono">
+            <span className="vdl-body text-slate-500 font-semibold">Active strategy</span>
+            <span className="text-cyan-400 font-semibold font-mono">
               {v2Config.strategy_name || "No Strategy Selected"}
             </span>
           </div>
 
-          <div className="h-6 w-px border-l border-subtle" />
+          <div className="h-6 w-px border-l" />
 
           {/* Date Picker */}
           <div className="flex flex-col gap-0.5">
-            <span className="text-xs text-slate-500 font-bold">Start date</span>
+            <span className="vdl-body text-slate-500 font-semibold">Start date</span>
             <input
               type="date"
               value={v2Config.start_date}
               onChange={(e) => setV2Config({ start_date: e.target.value })}
-              className="input font-mono rounded px-1.5 py-0.5 text-xs bg-deep"
+              className="input font-mono rounded px-1.5 py-0.5 vdl-body bg-deep"
             />
           </div>
 
           <div className="flex flex-col gap-0.5">
-            <span className="text-xs text-slate-500 font-bold">End date</span>
+            <span className="vdl-body text-slate-500 font-semibold">End date</span>
             <input
               type="date"
               value={v2Config.end_date}
               onChange={(e) => setV2Config({ end_date: e.target.value })}
-              className="input font-mono rounded px-1.5 py-0.5 text-xs bg-deep"
+              className="input font-mono rounded px-1.5 py-0.5 vdl-body bg-deep"
             />
           </div>
         </div>
@@ -880,7 +878,7 @@ export const BacktestMain: React.FC = () => {
               <div className="w-20 bg-slate-800 h-1.5 rounded-full overflow-hidden">
                 <div style={{ width: `${v2Status.progress}%` }} className="bg-cyan-neon h-full transition-all duration-300" />
               </div>
-              <span className="text-xs font-mono text-cyan-neon font-bold">{v2Status.progress}%</span>
+              <span className="vdl-body font-mono text-cyan-neon font-semibold">{v2Status.progress}%</span>
             </div>
           ) : (
             <button
@@ -898,9 +896,9 @@ export const BacktestMain: React.FC = () => {
       {/* Candlestick simulator canvas */}
       <div className="flex-1 min-h-0 relative">
         {isBacktestLoading && (
-          <div className="absolute inset-0 bg-slate-950/80 z-10 flex flex-col items-center justify-center gap-3">
+          <div className="absolute inset-0 bg-card/80 z-10 flex flex-col items-center justify-center gap-3">
             <RefreshCw className="w-6 h-6 text-cyan-400 animate-spin" />
-            <span className="text-xs text-slate-400 font-mono">Running V2 chronological replay simulation...</span>
+            <span className="vdl-body text-slate-400 font-mono">Running V2 chronological replay simulation...</span>
           </div>
         )}
         <div ref={chartContainerRef} className="w-full h-full min-h-0" />
@@ -928,232 +926,202 @@ export const BacktestRight: React.FC = () => {
 
   return (
     <WorkspacePanel title="Backtest Parameters">
-      <div className="flex flex-col gap-4 h-full font-sans text-xs select-none">
-        <div className="text-xs font-bold text-slate-400 border-b border-white/5 pb-1 flex items-center gap-1.5">
-          <Settings className="w-3.5 h-3.5 text-cyan-500/80" />
-          <span>Global Configuration</span>
-        </div>
+      <div className="flex flex-col gap-4 h-full font-sans select-none overflow-y-auto pr-1">
+        <FormSection title="Global Configuration">
+          <div className="grid grid-cols-2 gap-3">
+            <FormField label="Underlying index">
+              <select
+                value={v2Config.underlying_instrument_key}
+                onChange={(e) => setV2Config({ underlying_instrument_key: e.target.value })}
+                className="input cursor-pointer font-medium"
+              >
+                <option value="NSE_INDEX|Nifty 50">NIFTY 50</option>
+                <option value="NSE_INDEX|Nifty Bank">BANKNIFTY</option>
+                <option value="NSE_INDEX|Nifty Fin Service">FINNIFTY</option>
+              </select>
+            </FormField>
 
-        {/* Global Configurations */}
-        <div className="grid grid-cols-2 gap-3 text-xs">
-          <div className="flex flex-col gap-1.5">
-            <span className="text-slate-400 font-semibold text-xs">Underlying index</span>
-            <select
-              value={v2Config.underlying_instrument_key}
-              onChange={(e) => setV2Config({ underlying_instrument_key: e.target.value })}
-              className="input cursor-pointer font-medium"
-            >
-              <option value="NSE_INDEX|Nifty 50">NIFTY 50</option>
-              <option value="NSE_INDEX|Nifty Bank">BANKNIFTY</option>
-              <option value="NSE_INDEX|Nifty Fin Service">FINNIFTY</option>
-            </select>
+            <FormField label="Signal source">
+              <select
+                value={v2Config.signal_source}
+                onChange={(e) => setV2Config({ signal_source: e.target.value })}
+                className="input cursor-pointer font-medium"
+              >
+                <option value="SPOT">Spot Price</option>
+                <option value="FUTURES">Futures underlying</option>
+              </select>
+            </FormField>
+
+            <FormField label="Timeframe">
+              <select
+                value={v2Config.timeframe}
+                onChange={(e) => setV2Config({ timeframe: e.target.value })}
+                className="input cursor-pointer font-mono font-medium"
+              >
+                <option value="10s">10 seconds</option>
+                <option value="30s">30 seconds</option>
+                <option value="1m">1 minute</option>
+                <option value="3m">3 minutes</option>
+                <option value="5m">5 minutes</option>
+                <option value="15m">15 minutes</option>
+                <option value="30m">30 minutes</option>
+                <option value="1h">1 hour</option>
+              </select>
+            </FormField>
+
+            <FormField label="Option preference">
+              <select
+                value={v2Config.option_type_preference}
+                onChange={(e) => setV2Config({ option_type_preference: e.target.value })}
+                className="input cursor-pointer font-medium"
+              >
+                <option value="DYNAMIC">Dynamic CE/PE</option>
+                <option value="CE_ONLY">Call Options Only</option>
+                <option value="PE_ONLY">Put Options Only</option>
+              </select>
+            </FormField>
+
+            <FormField label="Strike mode">
+              <select
+                value={v2Config.strike_mode}
+                onChange={(e) => setV2Config({ strike_mode: e.target.value })}
+                className="input cursor-pointer font-medium"
+              >
+                <option value="ATM">ATM (At-The-Money)</option>
+                <option value="OTM_1">OTM +1 Strike</option>
+                <option value="OTM_2">OTM +2 Strike</option>
+                <option value="OTM_3">OTM +3 Strike</option>
+                <option value="ITM_1">ITM -1 Strike</option>
+                <option value="ITM_2">ITM -2 Strike</option>
+                <option value="ITM_3">ITM -3 Strike</option>
+              </select>
+            </FormField>
+
+            <FormField label="Expiry mode">
+              <select
+                value={v2Config.expiry_mode}
+                onChange={(e) => setV2Config({ expiry_mode: e.target.value })}
+                className="input cursor-pointer font-medium"
+              >
+                <option value="CURRENT_WEEKLY">Current Weekly</option>
+                <option value="NEXT_WEEKLY">Next Weekly</option>
+                <option value="CURRENT_MONTHLY">Current Monthly</option>
+              </select>
+            </FormField>
+
+            <FormField label="Initial capital (₹)">
+              <input
+                type="number"
+                value={v2Config.initial_capital}
+                onChange={(e) => setV2Config({ initial_capital: Number(e.target.value) })}
+                className="input font-mono font-medium"
+              />
+            </FormField>
+
+            <FormField label="Lot multiplier">
+              <input
+                type="number"
+                value={v2Config.lot_multiplier}
+                onChange={(e) => setV2Config({ lot_multiplier: Number(e.target.value) })}
+                className="input font-mono font-medium"
+              />
+            </FormField>
           </div>
+        </FormSection>
 
-          <div className="flex flex-col gap-1.5">
-            <span className="text-slate-400 font-semibold text-xs">Signal source</span>
-            <select
-              value={v2Config.signal_source}
-              onChange={(e) => setV2Config({ signal_source: e.target.value })}
-              className="input cursor-pointer font-medium"
-            >
-              <option value="SPOT">Spot Price</option>
-              <option value="FUTURES">Futures underlying</option>
-            </select>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <span className="text-slate-400 font-semibold text-xs">Timeframe</span>
-            <select
-              value={v2Config.timeframe}
-              onChange={(e) => setV2Config({ timeframe: e.target.value })}
-              className="input cursor-pointer font-mono font-medium"
-            >
-              <option value="10s">10 seconds</option>
-              <option value="30s">30 seconds</option>
-              <option value="1m">1 minute</option>
-              <option value="3m">3 minutes</option>
-              <option value="5m">5 minutes</option>
-              <option value="15m">15 minutes</option>
-              <option value="30m">30 minutes</option>
-              <option value="1h">1 hour</option>
-            </select>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <span className="text-slate-400 font-semibold text-xs">Option preference</span>
-            <select
-              value={v2Config.option_type_preference}
-              onChange={(e) => setV2Config({ option_type_preference: e.target.value })}
-              className="input cursor-pointer font-medium"
-            >
-              <option value="DYNAMIC">Dynamic CE/PE</option>
-              <option value="CE_ONLY">Call Options Only</option>
-              <option value="PE_ONLY">Put Options Only</option>
-            </select>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <span className="text-slate-400 font-semibold text-xs">Strike mode</span>
-            <select
-              value={v2Config.strike_mode}
-              onChange={(e) => setV2Config({ strike_mode: e.target.value })}
-              className="input cursor-pointer font-medium"
-            >
-              <option value="ATM">ATM (At-The-Money)</option>
-              <option value="OTM_1">OTM +1 Strike</option>
-              <option value="OTM_2">OTM +2 Strike</option>
-              <option value="OTM_3">OTM +3 Strike</option>
-              <option value="ITM_1">ITM -1 Strike</option>
-              <option value="ITM_2">ITM -2 Strike</option>
-              <option value="ITM_3">ITM -3 Strike</option>
-            </select>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <span className="text-slate-400 font-semibold text-xs">Expiry mode</span>
-            <select
-              value={v2Config.expiry_mode}
-              onChange={(e) => setV2Config({ expiry_mode: e.target.value })}
-              className="input cursor-pointer font-medium"
-            >
-              <option value="CURRENT_WEEKLY">Current Weekly</option>
-              <option value="NEXT_WEEKLY">Next Weekly</option>
-              <option value="CURRENT_MONTHLY">Current Monthly</option>
-            </select>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <span className="text-slate-400 font-semibold text-xs">Initial capital (₹)</span>
-            <input
-              type="number"
-              value={v2Config.initial_capital}
-              onChange={(e) => setV2Config({ initial_capital: Number(e.target.value) })}
-              className="input font-mono font-medium"
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <span className="text-slate-400 font-semibold text-xs">Lot multiplier</span>
-            <input
-              type="number"
-              value={v2Config.lot_multiplier}
-              onChange={(e) => setV2Config({ lot_multiplier: Number(e.target.value) })}
-              className="input font-mono font-medium"
-            />
-          </div>
-        </div>
-
-        <div className="text-xs font-bold text-slate-400 border-b border-white/5 pb-1 mt-1 flex items-center gap-1.5">
-          <SlidersHorizontal className="w-3.5 h-3.5 text-cyan-500/80" />
-          <span>Strategy Parameters</span>
-        </div>
-
-        {/* Strategy Specific Controls */}
         {selectedStrategy ? (
-          <div className="flex flex-col gap-4 flex-1 overflow-y-auto pr-0.5">
-            {v2Config.strategy_name === "EMA" && (
-              <>
-                <div className="flex flex-col gap-2">
-                  <div className="flex justify-between items-center text-xs text-slate-400">
-                    <span className="font-semibold uppercase tracking-wider text-xs">Fast EMA Period</span>
-                    <span className="font-mono text-cyan-400 font-bold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/30">
-                      {v2Config.strategy_params.fastEma || 2}
-                    </span>
-                  </div>
+          <FormSection title="Strategy Parameters">
+            <div className="flex flex-col gap-4">
+              {v2Config.strategy_name === "EMA" && (
+                <>
+                  <FormField
+                    label="Fast EMA Period"
+                    helpText={`Current: ${v2Config.strategy_params.fastEma || 2}`}
+                  >
+                    <input
+                      type="range"
+                      min="2"
+                      max="50"
+                      value={v2Config.strategy_params.fastEma || 2}
+                      onChange={(e) => handleParamChange("fastEma", Number(e.target.value))}
+                      className="w-full cursor-pointer transition-all"
+                    />
+                  </FormField>
+
+                  <FormField
+                    label="Slow EMA Period"
+                    helpText={`Current: ${v2Config.strategy_params.slowEma || 3}`}
+                  >
+                    <input
+                      type="range"
+                      min="3"
+                      max="100"
+                      value={v2Config.strategy_params.slowEma || 3}
+                      onChange={(e) => handleParamChange("slowEma", Number(e.target.value))}
+                      className="w-full cursor-pointer transition-all"
+                    />
+                  </FormField>
+                </>
+              )}
+
+              {v2Config.strategy_name === "five_ema_scalping" && (
+                <>
+                  <FormField
+                    label="EMA Period"
+                    helpText={`Current: ${v2Config.strategy_params.five_ema_period || 5}`}
+                  >
+                    <input
+                      type="range"
+                      min="3"
+                      max="20"
+                      value={v2Config.strategy_params.five_ema_period || 5}
+                      onChange={(e) => handleParamChange("five_ema_period", Number(e.target.value))}
+                      className="w-full cursor-pointer transition-all"
+                    />
+                  </FormField>
+
+                  <FormField
+                    label="Risk-Reward Ratio"
+                    helpText={`Current: ${v2Config.strategy_params.five_ema_rr || 3.0}`}
+                  >
+                    <input
+                      type="range"
+                      min="1.5"
+                      max="10"
+                      step="0.5"
+                      value={v2Config.strategy_params.five_ema_rr || 3.0}
+                      onChange={(e) => handleParamChange("five_ema_rr", Number(e.target.value))}
+                      className="w-full cursor-pointer transition-all"
+                    />
+                  </FormField>
+                </>
+              )}
+
+              {/* Commissions & Slippage inputs */}
+              <div className="grid grid-cols-2 gap-3 mt-1 pt-3 border-t/30">
+                <FormField label="Brokerage flat (₹)">
                   <input
-                    type="range"
-                    min="2"
-                    max="50"
-                    value={v2Config.strategy_params.fastEma || 2}
-                    onChange={(e) => handleParamChange("fastEma", Number(e.target.value))}
-                    className="w-full cursor-pointer transition-all"
+                    type="number"
+                    value={v2Config.brokerage_flat}
+                    onChange={(e) => setV2Config({ brokerage_flat: Number(e.target.value) })}
+                    className="input font-mono font-medium"
                   />
-                </div>
+                </FormField>
 
-                <div className="flex flex-col gap-2">
-                  <div className="flex justify-between items-center text-xs text-slate-400">
-                    <span className="font-semibold uppercase tracking-wider text-xs">Slow EMA Period</span>
-                    <span className="font-mono text-cyan-400 font-bold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/30">
-                      {v2Config.strategy_params.slowEma || 3}
-                    </span>
-                  </div>
+                <FormField label="Slippage (%)">
                   <input
-                    type="range"
-                    min="3"
-                    max="100"
-                    value={v2Config.strategy_params.slowEma || 3}
-                    onChange={(e) => handleParamChange("slowEma", Number(e.target.value))}
-                    className="w-full cursor-pointer transition-all"
+                    type="number"
+                    step="0.01"
+                    value={v2Config.slippage_pct}
+                    onChange={(e) => setV2Config({ slippage_pct: Number(e.target.value) })}
+                    className="input font-mono font-medium"
                   />
-                </div>
-              </>
-            )}
-
-            {v2Config.strategy_name === "five_ema_scalping" && (
-              <>
-                <div className="flex flex-col gap-2">
-                  <div className="flex justify-between items-center text-xs text-slate-400">
-                    <span className="font-semibold uppercase tracking-wider text-xs">EMA Period</span>
-                    <span className="font-mono text-cyan-400 font-bold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/30">
-                      {v2Config.strategy_params.five_ema_period || 5}
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min="3"
-                    max="20"
-                    value={v2Config.strategy_params.five_ema_period || 5}
-                    onChange={(e) => handleParamChange("five_ema_period", Number(e.target.value))}
-                    className="w-full cursor-pointer transition-all"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <div className="flex justify-between items-center text-xs text-slate-400">
-                    <span className="font-semibold uppercase tracking-wider text-xs">Risk-Reward Ratio</span>
-                    <span className="font-mono text-cyan-400 font-bold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/30">
-                      {v2Config.strategy_params.five_ema_rr || 3.0}
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min="1.5"
-                    max="10"
-                    step="0.5"
-                    value={v2Config.strategy_params.five_ema_rr || 3.0}
-                    onChange={(e) => handleParamChange("five_ema_rr", Number(e.target.value))}
-                    className="w-full cursor-pointer transition-all"
-                  />
-                </div>
-              </>
-            )}
-
-            {/* Commissions & Slippage inputs */}
-            <div className="grid grid-cols-2 gap-3 mt-1 pt-3.5 border-t border-white/5">
-              <div className="flex flex-col gap-1.5">
-                <span className="text-slate-400 font-semibold text-xs">Brokerage flat (₹)</span>
-                <input
-                  type="number"
-                  value={v2Config.brokerage_flat}
-                  onChange={(e) => setV2Config({ brokerage_flat: Number(e.target.value) })}
-                  className="input font-mono font-medium"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <span className="text-slate-400 font-semibold text-xs">Slippage (%)</span>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={v2Config.slippage_pct}
-                  onChange={(e) => setV2Config({ slippage_pct: Number(e.target.value) })}
-                  className="input font-mono font-medium"
-                />
+                </FormField>
               </div>
             </div>
-          </div>
+          </FormSection>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-slate-500 text-xs text-center px-4 gap-2">
+          <div className="flex-1 flex flex-col items-center justify-center text-slate-500 vdl-body text-center px-4 gap-2">
             <AlertCircle className="w-5 h-5 text-slate-600 animate-pulse" />
             <span>Select a strategy from the repository to configure parameter controls.</span>
           </div>
@@ -1190,6 +1158,244 @@ export const BacktestBottom: React.FC = () => {
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [playSpeed, setPlaySpeed] = useState<1 | 2 | 5 | 10>(1);
+
+  const recentTradesColumns: ColumnDef<any>[] = [
+    {
+      header: "Time",
+      accessorKey: (row) => new Date(row.entry_time).toLocaleTimeString("en-IN", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        timeZone: "Asia/Kolkata",
+      }),
+      isMono: true,
+    },
+    {
+      header: "Type",
+      accessorKey: (row) => {
+        const type = row.contract.includes("PE") ? "PE" : "CE";
+        const sideState = type === "PE" ? "Failed" : "Running";
+        return <StatusBadge state={sideState} className="!font-sans font-semibold" />;
+      },
+    },
+    {
+      header: "Instrument",
+      accessorKey: (row) => row.contract.split(" ")[0] || row.contract,
+      className: "font-sans font-semibold text-slate-200",
+    },
+    {
+      header: "Strike",
+      accessorKey: (row) => {
+        const strikeMatch = row.contract.match(new RegExp("\\d{5}"));
+        return strikeMatch ? strikeMatch[0] : "-";
+      },
+      className: "text-center",
+      isMono: true,
+    },
+    {
+      header: "Expiry",
+      accessorKey: (row) => {
+        const parts = row.contract.split(" ");
+        return parts.length > 2 ? parts[1] : "-";
+      },
+      isMono: true,
+    },
+    {
+      header: "Qty",
+      accessorKey: "quantity",
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Entry Price",
+      accessorKey: (row) => `₹${row.entry_premium.toFixed(2)}`,
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Exit Price",
+      accessorKey: (row) => `₹${row.exit_premium.toFixed(2)}`,
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "P&L (₹)",
+      accessorKey: (row) => {
+        const isProfit = row.net_pnl >= 0;
+        return (
+          <span className={`font-semibold ${isProfit ? "text-emerald-400" : "text-rose-400"}`}>
+            ₹{row.net_pnl.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </span>
+        );
+      },
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "P&L (%)",
+      accessorKey: (row) => {
+        const isProfit = row.net_pnl >= 0;
+        const pct = (row.net_pnl / (row.entry_premium * row.quantity)) * 100;
+        return (
+          <span className={`font-semibold ${isProfit ? "text-emerald-400" : "text-rose-400"}`}>
+            {pct.toFixed(2)}%
+          </span>
+        );
+      },
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Status",
+      accessorKey: (row) => {
+        const badgeState = row.net_pnl >= 0 ? "Success" : "Failed";
+        return <StatusBadge state={badgeState} />;
+      },
+      className: "text-center",
+    },
+  ];
+
+  const tradeLedgerColumns: ColumnDef<any>[] = [
+    {
+      header: "Contract Details",
+      accessorKey: "contract",
+      className: "font-semibold text-cyan-neon",
+    },
+    {
+      header: "Entry Time",
+      accessorKey: (row) => `${new Date(row.entry_time).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST`,
+      isMono: true,
+    },
+    {
+      header: "Exit Time",
+      accessorKey: (row) => `${new Date(row.exit_time).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST`,
+      isMono: true,
+    },
+    {
+      header: "Entry Premium",
+      accessorKey: (row) => `₹${row.entry_premium.toFixed(2)}`,
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Exit Premium",
+      accessorKey: (row) => `₹${row.exit_premium.toFixed(2)}`,
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Qty",
+      accessorKey: "quantity",
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Gross PnL",
+      accessorKey: (row) => (
+        <span className={`font-semibold ${row.gross_pnl > 0 ? "text-emerald-400" : "text-rose-400"}`}>
+          ₹{row.gross_pnl.toFixed(2)}
+        </span>
+      ),
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Charges",
+      accessorKey: (row) => `₹${row.charges.total_charges.toFixed(2)}`,
+      isNumeric: true,
+      isMono: true,
+      className: "text-slate-500",
+    },
+    {
+      header: "Net PnL",
+      accessorKey: (row) => (
+        <span className={`font-semibold ${row.net_pnl > 0 ? "text-emerald-400" : "text-rose-400"}`}>
+          ₹{row.net_pnl.toFixed(2)}
+        </span>
+      ),
+      isNumeric: true,
+      isMono: true,
+    },
+  ];
+
+  const optimizationColumns: ColumnDef<any>[] = [
+    {
+      header: "Rank",
+      accessorKey: (_, idx) => `#${idx + 1}`,
+      className: "text-slate-500 pl-2",
+    },
+    {
+      header: "Parameters (Fast / Slow)",
+      accessorKey: (row) => `Fast: ${row.combination.params.fastEma || row.combination.params.fast_period} | Slow: ${row.combination.params.slowEma || row.combination.params.slow_period}`,
+      className: "text-cyan-400 font-semibold",
+    },
+    {
+      header: "Net Profit",
+      accessorKey: (row) => (
+        <span className={`font-semibold ${row.metrics.net_profit >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+          ₹{row.metrics.net_profit.toLocaleString("en-IN")}
+        </span>
+      ),
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Profit Factor",
+      accessorKey: (row) => row.metrics.profit_factor.toFixed(2),
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Expectancy",
+      accessorKey: (row) => row.metrics.expectancy.toFixed(2),
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Sharpe",
+      accessorKey: (row) => row.metrics.sharpe_ratio.toFixed(2),
+      isNumeric: true,
+      isMono: true,
+      className: "text-cyan-400 font-semibold",
+    },
+    {
+      header: "Sortino",
+      accessorKey: (row) => row.metrics.sortino_ratio.toFixed(2),
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Max Drawdown",
+      accessorKey: (row) => `${row.metrics.max_drawdown_pct.toFixed(2)}%`,
+      isNumeric: true,
+      isMono: true,
+      className: "text-rose-400",
+    },
+    {
+      header: "Score",
+      accessorKey: (row) => row.score.toFixed(1),
+      isNumeric: true,
+      isMono: true,
+      className: "text-cyan-400 font-semibold",
+    },
+    {
+      header: "Sensitivity",
+      accessorKey: (row) => {
+        if (!v2OptimizationReport) return "-";
+        const paramsKey = JSON.stringify(row.combination.params);
+        const stability = v2OptimizationReport.stability_findings[paramsKey];
+        if (!stability) return "-";
+        return (
+          <span className={`font-semibold ${
+            stability.status === "STABLE" ? "text-emerald-400" : "text-rose-400"
+          }`}>
+            {stability.status}
+          </span>
+        );
+      },
+      className: "text-center pr-2",
+    },
+  ];
 
   // Compute trade candles & replay timeline dynamically
   const replayTrade = React.useMemo(() => {
@@ -1455,7 +1661,7 @@ export const BacktestBottom: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full overflow-hidden text-xs font-sans">
+    <div className="flex flex-col h-full overflow-hidden vdl-body font-sans">
       
       {/* 0. Trade Forensic Replay Cockpit Layer */}
       {(() => {
@@ -1526,18 +1732,18 @@ export const BacktestBottom: React.FC = () => {
         const reachedExit = currentIndex === totalSteps - 1;
 
         return (
-          <div className="flex flex-col h-full bg-slate-950/80 border border-white/5 p-4 rounded shadow-2xl relative min-h-[300px]">
+          <div className="flex flex-col h-full bg-card/80  p-4 rounded shadow-2xl relative min-h-[300px]">
             {/* HUD Status Header */}
-            <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-3.5 select-none">
+            <div className="flex items-center justify-between border-b pb-2 mb-3.5 select-none">
               <div className="flex items-center gap-2">
                 <span className="relative flex h-2 w-2">
-                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isPlaying ? "bg-amber-400" : "bg-cyan-400"}`}></span>
-                  <span className={`relative inline-flex rounded-full h-2 w-2 ${isPlaying ? "bg-amber-500" : "bg-cyan-500"}`}></span>
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75${isPlaying ? "bg-amber-400" : "bg-cyan-400"}`}></span>
+                  <span className={`relative inline-flex rounded-full h-2 w-2${isPlaying ? "bg-amber-500" : "bg-cyan-500"}`}></span>
                 </span>
-                <span className="font-mono text-xs font-bold uppercase tracking-widest text-slate-200">
+                <span className="font-mono vdl-body font-semibold text-slate-200">
                   Trade Forensic Replay Cockpit
                 </span>
-                <span className="px-2 py-0.5 rounded text-xs font-mono font-bold bg-slate-900 border border-white/10 text-cyan-400 select-text">
+                <span className="px-2 py-0.5 rounded vdl-body font-mono font-semibold bg-card  text-cyan-400 select-text">
                   {replayTrade.contract}
                 </span>
               </div>
@@ -1547,7 +1753,7 @@ export const BacktestBottom: React.FC = () => {
                   setIsPlaying(false);
                   setIsReplayMode(false);
                 }}
-                className="px-2.5 py-1 bg-rose-950/30 hover:bg-rose-900/40 text-rose-400 font-bold uppercase tracking-wider text-xs rounded border border-rose-800/30 transition-all cursor-pointer"
+                className="px-2.5 py-1 bg-rose-950/30 hover:bg-rose-900/40 text-rose-400 font-semibold vdl-body rounded border border-rose-800/30 transition-all cursor-pointer"
               >
                 Exit Replay
               </button>
@@ -1557,9 +1763,9 @@ export const BacktestBottom: React.FC = () => {
             <div className="grid grid-cols-12 gap-4 flex-1">
               
               {/* COL 1: Playback Console & Control Deck (4 cols) */}
-              <div className="col-span-4 bg-slate-900/40 border border-white/5 rounded p-3 flex flex-col justify-between select-none">
+              <div className="col-span-4 bg-card/40 rounded p-3 flex flex-col justify-between select-none">
                 <div>
-                  <span className="text-xs text-slate-500 font-bold block mb-2">Control deck</span>
+                  <span className="vdl-body text-slate-500 font-semibold block mb-2">Control deck</span>
                   
                   {/* VCR Playback Controls */}
                   <div className="flex items-center gap-2 mb-4">
@@ -1568,7 +1774,7 @@ export const BacktestBottom: React.FC = () => {
                         setIsPlaying(false);
                         if (totalSteps > 0) setReplayCurrentTime(replayTimeline[0]);
                       }}
-                      className="p-2 bg-slate-950 border border-white/5 hover:border-white/20 active:bg-slate-900 rounded text-slate-300 hover:text-white transition-all cursor-pointer"
+                      className="p-2 bg-card  hover:border-subtle active:bg-card rounded text-slate-300 hover:text-white transition-all cursor-pointer"
                       title="Restart Replay"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
@@ -1580,7 +1786,7 @@ export const BacktestBottom: React.FC = () => {
                         const idx = replayTimeline.indexOf(replayCurrentTime || 0);
                         if (idx > 0) setReplayCurrentTime(replayTimeline[idx - 1]);
                       }}
-                      className="p-2 bg-slate-950 border border-white/5 hover:border-white/20 active:bg-slate-900 rounded text-slate-300 hover:text-white transition-all cursor-pointer"
+                      className="p-2 bg-card  hover:border-subtle active:bg-card rounded text-slate-300 hover:text-white transition-all cursor-pointer"
                       title="Previous Candle"
                     >
                       <ChevronLeft className="w-3.5 h-3.5" />
@@ -1588,7 +1794,7 @@ export const BacktestBottom: React.FC = () => {
 
                     <button
                       onClick={() => setIsPlaying(!isPlaying)}
-                      className={`px-4 py-2 rounded text-slate-950 font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                      className={`px-4 py-2 rounded text-slate-950 font-semibold flex items-center gap-1.5 transition-all cursor-pointer${
                         isPlaying ? "bg-amber-400 hover:bg-amber-300" : "bg-cyan-400 hover:bg-cyan-300"
                       }`}
                       title={isPlaying ? "Pause Playback" : "Start Playback"}
@@ -1612,7 +1818,7 @@ export const BacktestBottom: React.FC = () => {
                         const idx = replayTimeline.indexOf(replayCurrentTime || 0);
                         if (idx < totalSteps - 1) setReplayCurrentTime(replayTimeline[idx + 1]);
                       }}
-                      className="p-2 bg-slate-950 border border-white/5 hover:border-white/20 active:bg-slate-900 rounded text-slate-300 hover:text-white transition-all cursor-pointer"
+                      className="p-2 bg-card  hover:border-subtle active:bg-card rounded text-slate-300 hover:text-white transition-all cursor-pointer"
                       title="Next Candle"
                     >
                       <ChevronRight className="w-3.5 h-3.5" />
@@ -1620,16 +1826,16 @@ export const BacktestBottom: React.FC = () => {
                   </div>
 
                   {/* Playback Speed Deck */}
-                  <span className="text-xs text-slate-500 font-bold block mb-1.5">Speed multiplier</span>
+                  <span className="vdl-body text-slate-500 font-semibold block mb-1.5">Speed multiplier</span>
                   <div className="flex gap-1.5 mb-4">
                     {([1, 2, 5, 10] as const).map((speed) => (
                       <button
                         key={speed}
                         onClick={() => setPlaySpeed(speed)}
-                        className={`px-3 py-1 font-mono text-xs font-bold rounded border transition-all cursor-pointer ${
+                        className={`px-3 py-1 font-mono vdl-body font-semibold rounded border transition-all cursor-pointer${
                           playSpeed === speed 
                             ? "bg-cyan-950 text-cyan-400 border-cyan-500/30" 
-                            : "bg-slate-950 text-slate-500 border-white/5 hover:text-slate-300 hover:border-white/10"
+                            : "bg-card text-slate-500 hover:text-slate-300 hover:border-subtle"
                         }`}
                       >
                         {speed}x
@@ -1639,14 +1845,14 @@ export const BacktestBottom: React.FC = () => {
                 </div>
 
                 {/* Step / Timeline Progress Indicator */}
-                <div className="border-t border-white/5 pt-3">
-                  <div className="flex justify-between items-center text-xs font-mono text-slate-400 mb-1.5">
+                <div className="border-t pt-3">
+                  <div className="flex justify-between items-center vdl-body font-mono text-slate-400 mb-1.5">
                     <span>TIMELINE INDEX</span>
-                    <span className="font-bold text-slate-200">
+                    <span className="font-semibold text-slate-200">
                       STEP {currentIndex + 1} / {totalSteps}
                     </span>
                   </div>
-                  <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-white/5">
+                  <div className="w-full h-1.5 bg-card rounded-full overflow-hidden ">
                     <div 
                       className="h-full bg-cyan-400 rounded-full transition-all duration-150"
                       style={{ width: `${totalSteps > 0 ? ((currentIndex + 1) / totalSteps) * 100 : 0}%` }}
@@ -1656,35 +1862,35 @@ export const BacktestBottom: React.FC = () => {
               </div>
 
               {/* COL 2: Live Trade Analytics HUD (5 cols) */}
-              <div className="col-span-5 bg-slate-900/20 border border-white/5 rounded p-3 flex flex-col justify-between">
+              <div className="col-span-5 bg-card/20  rounded p-3 flex flex-col justify-between">
                 <div>
-                  <span className="text-xs text-slate-500 font-bold block mb-2 select-none">Live telemetry HUD</span>
+                  <span className="vdl-body text-slate-500 font-semibold block mb-2 select-none">Live telemetry HUD</span>
                   
                   <div className="grid grid-cols-2 gap-3 mb-3">
-                    <div className="bg-slate-950/40 p-2.5 rounded border border-white/5">
-                      <span className="text-xs text-slate-500 font-bold block mb-0.5 select-none">Entry premium</span>
-                      <span className="font-mono text-slate-200 font-bold text-sm">₹{replayTrade.entry_premium.toFixed(2)}</span>
+                    <div className="bg-card/40 p-2.5 rounded ">
+                      <span className="vdl-body text-slate-500 font-semibold block mb-0.5 select-none">Entry premium</span>
+                      <span className="font-mono text-slate-200 font-semibold section">₹{replayTrade.entry_premium.toFixed(2)}</span>
                     </div>
 
-                    <div className={`p-2.5 rounded border transition-all duration-300 ${
+                    <div className={`p-2.5 rounded border transition-all duration-300${
                       livePnL >= 0 ? "bg-emerald-950/20 border-emerald-500/20" : "bg-rose-950/20 border-rose-500/20"
                     }`}>
-                      <span className="text-xs text-slate-500 font-bold block mb-0.5 select-none">Current premium</span>
-                      <span className={`font-mono font-bold text-sm ${livePnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                      <span className="vdl-body text-slate-500 font-semibold block mb-0.5 select-none">Current premium</span>
+                      <span className={`font-mono font-semibold section${livePnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                         ₹{livePremium.toFixed(2)}
                       </span>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 mb-3">
-                    <div className="bg-slate-950/40 p-2.5 rounded border border-white/5">
-                      <span className="text-xs text-slate-500 font-bold block mb-0.5 select-none">Holding duration</span>
-                      <span className="font-mono text-slate-200 font-bold text-sm">{elapsedMinutes} mins</span>
+                    <div className="bg-card/40 p-2.5 rounded ">
+                      <span className="vdl-body text-slate-500 font-semibold block mb-0.5 select-none">Holding duration</span>
+                      <span className="font-mono text-slate-200 font-semibold section">{elapsedMinutes} mins</span>
                     </div>
 
-                    <div className="bg-slate-950/40 p-2.5 rounded border border-white/5">
-                      <span className="text-xs text-slate-500 font-bold block mb-0.5 select-none">Spot index delta</span>
-                      <span className={`font-mono font-bold text-sm flex items-center gap-1 ${liveSpotDelta >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                    <div className="bg-card/40 p-2.5 rounded ">
+                      <span className="vdl-body text-slate-500 font-semibold block mb-0.5 select-none">Spot index delta</span>
+                      <span className={`font-mono font-semibold section flex items-center gap-1${liveSpotDelta >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                         {liveSpotDelta >= 0 ? "+" : ""}{liveSpotDelta.toFixed(2)} ({liveSpotDeltaPct.toFixed(2)}%)
                       </span>
                     </div>
@@ -1692,12 +1898,12 @@ export const BacktestBottom: React.FC = () => {
                 </div>
 
                 {/* Big Unrealized PnL Board */}
-                <div className={`p-3 rounded border flex items-center justify-between transition-all duration-300 ${
+                <div className={`p-3 rounded border flex items-center justify-between transition-all duration-300${
                   livePnL >= 0 ? "bg-emerald-950/30 border-emerald-500/30 shadow-emerald-950/20" : "bg-rose-950/30 border-rose-500/30 shadow-rose-950/20"
-                } shadow-md`}>
+                }shadow-md`}>
                   <div className="flex flex-col">
-                    <span className="text-xs text-slate-400 font-bold select-none">Unrealized profit / loss</span>
-                    <span className={`font-mono text-lg font-extrabold ${livePnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                    <span className="vdl-body text-slate-400 font-semibold select-none">Unrealized profit / loss</span>
+                    <span className={`font-mono display font-semibold${livePnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                       {livePnL >= 0 ? "+" : ""}₹{livePnL.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                   </div>
@@ -1710,18 +1916,18 @@ export const BacktestBottom: React.FC = () => {
               </div>
 
               {/* COL 3: Trade Timeline & Replay Summary (3 cols) */}
-              <div className="col-span-3 bg-slate-900/40 border border-white/5 rounded p-3 flex flex-col justify-between font-mono">
+              <div className="col-span-3 bg-card/40 rounded p-3 flex flex-col justify-between font-mono">
                 <div>
-                  <span className="text-xs text-slate-500 uppercase tracking-wider font-bold block mb-2 select-none">Execution Details</span>
+                  <span className="vdl-body text-slate-500 font-semibold block mb-2 select-none">Execution Details</span>
                   
-                  <div className="flex flex-col gap-1 text-xs text-slate-400 border-b border-white/5 pb-2.5 mb-2.5">
+                  <div className="flex flex-col gap-1 vdl-body text-slate-400 border-b pb-2.5 mb-2.5">
                     <div className="flex justify-between">
                       <span className="text-slate-500">Entry Time:</span>
                       <span className="text-slate-300">{new Date(replayTrade.entry_time).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })} IST</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-500">Current Play:</span>
-                      <span className="text-cyan-400 font-bold">{currentCandleTime > 0 ? new Date(currentCandleTime * 1000).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) : "--:--:--"} IST</span>
+                      <span className="text-cyan-400 font-semibold">{currentCandleTime > 0 ? new Date(currentCandleTime * 1000).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }) : "--:--:--"} IST</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-500">Exit Time:</span>
@@ -1733,26 +1939,26 @@ export const BacktestBottom: React.FC = () => {
                 {/* Replay Summary Container */}
                 <div className="flex-1 flex flex-col justify-end">
                   {!reachedExit ? (
-                    <div className="bg-slate-950/60 border border-subtle p-3 rounded flex flex-col items-center justify-center h-24 select-none animate-pulse">
+                    <div className="bg-card/60  p-3 rounded flex flex-col items-center justify-center h-24 select-none animate-pulse">
                       <Activity className="w-4 h-4 text-slate-600 mb-1" />
-                      <span className="text-xs text-slate-500 uppercase tracking-widest font-bold">REPLAY RUNNING</span>
-                      <span className="text-xs text-slate-500">Awaiting exit candle...</span>
+                      <span className="vdl-body text-slate-500 font-semibold">REPLAY RUNNING</span>
+                      <span className="vdl-body text-slate-500">Awaiting exit candle...</span>
                     </div>
                   ) : (
-                    <div className="bg-slate-950 border border-white/10 p-2.5 rounded flex flex-col gap-1.5 animate-fadeIn">
-                      <div className="flex justify-between items-center border-b border-white/5 pb-1">
-                        <span className="text-xs text-slate-500 uppercase font-bold">REPLAY SUMMARY</span>
-                        <span className={`px-1.5 py-0.5 rounded text-xs font-bold ${
+                    <div className="bg-card  p-2.5 rounded flex flex-col gap-1.5 animate-fadeIn">
+                      <div className="flex justify-between items-center border-b pb-1">
+                        <span className="vdl-body text-slate-500 font-semibold">REPLAY SUMMARY</span>
+                        <span className={`px-1.5 py-0.5 rounded vdl-body font-semibold${
                           isWinner ? "bg-emerald-950/40 text-emerald-400 border border-emerald-800/30" : "bg-rose-950/40 text-rose-400 border border-rose-800/30"
                         }`}>
                           {isWinner ? "WINNER" : "LOSER"}
                         </span>
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs text-slate-400">
+                      <div className="grid grid-cols-2 gap-x-2 gap-y-1 vdl-body text-slate-400">
                         <div className="flex justify-between">
                           <span className="text-slate-600">Net Profit:</span>
-                          <span className={`font-bold ${isWinner ? "text-emerald-400" : "text-rose-400"}`}>₹{replayTrade.net_pnl.toFixed(2)}</span>
+                          <span className={`font-semibold${isWinner ? "text-emerald-400" : "text-rose-400"}`}>₹{replayTrade.net_pnl.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-slate-600">Charges:</span>
@@ -1760,11 +1966,11 @@ export const BacktestBottom: React.FC = () => {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-slate-600">Max Excurs (MFE):</span>
-                          <span className="text-emerald-400 font-bold">₹{maxRunUp.toFixed(2)}</span>
+                          <span className="text-emerald-400 font-semibold">₹{maxRunUp.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-slate-600">Max Advers (MAE):</span>
-                          <span className="text-rose-400 font-bold">₹{maxDrawdown.toFixed(2)}</span>
+                          <span className="text-rose-400 font-semibold">₹{maxDrawdown.toFixed(2)}</span>
                         </div>
                       </div>
                     </div>
@@ -1778,25 +1984,19 @@ export const BacktestBottom: React.FC = () => {
       })()}
       {!isReplayMode && <div className="contents">
           {/* Tabs selectors with high legibility title */}
-          <div className="flex items-center justify-between border-b border-subtle bg-deep/50 px-4 py-2 shrink-0 select-none font-sans">
+          <div className="flex items-center justify-between border-b bg-deep/50 px-4 py-2 shrink-0 select-none font-sans">
             <div className="flex items-center gap-6">
-              <span className="text-sm font-medium text-slate-300">Backtest ledger & analytics</span>
+              <span className="section font-medium text-slate-300">Backtest ledger & analytics</span>
               
-              <div className="tab-container flex items-center">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`tab-item ${activeTab === tab.id ? "active" : ""}`}
-                  >
-                    {tab.name}
-                  </button>
-                ))}
-              </div>
+              <SegmentedTabs
+                tabs={tabs.map(t => ({ id: t.id, label: t.name }))}
+                activeTabId={activeTab}
+                onChange={(id) => setActiveTab(id as any)}
+              />
             </div>
 
         {selectedInspectorParams && (
-          <div className="flex items-center gap-2 bg-cyan-950/40 border border-cyan-500/20 px-2 py-0.5 rounded text-xs font-mono text-cyan-300 animate-pulse">
+          <div className="flex items-center gap-2 bg-cyan-950/40 border border-cyan-500/20 px-2 py-0.5 rounded vdl-body font-mono text-cyan-300 animate-pulse">
             <Sliders className="w-3 h-3 text-cyan-400" />
             <span>INSPECTING: {JSON.stringify(selectedInspectorParams)}</span>
             <button
@@ -1804,7 +2004,7 @@ export const BacktestBottom: React.FC = () => {
                 setSelectedInspectorParams(null);
                 runV2Backtest(); // Reload original backtest
               }}
-              className="text-xs text-slate-400 hover:text-slate-200 font-bold ml-1 border-l border-white/10 pl-1 cursor-pointer transition-colors"
+              className="vdl-body text-slate-400 hover:text-slate-200 font-semibold ml-1 border-l pl-1 cursor-pointer transition-colors"
             >
               Clear
             </button>
@@ -1821,9 +2021,9 @@ export const BacktestBottom: React.FC = () => {
                 <div className="w-full panel p-4 flex flex-col gap-1.5 justify-center font-sans">
                   <div className="grid grid-cols-12 items-center gap-4">
                     {/* Hero metric: Net profit */}
-                    <div className="col-span-4 flex flex-col justify-center border-r border-white/5 pr-4">
-                      <span className="text-xs text-slate-500 font-medium">Net profit</span>
-                      <span className={`font-mono text-4xl font-black tracking-tight tabular-nums ${netProfit >= 0 ? "text-emerald-400" : "text-rose-500"}`}>
+                    <div className="col-span-4 flex flex-col justify-center border-r pr-4">
+                      <span className="vdl-body text-slate-500 font-medium">Net profit</span>
+                      <span className={`font-mono text-4xl font-semibold tabular-nums${netProfit >= 0 ? "text-emerald-400" : "text-rose-500"}`}>
                         ₹{netProfit.toLocaleString("en-IN")}
                       </span>
                     </div>
@@ -1831,26 +2031,26 @@ export const BacktestBottom: React.FC = () => {
                     {/* Secondary Metrics */}
                     <div className="col-span-8 grid grid-cols-4 gap-4 pl-2">
                       <div className="flex flex-col justify-center">
-                        <span className="text-xs text-slate-500 font-medium">Sharpe ratio</span>
-                        <span className="text-cyan-neon font-mono text-xl font-bold tabular-nums">
+                        <span className="vdl-body text-slate-500 font-medium">Sharpe ratio</span>
+                        <span className="text-cyan-neon font-mono display font-semibold tabular-nums">
                           {sharpe.toFixed(2)}
                         </span>
                       </div>
                       <div className="flex flex-col justify-center">
-                        <span className="text-xs text-slate-500 font-medium">Win rate</span>
-                        <span className="text-slate-100 font-mono text-xl font-bold tabular-nums">
+                        <span className="vdl-body text-slate-500 font-medium">Win rate</span>
+                        <span className="text-slate-100 font-mono display font-semibold tabular-nums">
                           {winRate.toFixed(1)}%
                         </span>
                       </div>
                       <div className="flex flex-col justify-center">
-                        <span className="text-xs text-slate-500 font-medium">Max drawdown</span>
-                        <span className="text-rose-500 font-mono text-xl font-bold tabular-nums">
+                        <span className="vdl-body text-slate-500 font-medium">Max drawdown</span>
+                        <span className="text-rose-500 font-mono display font-semibold tabular-nums">
                           -{Math.abs(maxDrawdown).toFixed(2)}%
                         </span>
                       </div>
                       <div className="flex flex-col justify-center">
-                        <span className="text-xs text-slate-500 font-medium">Expectancy</span>
-                        <span className={`font-mono text-xl font-bold tabular-nums ${
+                        <span className="vdl-body text-slate-500 font-medium">Expectancy</span>
+                        <span className={`font-mono display font-semibold tabular-nums${
                           (report?.performance?.expectancy || report?.performance?.avg_trade || 0) >= 0 ? "text-emerald-450" : "text-rose-500"
                         }`}>
                           ₹{(report?.performance?.expectancy || report?.performance?.avg_trade || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
@@ -1864,102 +2064,34 @@ export const BacktestBottom: React.FC = () => {
                 <div className="grid grid-cols-12 gap-5 w-full">
                   {/* Recent Trades Section */}
                   <div className="col-span-8 flex flex-col gap-3.5 panel p-4">
-                    <div className="flex justify-between items-center border-b border-subtle pb-2">
-                      <span className="text-sm font-medium text-slate-300">Recent trades</span>
+                    <div className="flex justify-between items-center border-b pb-2">
+                      <span className="section font-medium text-slate-300">Recent trades</span>
                       <button 
                         onClick={() => setActiveTab("trades")}
-                        className="text-xs text-cyan-neon font-bold hover:text-white transition-colors cursor-pointer"
+                        className="vdl-body text-cyan-neon font-semibold hover:text-white transition-colors cursor-pointer"
                       >
                         View full trade ledger &rarr;
                       </button>
                     </div>
 
                     <div className="overflow-x-auto">
-                      <table className="w-full text-left font-mono text-xs border-collapse">
-                        <thead>
-                          <tr className="text-slate-400 uppercase text-xs tracking-wider font-semibold border-b border-subtle bg-[#0E1320]/40 font-sans">
-                            <th className="py-2.5 pl-3">Time</th>
-                            <th className="py-2.5">Type</th>
-                            <th className="py-2.5">Instrument</th>
-                            <th className="py-2.5 text-center">Strike</th>
-                            <th className="py-2.5">Expiry</th>
-                            <th className="py-2.5 text-center">Qty</th>
-                            <th className="py-2.5 text-right">Entry Price</th>
-                            <th className="py-2.5 text-right">Exit Price</th>
-                            <th className="py-2.5 text-right">P&L (₹)</th>
-                            <th className="py-2.5 text-right">P&L (%)</th>
-                            <th className="py-2.5 text-center pr-3">Status</th>
-                          </tr>
-                        </thead>
-                        <tbody className="text-slate-200">
-                          {v2Result?.trades.slice(0, 5).map((t, idx) => {
-                            const isProfit = t.net_pnl >= 0;
-                            const strikeMatch = t.contract.match(new RegExp("\\d{5}"));
-                            const strike = strikeMatch ? strikeMatch[0] : "-";
-                            
-                            // Format instrument name (extract underlying symbol)
-                            const symbol = t.contract.split(" ")[0] || t.contract;
-                            const type = t.contract.includes("PE") ? "SELL" : "BUY";
-                            
-                            // Format entry date time beautifully
-                            const timeStr = new Date(t.entry_time).toLocaleTimeString("en-IN", { 
-                              hour: "2-digit", 
-                              minute: "2-digit", 
-                              second: "2-digit",
-                              timeZone: "Asia/Kolkata"
-                            });
-                            
-                            const expiryDate = t.contract.split(" ")[1] || "-";
-
-                            return (
-                              <tr key={idx} className="border-b border-subtle hover:bg-card-hover/40 transition-all h-[34px]">
-                                <td className="py-2 pl-3 text-slate-400">{timeStr}</td>
-                                <td className="py-2">
-                                  <span className={`px-1.5 py-0.5 rounded-sm text-xs font-bold font-sans uppercase ${
-                                    type === "BUY" ? "bg-emerald-950/40 text-emerald-400 border border-emerald-900/40" : "bg-rose-950/40 text-rose-400 border border-rose-900/40"
-                                  }`}>
-                                    {type}
-                                  </span>
-                                </td>
-                                <td className="py-2 font-sans font-bold text-slate-300">{symbol}</td>
-                                <td className="py-2 text-center">{strike}</td>
-                                <td className="py-2 text-slate-400 font-sans">{expiryDate}</td>
-                                <td className="py-2 text-center text-slate-300">{t.quantity}</td>
-                                <td className="py-2 text-right">₹{t.entry_premium.toFixed(2)}</td>
-                                <td className="py-2 text-right">₹{t.exit_premium.toFixed(2)}</td>
-                                <td className={`py-2 text-right font-bold ${isProfit ? "text-emerald-400" : "text-rose-455"}`}>
-                                  {isProfit ? "+" : ""}₹{t.net_pnl.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </td>
-                                <td className={`py-2 text-right font-bold ${isProfit ? "text-emerald-400" : "text-rose-455"}`}>
-                                  {isProfit ? "+" : ""}{((t.net_pnl / (t.entry_premium * t.quantity)) * 100).toFixed(2)}%
-                                </td>
-                                <td className="py-2 text-center pr-3">
-                                  <span className={`px-1.5 py-0.5 rounded-sm text-xs font-sans font-bold uppercase ${
-                                    isProfit ? "bg-emerald-950/40 text-emerald-400" : "bg-rose-950/40 text-rose-455"
-                                  }`}>
-                                    Closed
-                                  </span>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                          {(!v2Result || v2Result.trades.length === 0) && (
-                            <tr>
-                              <td colSpan={11} className="py-6 text-center text-slate-500 font-sans">
-                                No recent trades executed in this backtest.
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
+                      <DataTable
+                        columns={recentTradesColumns}
+                        data={v2Result?.trades.slice(0, 5) || []}
+                        emptyState={
+                          <span className="text-[12px] font-sans text-slate-500">
+                            No recent trades executed in this backtest.
+                          </span>
+                        }
+                      />
                     </div>
                   </div>
 
                   {/* Equity Curve Visual Card */}
-                  <div className="col-span-4 bg-[#111625] border border-subtle p-4 rounded-md flex flex-col justify-between shadow-sm min-h-[170px]">
+                  <div className="col-span-4 bg-[#111625]  p-4 rounded-md flex flex-col justify-between shadow-sm min-h-[170px]">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Equity Curve</span>
-                      <span className="text-xs font-mono text-slate-500">Compounding growth</span>
+                      <span className="vdl-body text-slate-400 font-semibold">Equity Curve</span>
+                      <span className="vdl-body font-mono text-slate-500">Compounding growth</span>
                     </div>
                     
                     {/* Glowing Compound curve SVG representation */}
@@ -2000,52 +2132,19 @@ export const BacktestBottom: React.FC = () => {
             {activeTab === "trades" && (
               <div className="flex gap-4 h-full min-h-[300px]">
                 <div className="flex-1 overflow-x-auto">
-                  <table className="w-full text-left font-mono text-xs border-collapse">
-                    <thead>
-                      <tr className="border-b border-subtle text-slate-500 uppercase select-none text-xs tracking-wider bg-card-hover font-sans">
-                        <th className="py-3.5 pl-3">Contract Details</th>
-                        <th className="py-3.5">Entry Time</th>
-                        <th className="py-3.5">Exit Time</th>
-                        <th className="py-3.5 text-right">Entry Premium</th>
-                        <th className="py-3.5 text-right">Exit Premium</th>
-                        <th className="py-3.5 text-center">Qty</th>
-                        <th className="py-3.5 text-right">Gross PnL</th>
-                        <th className="py-3.5 text-right">Charges</th>
-                        <th className="py-3.5 text-right pr-3">Net PnL</th>
-                      </tr>
-                    </thead>
-                    <tbody className="text-main">
-                      {v2Result?.trades.map((t) => (
-                        <tr 
-                          key={t.position_id} 
-                          onClick={() => setSelectedTradeId(t.position_id)}
-                          className={`table-row transition-colors cursor-pointer ${
-                            selectedTradeId === t.position_id ? "bg-cyan-neon/10" : ""
-                          }`}
-                        >
-                          <td className="py-3 pl-3 text-cyan-neon font-bold">{t.contract}</td>
-                          <td className="py-3 text-slate-400 font-sans">{new Date(t.entry_time).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST</td>
-                          <td className="py-3 text-slate-400 font-sans">{new Date(t.exit_time).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST</td>
-                          <td className="py-3 text-right">₹{t.entry_premium.toFixed(2)}</td>
-                          <td className="py-3 text-right">₹{t.exit_premium.toFixed(2)}</td>
-                          <td className="py-3 text-center text-main">{t.quantity}</td>
-                          <td className={`py-3 text-right font-bold ${t.gross_pnl > 0 ? "text-emerald-400" : "text-rose-455"}`}>
-                            ₹{t.gross_pnl.toFixed(2)}
-                          </td>
-                          <td className="py-3 text-right text-slate-500">₹{t.charges.total_charges.toFixed(2)}</td>
-                          <td className={`py-3 text-right font-bold ${t.net_pnl > 0 ? "text-emerald-400" : "text-rose-455"} pr-3`}>
-                            ₹{t.net_pnl.toFixed(2)}
-                          </td>
-                        </tr>
-                      ))}
-                      {(!v2Result || v2Result.trades.length === 0) && (
-                        <tr>
-                          <td colSpan={9}><div className="empty-state">No backtest dataset loaded. Click "Run Backtest" in the parameter cockpit to run simulation.
-                          </div></td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+                  <DataTable
+                    columns={tradeLedgerColumns}
+                    data={v2Result?.trades || []}
+                    onRowClick={(row) => setSelectedTradeId(row.position_id)}
+                    rowClassName={(row) => selectedTradeId === row.position_id ? "!bg-cyan-500/10" : ""}
+                    emptyState={
+                      <EmptyState
+                        icon={TrendingUp}
+                        title="No Backtest Dataset Loaded"
+                        description="Click 'Run Backtest' in the parameter cockpit to run simulation."
+                      />
+                    }
+                  />
                 </div>
 
                 {/* Trade Inspector Panel */}
@@ -2068,7 +2167,7 @@ export const BacktestBottom: React.FC = () => {
                   const strategyName = v2Config.strategy_name || "EMA Crossover Strategy";
 
                   return (
-                    <div className="w-80 bg-slate-950/40 border border-white/5 p-3.5 rounded shadow-lg shrink-0 flex flex-col gap-3 relative min-h-[300px]">
+                    <div className="w-80 bg-card/45 p-3.5 rounded shadow-lg shrink-0 flex flex-col gap-3 relative min-h-[300px]">
                       {/* Close Button */}
                       <button 
                         onClick={(e) => {
@@ -2082,9 +2181,9 @@ export const BacktestBottom: React.FC = () => {
                       </button>
 
                       {/* Inspector Header */}
-                      <div className="text-slate-400 font-bold uppercase tracking-widest text-xs block mb-1 border-b border-white/5 pb-1 flex items-center justify-between">
+                      <div className="text-slate-400 font-semibold vdl-body block mb-1 border-b pb-1 flex items-center justify-between">
                         <span>Trade #{tradeIndex + 1} Inspector</span>
-                        <span className={`px-1.5 py-0.5 rounded text-xs font-bold ${
+                        <span className={`px-1.5 py-0.5 rounded vdl-body font-semibold${
                           isWinner ? "bg-emerald-950/40 text-emerald-400 border border-emerald-800/30" : "bg-rose-950/40 text-rose-400 border border-rose-800/30"
                         }`}>
                           {isWinner ? "WINNER" : "LOSER"}
@@ -2092,8 +2191,8 @@ export const BacktestBottom: React.FC = () => {
                       </div>
 
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-[12px] font-bold text-slate-100">{selectedTrade.contract}</span>
-                        <span className={`text-xs font-mono font-bold ${isWinner ? "text-emerald-400" : "text-rose-400"}`}>
+                        <span className="text-[12px] font-semibold text-slate-100">{selectedTrade.contract}</span>
+                        <span className={`body font-mono font-semibold${isWinner ? "text-emerald-400" : "text-rose-400"}`}>
                           {isWinner ? "+" : ""}₹{selectedTrade.net_pnl.toFixed(2)} Net PnL
                         </span>
                       </div>
@@ -2101,9 +2200,9 @@ export const BacktestBottom: React.FC = () => {
                       {/* Scrollable details container */}
                       <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-2.5 max-h-[340px] scrollbar-thin scrollbar-thumb-white/5">
                         {/* Position Details Group */}
-                        <div className="bg-slate-900/30 p-2 rounded border border-white/5 flex flex-col gap-1.5">
-                          <span className="text-cyan-400/80 font-bold text-xs uppercase tracking-wider">Position Details</span>
-                          <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                        <div className="bg-card/30 p-2 rounded  flex flex-col gap-1.5">
+                          <span className="text-cyan-400/80 font-semibold vdl-body">Position Details</span>
+                          <div className="grid grid-cols-2 gap-x-3 gap-y-1 vdl-body">
                             <div className="flex justify-between">
                               <span className="text-slate-500">Strike:</span>
                               <span className="text-slate-300 font-mono">{strike}</span>
@@ -2114,7 +2213,7 @@ export const BacktestBottom: React.FC = () => {
                             </div>
                             <div className="flex justify-between">
                               <span className="text-slate-500">Type:</span>
-                              <span className="text-slate-300 font-mono font-bold text-cyan-400">{optionType}</span>
+                              <span className="text-slate-300 font-mono font-semibold text-cyan-400">{optionType}</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-slate-500">Qty:</span>
@@ -2130,7 +2229,7 @@ export const BacktestBottom: React.FC = () => {
                             </div>
                             <div className="flex justify-between">
                               <span className="text-slate-500">Gross:</span>
-                              <span className={`font-mono font-bold ${selectedTrade.gross_pnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                              <span className={`font-mono font-semibold${selectedTrade.gross_pnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                                 ₹{selectedTrade.gross_pnl.toFixed(2)}
                               </span>
                             </div>
@@ -2142,9 +2241,9 @@ export const BacktestBottom: React.FC = () => {
                         </div>
 
                         {/* Execution Timing Group */}
-                        <div className="bg-slate-900/30 p-2 rounded border border-white/5 flex flex-col gap-1.5">
-                          <span className="text-cyan-400/80 font-bold text-xs uppercase tracking-wider">Execution Timing</span>
-                          <div className="flex flex-col gap-1 text-xs">
+                        <div className="bg-card/30 p-2 rounded  flex flex-col gap-1.5">
+                          <span className="text-cyan-400/80 font-semibold vdl-body">Execution Timing</span>
+                          <div className="flex flex-col gap-1 vdl-body">
                             <div className="flex justify-between">
                               <span className="text-slate-500">Entry Time:</span>
                               <span className="text-slate-300 font-mono">{new Date(selectedTrade.entry_time).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST</span>
@@ -2155,44 +2254,44 @@ export const BacktestBottom: React.FC = () => {
                             </div>
                             <div className="flex justify-between">
                               <span className="text-slate-500">Duration:</span>
-                              <span className="text-amber-400 font-mono font-bold">{getHoldingDuration(selectedTrade.entry_time, selectedTrade.exit_time)}</span>
+                              <span className="text-amber-400 font-mono font-semibold">{getHoldingDuration(selectedTrade.entry_time, selectedTrade.exit_time)}</span>
                             </div>
                           </div>
                         </div>
 
                         {/* Signals Group */}
-                        <div className="bg-slate-900/30 p-2 rounded border border-white/5 flex flex-col gap-1.5">
-                          <span className="text-cyan-400/80 font-bold text-xs uppercase tracking-wider">Signal Information</span>
-                          <div className="flex flex-col gap-1.5 text-xs">
+                        <div className="bg-card/30 p-2 rounded  flex flex-col gap-1.5">
+                          <span className="text-cyan-400/80 font-semibold vdl-body">Signal Information</span>
+                          <div className="flex flex-col gap-1.5 vdl-body">
                             <div className="flex justify-between">
                               <span className="text-slate-500">Strategy:</span>
-                              <span className="text-slate-300 font-bold">{strategyName}</span>
+                              <span className="text-slate-300 font-semibold">{strategyName}</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-slate-500">Signal Type:</span>
                               <span className="text-slate-300 font-mono">{optionType}</span>
                             </div>
-                            <div className="flex flex-col gap-0.5 border-t border-subtle pt-1 mt-0.5">
-                              <span className="text-slate-500 text-xs font-bold">Buy Reason:</span>
-                              <span className="text-slate-400 italic text-xs bg-slate-950/40 p-1.5 rounded mt-0.5 select-text leading-normal">
+                            <div className="flex flex-col gap-0.5 border-t pt-1 mt-0.5">
+                              <span className="text-slate-500 vdl-body font-semibold">Buy Reason:</span>
+                              <span className="text-slate-400 italic vdl-body bg-card/40 p-1.5 rounded mt-0.5 select-text leading-normal">
                                 {buyReason}
                               </span>
                             </div>
                             <div className="flex flex-col gap-0.5">
-                              <span className="text-slate-500 text-xs font-bold">Sell Reason:</span>
-                              <span className="text-slate-400 italic text-xs bg-slate-950/40 p-1.5 rounded mt-0.5 select-text leading-normal">
+                              <span className="text-slate-500 vdl-body font-semibold">Sell Reason:</span>
+                              <span className="text-slate-400 italic vdl-body bg-card/40 p-1.5 rounded mt-0.5 select-text leading-normal">
                                 {sellReason}
                               </span>
                             </div>
-                            <div className="flex justify-between border-t border-subtle pt-1 mt-0.5">
+                            <div className="flex justify-between border-t pt-1 mt-0.5">
                               <span className="text-slate-500">Entry Signal Time:</span>
-                              <span className="text-slate-300 font-mono text-xs">
+                              <span className="text-slate-300 font-mono vdl-body">
                                 {entryMarker?.timestamp ? new Date(entryMarker.timestamp).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) + " IST" : "Signal reason not yet recorded"}
                               </span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-slate-500">Exit Signal Time:</span>
-                              <span className="text-slate-300 font-mono text-xs">
+                              <span className="text-slate-300 font-mono vdl-body">
                                 {exitMarker?.timestamp ? new Date(exitMarker.timestamp).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) + " IST" : "Signal reason not yet recorded"}
                               </span>
                             </div>
@@ -2206,7 +2305,7 @@ export const BacktestBottom: React.FC = () => {
                             const entryTime = Math.floor(new Date(selectedTrade.entry_time).getTime() / 1000);
                             setReplayCurrentTime(entryTime);
                           }}
-                          className="w-full bg-cyan-500 hover:bg-cyan-400 active:bg-cyan-600 text-slate-950 font-bold uppercase tracking-wider py-2 rounded text-xs flex items-center justify-center gap-1.5 transition-all shadow-md mt-2 cursor-pointer transition-colors"
+                          className="w-full bg-cyan-500 hover:bg-cyan-400 active:bg-cyan-600 text-slate-950 font-semibold py-2 rounded vdl-body flex items-center justify-center gap-1.5 transition-all shadow-md mt-2 cursor-pointer transition-colors"
                         >
                           <Play className="w-3.5 h-3.5 fill-current" />
                           Replay Trade
@@ -2251,49 +2350,49 @@ export const BacktestBottom: React.FC = () => {
                   <span>No metrics calculated. Click "Run Backtest" in the parameter cockpit to run simulation.</span>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-4 max-w-3xl font-mono text-xs select-none">
+                <div className="grid grid-cols-2 gap-4 max-w-3xl font-mono vdl-body select-none">
                   <div className="flex flex-col gap-1.5">
-                    <div className="flex justify-between border-b border-white/5 py-1">
+                    <div className="flex justify-between border-b py-1">
                       <span className="text-slate-500">NET PROFIT:</span>
-                      <span className="text-emerald-400 font-bold">₹{report.performance.net_profit.toLocaleString("en-IN")}</span>
+                      <span className="text-emerald-400 font-semibold">₹{report.performance.net_profit.toLocaleString("en-IN")}</span>
                     </div>
-                    <div className="flex justify-between border-b border-white/5 py-1">
+                    <div className="flex justify-between border-b py-1">
                       <span className="text-slate-500">GROSS PROFIT:</span>
-                      <span className="text-slate-300 font-bold">₹{report.performance.gross_profit.toLocaleString("en-IN")}</span>
+                      <span className="text-slate-300 font-semibold">₹{report.performance.gross_profit.toLocaleString("en-IN")}</span>
                     </div>
-                    <div className="flex justify-between border-b border-white/5 py-1">
+                    <div className="flex justify-between border-b py-1">
                       <span className="text-slate-500">GROSS LOSS:</span>
-                      <span className="text-rose-400 font-bold">₹{report.performance.gross_loss.toLocaleString("en-IN")}</span>
+                      <span className="text-rose-400 font-semibold">₹{report.performance.gross_loss.toLocaleString("en-IN")}</span>
                     </div>
-                    <div className="flex justify-between border-b border-white/5 py-1">
+                    <div className="flex justify-between border-b py-1">
                       <span className="text-slate-500">PROFIT FACTOR:</span>
-                      <span className="text-slate-300 font-bold">{report.performance.profit_factor.toFixed(2)}</span>
+                      <span className="text-slate-300 font-semibold">{report.performance.profit_factor.toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between border-b border-white/5 py-1">
+                    <div className="flex justify-between border-b py-1">
                       <span className="text-slate-500">EXPECTANCY:</span>
-                      <span className="text-slate-300 font-bold">₹{report.performance.expectancy.toFixed(2)}</span>
+                      <span className="text-slate-300 font-semibold">₹{report.performance.expectancy.toFixed(2)}</span>
                     </div>
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <div className="flex justify-between border-b border-white/5 py-1">
+                    <div className="flex justify-between border-b py-1">
                       <span className="text-slate-500">SHARPE RATIO:</span>
-                      <span className="text-cyan-400 font-bold">{report.sharpe_ratio.toFixed(2)}</span>
+                      <span className="text-cyan-400 font-semibold">{report.sharpe_ratio.toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between border-b border-white/5 py-1">
+                    <div className="flex justify-between border-b py-1">
                       <span className="text-slate-500">SORTINO RATIO:</span>
-                      <span className="text-cyan-400 font-bold">{report.sortino_ratio.toFixed(2)}</span>
+                      <span className="text-cyan-400 font-semibold">{report.sortino_ratio.toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between border-b border-white/5 py-1">
+                    <div className="flex justify-between border-b py-1">
                       <span className="text-slate-500">MAX DRAWDOWN:</span>
-                      <span className="text-rose-400 font-bold">-{report.max_drawdown_pct.toFixed(2)}%</span>
+                      <span className="text-rose-400 font-semibold">-{report.max_drawdown_pct.toFixed(2)}%</span>
                     </div>
-                    <div className="flex justify-between border-b border-white/5 py-1">
+                    <div className="flex justify-between border-b py-1">
                       <span className="text-slate-500">WIN RATE / LOSS RATE:</span>
-                      <span className="text-slate-300 font-bold">{report.trade_stats.win_rate.toFixed(1)}% / {report.trade_stats.loss_rate.toFixed(1)}%</span>
+                      <span className="text-slate-300 font-semibold">{report.trade_stats.win_rate.toFixed(1)}% / {report.trade_stats.loss_rate.toFixed(1)}%</span>
                     </div>
-                    <div className="flex justify-between border-b border-white/5 py-1">
+                    <div className="flex justify-between border-b py-1">
                       <span className="text-slate-500">STREAK WINS / LOSSES:</span>
-                      <span className="text-slate-300 font-bold">{report.performance.max_consecutive_wins} wins / {report.performance.max_consecutive_losses} losses</span>
+                      <span className="text-slate-300 font-semibold">{report.performance.max_consecutive_wins} wins / {report.performance.max_consecutive_losses} losses</span>
                     </div>
                   </div>
                 </div>
@@ -2304,12 +2403,12 @@ export const BacktestBottom: React.FC = () => {
             {activeTab === "runtime" && (
               <div className="flex flex-col gap-3 font-sans h-full min-h-[350px]">
                 {/* Filters Header */}
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/5 pb-2 shrink-0 select-none">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b pb-2 shrink-0 select-none">
                   {/* Category Pills */}
                   <div className="flex flex-wrap gap-1">
                     {["ALL", "SYSTEM", "SIGNAL", "POSITION", "PNL", "METRICS", "ERROR"].map((cat) => {
                       const isActive = logCategoryFilter === cat;
-                      let badgeStyle = "text-slate-400 hover:text-slate-300 hover:bg-slate-900 border-transparent";
+                      let badgeStyle = "text-slate-400 hover:text-slate-300 hover:bg-card border-transparent";
                       if (isActive) {
                         if (cat === "ALL") badgeStyle = "bg-slate-800 text-white border-slate-700";
                         else if (cat === "SYSTEM") badgeStyle = "bg-blue-500/10 text-blue-400 border-blue-500/20";
@@ -2326,7 +2425,7 @@ export const BacktestBottom: React.FC = () => {
                             setLogCategoryFilter(cat);
                             setExpandedLogId(null);
                           }}
-                          className={`text-xs font-bold px-2 py-0.5 border rounded uppercase tracking-wider transition-all duration-150 cursor-pointer ${badgeStyle}`}
+                          className={`body font-semibold px-2 py-0.5 border rounded transition-all duration-150 cursor-pointer${badgeStyle}`}
                         >
                           {cat}
                         </button>
@@ -2341,7 +2440,7 @@ export const BacktestBottom: React.FC = () => {
                       placeholder="Search execution logs..."
                       value={logSearchQuery}
                       onChange={(e) => setLogSearchQuery(e.target.value)}
-                      className="text-xs w-48 bg-slate-950 border border-white/10 px-2 py-1 pl-6 rounded text-slate-300 placeholder-slate-500 outline-none focus:border-cyan-500/40 transition-all duration-150"
+                      className="vdl-body w-48 bg-card  px-2 py-1 pl-6 rounded text-slate-300 placeholder-slate-500 outline-none focus:border-cyan-500/40 transition-all duration-150"
                     />
                     <svg className="w-3 h-3 absolute left-2 top-2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -2358,7 +2457,7 @@ export const BacktestBottom: React.FC = () => {
                 </div>
 
                 {/* Console Output Scroll Box */}
-                <div className="flex-1 overflow-y-auto max-h-96 min-h-[300px] font-mono text-xs text-slate-300 bg-slate-950/80 border border-white/5 rounded-lg p-2.5 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
+                <div className="flex-1 overflow-y-auto max-h-96 min-h-[300px] font-mono vdl-body text-slate-300 bg-card/80  rounded-lg p-2.5 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
                   {v2Result?.runtime_logs && v2Result.runtime_logs.length > 0 ? (
                     (() => {
                       const filtered = v2Result.runtime_logs.filter(log => {
@@ -2401,28 +2500,28 @@ export const BacktestBottom: React.FC = () => {
                         }
 
                         return (
-                          <div key={idx} className="border-b border-white/5 last:border-0">
+                          <div key={idx} className="border-b last:border-0">
                             {/* Log Row */}
                             <div 
                               onClick={() => hasMetadata && setExpandedLogId(isExpanded ? null : idx)}
-                              className={`flex items-start gap-2.5 py-1 px-1.5 hover:bg-white/5 transition-all duration-100 rounded cursor-pointer select-none ${isExpanded ? 'bg-white/5' : ''}`}
+                              className={`flex items-start gap-2.5 py-1 px-1.5 hover:bg-white/5 transition-all duration-100 rounded cursor-pointer select-none${isExpanded ? 'bg-white/5' : ''}`}
                             >
                               {/* Timestamp */}
-                              <span className="text-slate-500 shrink-0 select-none text-xs">{logTime}</span>
+                              <span className="text-slate-500 shrink-0 select-none vdl-body">{logTime}</span>
                               
                               {/* Category Badge */}
-                              <span className={`px-1.5 py-0.5 text-xs font-bold border rounded uppercase shrink-0 select-none tracking-wider ${catBadge}`}>
+                              <span className={`px-1.5 py-0.5 vdl-body font-semibold border rounded shrink-0 select-none${catBadge}`}>
                                 {log.category}
                               </span>
 
                               {/* Message */}
-                              <span className={`flex-1 break-all ${textStyle}`}>
+                              <span className={`flex-1 break-all${textStyle}`}>
                                 {log.message}
                               </span>
 
                               {/* Expansion Indicator */}
                               {hasMetadata && (
-                                <span className="text-slate-500 text-xs shrink-0 font-bold select-none hover:text-slate-300">
+                                <span className="text-slate-500 vdl-body shrink-0 font-semibold select-none hover:text-slate-300">
                                   {isExpanded ? "▼ METADATA" : "▶ METADATA"}
                                 </span>
                               )}
@@ -2430,13 +2529,13 @@ export const BacktestBottom: React.FC = () => {
 
                             {/* Metadata Expandable Block */}
                             {isExpanded && hasMetadata && (
-                              <div className="bg-slate-950 border-x border-b border-white/5 p-3 mx-1.5 mb-1.5 rounded-b text-xs text-slate-400 max-h-48 overflow-y-auto">
-                                <div className="text-cyan-400/80 uppercase font-bold tracking-wider text-xs mb-1.5">Payload Details:</div>
+                              <div className="bg-card border-x border-b p-3 mx-1.5 mb-1.5 rounded-b vdl-body text-slate-400 max-h-48 overflow-y-auto">
+                                <div className="text-cyan-400/80 font-semibold vdl-body mb-1.5">Payload Details:</div>
                                 <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                                   {Object.entries(log.metadata).map(([key, val]) => (
-                                    <div key={key} className="flex border-b border-white/5 py-0.5 last:border-0">
-                                      <span className="text-slate-500 font-bold w-24 shrink-0 uppercase tracking-wide">{key}:</span>
-                                      <span className="text-slate-300 break-all text-xs">
+                                    <div key={key} className="flex border-b py-0.5 last:border-0">
+                                      <span className="text-slate-500 font-semibold w-24 shrink-0">{key}:</span>
+                                      <span className="text-slate-300 break-all vdl-body">
                                         {typeof val === "object" ? JSON.stringify(val) : String(val)}
                                       </span>
                                     </div>
@@ -2451,7 +2550,7 @@ export const BacktestBottom: React.FC = () => {
                   ) : logs && logs.length > 0 ? (
                     // Fallback to legacy string logs
                     logs.map((log, idx) => (
-                      <div key={idx} className="py-0.5 border-b border-white/5 last:border-0">{log}</div>
+                      <div key={idx} className="py-0.5 border-b last:border-0">{log}</div>
                     ))
                   ) : (
                     <div className="text-slate-500 italic p-6 text-center select-none">No logs available. Click "Run Backtest" or "Run Parameter Sweep" to begin.</div>
@@ -2462,13 +2561,13 @@ export const BacktestBottom: React.FC = () => {
 
         {/* Optimization Tab */}
         {activeTab === "optimization" && (
-          <div className="flex flex-col h-full min-h-0 text-xs font-sans">
+          <div className="flex flex-col h-full min-h-0 vdl-body font-sans">
             {/* Tab navigation inside Optimization */}
-            <div className="flex gap-1.5 mb-3.5 border-b border-white/5 pb-1 select-none shrink-0">
+            <div className="flex gap-1.5 mb-3.5 border-b pb-1 select-none shrink-0">
               <button
                 onClick={() => setOptTab("setup")}
-                className={`px-3 py-1.5 font-bold uppercase tracking-wider text-xs rounded-t transition-all cursor-pointer ${
-                  optTab === "setup" ? "bg-slate-900/60 border-t border-x border-white/10 text-cyan-400" : "text-slate-500 hover:text-slate-300"
+                className={`px-3 py-1.5 font-semibold vdl-body rounded-t transition-all cursor-pointer${
+                  optTab === "setup" ? "bg-card/60 border-t border-x text-cyan-400" : "text-slate-500 hover:text-slate-300"
                 }`}
               >
                 Configuration
@@ -2476,8 +2575,8 @@ export const BacktestBottom: React.FC = () => {
               <button
                 onClick={() => setOptTab("ranked")}
                 disabled={!v2OptimizationReport}
-                className={`px-3 py-1.5 font-bold uppercase tracking-wider text-xs rounded-t transition-all cursor-pointer disabled:opacity-30 ${
-                  optTab === "ranked" ? "bg-slate-900/60 border-t border-x border-white/10 text-cyan-400" : "text-slate-500 hover:text-slate-300"
+                className={`px-3 py-1.5 font-semibold vdl-body rounded-t transition-all cursor-pointer disabled:opacity-30${
+                  optTab === "ranked" ? "bg-card/60 border-t border-x text-cyan-400" : "text-slate-500 hover:text-slate-300"
                 }`}
               >
                 Ranked Combinations
@@ -2485,8 +2584,8 @@ export const BacktestBottom: React.FC = () => {
               <button
                 onClick={() => setOptTab("heatmap")}
                 disabled={!v2OptimizationReport}
-                className={`px-3 py-1.5 font-bold uppercase tracking-wider text-xs rounded-t transition-all cursor-pointer disabled:opacity-30 ${
-                  optTab === "heatmap" ? "bg-slate-900/60 border-t border-x border-white/10 text-cyan-400" : "text-slate-500 hover:text-slate-300"
+                className={`px-3 py-1.5 font-semibold vdl-body rounded-t transition-all cursor-pointer disabled:opacity-30${
+                  optTab === "heatmap" ? "bg-card/60 border-t border-x text-cyan-400" : "text-slate-500 hover:text-slate-300"
                 }`}
               >
                 Heatmap Analytics
@@ -2496,93 +2595,93 @@ export const BacktestBottom: React.FC = () => {
             {/* Sweep setup panel */}
             {optTab === "setup" && (
               <div className="grid grid-cols-2 gap-4 max-w-2xl select-none">
-                <div className="flex flex-col gap-3.5 bg-slate-900/10 border border-white/5 p-4 rounded shadow-sm">
-                  <span className="text-cyan-400 font-bold uppercase tracking-widest text-xs block border-b border-white/5 pb-1.5 mb-1.5 flex items-center gap-1.5">
+                <div className="flex flex-col gap-3.5 bg-card/10  p-4 rounded shadow-sm">
+                  <span className="text-cyan-400 font-semibold vdl-body block border-b pb-1.5 mb-1.5 flex items-center gap-1.5">
                     <SlidersHorizontal className="w-3.5 h-3.5 text-cyan-400/80" />
                     <span>Fast EMA Sweep Range</span>
                   </span>
                   <div className="grid grid-cols-3 gap-2.5">
                     <div className="flex flex-col gap-1.5">
-                      <span className="text-slate-500 uppercase text-xs font-semibold tracking-wider">Min</span>
+                      <span className="text-slate-500 vdl-body font-semibold">Min</span>
                       <input
                         type="number"
                         value={fastEmaStart}
                         onChange={(e) => setFastEmaStart(Number(e.target.value))}
-                        className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium text-xs"
+                        className="bg-card  hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium vdl-body"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <span className="text-slate-500 uppercase text-xs font-semibold tracking-wider">Max</span>
+                      <span className="text-slate-500 vdl-body font-semibold">Max</span>
                       <input
                         type="number"
                         value={fastEmaEnd}
                         onChange={(e) => setFastEmaEnd(Number(e.target.value))}
-                        className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium text-xs"
+                        className="bg-card  hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium vdl-body"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <span className="text-slate-500 uppercase text-xs font-semibold tracking-wider">Step</span>
+                      <span className="text-slate-500 vdl-body font-semibold">Step</span>
                       <input
                         type="number"
                         value={fastEmaStep}
                         onChange={(e) => setFastEmaStep(Number(e.target.value))}
-                        className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium text-xs"
+                        className="bg-card  hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium vdl-body"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-3.5 bg-slate-900/10 border border-white/5 p-4 rounded shadow-sm">
-                  <span className="text-cyan-400 font-bold uppercase tracking-widest text-xs block border-b border-white/5 pb-1.5 mb-1.5 flex items-center gap-1.5">
+                <div className="flex flex-col gap-3.5 bg-card/10  p-4 rounded shadow-sm">
+                  <span className="text-cyan-400 font-semibold vdl-body block border-b pb-1.5 mb-1.5 flex items-center gap-1.5">
                     <SlidersHorizontal className="w-3.5 h-3.5 text-cyan-400/80" />
                     <span>Slow EMA Sweep Range</span>
                   </span>
                   <div className="grid grid-cols-3 gap-2.5">
                     <div className="flex flex-col gap-1.5">
-                      <span className="text-slate-500 uppercase text-xs font-semibold tracking-wider">Min</span>
+                      <span className="text-slate-500 vdl-body font-semibold">Min</span>
                       <input
                         type="number"
                         value={slowEmaStart}
                         onChange={(e) => setSlowEmaStart(Number(e.target.value))}
-                        className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium text-xs"
+                        className="bg-card  hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium vdl-body"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <span className="text-slate-500 uppercase text-xs font-semibold tracking-wider">Max</span>
+                      <span className="text-slate-500 vdl-body font-semibold">Max</span>
                       <input
                         type="number"
                         value={slowEmaEnd}
                         onChange={(e) => setSlowEmaEnd(Number(e.target.value))}
-                        className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium text-xs"
+                        className="bg-card  hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium vdl-body"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <span className="text-slate-500 uppercase text-xs font-semibold tracking-wider">Step</span>
+                      <span className="text-slate-500 vdl-body font-semibold">Step</span>
                       <input
                         type="number"
                         value={slowEmaStep}
                         onChange={(e) => setSlowEmaStep(Number(e.target.value))}
-                        className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium text-xs"
+                        className="bg-card  hover:border-cyan-500/20 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium vdl-body"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center bg-slate-900/10 border border-white/5 p-4 rounded col-span-2 mt-2 shadow-sm">
+                <div className="flex justify-between items-center bg-card/10  p-4 rounded col-span-2 mt-2 shadow-sm">
                   <div className="flex items-center gap-2">
-                    <span className="text-slate-400 font-bold uppercase tracking-wider text-xs">Parallel Threads:</span>
+                    <span className="text-slate-400 font-semibold vdl-body">Parallel Threads:</span>
                     <input
                       type="number"
                       value={workerCount}
                       onChange={(e) => setWorkerCount(Number(e.target.value))}
-                      className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded w-16 px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium"
+                      className="bg-card  hover:border-cyan-500/20 rounded w-16 px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all font-mono font-medium"
                     />
                   </div>
 
                   <button
                     onClick={handleRunOptimization}
                     disabled={isOptimizationLoading}
-                    className="bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-950 font-bold px-5 py-2 rounded transition-all cursor-pointer tracking-wider uppercase text-xs shadow-lg shadow-cyan-500/15"
+                    className="bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-950 font-semibold px-5 py-2 rounded transition-all cursor-pointer vdl-body shadow-lg shadow-cyan-500/15"
                   >
                     {isOptimizationLoading ? "Running Sweep..." : "Run Parameter Sweep"}
                   </button>
@@ -2593,86 +2692,42 @@ export const BacktestBottom: React.FC = () => {
             {/* Ranked combinations */}
             {optTab === "ranked" && v2OptimizationReport && (
               <div className="flex flex-col gap-3">
-                <div className="flex justify-between items-center select-none bg-slate-950/20 p-2 rounded border border-white/5">
+                <div className="flex justify-between items-center select-none bg-card/20 p-2 rounded ">
                   <div className="flex gap-2">
                     {(["top10", "top25", "top50"] as const).map((f) => (
                       <button
                         key={f}
                         onClick={() => setRankedFilter(f)}
-                        className={`px-3 py-1 rounded border text-xs font-mono cursor-pointer font-bold tracking-wider transition-all ${
+                        className={`px-3 py-1 rounded border vdl-body font-mono cursor-pointer font-semibold transition-all${
                           rankedFilter === f
                             ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400"
-                            : "bg-slate-900 border-white/5 text-slate-500 hover:text-slate-400"
+                            : "bg-card text-slate-500 hover:text-slate-400"
                         }`}
                       >
                         {f.toUpperCase()}
                       </button>
                     ))}
                   </div>
-                  <span className="text-slate-500 text-xs font-mono">
-                    Executed: <span className="text-slate-300 font-bold">{v2OptimizationReport.run_info.executed_combinations}</span> runs | Skipped: <span className="text-slate-300 font-bold">{v2OptimizationReport.run_info.skipped_combinations}</span>
+                  <span className="text-slate-500 vdl-body font-mono">
+                    Executed: <span className="text-slate-300 font-semibold">{v2OptimizationReport.run_info.executed_combinations}</span> runs | Skipped: <span className="text-slate-300 font-semibold">{v2OptimizationReport.run_info.skipped_combinations}</span>
                   </span>
                 </div>
 
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left font-mono text-xs border-collapse">
-                    <thead>
-                      <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-xs tracking-wider bg-slate-950/20">
-                        <th className="py-2 pl-2">Rank</th>
-                        <th className="py-2">Parameters (Fast / Slow)</th>
-                        <th className="py-2 text-right">Net Profit</th>
-                        <th className="py-2 text-right">Profit Factor</th>
-                        <th className="py-2 text-right">Expectancy</th>
-                        <th className="py-2 text-right">Sharpe</th>
-                        <th className="py-2 text-right">Sortino</th>
-                        <th className="py-2 text-right">Max Drawdown</th>
-                        <th className="py-2 text-right">Score</th>
-                        <th className="py-2 text-center pr-2">Sensitivity</th>
-                      </tr>
-                    </thead>
-                    <tbody className="text-slate-300">
-                      {getRankedList().map((item, index) => {
-                        const paramsKey = JSON.stringify(item.combination.params);
-                        const isInspected = JSON.stringify(selectedInspectorParams) === paramsKey;
-                        const stability = v2OptimizationReport.stability_findings[paramsKey];
-
-                        return (
-                          <tr
-                            key={index}
-                            onClick={() => handleInspectParams(item.combination.params)}
-                            className={`border-b border-subtle even:bg-slate-900/10 hover:bg-card-hover cursor-pointer transition-colors ${
-                              isInspected ? "bg-cyan-500/10 border-cyan-500/20" : ""
-                            }`}
-                          >
-                            <td className="py-2 pl-2 text-slate-500">#{index + 1}</td>
-                            <td className="py-2 text-cyan-400 font-bold">
-                              Fast: {item.combination.params.fastEma || item.combination.params.fast_period} | Slow: {item.combination.params.slowEma || item.combination.params.slow_period}
-                            </td>
-                            <td className={`py-2 text-right font-bold ${item.net_profit > 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                              ₹{item.net_profit.toLocaleString("en-IN")}
-                            </td>
-                            <td className="py-2 text-right text-slate-300">{item.profit_factor.toFixed(2)}</td>
-                            <td className="py-2 text-right text-slate-300">₹{item.expectancy.toFixed(2)}</td>
-                            <td className="py-2 text-right text-cyan-400 font-bold">{item.sharpe_ratio.toFixed(2)}</td>
-                            <td className="py-2 text-right text-slate-300">{item.sortino_ratio.toFixed(2)}</td>
-                            <td className="py-2 text-right text-rose-400 font-semibold">-{item.max_drawdown_pct.toFixed(2)}%</td>
-                            <td className="py-2 text-right text-cyan-300 font-bold">{item.composite_score}</td>
-                            <td className="py-2 text-center pr-2">
-                              {stability ? (
-                                <span className={`px-1.5 py-0.5 rounded text-xs font-sans font-bold tracking-wider ${
-                                  stability.status === "STABLE" ? "bg-emerald-950/40 text-emerald-400 border border-emerald-800/30" : "bg-rose-950/40 text-rose-400 border border-rose-800/30"
-                                }`}>
-                                  {stability.status}
-                                </span>
-                              ) : (
-                                <span className="text-slate-600">-</span>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                  <DataTable
+                    columns={optimizationColumns}
+                    data={getRankedList()}
+                    onRowClick={(row) => handleInspectParams(row.combination.params)}
+                    rowClassName={(row) => {
+                      const paramsKey = JSON.stringify(row.combination.params);
+                      return JSON.stringify(selectedInspectorParams) === paramsKey ? "!bg-cyan-500/10" : "";
+                    }}
+                    emptyState={
+                      <span className="text-[12px] font-sans text-slate-500">
+                        No optimization runs completed yet.
+                      </span>
+                    }
+                  />
                 </div>
               </div>
             )}
@@ -2680,13 +2735,13 @@ export const BacktestBottom: React.FC = () => {
             {/* Heatmap visualization */}
             {optTab === "heatmap" && v2OptimizationReport && (
               <div className="flex flex-col gap-3 text-slate-400">
-                <div className="flex justify-between items-center select-none shrink-0 bg-slate-950/20 p-2 rounded border border-white/5">
+                <div className="flex justify-between items-center select-none shrink-0 bg-card/20 p-2 rounded ">
                   <div className="flex items-center gap-2">
-                    <span className="text-slate-400 font-bold uppercase tracking-wider text-xs">Heatmap Parameter Metric:</span>
+                    <span className="text-slate-400 font-semibold vdl-body">Heatmap Parameter Metric:</span>
                     <select
                       value={heatmapMetric}
                       onChange={(e: any) => setHeatmapMetric(e.target.value)}
-                      className="bg-slate-900 border border-white/10 hover:border-cyan-500/20 rounded px-2.5 py-1 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all cursor-pointer font-medium"
+                      className="bg-card  hover:border-cyan-500/20 rounded px-2.5 py-1 text-slate-200 focus:outline-none focus:border-cyan-500/40 transition-all cursor-pointer font-medium"
                     >
                       <option value="net_profit">Net Profit</option>
                       <option value="sharpe_ratio">Sharpe Ratio</option>
@@ -2698,16 +2753,16 @@ export const BacktestBottom: React.FC = () => {
 
                 <div className="flex gap-4">
                   {/* Heatmap Grid */}
-                  <div className="bg-slate-950/40 border border-white/5 p-4 rounded flex-1 overflow-x-auto">
+                  <div className="bg-card/45 p-4 rounded flex-1 overflow-x-auto">
                     <div className="flex flex-col gap-1.5 min-w-[300px]">
                       {/* X values label header */}
                       <div className="flex">
-                        <div className="w-16 font-mono text-xs text-slate-500 flex items-center justify-end pr-2.5 uppercase tracking-wider font-bold">
+                        <div className="w-16 font-mono vdl-body text-slate-500 flex items-center justify-end pr-2.5 font-semibold">
                           Slow \ Fast
                         </div>
                         <div className="flex-1 flex gap-1.5">
                           {v2OptimizationReport.heatmap_data.x_values.map((xVal) => (
-                            <div key={xVal} className="flex-1 text-center font-mono font-bold text-xs text-cyan-500/80">
+                            <div key={xVal} className="flex-1 text-center font-mono font-semibold vdl-body text-cyan-500/80">
                               F:{xVal}
                             </div>
                           ))}
@@ -2718,7 +2773,7 @@ export const BacktestBottom: React.FC = () => {
                       {v2OptimizationReport.heatmap_data.y_values.map((yVal, yIdx) => (
                         <div key={yVal} className="flex">
                           {/* Y Label */}
-                          <div className="w-16 font-mono font-bold text-xs text-slate-500 flex items-center justify-end pr-2.5">
+                          <div className="w-16 font-mono font-semibold vdl-body text-slate-500 flex items-center justify-end pr-2.5">
                             S:{yVal}
                           </div>
                           
@@ -2737,14 +2792,14 @@ export const BacktestBottom: React.FC = () => {
                               }
 
                               // Coloring intensity
-                              let cellBg = "bg-slate-900/40 border-white/5";
+                              let cellBg = "bg-card/40";
                               if (cellVal > 0) {
                                 const maxVal = Math.max(1, ...v2OptimizationReport.top_10.map(r => r[heatmapMetric] || 1));
                                 const pct = Math.min(1, cellVal / maxVal);
                                 if (pct > 0.75) cellBg = "bg-cyan-500 text-slate-950 font-bold border-cyan-400";
                                 else if (pct > 0.5) cellBg = "bg-cyan-600/80 text-white font-semibold border-cyan-500/30";
                                 else if (pct > 0.25) cellBg = "bg-cyan-800/50 text-cyan-300 border-cyan-800/20";
-                                else cellBg = "bg-cyan-950/30 text-cyan-400/70 border-white/5";
+                                else cellBg = "bg-cyan-950/30 text-cyan-400/70";
                               } else if (cellVal < 0) {
                                 cellBg = "bg-rose-950/20 text-rose-400/80 border-rose-950/30";
                               }
@@ -2754,7 +2809,7 @@ export const BacktestBottom: React.FC = () => {
                                   key={xVal}
                                   onClick={() => handleInspectParams({ fastEma: xVal, slowEma: yVal })}
                                   title={`Fast: ${xVal}, Slow: ${yVal} | ${heatmapMetric}: ${cellVal}`}
-                                  className={`flex-1 aspect-[1.8] rounded border flex items-center justify-center font-mono text-xs cursor-pointer transition-all hover:scale-105 select-none ${cellBg}`}
+                                  className={`flex-1 aspect-[1.8] rounded border flex items-center justify-center font-mono vdl-body cursor-pointer transition-all hover:scale-105 select-none${cellBg}`}
                                 >
                                   {cellVal ? (heatmapMetric.includes("profit") ? `₹${Math.round(cellVal)}` : cellVal.toFixed(1)) : "-"}
                                 </div>
@@ -2768,24 +2823,24 @@ export const BacktestBottom: React.FC = () => {
 
                   {/* Inspector card right side */}
                   <div className="w-60 flex flex-col gap-2.5 shrink-0">
-                    <div className="bg-slate-900/10 border border-white/5 p-3.5 rounded shadow-sm">
-                      <span className="text-slate-400 uppercase tracking-widest text-xs font-bold block mb-2 border-b border-white/5 pb-1">
+                    <div className="bg-card/10  p-3.5 rounded shadow-sm">
+                      <span className="text-slate-400 vdl-body font-semibold block mb-2 border-b pb-1">
                         Cell Parameter Inspector
                       </span>
                       {selectedInspectorParams ? (
                         <div className="flex flex-col gap-2.5">
-                          <div className="font-mono text-cyan-400 font-bold border-b border-white/5 pb-1 select-text">
+                          <div className="font-mono text-cyan-400 font-semibold border-b pb-1 select-text">
                             Fast: {selectedInspectorParams.fastEma} | Slow: {selectedInspectorParams.slowEma}
                           </div>
                           {report && (
                             <div className="flex flex-col gap-1.5 select-none">
                               <div className="flex justify-between">
                                 <span className="text-slate-500">Net Profit:</span>
-                                <span className="text-emerald-400 font-bold font-mono">₹{report.performance.net_profit.toLocaleString("en-IN")}</span>
+                                <span className="text-emerald-400 font-semibold font-mono">₹{report.performance.net_profit.toLocaleString("en-IN")}</span>
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-slate-500">Sharpe Ratio:</span>
-                                <span className="text-cyan-400 font-bold font-mono">{report.sharpe_ratio.toFixed(2)}</span>
+                                <span className="text-cyan-400 font-semibold font-mono">{report.sharpe_ratio.toFixed(2)}</span>
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-slate-500">Win Rate:</span>
@@ -2799,7 +2854,7 @@ export const BacktestBottom: React.FC = () => {
                           )}
                         </div>
                       ) : (
-                        <div className="text-xs text-slate-500 italic select-none">
+                        <div className="vdl-body text-slate-500 italic select-none">
                           Click any heatmap cell to run detailed backtest and inspect results.
                         </div>
                       )}

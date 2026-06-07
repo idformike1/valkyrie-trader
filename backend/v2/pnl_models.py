@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 
 class TradeCharges(BaseModel):
@@ -17,6 +17,15 @@ class TradePnL(BaseModel):
     total_charges: float = Field(..., description="Total transactional charges (INR)")
     net_pnl: float = Field(..., description="Net profit and loss (INR)")
 
+class TradeExplanation(BaseModel):
+    strategy_name: str
+    entry_reason: str
+    exit_reason: str
+    signal_snapshot: Dict[str, Any]
+    resolver_snapshot: Dict[str, Any]
+    risk_snapshot: Dict[str, Any]
+    market_snapshot: Dict[str, Any]
+
 class TradeAccountingResult(BaseModel):
     position_id: str = Field(..., description="Unique position identifier")
     entry_time: datetime = Field(..., description="Position entry timestamp")
@@ -28,6 +37,7 @@ class TradeAccountingResult(BaseModel):
     gross_pnl: float = Field(..., description="Gross PnL of the trade")
     charges: TradeCharges = Field(..., description="Detailed breakdown of charges")
     net_pnl: float = Field(..., description="Net PnL of the trade")
+    explanation: Optional[TradeExplanation] = None
 
 class BacktestAccountingResult(BaseModel):
     trades: List[TradeAccountingResult] = Field(default_factory=list, description="List of all completed trades")

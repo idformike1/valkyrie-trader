@@ -10,6 +10,11 @@ import {
 import { useTerminalStore } from "@/store/useTerminalStore";
 import { useEventStore } from "@/store/useEventStore";
 
+// Valkyrie Design System V3 imports
+import { DataTable, ColumnDef } from "@/design-system/DataTable";
+import { StatusBadge } from "@/design-system/StatusBadge";
+import { EmptyState } from "@/design-system/EmptyState";
+
 // ==========================================
 // SCALPER LOCAL STATE MANAGER
 // ==========================================
@@ -383,12 +388,12 @@ export const ScalperMain: React.FC = () => {
     <div className="flex flex-col gap-2 h-full font-sans select-none">
       {/* 1. Tick Chart Panel */}
       <div className="flex-1 p-2 flex flex-col justify-between overflow-hidden relative">
-        <div className="flex justify-between items-center text-xs uppercase font-bold text-slate-400 border-b border-white/5 pb-1">
+        <div className="flex justify-between items-center vdl-body font-semibold text-slate-400 border-b pb-1">
           <div className="flex items-center gap-1.5">
             <Radio className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-            <span className="text-cyan-400">TICK CHART (40 Ticks)</span>
+            <span className="text-cyan-400">Tick chart (40 ticks)</span>
           </div>
-          <span className="font-mono">LTP: ₹{ltp.toFixed(2)}</span>
+          <span className="font-mono">Ltp: ₹{ltp.toFixed(2)}</span>
         </div>
 
         {/* SVG Drawing for Tick Lines */}
@@ -450,7 +455,7 @@ export const ScalperMain: React.FC = () => {
 
           {/* Value tags on the right */}
           {trade.side !== "FLAT" && (
-            <div className="absolute right-1 top-0 bottom-0 flex flex-col justify-between font-mono text-xs pointer-events-none">
+            <div className="absolute right-1 top-0 bottom-0 flex flex-col justify-between font-mono vdl-body pointer-events-none">
               {trade.targetPrice > 0 && <span className="text-cyan-400 bg-cyan-950/80 px-1 border border-cyan-800 rounded">TGT: {trade.targetPrice.toFixed(1)}</span>}
               {trade.avgEntry > 0 && <span className="text-emerald-400 bg-emerald-950/80 px-1 border border-emerald-800 rounded">AVG: {trade.avgEntry.toFixed(1)}</span>}
               {trade.stopPrice > 0 && <span className="text-rose-400 bg-rose-950/80 px-1 border border-rose-800 rounded">SL: {trade.stopPrice.toFixed(1)}</span>}
@@ -464,9 +469,9 @@ export const ScalperMain: React.FC = () => {
         
         {/* Order Pad Execution Panel (Center Execution) */}
         <div className="col-span-8 p-2 flex flex-col justify-between">
-          <div className="flex justify-between items-center text-xs uppercase font-bold text-slate-500 tracking-wider">
-            <span>SCALPING ORDER PAD</span>
-            <span className="text-cyan-400 font-bold">Qty: {activeLots} Lot(s)</span>
+          <div className="flex justify-between items-center vdl-body font-semibold text-slate-500">
+            <span>Scalping order pad</span>
+            <span className="text-cyan-400 font-semibold">Qty: {activeLots} lot(s)</span>
           </div>
 
           {/* Lot Toggles */}
@@ -475,7 +480,7 @@ export const ScalperMain: React.FC = () => {
               <button
                 key={lots}
                 onClick={() => setActiveLots(lots)}
-                className={`tab-item ${activeLots === lots ? "active" : ""}`}
+                className={`tab-item${activeLots === lots ? "active" : ""}`}
               >
                 {lots} L
               </button>
@@ -524,8 +529,8 @@ export const ScalperMain: React.FC = () => {
         </div>
 
         {/* Hotkey Panel (Display status only) */}
-        <div className="col-span-4 border-l border-white/5 p-2 flex flex-col justify-between font-mono text-xs">
-          <span className="text-xs uppercase font-bold text-slate-500 tracking-wider font-sans">HOTKEYS STATUS</span>
+        <div className="col-span-4 border-l p-2 flex flex-col justify-between font-mono vdl-body">
+          <span className="vdl-body font-semibold text-slate-500 font-sans">Hotkeys status</span>
           
           <div className="flex flex-col gap-1.5 text-slate-300 select-none">
             <div className="flex justify-between items-center">
@@ -546,7 +551,7 @@ export const ScalperMain: React.FC = () => {
             </div>
           </div>
 
-          <div className="text-xs text-slate-500 uppercase tracking-widest text-center mt-1 font-sans">
+          <div className="vdl-body text-slate-500 text-center mt-1 font-sans">
             KEYBOARD BINDINGS ACTIVE
           </div>
         </div>
@@ -605,30 +610,30 @@ export const ScalperRight: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col gap-3 h-full font-sans text-xs select-none">
+    <div className="flex flex-col gap-3 h-full font-sans vdl-body select-none">
       {/* Level 2 DOM Ladder */}
       <div className="flex-1 p-2 flex flex-col justify-between min-h-0">
-        <div className="flex justify-between items-center text-xs uppercase font-bold text-slate-400 border-b border-white/5 pb-1 select-none">
-          <span>LEVEL 2 LIQUIDITY LADDER</span>
-          <span className="text-emerald-400 font-mono text-xs">L2</span>
+        <div className="flex justify-between items-center vdl-body font-semibold text-slate-400 border-b pb-1 select-none">
+          <span>Level 2 liquidity ladder</span>
+          <span className="text-emerald-400 font-mono vdl-body">L2</span>
         </div>
 
         {/* Liquidity Summary HUD */}
-        <div className="grid grid-cols-2 gap-2 bg-slate-950/40 p-2 rounded border border-white/5 font-mono text-xs select-none mt-2 shrink-0">
+        <div className="grid grid-cols-2 gap-2 bg-card/40 p-2 rounded font-mono vdl-body select-none mt-2 shrink-0">
           <div className="flex flex-col">
             <div className="flex justify-between items-center text-slate-500">
               <span>Bid Total</span>
-              <span className="font-bold text-emerald-400 tabular-nums">{(bidVolumeSum * 100).toLocaleString()}</span>
+              <span className="font-semibold text-emerald-400 tabular-nums">{(bidVolumeSum * 100).toLocaleString()}</span>
             </div>
             <div className="flex justify-between items-center text-slate-500 mt-1">
               <span>Ask Total</span>
-              <span className="font-bold text-rose-400 tabular-nums">{(askVolumeSum * 100).toLocaleString()}</span>
+              <span className="font-semibold text-rose-400 tabular-nums">{(askVolumeSum * 100).toLocaleString()}</span>
             </div>
           </div>
-          <div className="flex flex-col border-l border-white/5 pl-2">
+          <div className="flex flex-col border-l pl-2">
             <div className="flex justify-between items-center text-slate-500">
               <span>Delta</span>
-              <span className={`font-bold tabular-nums ${
+              <span className={`font-semibold tabular-nums${
                 (bidVolumeSum - askVolumeSum) >= 0 ? "text-emerald-400" : "text-rose-500"
               }`}>
                 {(bidVolumeSum - askVolumeSum) >= 0 ? "+" : ""}{((bidVolumeSum - askVolumeSum) * 100).toLocaleString()}
@@ -636,7 +641,7 @@ export const ScalperRight: React.FC = () => {
             </div>
             <div className="flex justify-between items-center text-slate-500 mt-1">
               <span>Imbalance</span>
-              <span className={`font-bold tabular-nums ${
+              <span className={`font-semibold tabular-nums${
                 (bidVolumeSum - askVolumeSum) >= 0 ? "text-emerald-400" : "text-rose-500"
               }`}>
                 {(bidVolumeSum - askVolumeSum) >= 0 ? "+" : ""}{(((bidVolumeSum - askVolumeSum) / (bidVolumeSum + askVolumeSum || 1)) * 100).toFixed(1)}%
@@ -646,8 +651,8 @@ export const ScalperRight: React.FC = () => {
         </div>
 
         {/* DOM Rows */}
-        <div className="flex-1 overflow-y-auto mt-2 font-mono tabular-nums text-sm flex flex-col gap-0.5 pr-1 scrollbar-thin scrollbar-thumb-white/5">
-          <div className="grid grid-cols-4 py-1 text-xs font-bold text-slate-500 uppercase tracking-widest text-center border-b border-white/[0.02]">
+        <div className="flex-1 overflow-y-auto mt-2 font-mono tabular-nums section flex flex-col gap-0.5 pr-1 scrollbar-thin scrollbar-thumb-white/5">
+          <div className="grid grid-cols-4 py-1 vdl-body font-semibold text-slate-500 text-center border-b/30">
             <span>Bid Qty</span>
             <span className="col-span-2">Price</span>
             <span>Ask Qty</span>
@@ -662,7 +667,7 @@ export const ScalperRight: React.FC = () => {
             return (
               <div 
                 key={idx} 
-                className={`grid grid-cols-4 py-0.5 items-center text-center relative rounded ${
+                className={`grid grid-cols-4 py-0.5 items-center text-center relative rounded${
                   isMid ? "bg-cyan-500/10 font-bold border border-cyan-500/20" : ""
                 }`}
               >
@@ -682,31 +687,31 @@ export const ScalperRight: React.FC = () => {
                 )}
 
                 {/* Bid Volume */}
-                <span className="text-emerald-400 text-left pl-2 z-10 font-bold font-mono text-sm">{row.bid || ""}</span>
+                <span className="text-emerald-400 text-left pl-2 z-10 font-semibold font-mono section">{row.bid || ""}</span>
                 
                 {/* Price columns */}
-                <span className={`col-span-2 text-center font-bold font-mono text-sm z-10 ${
+                <span className={`col-span-2 text-center font-semibold font-mono section z-10${
                   row.bid ? "text-emerald-500" : row.ask ? "text-rose-500" : "text-cyan-400"
                 }`}>
                   ₹{row.price.toFixed(2)}
                 </span>
                 
                 {/* Ask Volume */}
-                <span className="text-rose-400 text-right pr-2 z-10 font-bold font-mono text-sm">{row.ask || ""}</span>
+                <span className="text-rose-400 text-right pr-2 z-10 font-semibold font-mono section">{row.ask || ""}</span>
               </div>
             );
           })}
         </div>
 
         {/* DOM Liquidity Spread Summary */}
-        <div className="border-t border-white/5 pt-2 mt-2 flex justify-between items-center text-xs text-slate-500 select-none">
+        <div className="border-t pt-2 mt-2 flex justify-between items-center vdl-body text-slate-500 select-none">
           <div className="flex gap-1.5 items-center">
-            <span>BIDS:</span>
-            <span className="font-bold text-emerald-400">{bidVolumeSum}</span>
+            <span>Bids:</span>
+            <span className="font-semibold text-emerald-400">{bidVolumeSum}</span>
           </div>
           <div className="flex gap-1.5 items-center">
-            <span>ASKS:</span>
-            <span className="font-bold text-rose-400">{askVolumeSum}</span>
+            <span>Asks:</span>
+            <span className="font-semibold text-rose-400">{askVolumeSum}</span>
           </div>
         </div>
       </div>
@@ -719,7 +724,7 @@ export const ScalperRight: React.FC = () => {
         >
           🚨 Panic Exit / Flatten All
         </button>
-        <span className="text-xs text-red-400/60 text-center uppercase tracking-wider font-mono">
+        <span className="vdl-body text-red-400/60 text-center font-mono">
           Immediate square-off and active order purge
         </span>
       </div>
@@ -766,80 +771,113 @@ export const ScalperBottom: React.FC = () => {
 
   const rrRatio = risk > 0 ? (reward / risk).toFixed(1) : "0.0";
 
+  const scalperColumns: ColumnDef<any>[] = [
+    {
+      header: "Instrument",
+      accessorKey: "symbol",
+      className: "text-left pl-2 font-sans font-semibold text-slate-200",
+    },
+    {
+      header: "Side",
+      accessorKey: (row) => {
+        // Map side to an approved system state for standard coloring
+        const sideState = row.side === "LONG" ? "Running" : "Failed";
+        return <StatusBadge state={sideState} className="!font-sans font-semibold" />;
+      },
+      className: "text-center",
+    },
+    {
+      header: "Qty",
+      accessorKey: "qty",
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Avg Entry",
+      accessorKey: (row) => `₹${row.avgEntry.toFixed(2)}`,
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Ltp",
+      accessorKey: (row) => `₹${row.ltp.toFixed(2)}`,
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Risk (SL)",
+      accessorKey: () => `₹${risk.toFixed(2)}`,
+      className: "text-right text-rose-400 font-mono tabular-nums",
+    },
+    {
+      header: "Reward (Tgt)",
+      accessorKey: () => `₹${reward.toFixed(2)}`,
+      className: "text-right text-cyan-400 font-mono tabular-nums",
+    },
+    {
+      header: "R:R Ratio",
+      accessorKey: () => rrRatio,
+      className: "text-center text-slate-400 font-semibold font-mono",
+    },
+    {
+      header: "Unrealized PnL",
+      accessorKey: () => (
+        <span className={`font-semibold ${unrealizedPnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+          {unrealizedPnL >= 0 ? "+" : ""}₹{unrealizedPnL.toFixed(2)}
+        </span>
+      ),
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Squareoff",
+      accessorKey: () => (
+        <button
+          onClick={handleClosePos}
+          className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded px-2 py-0.5 font-semibold font-sans text-xs cursor-pointer"
+        >
+          Close
+        </button>
+      ),
+      className: "text-right pr-2",
+    },
+  ];
+
+  const tableData = pos && pos.side !== "FLAT" ? [pos] : [];
+
   return (
-    <div className="flex flex-col h-full overflow-hidden text-xs font-sans select-none">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Position Header Banner */}
-      <div className="flex items-center justify-between border-b border-white/5 bg-slate-950/20 px-3 py-1 shrink-0 select-none">
-        <span className="font-bold text-xs text-slate-500 uppercase tracking-widest">Scalper Positions Auditor</span>
-        <div className="flex gap-4 font-mono tabular-nums text-xs items-center">
+      <div className="flex items-center justify-between border-b bg-deep/50 px-3 py-1 shrink-0 select-none">
+        <span className="font-semibold vdl-body text-slate-500">Scalper Positions Auditor</span>
+        <div className="flex gap-4 font-mono tabular-nums vdl-body items-center">
           <div className="flex gap-1.5">
             <span className="text-slate-500">REALIZED:</span>
-            <span className={`font-bold ${realized >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+            <span className={`font-semibold ${realized >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
               ₹{realized.toFixed(2)}
             </span>
           </div>
           <div className="flex gap-1.5">
             <span className="text-slate-500">UNREALIZED:</span>
-            <span className={`font-bold ${unrealizedPnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+            <span className={`font-semibold ${unrealizedPnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
               ₹{unrealizedPnL.toFixed(2)}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Detail table */}
-      <div className="flex-1 overflow-x-auto p-2 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
-        <table className="w-full text-left font-mono tabular-nums text-xs">
-          <thead>
-            <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-xs tracking-wider text-center">
-              <th className="py-1 pl-2 text-left">Instrument</th>
-              <th className="py-1">Side</th>
-              <th className="py-1">Qty</th>
-              <th className="py-1 text-right">Avg Entry</th>
-              <th className="py-1 text-right">LTP</th>
-              <th className="py-1 text-right">Risk (SL)</th>
-              <th className="py-1 text-right">Reward (Tgt)</th>
-              <th className="py-1 text-center">R:R Ratio</th>
-              <th className="py-1 text-right">Unrealized PnL</th>
-              <th className="py-1 text-right pr-2">Squareoff</th>
-            </tr>
-          </thead>
-          <tbody className="text-slate-300 text-center">
-            {pos && pos.side !== "FLAT" ? (
-              <tr className="hover:bg-white/[0.01]">
-                <td className="py-2 pl-2 text-left font-sans font-bold text-slate-200">{pos.symbol}</td>
-                <td className="py-2">
-                  <span className={`status-badge ${
-                    pos.side === "LONG" ? "success" : "failed"
-                  }`}>
-                    {pos.side}
-                  </span>
-                </td>
-                <td className="py-2 font-bold">{pos.qty}</td>
-                <td className="py-2 text-right">₹{pos.avgEntry.toFixed(2)}</td>
-                <td className="py-2 text-right">₹{pos.ltp.toFixed(2)}</td>
-                <td className="py-2 text-right text-rose-400">₹{risk.toFixed(2)}</td>
-                <td className="py-2 text-right text-cyan-400">₹{reward.toFixed(2)}</td>
-                <td className="py-2 text-center text-slate-400 font-bold">{rrRatio}</td>
-                <td className={`py-2 text-right font-bold ${unrealizedPnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                  {unrealizedPnL >= 0 ? "+" : ""}₹{unrealizedPnL.toFixed(2)}
-                </td>
-                <td className="py-2 text-right pr-2">
-                  <button 
-                    onClick={handleClosePos}
-                    className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded px-2 py-0.5 font-bold font-sans text-xs cursor-pointer"
-                  >
-                    CLOSE
-                  </button>
-                </td>
-              </tr>
-            ) : (
-              <tr>
-                <td colSpan={10}><div className="empty-state">No active scalping positions. Click BUY MKT / SELL MKT to execute.</div></td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      <div className="flex-1 overflow-y-auto min-h-0">
+        <DataTable
+          columns={scalperColumns}
+          data={tableData}
+          emptyState={
+            <EmptyState
+              icon={Zap}
+              title="No Active Scalping Positions"
+              description="Click BUY MKT / SELL MKT to execute an entry."
+            />
+          }
+        />
       </div>
     </div>
   );

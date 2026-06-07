@@ -62,6 +62,7 @@
 - [backend/v2/scratch/query_underlying.py](#backendv2scratchquery_underlyingpy)
 - [backend/v2/scratch/run_offline_validation_p5_4a_r.py](#backendv2scratchrun_offline_validation_p5_4a_rpy)
 - [backend/v2/scratch/run_runtime_verification.py](#backendv2scratchrun_runtime_verificationpy)
+- [backend/v2/scratch/test_backtest_explain.py](#backendv2scratchtest_backtest_explainpy)
 - [backend/v2/scratch/test_journal_api.py](#backendv2scratchtest_journal_apipy)
 - [backend/v2/scratch/test_live_fill_integrity.py](#backendv2scratchtest_live_fill_integritypy)
 - [backend/v2/scratch/test_session_closure.py](#backendv2scratchtest_session_closurepy)
@@ -116,6 +117,17 @@
 - [frontend/src/components/shell/Sidebar.tsx](#frontendsrccomponentsshellsidebartsx)
 - [frontend/src/components/workspace/Panel.tsx](#frontendsrccomponentsworkspacepaneltsx)
 - [frontend/src/components/workspace/WorkspaceHost.tsx](#frontendsrccomponentsworkspaceworkspacehosttsx)
+- [frontend/src/design-system/DataTable.tsx](#frontendsrcdesign-systemdatatabletsx)
+- [frontend/src/design-system/EmptyState.tsx](#frontendsrcdesign-systememptystatetsx)
+- [frontend/src/design-system/FormField.tsx](#frontendsrcdesign-systemformfieldtsx)
+- [frontend/src/design-system/KpiCard.tsx](#frontendsrcdesign-systemkpicardtsx)
+- [frontend/src/design-system/Panel.tsx](#frontendsrcdesign-systempaneltsx)
+- [frontend/src/design-system/SegmentedTabs.tsx](#frontendsrcdesign-systemsegmentedtabstsx)
+- [frontend/src/design-system/StatusBadge.tsx](#frontendsrcdesign-systemstatusbadgetsx)
+- [frontend/src/design-system/Toolbar.tsx](#frontendsrcdesign-systemtoolbartsx)
+- [frontend/src/design-system/WorkspaceSidebar.tsx](#frontendsrcdesign-systemworkspacesidebartsx)
+- [frontend/src/design-system/tokens.ts](#frontendsrcdesign-systemtokensts)
+- [frontend/src/design-system/typography.ts](#frontendsrcdesign-systemtypographyts)
 - [frontend/src/services/tradingApi.ts](#frontendsrcservicestradingapits)
 - [frontend/src/services/tradingQueries.ts](#frontendsrcservicestradingqueriests)
 - [frontend/src/services/tradingTypes.ts](#frontendsrcservicestradingtypests)
@@ -1881,6 +1893,9 @@ No description provided.
 #### class `TradePnL`
 No description provided.
 
+#### class `TradeExplanation`
+No description provided.
+
 #### class `TradeAccountingResult`
 No description provided.
 
@@ -2489,6 +2504,12 @@ No description provided.
 No description provided.
 ```
 
+
+
+---
+
+## backend/v2/scratch/test_backtest_explain.py
+*No description provided.*
 
 
 ---
@@ -5030,20 +5051,6 @@ No description provided.
 *TypeScript/JavaScript Source Component*
 
 ### Functions & Endpoints
-#### `selectedWorkspace` (Function)
-- **Signature**: `const selectedWorkspace = useTerminalStore((state) => state.selectedWorkspace)`
-- **Description**:
-```text
-No description provided.
-```
-
-#### `setWorkspace` (Function)
-- **Signature**: `const setWorkspace = useTerminalStore((state) => state.setWorkspace)`
-- **Description**:
-```text
-No description provided.
-```
-
 #### `isCollapsed` (Function)
 - **Signature**: `const isCollapsed = useSidebarStore((state) => state.isCollapsed)`
 - **Description**:
@@ -5161,6 +5168,114 @@ No description provided.
 - **Description**:
 ```text
 No description provided.
+```
+
+
+
+---
+
+## frontend/src/design-system/DataTable.tsx
+*TypeScript/JavaScript Source Component*
+
+### Functions & Endpoints
+#### `DataTable` (React Component)
+- **Signature**: `export function DataTable<T>(`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## frontend/src/design-system/EmptyState.tsx
+*TypeScript/JavaScript Source Component*
+
+
+---
+
+## frontend/src/design-system/FormField.tsx
+*TypeScript/JavaScript Source Component*
+
+
+---
+
+## frontend/src/design-system/KpiCard.tsx
+*TypeScript/JavaScript Source Component*
+
+
+---
+
+## frontend/src/design-system/Panel.tsx
+*TypeScript/JavaScript Source Component*
+
+
+---
+
+## frontend/src/design-system/SegmentedTabs.tsx
+*TypeScript/JavaScript Source Component*
+
+
+---
+
+## frontend/src/design-system/StatusBadge.tsx
+*TypeScript/JavaScript Source Component*
+
+
+---
+
+## frontend/src/design-system/Toolbar.tsx
+*TypeScript/JavaScript Source Component*
+
+
+---
+
+## frontend/src/design-system/WorkspaceSidebar.tsx
+*TypeScript/JavaScript Source Component*
+
+### Functions & Endpoints
+#### `selectedWorkspace` (Function)
+- **Signature**: `const selectedWorkspace = useTerminalStore((state) => state.selectedWorkspace)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `setWorkspace` (Function)
+- **Signature**: `const setWorkspace = useTerminalStore((state) => state.setWorkspace)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `isCollapsed` (Function)
+- **Signature**: `const isCollapsed = useSidebarStore((state) => state.isCollapsed)`
+- **Description**:
+```text
+No description provided.
+```
+
+
+
+---
+
+## frontend/src/design-system/tokens.ts
+*TypeScript/JavaScript Source Component*
+
+
+---
+
+## frontend/src/design-system/typography.ts
+*TypeScript/JavaScript Source Component*
+
+### Functions & Endpoints
+#### `getTypographyClass` (Function)
+- **Signature**: `export function getTypographyClass(variant: TypographyVariant, useMono: boolean = false): string `
+- **Description**:
+```text
+Returns the tailwind classes for the specified typography variant.
+If fallback to monospace is true, it overrides the family mapping.
 ```
 
 
@@ -5920,6 +6035,13 @@ No description provided.
 ==========================================
 ```
 
+#### `setStrategy` (Function)
+- **Signature**: `const setStrategy = useTerminalStore((state) => state.setStrategy)`
+- **Description**:
+```text
+No description provided.
+```
+
 #### `setMode` (Function)
 - **Signature**: `const setMode = useTerminalStore((state) => state.setMode)`
 - **Description**:
@@ -5936,6 +6058,13 @@ No description provided.
 
 #### `handleAction` (Function)
 - **Signature**: `const handleAction = (action: string) => `
+- **Description**:
+```text
+No description provided.
+```
+
+#### `handleRowSelect` (Function)
+- **Signature**: `const handleRowSelect = (row: DeploymentClusterItem) => `
 - **Description**:
 ```text
 No description provided.
@@ -6477,7 +6606,7 @@ No description provided.
 - **Signature**: `const brokerage = brokerTrades.reduce((acc, t) => `
 - **Description**:
 ```text
-Brokerage: ₹20/leg (Upstox flat) + ₹5.5 NSE charge + 0.05% STT on sell side (capped)
+No description provided.
 ```
 
 

@@ -236,6 +236,21 @@ class HistoricalReplayEngine:
                 
                 if exit_reason:
                     # Close position due to risk exit
+                    exit_reason_mapped = exit_reason
+                    if exit_reason in ["STOP_LOSS", "TRAILING_STOP_LOSS"]:
+                        exit_reason_mapped = "Stop Loss Hit"
+                    elif exit_reason == "TARGET_LIMIT":
+                        exit_reason_mapped = "Target Hit"
+                    elif exit_reason == "SESSION_END":
+                        exit_reason_mapped = "Cutoff Exit"
+                    elif exit_reason == "MAX_DURATION":
+                        exit_reason_mapped = "Max Holding Reached"
+
+                    # Construct updated explanation metadata
+                    current_exp = {}
+                    if self.position_manager.active_position and self.position_manager.active_position.metadata:
+                        current_exp = self.position_manager.active_position.metadata.get("explanation", {})
+
                     pos_data = {
                         "underlying": underlying_name,
                         "strike": float(active_contract["strike"]),
@@ -244,7 +259,17 @@ class HistoricalReplayEngine:
                         "instrument_key": active_contract["instrument_key"],
                         "premium_price": float(exit_price),
                         "signal": "SELL_INTENT",
-                        "metadata": {"exit_reason": exit_reason}
+                        "metadata": {
+                            "exit_reason": exit_reason_mapped,
+                            "explanation": {
+                                **current_exp,
+                                "exit_reason": exit_reason_mapped,
+                                "market_snapshot": {
+                                    **current_exp.get("market_snapshot", {}),
+                                    "exit_premium": float(exit_price)
+                                }
+                            }
+                        }
                     }
                     
                     intent = ReplayTradeIntent(
@@ -265,14 +290,14 @@ class HistoricalReplayEngine:
                     TelemetryLogger.log(
                         "POSITION",
                         "INFO",
-                        f"Closed position: {active_contract['strike']} {active_contract['option_type']} ({active_contract['expiry']}) | Exit Premium: {exit_price:.2f} | Reason: {exit_reason} | Spot: {spot_price}",
+                        f"Closed position: {active_contract['strike']} {active_contract['option_type']} ({active_contract['expiry']}) | Exit Premium: {exit_price:.2f} | Reason: {exit_reason_mapped} | Spot: {spot_price}",
                         {
                             "action": "close",
                             "strike": active_contract["strike"],
                             "option_type": active_contract["option_type"],
                             "expiry": active_contract["expiry"],
                             "exit_premium": exit_price,
-                            "reason": exit_reason,
+                            "reason": exit_reason_mapped,
                             "spot": spot_price
                         }
                     )
@@ -403,6 +428,82 @@ class HistoricalReplayEngine:
                     num_lots = config.execution.lot_size if (hasattr(config, "execution") and config.execution) else 1
                     quantity = num_lots * idx_lot
                     
+                    # Resolve ATM strike
+                    try:
+                        atm_res = HistoricalStrikeResolver.resolve(underlying_name, spot_price, StrikeMode.ATM, OptionType(option_type))
+                        atm_strike = float(atm_res["resolved_strike"])
+                    except Exception:
+                        atm_strike = float(strike)
+                        
+                    # Determine entry reason
+                    entry_reason = "Strategy Entry Signal"
+                    if "heikin" in strategy_name.lower():
+                        entry_reason = "Bullish HA Candle"
+                    elif "five_ema" in strategy_name.lower():
+                        entry_reason = "Alert Candle Breakout"
+                    elif "ema" in strategy_name.lower():
+                        entry_reason = "Bullish EMA Cross"
+                        
+                    # Extract signal snapshot
+                    signal_snapshot = {}
+                    if "heikin" in strategy_name.lower():
+                        signal_snapshot = {
+                            "prior_ha_open": float(info.get("prior_ha_open", 0.0)),
+                            "prior_ha_close": float(info.get("prior_ha_close", 0.0)),
+                            "comp_ha_open": float(info.get("comp_ha_open", 0.0)),
+                            "comp_ha_close": float(info.get("comp_ha_close", 0.0)),
+                            "comp_ha_low": float(info.get("comp_ha_low", 0.0))
+                        }
+                    elif "five_ema" in strategy_name.lower():
+                        signal_snapshot = {
+                            "ema": float(info.get("ema", 0.0)),
+                            "candle_high": float(info.get("candle_high", 0.0)),
+                            "candle_low": float(info.get("candle_low", 0.0)),
+                            "alert_high": float(info.get("alert_high", 0.0)),
+                            "alert_low": float(info.get("alert_low", 0.0))
+                        }
+                    elif "ema" in strategy_name.lower():
+                        signal_snapshot = {
+                            "prev_fast": float(info.get("prev_fast", 0.0)),
+                            "prev_slow": float(info.get("prev_slow", 0.0)),
+                            "curr_fast": float(info.get("curr_fast", 0.0)),
+                            "curr_slow": float(info.get("curr_slow", 0.0))
+                        }
+                        
+                    resolver_snapshot = {
+                        "strike_mode": str(strike_mode_str),
+                        "expiry_mode": str(expiry_mode_str),
+                        "atm_strike": atm_strike,
+                        "resolved_strike": float(strike),
+                        "resolved_expiry": str(expiry),
+                        "option_type": str(option_type)
+                    }
+                    
+                    risk_snapshot = {
+                        "stop_loss_type": str(getattr(config.risk_management, "stop_loss_type", "percent")),
+                        "stop_loss_value": float(getattr(config.risk_management, "stop_loss_value", 0.0)),
+                        "target_type": str(getattr(config.risk_management, "target_type", "percent")),
+                        "target_value": float(getattr(config.risk_management, "target_value", 0.0)),
+                        "max_holding_candles": int(getattr(config.risk_management, "max_holding_candles", 10)),
+                        "quantity": int(quantity)
+                    }
+                    
+                    market_snapshot = {
+                        "spot_price": float(spot_price),
+                        "entry_premium": float(premium),
+                        "exit_premium": 0.0
+                    }
+                    
+                    explanation_data = {
+                        "strategy_name": strategy_name,
+                        "entry_reason": entry_reason,
+                        "exit_reason": "Active Position",
+                        "signal_snapshot": signal_snapshot,
+                        "resolver_snapshot": resolver_snapshot,
+                        "risk_snapshot": risk_snapshot,
+                        "market_snapshot": market_snapshot
+                    }
+                    
                     pos_data = {
                         "underlying": underlying_name,
                         "strike": float(strike),
@@ -412,7 +513,8 @@ class HistoricalReplayEngine:
                         "premium_price": float(premium),
                         "lot_size": idx_lot,
                         "quantity": quantity,
-                        "signal": "BUY_INTENT"
+                        "signal": "BUY_INTENT",
+                        "metadata": {"explanation": explanation_data}
                     }
                     self.position_manager.open_position(pos_data, current_ts)
                     opened_this_candle = True
@@ -477,6 +579,25 @@ class HistoricalReplayEngine:
                     log_replay_event(current_ts, "SELL_INTENT", f"{active_contract['strike']} {active_contract['option_type']} ({active_contract['expiry']})", premium, active_contract["source"])
                     
                     # Close position in PositionManager
+                    exit_reason_raw = info.get("reason", "Signal Exit")
+                    exit_reason_mapped = "Signal Exit"
+                    if exit_reason_raw in ["STOP_LOSS", "Stop Loss Hit"]:
+                        exit_reason_mapped = "Stop Loss Hit"
+                    elif exit_reason_raw in ["TARGET_LIMIT", "Target Hit"]:
+                        exit_reason_mapped = "Target Hit"
+                    elif exit_reason_raw in ["SESSION_END", "SESSION_CUTOFF", "Cutoff Exit"]:
+                        exit_reason_mapped = "Cutoff Exit"
+                    elif exit_reason_raw in ["MAX_DURATION", "Max Holding Reached"]:
+                        exit_reason_mapped = "Max Holding Reached"
+                    elif exit_reason_raw in ["TECHNICAL_REVERSAL", "Signal Reversal"]:
+                        exit_reason_mapped = "Signal Reversal"
+                    else:
+                        exit_reason_mapped = exit_reason_raw
+                        
+                    current_exp = {}
+                    if self.position_manager.active_position and self.position_manager.active_position.metadata:
+                        current_exp = self.position_manager.active_position.metadata.get("explanation", {})
+                        
                     pos_data = {
                         "underlying": underlying_name,
                         "strike": float(active_contract["strike"]),
@@ -484,7 +605,18 @@ class HistoricalReplayEngine:
                         "option_type": active_contract["option_type"],
                         "instrument_key": active_contract["instrument_key"],
                         "premium_price": float(premium),
-                        "signal": "SELL_INTENT"
+                        "signal": "SELL_INTENT",
+                        "metadata": {
+                            "exit_reason": exit_reason_mapped,
+                            "explanation": {
+                                **current_exp,
+                                "exit_reason": exit_reason_mapped,
+                                "market_snapshot": {
+                                    **current_exp.get("market_snapshot", {}),
+                                    "exit_premium": float(premium)
+                                }
+                            }
+                        }
                     }
                     
                     TelemetryLogger.log(
@@ -497,14 +629,14 @@ class HistoricalReplayEngine:
                     TelemetryLogger.log(
                         "POSITION",
                         "INFO",
-                        f"Closed position: {active_contract['strike']} {active_contract['option_type']} ({active_contract['expiry']}) | Exit Premium: {premium:.2f} | Reason: Signal Exit | Spot: {spot_price}",
+                        f"Closed position: {active_contract['strike']} {active_contract['option_type']} ({active_contract['expiry']}) | Exit Premium: {premium:.2f} | Reason: {exit_reason_mapped} | Spot: {spot_price}",
                         {
                             "action": "close",
                             "strike": active_contract["strike"],
                             "option_type": active_contract["option_type"],
                             "expiry": active_contract["expiry"],
                             "exit_premium": premium,
-                            "reason": "Signal Exit",
+                            "reason": exit_reason_mapped,
                             "spot": spot_price
                         }
                     )

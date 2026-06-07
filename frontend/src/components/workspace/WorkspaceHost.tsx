@@ -2,7 +2,7 @@ import React, { useRef } from "react";
 import { useTerminalStore } from "@/store/useTerminalStore";
 import { useLayoutStore } from "@/store/useLayoutStore";
 import { getWorkspaceConfig } from "@/workspaces/registry";
-import Panel from "./Panel";
+import Panel from "@/design-system/Panel";
 
 export const WorkspaceHost: React.FC = () => {
   const activeWorkspaceId = useTerminalStore((state) => state.selectedWorkspace);
@@ -24,7 +24,7 @@ export const WorkspaceHost: React.FC = () => {
 
   if (!config) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-slate-950/20 text-slate-400">
+      <div className="flex-1 flex items-center justify-center bg-deep/20 text-slate-400">
         Workspace not found: {activeWorkspaceId}
       </div>
     );
@@ -86,7 +86,13 @@ export const WorkspaceHost: React.FC = () => {
             className="flex shrink-0 min-h-0"
           >
             <Panel
-              title={`${config.name} Sidebar`}
+              title={
+                activeWorkspaceId === "deployments" ? "Live Deployments" :
+                activeWorkspaceId === "operations" ? "Navigation & Filters" :
+                activeWorkspaceId === "backtest" ? "Backtest Setup" :
+                activeWorkspaceId === "paper" ? "Strategies" :
+                `${config.name} Sidebar`
+              }
               isCollapsed={layout.leftCollapsed}
               onCollapseToggle={() => toggleCollapse(activeWorkspaceId, "left")}
             >
@@ -132,7 +138,13 @@ export const WorkspaceHost: React.FC = () => {
             className="flex shrink-0 min-h-0"
           >
             <Panel
-              title="Execution & Stats"
+              title={
+                activeWorkspaceId === "deployments" ? "Deployment Health" :
+                activeWorkspaceId === "operations" ? "System Health" :
+                activeWorkspaceId === "backtest" ? "Backtest Analytics" :
+                activeWorkspaceId === "paper" ? "Paper Portfolio Health" :
+                "Execution & Stats"
+              }
               isCollapsed={layout.rightCollapsed}
               onCollapseToggle={() => toggleCollapse(activeWorkspaceId, "right")}
             >
@@ -164,7 +176,7 @@ export const WorkspaceHost: React.FC = () => {
           >
             {layout.bottomCollapsed ? (
               <div 
-                className="flex items-center justify-between px-3 py-1.5 bg-slate-900/50 border-t border-white/5 cursor-pointer hover:bg-slate-900 transition-all text-[10px] font-bold text-slate-400 uppercase select-none tracking-widest"
+                className="flex items-center justify-between px-3 py-1.5 bg-card/50 border-t border-subtle cursor-pointer hover:bg-card transition-all text-[10px] font-bold text-slate-400 uppercase select-none tracking-widest"
                 onClick={() => toggleCollapse(activeWorkspaceId, "bottom")}
               >
                 <span>{config.name} Ledger / Telemetry</span>
@@ -216,9 +228,9 @@ const DevContextHUD: React.FC = () => {
 
   const simulateTimeframeCycle = () => {
     const timeframes = ["1m", "3m", "5m", "15m", "1h", "1d"] as const;
-    const currentIdx = timeframes.indexOf(context.selectedTimeframe);
+    const currentIdx = timeframes.indexOf(context.selectedTimeframe as any);
     const nextIdx = (currentIdx + 1) % timeframes.length;
-    context.setTimeframe(timeframes[nextIdx]);
+    context.setTimeframe(timeframes[nextIdx] as any);
   };
 
   const simulateModeCycle = () => {
@@ -232,7 +244,7 @@ const DevContextHUD: React.FC = () => {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-8 right-4 z-40 bg-slate-900/90 border border-cyan-500/30 text-cyan-400 font-bold px-2.5 py-1 rounded shadow-lg shadow-cyan-950/20 text-[9px] uppercase tracking-wider hover:bg-slate-800 hover:border-cyan-400/50 transition-all cursor-pointer"
+        className="fixed bottom-8 right-4 z-40 bg-card/90 border border-cyan-500/30 text-cyan-400 font-bold px-2.5 py-1 rounded shadow-lg shadow-cyan-950/20 text-[9px] uppercase tracking-wider hover:bg-card-hover hover:border-cyan-400/50 transition-all cursor-pointer"
       >
         DEV HUD
       </button>
@@ -240,7 +252,7 @@ const DevContextHUD: React.FC = () => {
   }
 
   return (
-    <div className="fixed bottom-8 right-4 z-40 bg-slate-950/95 border border-cyan-500/50 rounded-lg shadow-2xl p-3.5 w-72 text-[10px] font-mono text-slate-300 select-text">
+    <div className="fixed bottom-8 right-4 z-40 bg-deep/95 border border-cyan-500/50 rounded-lg shadow-2xl p-3.5 w-72 text-[10px] font-mono text-slate-300 select-text">
       <div className="flex justify-between items-center border-b border-cyan-500/30 pb-1.5 mb-2.5">
         <span className="text-cyan-400 font-bold uppercase tracking-wider text-[9px]">DEV CONTEXT HUD</span>
         <button onClick={() => setIsOpen(false)} className="text-slate-500 hover:text-slate-200 uppercase text-[8px] font-bold cursor-pointer">CLOSE</button>
@@ -278,16 +290,16 @@ const DevContextHUD: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-2 gap-1.5 mt-3 pt-2.5 border-t border-cyan-500/20">
-        <button onClick={simulateInstrumentCycle} className="bg-slate-900 hover:bg-slate-800 border border-white/5 py-1 text-center hover:border-cyan-500/40 rounded transition-all text-[8px] uppercase cursor-pointer">
+        <button onClick={simulateInstrumentCycle} className="bg-card hover:bg-card-hover border border-subtle py-1 text-center hover:border-cyan-500/40 rounded transition-all text-[8px] uppercase cursor-pointer">
           Cycle Instrument
         </button>
-        <button onClick={simulateStrategyCycle} className="bg-slate-900 hover:bg-slate-800 border border-white/5 py-1 text-center hover:border-cyan-500/40 rounded transition-all text-[8px] uppercase cursor-pointer">
+        <button onClick={simulateStrategyCycle} className="bg-card hover:bg-card-hover border border-subtle py-1 text-center hover:border-cyan-500/40 rounded transition-all text-[8px] uppercase cursor-pointer">
           Cycle Strategy
         </button>
-        <button onClick={simulateTimeframeCycle} className="bg-slate-900 hover:bg-slate-800 border border-white/5 py-1 text-center hover:border-cyan-500/40 rounded transition-all text-[8px] uppercase cursor-pointer">
+        <button onClick={simulateTimeframeCycle} className="bg-card hover:bg-card-hover border border-subtle py-1 text-center hover:border-cyan-500/40 rounded transition-all text-[8px] uppercase cursor-pointer">
           Cycle Timeframe
         </button>
-        <button onClick={simulateModeCycle} className="bg-slate-900 hover:bg-slate-800 border border-white/5 py-1 text-center hover:border-cyan-500/40 rounded transition-all text-[8px] uppercase cursor-pointer">
+        <button onClick={simulateModeCycle} className="bg-card hover:bg-card-hover border border-subtle py-1 text-center hover:border-cyan-500/40 rounded transition-all text-[8px] uppercase cursor-pointer">
           Cycle Mode
         </button>
         <button onClick={context.resetTerminalContext} className="col-span-2 bg-rose-950/40 border border-rose-800/40 hover:bg-rose-900/40 py-1 text-center text-rose-400 rounded transition-all text-[8px] uppercase font-bold mt-0.5 cursor-pointer">

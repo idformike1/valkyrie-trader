@@ -156,7 +156,7 @@ export const CommandPalette: React.FC = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setOpen(false)}
-            className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/85 backdrop-blur-sm"
           />
 
           {/* Palette Box */}
@@ -165,10 +165,10 @@ export const CommandPalette: React.FC = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: -10 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="w-full max-w-lg bg-slate-950 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-10 flex flex-col font-sans"
+            className="w-full max-w-lg bg-deep border border-subtle rounded-xl shadow-2xl overflow-hidden z-10 flex flex-col font-sans"
           >
             {/* Search Input */}
-            <div className="flex items-center gap-3 px-4 py-3.5 border-b border-white/5 bg-slate-900/30">
+            <div className="flex items-center gap-3 px-4 py-3.5 border-b border-subtle bg-card/30">
               <Search className="w-4 h-4 text-slate-500" />
               <input
                 ref={inputRef}
@@ -181,7 +181,7 @@ export const CommandPalette: React.FC = () => {
                 placeholder="Search workspaces or type a system operation..."
                 className="w-full bg-transparent border-0 text-slate-200 placeholder-slate-500 text-xs focus:outline-none focus:ring-0 p-0"
               />
-              <span className="text-[10px] text-slate-500 font-mono uppercase bg-slate-900 border border-white/5 px-2 py-0.5 rounded shrink-0">
+              <span className="text-[10px] text-slate-500 font-mono uppercase bg-card border border-subtle px-2 py-0.5 rounded shrink-0">
                 ESC to close
               </span>
             </div>
@@ -221,7 +221,7 @@ export const CommandPalette: React.FC = () => {
                               <span>{cmd.name}</span>
                             </div>
                             {cmd.shortcut && (
-                              <span className="text-[9px] font-mono font-bold text-slate-500 bg-slate-900/60 px-1.5 py-0.5 rounded border border-white/5">
+                              <span className="text-[9px] font-mono font-bold text-slate-500 bg-card/60 px-1.5 py-0.5 rounded border border-subtle">
                                 {cmd.shortcut}
                               </span>
                             )}
@@ -239,7 +239,7 @@ export const CommandPalette: React.FC = () => {
             </div>
 
             {/* Footer / Shortcut Helper */}
-            <div className="px-4 py-2 bg-slate-900/30 border-t border-white/5 flex justify-between items-center text-[10px] text-slate-500 select-none">
+            <div className="px-4 py-2 bg-card/30 border-t border-subtle flex justify-between items-center text-[10px] text-slate-500 select-none">
               <span>Use Arrow keys to navigate, Enter to select</span>
               <span className="font-semibold text-slate-600">Valkyrie Shell v1.0.0</span>
             </div>

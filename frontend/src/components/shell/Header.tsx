@@ -97,7 +97,7 @@ export const Header: React.FC = () => {
     <>
       {status?.broker_auth === "Expired" && (
         <div className="w-full bg-gradient-to-r from-red-950 via-rose-900 to-red-950 border-b border-red-500/20 py-1.5 px-4 text-center select-none flex items-center justify-center gap-2 shrink-0 animate-pulse z-50">
-          <span className="text-xs font-bold text-rose-100 font-sans flex items-center gap-1.5">
+          <span className="body font-semibold text-rose-100 font-sans flex items-center gap-1.5">
             ⚠ Broker Authentication Expired. Live quotes unavailable. Reconnect Upstox to resume live execution.
           </span>
         </div>
@@ -106,20 +106,24 @@ export const Header: React.FC = () => {
         {/* 1. Workspace navigation */}
         <div className="flex items-center gap-2.5 shrink-0 relative">
           <div className="flex items-center gap-1.5 select-none">
-            <div className="w-5 h-5 bg-cyan-neon rounded-sm flex items-center justify-center font-black text-xs text-white">V</div>
-            <span className="text-xs font-black tracking-widest text-slate-100 uppercase font-display">
+            <div className="w-5 h-5 bg-cyan-neon rounded-sm flex items-center justify-center font-semibold body text-white">V</div>
+            <span className="body font-semibold text-slate-100 font-display">
               Valkyrie<span className="text-cyan-neon">_</span>
             </span>
           </div>
+          <div className="h-4 w-[1px] bg-white/10" />
 
-          {/* Down arrow workspace selector */}
+          {/* Combined Workspace Selector & Trigger */}
           <div className="relative">
             <button
               onClick={() => setShowWorkspaceDropdown(!showWorkspaceDropdown)}
-              className="flex items-center justify-center p-1 rounded hover:bg-white/5 transition-all text-slate-400 hover:text-slate-100 cursor-pointer"
+              className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-white/5 transition-all text-cyan-neon font-sans font-semibold cursor-pointer"
               title="Switch Workspace"
             >
-              <ChevronDown className="w-3.5 h-3.5" />
+              <span className="body">
+                {workspaces.find((ws) => ws.id === selectedWorkspace)?.name || selectedWorkspace}
+              </span>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
             </button>
 
             {showWorkspaceDropdown && (
@@ -128,7 +132,7 @@ export const Header: React.FC = () => {
                   className="fixed inset-0 z-40" 
                   onClick={() => setShowWorkspaceDropdown(false)}
                 />
-                <div className="absolute left-0 mt-1.5 w-44 bg-slate-950 border border-subtle rounded shadow-lg py-1 z-50 font-sans">
+                <div className="absolute left-0 mt-1.5 w-44 bg-deep border border-subtle rounded shadow-lg py-1 z-50 font-sans">
                   {workspaces.map((ws) => {
                     const isActive = selectedWorkspace === ws.id;
                     return (
@@ -138,9 +142,9 @@ export const Header: React.FC = () => {
                           setWorkspace(ws.id);
                           setShowWorkspaceDropdown(false);
                         }}
-                        className={`w-full text-left px-3 py-1.5 text-xs font-bold transition-all cursor-pointer flex items-center justify-between ${
+                        className={`w-full text-left px-3 py-1.5 body font-semibold transition-all cursor-pointer flex items-center justify-between${
                           isActive 
-                            ? "text-cyan-neon bg-cyan-500/10 font-black" 
+                            ? "text-cyan-neon bg-cyan-500/10 font-semibold" 
                             : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.02]"
                         }`}
                       >
@@ -153,61 +157,54 @@ export const Header: React.FC = () => {
               </>
             )}
           </div>
-
-          <div className="h-4 w-[1px] bg-white/10" />
-
-          {/* Active Workspace Indicator Text (Sentence Case) */}
-          <span className="text-xs font-semibold text-cyan-neon font-sans select-none">
-            {workspaces.find((ws) => ws.id === selectedWorkspace)?.name || selectedWorkspace}
-          </span>
         </div>
 
         {/* Visually Prominent Search Bar */}
         <div 
           onClick={toggleCommandPalette}
-          className="w-64 flex items-center gap-2 px-3 py-1 bg-slate-950/40 border border-subtle rounded-md hover:border-cyan-neon/30 hover:bg-slate-950/60 transition-all text-slate-400 cursor-pointer select-none mx-4"
+          className="w-64 flex items-center gap-2 px-3 py-1 bg-deep/40 border border-subtle rounded-md hover:border-cyan-neon/30 hover:bg-deep/60 transition-all text-slate-400 cursor-pointer select-none mx-4"
         >
           <Search className="w-3.5 h-3.5 text-slate-500" />
-          <span className="text-xs text-slate-500 font-medium flex-1 text-left">Search commands & symbols...</span>
-          <kbd className="text-[9px] font-mono bg-slate-900 border border-white/10 px-1.5 py-0.5 rounded text-slate-500">⌘K</kbd>
+          <span className="body text-slate-500 font-medium flex-1 text-left">Search commands & symbols...</span>
+          <kbd className="text-[9px] font-mono bg-card border border-subtle px-1.5 py-0.5 rounded text-slate-500">⌘K</kbd>
         </div>
 
         {/* 2. Market indices & 3. Account state */}
         <div className="flex-1 flex justify-center items-center gap-6 mx-2">
-          <div className="flex items-center gap-4 text-xs font-mono select-none tabular-nums">
+          <div className="flex items-center gap-4 body font-mono select-none tabular-nums">
             <div className="flex items-center gap-1.5">
               <span className="text-slate-500 font-semibold font-sans">NIFTY</span>
-              <span className={`font-bold ${tickerData.nifty.change >= 0 ? "text-emerald-400" : "text-rose-500"}`}>
+              <span className={`font-semibold${tickerData.nifty.change >= 0 ? "text-emerald-400" : "text-rose-500"}`}>
                 {tickerData.nifty.price.toFixed(2)}
               </span>
-              <span className={`font-semibold ${tickerData.nifty.change >= 0 ? "text-emerald-400" : "text-rose-500"}`}>
+              <span className={`font-semibold${tickerData.nifty.change >= 0 ? "text-emerald-400" : "text-rose-500"}`}>
                 {tickerData.nifty.change >= 0 ? "+" : ""}{tickerData.nifty.pct.toFixed(2)}%
               </span>
             </div>
-            <div className="flex items-center gap-1.5 border-l border-white/5 pl-4">
+            <div className="flex items-center gap-1.5 border-l border-subtle pl-4">
               <span className="text-slate-500 font-semibold font-sans">BANKNIFTY</span>
-              <span className={`font-bold ${tickerData.banknifty.change >= 0 ? "text-emerald-400" : "text-rose-500"}`}>
+              <span className={`font-semibold${tickerData.banknifty.change >= 0 ? "text-emerald-400" : "text-rose-500"}`}>
                 {tickerData.banknifty.price.toFixed(2)}
               </span>
-              <span className={`font-semibold ${tickerData.banknifty.change >= 0 ? "text-emerald-400" : "text-rose-500"}`}>
+              <span className={`font-semibold${tickerData.banknifty.change >= 0 ? "text-emerald-400" : "text-rose-500"}`}>
                 {tickerData.banknifty.change >= 0 ? "+" : ""}{tickerData.banknifty.pct.toFixed(2)}%
               </span>
             </div>
-            <div className="flex items-center gap-1.5 border-l border-white/5 pl-4">
+            <div className="flex items-center gap-1.5 border-l border-subtle pl-4">
               <span className="text-slate-500 font-semibold font-sans">VIX</span>
-              <span className={`font-bold ${tickerData.vix.change >= 0 ? "text-emerald-400" : "text-rose-500"}`}>
+              <span className={`font-semibold${tickerData.vix.change >= 0 ? "text-emerald-400" : "text-rose-500"}`}>
                 {tickerData.vix.price.toFixed(2)}
               </span>
-              <span className={`font-semibold ${tickerData.vix.change >= 0 ? "text-emerald-400" : "text-rose-500"}`}>
+              <span className={`font-semibold${tickerData.vix.change >= 0 ? "text-emerald-400" : "text-rose-500"}`}>
                 {tickerData.vix.pct.toFixed(2)}%
               </span>
             </div>
             {/* Account Indicator */}
-            <div className="flex items-center gap-1.5 border-l border-white/10 pl-4 font-sans text-xs uppercase font-bold tracking-wider">
+            <div className="flex items-center gap-1.5 border-l border-subtle pl-4 font-sans body font-semibold">
               <span className={currentAccount.type === "live" ? "text-rose-500" : "text-amber-500"}>
                 {currentAccount.type === "live" ? "LIVE" : "PAPER"}
               </span>
-              <span className={`font-mono tabular-nums font-bold ${
+              <span className={`font-mono tabular-nums font-semibold${
                 headerPnl > 0 ? "text-emerald-400" : headerPnl < 0 ? "text-rose-500" : "text-slate-300"
               }`}>
                 {headerPnl >= 0 ? "+" : ""}₹{headerPnl.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -217,12 +214,12 @@ export const Header: React.FC = () => {
         </div>
 
         {/* 4. System telemetry & user actions */}
-        <div className="flex items-center gap-4 text-xs">
+        <div className="flex items-center gap-4 body">
           {/* Account Selector */}
           <div className="relative">
             <button
               onClick={() => setShowAccountDropdown(!showAccountDropdown)}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-sm border font-semibold tracking-wide text-xs uppercase transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-sm border font-semibold body transition-all cursor-pointer${
                 currentAccount.type === "live"
                   ? "bg-rose-500/10 border-rose-500/20 text-rose-455 hover:bg-rose-500/20"
                   : "bg-amber-500/10 border-amber-500/20 text-amber-455 hover:bg-amber-500/20"
@@ -240,7 +237,7 @@ export const Header: React.FC = () => {
                     setAccount({ id: "paper-default", name: "Paper Account", type: "paper" });
                     setShowAccountDropdown(false);
                   }}
-                  className="w-full text-left px-3 py-1.5 hover:bg-card-hover text-slate-350 hover:text-main flex items-center justify-between text-xs font-medium transition-colors cursor-pointer"
+                  className="w-full text-left px-3 py-1.5 hover:bg-card-hover text-slate-350 hover:text-main flex items-center justify-between body font-medium transition-colors cursor-pointer"
                 >
                   <span>PAPER MODE</span>
                   {currentAccount.type === "paper" && <span className="w-1.5 h-1.5 rounded-full bg-amber-455" />}
@@ -250,7 +247,7 @@ export const Header: React.FC = () => {
                     setAccount({ id: "live-default", name: "Live Account", type: "live" });
                     setShowAccountDropdown(false);
                   }}
-                  className="w-full text-left px-3 py-1.5 hover:bg-card-hover text-slate-350 hover:text-main flex items-center justify-between text-xs font-medium transition-colors cursor-pointer"
+                  className="w-full text-left px-3 py-1.5 hover:bg-card-hover text-slate-350 hover:text-main flex items-center justify-between body font-medium transition-colors cursor-pointer"
                 >
                   <span className="text-rose-455 font-semibold">LIVE ACCOUNT</span>
                   {currentAccount.type === "live" && <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />}
@@ -260,17 +257,17 @@ export const Header: React.FC = () => {
           </div>
 
           {/* Compact Telemetry HUD */}
-          <div className="flex items-center gap-2 bg-slate-950/20 border border-white/5 py-1 px-2.5 rounded text-[10px] font-mono tracking-tight text-slate-500 select-none">
+          <div className="flex items-center gap-2 bg-deep/20 border border-subtle py-1 px-2.5 rounded text-[10px] font-mono text-slate-500 select-none">
             <span className="flex items-center gap-1" title={`GUI: ${connectionStatus}`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${connectionStatus === "CONNECTED" ? "bg-emerald-500" : "bg-rose-500 animate-pulse"}`} />
+              <span className={`w-1.5 h-1.5 rounded-full${connectionStatus === "CONNECTED" ? "bg-emerald-500" : "bg-rose-500 animate-pulse"}`} />
               <span>GUI</span>
             </span>
-            <span className="flex items-center gap-1 pl-2 border-l border-white/5" title={`AUTH: ${status?.broker_auth}`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${status?.broker_auth === "Valid" ? "bg-emerald-500" : "bg-rose-500 animate-pulse"}`} />
+            <span className="flex items-center gap-1 pl-2 border-l border-subtle" title={`AUTH: ${status?.broker_auth}`}>
+              <span className={`w-1.5 h-1.5 rounded-full${status?.broker_auth === "Valid" ? "bg-emerald-500" : "bg-rose-500 animate-pulse"}`} />
               <span>AUTH</span>
             </span>
-            <span className="flex items-center gap-1 pl-2 border-l border-white/5" title={`FEED: ${status?.market_feed}`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${
+            <span className="flex items-center gap-1 pl-2 border-l border-subtle" title={`FEED: ${status?.market_feed}`}>
+              <span className={`w-1.5 h-1.5 rounded-full${
                 status?.market_feed === "Live" ? "bg-emerald-500" :
                 status?.market_feed === "Mock" ? "bg-amber-500" :
                 "bg-rose-500 animate-pulse"
@@ -279,8 +276,8 @@ export const Header: React.FC = () => {
                 {status?.market_feed === "Mock" ? "MOCK" : "FEED"}
               </span>
             </span>
-            <span className="flex items-center gap-1 pl-2 border-l border-white/5" title={`ENG: ${status?.execution_engine}`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${
+            <span className="flex items-center gap-1 pl-2 border-l border-subtle" title={`ENG: ${status?.execution_engine}`}>
+              <span className={`w-1.5 h-1.5 rounded-full${
                 status?.execution_engine === "Running" ? "bg-emerald-500" :
                 status?.execution_engine === "Paused" ? "bg-amber-500 animate-pulse" :
                 "bg-rose-500"
@@ -307,7 +304,7 @@ export const Header: React.FC = () => {
           {/* Notifications Bell */}
           <button className="relative text-slate-400 hover:text-main transition-colors p-1 cursor-pointer rounded-sm hover:bg-card-hover border border-transparent hover:border-subtle flex items-center justify-center">
             <Bell className="w-3.5 h-3.5" />
-            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-cyan-neon text-xs font-bold text-white flex items-center justify-center rounded-full">
+            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-cyan-neon body font-semibold text-white flex items-center justify-center rounded-full">
               2
             </span>
           </button>
@@ -318,14 +315,14 @@ export const Header: React.FC = () => {
               onClick={() => setShowUserDropdown(!showUserDropdown)}
               className="flex items-center gap-1.5 hover:text-main transition-colors cursor-pointer"
             >
-              <div className="w-5 h-5 rounded-sm bg-cyan-neon/10 border border-cyan-neon/20 text-cyan-neon flex items-center justify-center font-bold text-xs">
+              <div className="w-5 h-5 rounded-sm bg-cyan-neon/10 border border-cyan-neon/20 text-cyan-neon flex items-center justify-center font-semibold body">
                 RM
               </div>
               <ChevronDown className="w-3 h-3 text-slate-500" />
             </button>
 
             {showUserDropdown && (
-              <div className="absolute right-0 mt-1 w-48 bg-elevated border border-subtle rounded-sm shadow-md py-1 z-50 text-xs font-sans">
+              <div className="absolute right-0 mt-1 w-48 bg-elevated border border-subtle rounded-sm shadow-md py-1 z-50 body font-sans">
                 <div className="px-3 py-1.5 border-b border-subtle text-slate-400">
                   <p className="font-semibold text-main">Raju Maharjan</p>
                   <p className="text-[10px] text-slate-500 mt-0.5">Trader ID: #VALK-9812</p>

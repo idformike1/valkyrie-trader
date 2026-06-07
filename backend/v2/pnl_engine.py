@@ -1,7 +1,7 @@
 from typing import List
 from v2.position_models import Position
 from v2.cost_models import CostModel, UpstoxCostModel
-from v2.pnl_models import TradeCharges, TradePnL, TradeAccountingResult, BacktestAccountingResult
+from v2.pnl_models import TradeCharges, TradePnL, TradeAccountingResult, BacktestAccountingResult, TradeExplanation
 
 class PnLEngine:
     def __init__(self, cost_model: CostModel = None):
@@ -31,6 +31,10 @@ class PnLEngine:
         
         contract_desc = f"{position.underlying} {position.strike:.1f} {position.option_type} ({position.expiry})"
         
+        explanation = None
+        if position.metadata and "explanation" in position.metadata:
+            explanation = TradeExplanation(**position.metadata["explanation"])
+            
         return TradeAccountingResult(
             position_id=position.position_id,
             entry_time=position.entry_time,
@@ -41,7 +45,8 @@ class PnLEngine:
             quantity=position.quantity,
             gross_pnl=pnl_result.gross_pnl,
             charges=charges,
-            net_pnl=pnl_result.net_pnl
+            net_pnl=pnl_result.net_pnl,
+            explanation=explanation
         )
 
     def generate_accounting_summary(self, positions: List[Position]) -> BacktestAccountingResult:

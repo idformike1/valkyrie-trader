@@ -13,16 +13,19 @@ import { useBackendTradingStore } from "@/services/tradingQueries";
 import { useEventStore } from "@/store/useEventStore";
 import { tradingApi } from "@/services/tradingApi";
 
-// Canonical panel wrapper — maps to .panel + .panel-header from globals.css
-const WorkspacePanel: React.FC<{ title: string; children: React.ReactNode; className?: string; actions?: React.ReactNode }> = ({ title, children, className = "", actions }) => (
-  <div className={`panel flex flex-col h-full ${className}`}>
-    <div className="panel-header">
-      <span className="text-sm font-semibold text-slate-200">{title}</span>
-      {actions && <div className="flex items-center gap-1.5">{actions}</div>}
-    </div>
-    <div className="flex-1 overflow-y-auto min-h-0 p-3">{children}</div>
-  </div>
-);
+// Valkyrie Design System V3 imports
+import { SegmentedTabs } from "@/design-system/SegmentedTabs";
+import { DataTable, ColumnDef } from "@/design-system/DataTable";
+import { StatusBadge } from "@/design-system/StatusBadge";
+import { FormField, FormSection } from "@/design-system/FormField";
+import { KpiCard } from "@/design-system/KpiCard";
+import { EmptyState } from "@/design-system/EmptyState";
+import { Toolbar } from "@/design-system/Toolbar";
+import { Panel } from "@/design-system/Panel";
+
+// Canonical panel wrapper maps directly to standardized Panel
+const WorkspacePanel = Panel;
+
 
 // MOCK INSTRUMENT DATA FOR WATCHLIST
 const AVAILABLE_INSTRUMENTS: Instrument[] = [
@@ -227,11 +230,11 @@ export const TradingLeft: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full p-2 select-none">
-      <h3 className="text-[12px] font-bold text-slate-200 border-b border-white/5 pb-1.5 mb-2 flex items-center justify-between select-none">
+      <h3 className="text-[12px] font-semibold text-slate-200 border-b pb-1.5 mb-2 flex items-center justify-between select-none">
         <span>Watchlist</span>
         <div className="flex items-center gap-1.5">
-          <span className="text-xs text-slate-500 font-mono font-medium lowercase">{connectionStatus}</span>
-          <span className={`w-1.5 h-1.5 rounded-full ${connectionDotColor} shadow-md`} />
+          <span className="vdl-body text-slate-500 font-mono font-medium lowercase">{connectionStatus}</span>
+          <span className={`w-1.5 h-1.5 rounded-full${connectionDotColor}shadow-md`} />
         </div>
       </h3>
       <div className="flex-1 overflow-y-auto min-h-0">
@@ -248,19 +251,19 @@ export const TradingLeft: React.FC = () => {
               }}
               onFocus={() => setShowSearchResults(true)}
               placeholder="Search / Add Stock Options..."
-              className="w-full bg-slate-900/60 border border-white/5 rounded pl-8 pr-3 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-500/40 font-sans"
+              className="w-full bg-card rounded pl-8 pr-3 py-1.5 vdl-body text-slate-300 focus:outline-none focus:border-cyan-500/40 font-sans"
             />
             {/* Search results popup */}
             {showSearchResults && searchResults.length > 0 && (
-              <div className="absolute left-0 right-0 mt-1 bg-slate-950 border border-white/10 rounded shadow-xl max-h-48 overflow-y-auto z-50 font-sans text-xs">
+              <div className="absolute left-0 right-0 mt-1 bg-card  rounded shadow-xl max-h-48 overflow-y-auto z-50 font-sans vdl-body">
                 {searchResults.map((item) => (
                   <div
                     key={item.instrumentKey}
                     onClick={() => handleAddSymbol(item)}
-                    className="flex justify-between items-center px-3 py-2 hover:bg-cyan-500/10 cursor-pointer transition-colors text-slate-200 border-b border-white/[0.02]"
+                    className="flex justify-between items-center px-3 py-2 hover:bg-cyan-500/10 cursor-pointer transition-colors text-slate-200 border-b/30"
                   >
                     <span>{item.symbol}</span>
-                    <span className="text-xs text-cyan-400 font-mono bg-cyan-950/40 px-1 py-0.5 rounded border border-cyan-500/10 font-bold uppercase">{item.exchange}</span>
+                    <span className="vdl-body text-cyan-400 font-mono bg-cyan-950/40 px-1 py-0.5 rounded border border-cyan-500/10 font-semibold">{item.exchange}</span>
                   </div>
                 ))}
               </div>
@@ -268,14 +271,13 @@ export const TradingLeft: React.FC = () => {
           </div>
 
           {/* Instruments list */}
-          <div className="flex-1 overflow-y-auto flex flex-col gap-0.5 mt-1 pr-1 font-sans text-xs scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
+          <div className="flex-1 overflow-y-auto flex flex-col gap-0.5 mt-1 pr-1 font-sans vdl-body scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
             {/* Header Row */}
-            <div className="grid grid-cols-12 px-2 py-1 text-xs font-bold text-slate-500 uppercase tracking-wider select-none shrink-0 border-b border-white/[0.02]">
-              <span className="col-span-4 text-left">Symbol</span>
-              <span className="col-span-2 text-right">LTP</span>
-              <span className="col-span-2 text-right">Δ</span>
-              <span className="col-span-2 text-right">Δ%</span>
-              <span className="col-span-2 text-right">Volume</span>
+            <div className="grid grid-cols-12 px-2 py-1.5 text-[11px] font-sans font-semibold text-slate-500 select-none shrink-0 border-b/30 tracking-wider uppercase">
+              <span className="col-span-5 text-left">Symbol</span>
+              <span className="col-span-3 text-right">Ltp</span>
+              <span className="col-span-2 text-right">Chg%</span>
+              <span className="col-span-2 text-right">Vol</span>
             </div>
 
             {filteredWatchlist.map((item, index) => {
@@ -288,14 +290,14 @@ export const TradingLeft: React.FC = () => {
                 <div
                   key={item.instrumentKey}
                   onClick={() => setInstrument(item)}
-                  className={`grid grid-cols-12 items-center px-2 py-1 rounded cursor-pointer border transition-all ${
+                  className={`grid grid-cols-12 items-center px-2 py-1.5 rounded cursor-pointer border transition-all group ${
                     isSelected
                       ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400 font-semibold"
                       : "bg-transparent border-transparent hover:bg-white/5 text-slate-300 hover:text-white"
                   }`}
                 >
                   {/* Symbol & Pin indicator */}
-                  <div className="col-span-4 flex items-center gap-1 min-w-0">
+                  <div className="col-span-5 flex items-center gap-1.5 min-w-0">
                     <button
                       onClick={(e) => togglePin(item.symbol, e)}
                       className="text-slate-600 hover:text-cyan-400 transition-colors cursor-pointer shrink-0"
@@ -303,40 +305,35 @@ export const TradingLeft: React.FC = () => {
                       <Star className={`w-3 h-3 ${isPinned ? "fill-cyan-400 text-cyan-400" : ""}`} />
                     </button>
                     
-                    {/* Reorder Up/Down buttons */}
-                    <div className="flex flex-col text-[7px] text-slate-600 font-mono shrink-0 select-none mr-0.5">
+                    {/* Reorder Up/Down buttons (Hover-only) */}
+                    <div className="flex flex-col text-[7px] text-slate-600 font-mono shrink-0 select-none mr-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button onClick={(e) => handleMoveUp(index, e)} className="hover:text-cyan-400 cursor-pointer">▲</button>
                       <button onClick={(e) => handleMoveDown(index, e)} className="hover:text-cyan-400 cursor-pointer">▼</button>
                     </div>
 
                     <div className="flex flex-col min-w-0 flex-1">
-                      <span className="truncate uppercase font-medium text-xs">{item.symbol}</span>
+                      <span className={`truncate font-semibold text-[12px] font-sans ${isSelected ? "text-cyan-400" : "text-slate-200"}`}>{item.symbol}</span>
                     </div>
                   </div>
 
                   {/* LTP */}
-                  <span className="col-span-2 text-right font-mono tabular-nums text-xs">
+                  <span className="col-span-3 text-right font-mono tabular-nums text-[12px]">
                     ₹{(priceInfo.ltp || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
 
-                  {/* Δ */}
-                  <span className={`col-span-2 text-right font-mono tabular-nums text-xs ${(priceInfo.diff || 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                    {priceInfo.diff !== undefined ? `${priceInfo.diff >= 0 ? "+" : ""}${priceInfo.diff.toFixed(2)}` : "—"}
-                  </span>
-
                   {/* Δ% */}
-                  <span className={`col-span-2 text-right font-mono tabular-nums text-xs ${(priceInfo.diff || 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                  <span className={`col-span-2 text-right font-mono tabular-nums text-[12px] ${(priceInfo.diff || 0) >= 0 ? "text-emerald-450" : "text-rose-500"}`}>
                     {priceInfo.pct !== undefined ? `${priceInfo.pct >= 0 ? "+" : ""}${priceInfo.pct.toFixed(2)}%` : "—"}
                   </span>
 
                   {/* Volume & Delete */}
-                  <div className="col-span-2 flex items-center justify-end gap-1 min-w-0">
-                    <span className="font-mono tabular-nums text-xs text-slate-400">
+                  <div className="col-span-2 flex items-center justify-end gap-1.5 min-w-0">
+                    <span className="font-mono tabular-nums text-[11px] text-slate-500">
                       {priceInfo.volume !== undefined ? fmtVol(priceInfo.volume) : "—"}
                     </span>
                     <button
                       onClick={(e) => handleDeleteSymbol(item.symbol, e)}
-                      className="text-slate-600 hover:text-rose-400 transition-colors cursor-pointer text-xs font-bold font-sans shrink-0 ml-1 select-none"
+                      className="text-slate-600 hover:text-rose-500 transition-colors cursor-pointer font-sans text-[13px] shrink-0 ml-1 opacity-0 group-hover:opacity-100 transition-opacity"
                       title="Remove Symbol"
                     >
                       ×
@@ -687,9 +684,9 @@ export const TradingMain: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-950/60 border border-white/5 rounded-lg overflow-hidden">
+    <div className="flex flex-col h-full bg-card/60 rounded-lg overflow-hidden">
       {/* Top Toolbar */}
-      <div className="flex items-center justify-between px-3 py-1.5 bg-slate-900/50 border-b border-white/5 select-none shrink-0 font-sans text-xs">
+      <div className="flex items-center justify-between px-3 py-1.5 bg-card/50 border-b select-none shrink-0 font-sans vdl-body">
         <div className="flex items-center gap-2">
           {/* Symbol dropdown selection */}
           <select
@@ -698,7 +695,7 @@ export const TradingMain: React.FC = () => {
               const matched = AVAILABLE_INSTRUMENTS.find((i) => i.symbol === e.target.value);
               if (matched) setInstrument(matched);
             }}
-            className="bg-slate-900 border border-white/10 rounded px-2 py-0.5 text-cyan-400 font-bold uppercase focus:outline-none"
+            className="bg-card  rounded px-2 py-0.5 text-cyan-400 font-semibold focus:outline-none"
           >
             {AVAILABLE_INSTRUMENTS.map((ins) => (
               <option key={ins.instrumentKey} value={ins.symbol}>
@@ -718,7 +715,7 @@ export const TradingMain: React.FC = () => {
               <button
                 key={tf}
                 onClick={() => setTimeframe(tf as Timeframe)}
-                className={`tab-item ${selectedTimeframe === tf ? "active" : ""}`}
+                className={`tab-item${selectedTimeframe === tf ? "active" : ""}`}
               >
                 {tf}
               </button>
@@ -731,10 +728,10 @@ export const TradingMain: React.FC = () => {
           <div className="relative">
             <button
               onClick={() => toggleIndicator("VWAP")}
-              className={`px-2 py-0.5 rounded border transition-colors cursor-pointer text-xs ${
+              className={`px-2 py-0.5 rounded border transition-colors cursor-pointer body${
                 activeIndicators.includes("VWAP")
                   ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400 font-bold"
-                  : "bg-slate-900 border-white/10 text-slate-400 hover:text-slate-200"
+                  : "bg-card text-slate-400 hover:text-slate-200"
               }`}
             >
               VWAP
@@ -742,10 +739,10 @@ export const TradingMain: React.FC = () => {
           </div>
           <button
             onClick={() => toggleIndicator("EMA")}
-            className={`px-2 py-0.5 rounded border transition-colors cursor-pointer text-xs ${
+            className={`px-2 py-0.5 rounded border transition-colors cursor-pointer body${
               activeIndicators.includes("EMA")
                 ? "bg-amber-500/10 border-amber-500/30 text-amber-400 font-bold"
-                : "bg-slate-900 border-white/10 text-slate-400 hover:text-slate-200"
+                : "bg-card text-slate-400 hover:text-slate-200"
             }`}
           >
             EMA (9/21)
@@ -755,7 +752,7 @@ export const TradingMain: React.FC = () => {
         <div className="flex items-center gap-2">
           {/* Chart loading indicator */}
           {chartLoading && (
-            <span className="flex items-center gap-1 text-xs text-cyan-400 font-mono animate-pulse">
+            <span className="flex items-center gap-1 vdl-body text-cyan-400 font-mono animate-pulse">
               <RefreshCw className="w-2.5 h-2.5 animate-spin" />
               LOADING
             </span>
@@ -763,10 +760,10 @@ export const TradingMain: React.FC = () => {
           {/* Drawing Tools Toggle */}
           <button 
             onClick={() => setShowDrawMenu(!showDrawMenu)}
-            className={`p-1 rounded border transition-colors cursor-pointer ${
+            className={`p-1 rounded border transition-colors cursor-pointer${
               showDrawMenu 
                 ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400" 
-                : "bg-slate-900 border-white/10 text-slate-400 hover:text-slate-200"
+                : "bg-card text-slate-400 hover:text-slate-200"
             }`}
             title="Drawing Tools"
           >
@@ -777,7 +774,7 @@ export const TradingMain: React.FC = () => {
           <button
             onClick={handlePanicExit}
             disabled={panicSubmitting}
-            className={`px-3 py-1 rounded border font-bold text-xs tracking-wider transition-all uppercase select-none cursor-pointer flex items-center gap-1.5 shadow-lg ${
+            className={`px-3 py-1 rounded border font-semibold vdl-body transition-all select-none cursor-pointer flex items-center gap-1.5 shadow-lg${
               panicSubmitting
                 ? "bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed"
                 : "bg-rose-500/10 hover:bg-rose-500 border-rose-500/20 hover:border-rose-500 text-rose-400 hover:text-slate-950 shadow-rose-500/5 hover:shadow-rose-500/20"
@@ -794,7 +791,7 @@ export const TradingMain: React.FC = () => {
       <div className="flex-1 min-h-0 relative flex flex-row">
         {/* Drawing Sidebar HUD */}
         {showDrawMenu && (
-          <div className="w-9 border-r border-white/5 bg-slate-950/60 flex flex-col items-center py-3 gap-3 shrink-0 select-none">
+          <div className="w-9 border-r bg-card/60 flex flex-col items-center py-3 gap-3 shrink-0 select-none">
             {["Trendline", "Fibonacci", "Crosshair", "Eraser"].map((tool, idx) => (
               <button 
                 key={idx} 
@@ -812,9 +809,9 @@ export const TradingMain: React.FC = () => {
           <div ref={chartContainerRef} className="w-full h-full min-h-0" />
           
           {/* Price overlay indicator */}
-          <div className="absolute top-3 left-4 bg-slate-950/80 backdrop-blur border border-white/5 px-2 py-1 rounded text-xs font-mono text-slate-300 flex items-center gap-2 shadow-md">
-            <span className="font-bold text-slate-400">LTP:</span>
-            <span className="text-emerald-400 font-bold">
+          <div className="absolute top-3 left-4 bg-card/80 backdrop-blur  px-2 py-1 rounded vdl-body font-mono text-slate-300 flex items-center gap-2 shadow-md">
+            <span className="font-semibold text-slate-400">Ltp:</span>
+            <span className="text-emerald-400 font-semibold">
               ₹{currentLtp.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </span>
           </div>
@@ -881,98 +878,98 @@ const BrokerAccountPanel: React.FC = () => {
   };
 
   return (
-    <div className="p-2 flex flex-col gap-2 select-none border-t border-white/5">
-      <h3 className="text-[12px] font-bold text-slate-200 border-b border-white/5 pb-1.5 flex items-center justify-between">
+    <div className="p-2 flex flex-col gap-2 select-none border-t">
+      <h3 className="text-[12px] font-semibold text-slate-200 border-b pb-1.5 flex items-center justify-between">
         <span>Broker account</span>
         <div className="flex items-center gap-1">
-          <span className={`w-1.5 h-1.5 rounded-full ${brokerConnected ? "bg-emerald-400 animate-pulse" : "bg-rose-500 animate-pulse"}`} />
-          <span className="text-xs font-mono text-slate-500">
+          <span className={`w-1.5 h-1.5 rounded-full${brokerConnected ? "bg-emerald-400 animate-pulse" : "bg-rose-500 animate-pulse"}`} />
+          <span className="vdl-body font-mono text-slate-500">
             {brokerConnected ? "Connected" : "Disconnected"}
           </span>
         </div>
       </h3>
 
-      <div className="grid grid-cols-2 gap-2 text-xs bg-slate-900/20 p-2 rounded border border-white/5 font-sans">
+      <div className="grid grid-cols-2 gap-2 vdl-body bg-card/20 p-2 rounded  font-sans">
         <div className="flex flex-col gap-0.5">
-          <span className="text-xs text-slate-500 ">Client name</span>
-          <span className="font-bold text-slate-200 uppercase truncate">
+          <span className="vdl-body text-slate-500">Client name</span>
+          <span className="font-semibold text-slate-200 truncate">
             {profile?.user_name || (loading ? "Loading..." : "N/A")}
           </span>
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="text-xs text-slate-500 ">Client ID</span>
-          <span className="font-bold text-slate-200 font-mono">
+          <span className="vdl-body text-slate-500">Client ID</span>
+          <span className="font-semibold text-slate-200 font-mono">
             {profile?.user_id || (loading ? "Loading..." : "N/A")}
           </span>
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="text-xs text-slate-500 ">Broker</span>
-          <span className="font-bold text-slate-200 uppercase">
+          <span className="vdl-body text-slate-500">Broker</span>
+          <span className="font-semibold text-slate-200">
             {profile?.broker || "UPSTOX"}
           </span>
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="text-xs text-slate-500 ">Token status</span>
-          <span className={`font-bold uppercase ${tokenStatus === "VALID" ? "text-emerald-400" : "text-rose-400 animate-pulse"}`}>
+          <span className="vdl-body text-slate-500">Token status</span>
+          <span className={`font-semibold${tokenStatus === "VALID" ? "text-emerald-400" : "text-rose-400 animate-pulse"}`}>
             {tokenStatus}
           </span>
         </div>
       </div>
 
       {error && (
-        <div className="p-2 bg-rose-950/40 border border-rose-500/20 text-rose-400 text-xs rounded flex items-center gap-1.5 font-mono">
+        <div className="p-2 bg-rose-950/40 border border-rose-500/20 text-rose-400 vdl-body rounded flex items-center gap-1.5 font-mono">
           <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
           <span className="truncate" title={error}>{error}</span>
         </div>
       )}
 
-      <div className="flex flex-col gap-1.5 font-mono text-xs">
-        <div className="flex justify-between items-center text-slate-400 py-0.5 border-b border-white/[0.02]">
+      <div className="flex flex-col gap-1.5 font-mono vdl-body">
+        <div className="flex justify-between items-center text-slate-400 py-0.5 border-b/30">
           <span>Available Margin</span>
-          <span className="font-bold text-cyan-400">
+          <span className="font-semibold text-cyan-400">
             {loading && !funds ? "Syncing..." : formatCurrency(funds?.equity?.available_margin)}
           </span>
         </div>
-        <div className="flex justify-between items-center text-slate-400 py-0.5 border-b border-white/[0.02]">
+        <div className="flex justify-between items-center text-slate-400 py-0.5 border-b/30">
           <span>Used Margin</span>
-          <span className="font-bold text-slate-200">
+          <span className="font-semibold text-slate-200">
             {loading && !funds ? "Syncing..." : formatCurrency(funds?.equity?.used_margin)}
           </span>
         </div>
-        <div className="flex justify-between items-center text-slate-400 py-0.5 border-b border-white/[0.02]">
+        <div className="flex justify-between items-center text-slate-400 py-0.5 border-b/30">
           <span>Available Funds</span>
-          <span className="font-bold text-slate-200">
+          <span className="font-semibold text-slate-200">
             {loading && !funds ? "Syncing..." : formatCurrency(funds?.equity?.available_margin)}
           </span>
         </div>
-        <div className="flex justify-between items-center text-slate-400 py-0.5 border-b border-white/[0.02]">
+        <div className="flex justify-between items-center text-slate-400 py-0.5 border-b/30">
           <span>Payin Amount</span>
-          <span className="font-bold text-slate-200">
+          <span className="font-semibold text-slate-200">
             {loading && !funds ? "Syncing..." : formatCurrency(funds?.equity?.payin_amount)}
           </span>
         </div>
-        <div className="flex justify-between items-center text-slate-400 py-0.5 border-b border-white/[0.02]">
+        <div className="flex justify-between items-center text-slate-400 py-0.5 border-b/30">
           <span>Span Margin</span>
-          <span className="font-bold text-slate-200">
+          <span className="font-semibold text-slate-200">
             {loading && !funds ? "Syncing..." : formatCurrency(funds?.equity?.span_margin)}
           </span>
         </div>
         <div className="flex justify-between items-center text-slate-400 py-0.5">
           <span>Exposure Margin</span>
-          <span className="font-bold text-slate-200">
+          <span className="font-semibold text-slate-200">
             {loading && !funds ? "Syncing..." : formatCurrency(funds?.equity?.exposure_margin)}
           </span>
         </div>
       </div>
 
-      <div className="flex justify-between items-center text-xs text-slate-500 font-mono border-t border-white/5 pt-1.5 mt-0.5">
+      <div className="flex justify-between items-center vdl-body text-slate-500 font-mono border-t pt-1.5 mt-0.5">
         <span>LAST SYNC: {lastSync || "NEVER"}</span>
         <button 
           onClick={fetchData} 
           disabled={loading}
           className="hover:text-cyan-400 transition-colors cursor-pointer flex items-center gap-1 disabled:opacity-50"
         >
-          <RefreshCw className={`w-2.5 h-2.5 ${loading ? "animate-spin" : ""}`} />
+          <RefreshCw className={`w-2.5 h-2.5${loading ? "animate-spin" : ""}`} />
           <span>FORCE REFRESH</span>
         </button>
       </div>
@@ -1328,30 +1325,30 @@ export const TradingRight: React.FC = () => {
   const totalPnL = totalUnrealizedPnL + totalRealizedPnL;
 
   return (
-    <div className="flex flex-col gap-2 h-full font-sans text-xs">
+    <div className="flex flex-col gap-2 h-full font-sans vdl-body">
       {/* Hero P&L Anchor */}
-      <div className="p-3 bg-slate-950/80 border-b border-white/5 select-none flex flex-col gap-2 shrink-0">
+      <div className="p-3 bg-card/80 border-b select-none flex flex-col gap-2 shrink-0">
         <div className="flex flex-col items-center justify-center">
-          <span className="text-[12px] font-bold text-slate-400 uppercase tracking-widest font-sans">NET P&L</span>
-          <span className={`text-[42px] font-black font-mono tabular-nums leading-none tracking-tight mt-1 ${
+          <span className="text-[12px] font-semibold text-slate-400 font-sans">Net P&L</span>
+          <span className={`text-[42px] font-semibold font-mono tabular-nums leading-none mt-1${
             totalPnL > 0 ? "text-emerald-400" : totalPnL < 0 ? "text-rose-500" : "text-slate-350"
           }`}>
             {totalPnL > 0 ? "+" : ""}₹{totalPnL.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
         </div>
         
-        <div className="grid grid-cols-2 gap-2 border-t border-white/5 pt-2 text-center">
+        <div className="grid grid-cols-2 gap-2 border-t pt-2 text-center">
           <div className="flex flex-col">
-            <span className="text-[12px] text-slate-500 uppercase font-sans tracking-wide">REALIZED</span>
-            <span className={`text-[20px] font-bold font-mono tabular-nums mt-0.5 ${
+            <span className="text-[12px] text-slate-500 font-sans">Realized</span>
+            <span className={`text-[20px] font-semibold font-mono tabular-nums mt-0.5${
               totalRealizedPnL > 0 ? "text-emerald-400" : totalRealizedPnL < 0 ? "text-rose-500" : "text-slate-400"
             }`}>
               {totalRealizedPnL > 0 ? "+" : ""}₹{totalRealizedPnL.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
-          <div className="flex flex-col border-l border-white/5">
-            <span className="text-[12px] text-slate-500 uppercase font-sans tracking-wide">UNREALIZED</span>
-            <span className={`text-[20px] font-bold font-mono tabular-nums mt-0.5 ${
+          <div className="flex flex-col border-l">
+            <span className="text-[12px] text-slate-500 font-sans">Unrealized</span>
+            <span className={`text-[20px] font-semibold font-mono tabular-nums mt-0.5${
               totalUnrealizedPnL > 0 ? "text-emerald-400" : totalUnrealizedPnL < 0 ? "text-rose-500" : "text-slate-400"
             }`}>
               {totalUnrealizedPnL > 0 ? "+" : ""}₹{totalUnrealizedPnL.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -1362,16 +1359,16 @@ export const TradingRight: React.FC = () => {
 
       {/* Order Pad Card */}
       <div className="px-2 flex flex-col gap-1.5">
-        <h3 className="text-xs font-bold text-slate-200 border-b border-white/5 pb-1 flex items-center justify-between select-none">
+        <h3 className="vdl-body font-semibold text-slate-200 border-b pb-1 flex items-center justify-between select-none">
           <span>Order ticket</span>
-          <span className="text-xs font-mono text-slate-500">{currentAccount.name}</span>
+          <span className="vdl-body font-mono text-slate-500">{currentAccount.name}</span>
         </h3>
 
         {/* Selected Instrument Info with Real-time Quote Panel */}
-        <div className="flex flex-col gap-1 bg-slate-900/40 p-1.5 rounded border border-white/5 font-mono text-xs select-none text-slate-300">
+        <div className="flex flex-col gap-1 bg-card/40 p-1.5 rounded  font-mono vdl-body select-none text-slate-300">
           <div className="flex justify-between items-center">
-            <span>CONTRACT:</span>
-            <span className="font-bold text-cyan-400 uppercase">
+            <span>Contract:</span>
+            <span className="font-semibold text-cyan-400">
               {currentInstrument ? currentInstrument.symbol : "NONE SELECTED"}
             </span>
           </div>
@@ -1381,40 +1378,40 @@ export const TradingRight: React.FC = () => {
                 const details = parseInstrument(currentInstrument.symbol);
                 if (details.type === "CE" || details.type === "PE") {
                   return (
-                    <div className="grid grid-cols-3 gap-1 mt-0.5 border-t border-white/5 pt-1 text-xs text-slate-400 uppercase">
+                    <div className="grid grid-cols-3 gap-1 mt-0.5 border-t pt-1 vdl-body text-slate-400">
                       <div>
-                        <span>TYPE: </span>
-                        <span className={`font-bold ${details.type === "CE" ? "text-emerald-400" : "text-rose-400"}`}>{details.type}</span>
+                        <span>Type: </span>
+                        <span className={`font-semibold${details.type === "CE" ? "text-emerald-400" : "text-rose-400"}`}>{details.type}</span>
                       </div>
                       <div>
-                        <span>STRIKE: </span>
-                        <span className="font-bold text-slate-200">{details.strike}</span>
+                        <span>Strike: </span>
+                        <span className="font-semibold text-slate-200">{details.strike}</span>
                       </div>
                       <div>
-                        <span>EXPIRY: </span>
-                        <span className="font-bold text-slate-200">{details.expiry}</span>
+                        <span>Expiry: </span>
+                        <span className="font-semibold text-slate-200">{details.expiry}</span>
                       </div>
                     </div>
                   );
                 }
                 return null;
               })()}
-              <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 mt-0.5 border-t border-white/5 pt-1 text-xs text-slate-400">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 mt-0.5 border-t pt-1 vdl-body text-slate-400">
                 <div className="flex justify-between">
-                  <span>LTP:</span>
-                  <span className="text-slate-200 font-bold">₹{contractPrice.toFixed(2)}</span>
+                  <span>Ltp:</span>
+                  <span className="text-slate-200 font-semibold">₹{contractPrice.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>UPDATED:</span>
+                  <span>Updated:</span>
                   <span className="text-slate-500">{lastUpdated || "N/A"}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>BID:</span>
-                  <span className="text-emerald-400 font-bold">₹{bidPrice.toFixed(2)}</span>
+                  <span>Bid:</span>
+                  <span className="text-emerald-400 font-semibold">₹{bidPrice.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>ASK:</span>
-                  <span className="text-rose-400 font-bold">₹{askPrice.toFixed(2)}</span>
+                  <span>Ask:</span>
+                  <span className="text-rose-400 font-semibold">₹{askPrice.toFixed(2)}</span>
                 </div>
               </div>
             </>
@@ -1425,13 +1422,13 @@ export const TradingRight: React.FC = () => {
         <div className="tab-container grid grid-cols-2 select-none shrink-0">
           <button
             onClick={() => setSide("BUY")}
-            className={`tab-item ${side === "BUY" ? "active text-emerald-400 bg-emerald-500/10 font-bold" : ""}`}
+            className={`tab-item${side === "BUY" ? "active text-emerald-400 bg-emerald-500/10 font-bold" : ""}`}
           >
             Buy
           </button>
           <button
             onClick={() => setSide("SELL")}
-            className={`tab-item ${side === "SELL" ? "active text-rose-500 bg-rose-500/10 font-bold" : ""}`}
+            className={`tab-item${side === "SELL" ? "active text-rose-500 bg-rose-500/10 font-bold" : ""}`}
           >
             Sell
           </button>
@@ -1439,13 +1436,13 @@ export const TradingRight: React.FC = () => {
 
         {/* Action Feedbacks */}
         {orderError && (
-          <div className="p-1.5 bg-rose-950/40 border border-rose-500/20 text-rose-400 text-xs rounded flex items-center gap-1.5 font-sans animate-pulse">
+          <div className="p-1.5 bg-rose-950/40 border border-rose-500/20 text-rose-400 vdl-body rounded flex items-center gap-1.5 font-sans animate-pulse">
             <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
             <span className="truncate">{orderError}</span>
           </div>
         )}
         {orderSuccess && (
-          <div className="p-1.5 bg-emerald-950/40 border border-emerald-500/20 text-emerald-400 text-xs rounded flex items-center gap-1.5 font-sans">
+          <div className="p-1.5 bg-emerald-950/40 border border-emerald-500/20 text-emerald-400 vdl-body rounded flex items-center gap-1.5 font-sans">
             <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
             <span className="truncate">{orderSuccess}</span>
           </div>
@@ -1453,13 +1450,13 @@ export const TradingRight: React.FC = () => {
 
         {/* Product Type (MIS/NRML/CNC) */}
         <div className="flex flex-col gap-0.5 select-none">
-          <span className="text-xs text-slate-500 uppercase font-semibold">Product Type</span>
+          <span className="vdl-body text-slate-500 font-semibold">Product Type</span>
           <div className="tab-container grid grid-cols-3">
             {(["MIS", "NRML", "CNC"] as const).map((type) => (
               <button
                 key={type}
                 onClick={() => setProductType(type)}
-                className={`tab-item ${productType === type ? "active" : ""}`}
+                className={`tab-item${productType === type ? "active" : ""}`}
               >
                 {type}
               </button>
@@ -1470,13 +1467,13 @@ export const TradingRight: React.FC = () => {
         {/* Quantity (Lots / Units) */}
         <div className="flex flex-col gap-0.5">
           <div className="flex justify-between items-center">
-            <span className="text-xs text-slate-500 uppercase font-semibold">Quantity</span>
-            <span className="text-xs text-slate-500 font-mono">Lot: {lotSize}</span>
+            <span className="vdl-body text-slate-500 font-semibold">Quantity</span>
+            <span className="vdl-body text-slate-500 font-mono">Lot: {lotSize}</span>
           </div>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setQuantity((q) => Math.max(lotSize, q - lotSize))}
-              className="bg-slate-900 border border-white/5 hover:border-white/10 w-8 py-0.5 rounded text-slate-300 font-bold hover:text-white transition-all cursor-pointer text-center text-xs"
+              className="bg-card  hover:border-subtle w-8 py-0.5 rounded text-slate-300 font-semibold hover:text-white transition-all cursor-pointer text-center vdl-body"
             >
               -
             </button>
@@ -1484,11 +1481,11 @@ export const TradingRight: React.FC = () => {
               type="number"
               value={quantity}
               onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
-              className="flex-1 bg-slate-900/60 border border-white/5 rounded py-0.5 text-center font-mono text-xs text-slate-200 focus:outline-none focus:border-cyan-500/40"
+              className="flex-1 bg-card rounded py-0.5 text-center font-mono vdl-body text-slate-200 focus:outline-none focus:border-cyan-500/40"
             />
             <button
               onClick={() => setQuantity((q) => q + lotSize)}
-              className="bg-slate-900 border border-white/5 hover:border-white/10 w-8 py-0.5 rounded text-slate-300 font-bold hover:text-white transition-all cursor-pointer text-center text-xs"
+              className="bg-card  hover:border-subtle w-8 py-0.5 rounded text-slate-300 font-semibold hover:text-white transition-all cursor-pointer text-center vdl-body"
             >
               +
             </button>
@@ -1497,13 +1494,13 @@ export const TradingRight: React.FC = () => {
 
         {/* Order Type Toggle */}
         <div className="flex flex-col gap-0.5 select-none">
-          <span className="text-xs text-slate-500 uppercase font-semibold">Order Type</span>
+          <span className="vdl-body text-slate-500 font-semibold">Order Type</span>
           <div className="tab-container grid grid-cols-3">
             {(["MARKET", "LIMIT", "SL"] as const).map((type) => (
               <button
                 key={type}
                 onClick={() => setOrderType(type)}
-                className={`tab-item ${orderType === type ? "active" : ""}`}
+                className={`tab-item${orderType === type ? "active" : ""}`}
               >
                 {type}
               </button>
@@ -1514,22 +1511,22 @@ export const TradingRight: React.FC = () => {
         {/* Limit Price / Trigger Price */}
         <div className="grid grid-cols-2 gap-2">
           <div className="flex flex-col gap-0.5">
-            <span className="text-xs text-slate-500 uppercase">Limit Price</span>
+            <span className="vdl-body text-slate-500">Limit Price</span>
             <input
               type="number"
               disabled={orderType === "MARKET"}
               value={limitPrice || ""}
               onChange={(e) => setLimitPrice(Number(e.target.value))}
-              className="w-full bg-slate-900 border border-white/5 rounded py-0.5 px-2 font-mono text-center text-xs text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:border-cyan-500/40"
+              className="w-full bg-card  rounded py-0.5 px-2 font-mono text-center vdl-body text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:border-cyan-500/40"
             />
           </div>
           <div className="flex flex-col gap-0.5">
-            <span className="text-xs text-slate-500 uppercase">Trigger Price</span>
+            <span className="vdl-body text-slate-500">Trigger Price</span>
             <input
               type="number"
               value={triggerPrice || ""}
               onChange={(e) => setTriggerPrice(Number(e.target.value))}
-              className="w-full bg-slate-900 border border-white/5 rounded py-0.5 px-2 font-mono text-center text-xs text-slate-200 focus:outline-none focus:border-cyan-500/40"
+              className="w-full bg-card  rounded py-0.5 px-2 font-mono text-center vdl-body text-slate-200 focus:outline-none focus:border-cyan-500/40"
             />
           </div>
         </div>
@@ -1538,34 +1535,34 @@ export const TradingRight: React.FC = () => {
         <div className="grid grid-cols-2 gap-2">
           <div className="flex flex-col gap-0.5">
             <div className="flex justify-between">
-              <span className="text-xs text-slate-500 uppercase font-semibold">Stop Loss</span>
-              <span className="text-xs text-slate-500 font-mono uppercase">Opt</span>
+              <span className="vdl-body text-slate-500 font-semibold">Stop loss</span>
+              <span className="vdl-body text-slate-500 font-mono">Opt</span>
             </div>
             <input
               type="number"
               placeholder="SL Price"
               value={stopLoss || ""}
               onChange={(e) => setStopLoss(Number(e.target.value))}
-              className="w-full bg-slate-900 border border-white/5 rounded py-0.5 px-2 font-mono text-center text-xs text-slate-200 focus:outline-none focus:border-cyan-500/40"
+              className="w-full bg-card  rounded py-0.5 px-2 font-mono text-center vdl-body text-slate-200 focus:outline-none focus:border-cyan-500/40"
             />
           </div>
           <div className="flex flex-col gap-0.5">
-            <span className="text-xs text-slate-500 uppercase">Target Price</span>
+            <span className="vdl-body text-slate-500">Target price</span>
             <input
               type="number"
               placeholder="Target Price"
               value={targetPrice || ""}
               onChange={(e) => setTargetPrice(Number(e.target.value))}
-              className="w-full bg-slate-900 border border-white/5 rounded py-0.5 px-2 font-mono text-center text-xs text-slate-200 focus:outline-none focus:border-cyan-500/40"
+              className="w-full bg-card  rounded py-0.5 px-2 font-mono text-center vdl-body text-slate-200 focus:outline-none focus:border-cyan-500/40"
             />
           </div>
         </div>
 
         {/* Real Broker Margin HUD & Risk Estimation */}
-        <div className="flex flex-col gap-1 bg-slate-950/40 p-1.5 rounded border border-white/5 font-mono text-xs text-slate-500 select-none">
-          <div className="flex justify-between items-center border-b border-white/5 pb-0.5 mb-0.5">
-            <span>RISK STATUS:</span>
-            <span className={`px-2 py-0.5 rounded border text-xs tracking-wider uppercase transition-all ${
+        <div className="flex flex-col gap-1 bg-card/40 p-1.5 rounded  font-mono vdl-body text-slate-500 select-none">
+          <div className="flex justify-between items-center border-b pb-0.5 mb-0.5">
+            <span>Risk status:</span>
+            <span className={`px-2 py-0.5 rounded border vdl-body transition-all${
               brokerMarginReq > availableMargin
                 ? "text-rose-500 bg-rose-500/10 border-rose-500/20 animate-pulse font-extrabold"
                 : (availableMargin > 0 && brokerMarginReq / availableMargin > 0.5)
@@ -1578,73 +1575,73 @@ export const TradingRight: React.FC = () => {
           <div className="grid grid-cols-2 gap-2">
             <div className="flex flex-col gap-0.5">
               <span>REQUIRED MARGIN:</span>
-              <span className="font-bold text-slate-300">
+              <span className="font-semibold text-slate-300">
                 ₹{brokerMarginReq.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
             <div className="flex flex-col gap-0.5">
               <span>AVAILABLE MARGIN:</span>
-              <span className="font-bold text-slate-300">
+              <span className="font-semibold text-slate-300">
                 ₹{availableMargin.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2 border-t border-white/5 pt-1 mt-1">
+          <div className="grid grid-cols-2 gap-2 border-t pt-1 mt-1">
             <div className="flex flex-col gap-0.5">
               <span>POST-TRADE MARGIN:</span>
-              <span className="font-bold text-slate-300">
+              <span className="font-semibold text-slate-300">
                 ₹{(availableMargin - brokerMarginReq).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
             <div className="flex flex-col gap-0.5">
               <span>MARGIN UTILIZATION:</span>
-              <span className="font-bold text-slate-300">
+              <span className="font-semibold text-slate-300">
                 {(availableMargin > 0 ? (brokerMarginReq / availableMargin) * 100 : 0).toFixed(2)}%
               </span>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2 border-t border-white/5 pt-1.5 mt-1 select-none">
+          <div className="grid grid-cols-2 gap-2 border-t pt-1.5 mt-1 select-none">
             <div className="col-span-2 flex flex-col gap-1">
-              <span className="text-xs text-slate-500 font-semibold">Risk estimation</span>
+              <span className="vdl-body text-slate-500 font-semibold">Risk estimation</span>
               
               {!hasSL ? (
-                <div className="flex flex-col gap-0.5 bg-amber-500/5 p-1.5 rounded border border-amber-500/10 font-mono text-xs">
+                <div className="flex flex-col gap-0.5 bg-amber-500/5 p-1.5 rounded border border-amber-500/10 font-mono vdl-body">
                   <div className="flex justify-between">
                     <span className="text-slate-500">RISK ESTIMATE:</span>
-                    <span className="font-bold text-amber-400">Undefined</span>
+                    <span className="font-semibold text-amber-400">Undefined</span>
                   </div>
                   <div className="flex justify-between mt-0.5">
                     <span className="text-slate-500">STATUS:</span>
-                    <span className="font-bold text-amber-400 animate-pulse font-sans">Warning</span>
+                    <span className="font-semibold text-amber-400 animate-pulse font-sans">Warning</span>
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-col gap-0.5 bg-slate-900/40 p-1.5 rounded border border-white/5 font-mono text-xs">
+                <div className="flex flex-col gap-0.5 bg-card/40 p-1.5 rounded  font-mono vdl-body">
                   <div className="flex justify-between">
-                    <span className="text-slate-500">MAX LOSS:</span>
-                    <span className="font-bold text-rose-400">
+                    <span className="text-slate-500">Max loss:</span>
+                    <span className="font-semibold text-rose-400">
                       ₹{riskAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-500">RISK PERCENT:</span>
-                    <span className="font-bold text-rose-400">{riskPct.toFixed(2)}%</span>
+                    <span className="text-slate-500">Risk percent:</span>
+                    <span className="font-semibold text-rose-400">{riskPct.toFixed(2)}%</span>
                   </div>
                 </div>
               )}
 
               {hasTarget && (
-                <div className="flex flex-col gap-0.5 bg-slate-900/40 p-1.5 rounded border border-white/5 font-mono text-xs">
+                <div className="flex flex-col gap-0.5 bg-card/40 p-1.5 rounded  font-mono vdl-body">
                   <div className="flex justify-between">
-                    <span className="text-slate-500">POTENTIAL REWARD:</span>
-                    <span className="font-bold text-emerald-400">
+                    <span className="text-slate-500">Potential reward:</span>
+                    <span className="font-semibold text-emerald-400">
                       ₹{rewardAmountVal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                   </div>
                   {hasSL && (
-                    <div className="flex justify-between border-t border-white/5 pt-0.5 mt-0.5">
-                      <span className="text-slate-500">RISK/REWARD RATIO:</span>
-                      <span className="font-bold text-cyan-400">1:{rrRatio}</span>
+                    <div className="flex justify-between border-t pt-0.5 mt-0.5">
+                      <span className="text-slate-500">Risk/reward ratio:</span>
+                      <span className="font-semibold text-cyan-400">1:{rrRatio}</span>
                     </div>
                   )}
                 </div>
@@ -1652,18 +1649,18 @@ export const TradingRight: React.FC = () => {
             </div>
           </div>
           {brokerMarginError && (
-            <span className="text-xs text-rose-400 mt-1 uppercase font-sans animate-pulse">
+            <span className="vdl-body text-rose-400 mt-1 font-sans animate-pulse">
               * {brokerMarginError}
             </span>
           )}
         </div>
 
         {/* Primary Action Buttons — Maximum Visual Weight */}
-        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/5">
+        <div className="grid grid-cols-2 gap-2 pt-2 border-t">
           <button
             onClick={() => handlePlaceOrder("BUY")}
             disabled={orderSubmitting || !currentInstrument}
-            className={`btn-buy w-full ${
+            className={`btn-buy w-full${
               orderSubmitting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
             }`}
           >
@@ -1672,7 +1669,7 @@ export const TradingRight: React.FC = () => {
           <button
             onClick={() => handlePlaceOrder("SELL")}
             disabled={orderSubmitting || !currentInstrument}
-            className={`btn-sell w-full ${
+            className={`btn-sell w-full${
               orderSubmitting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
             }`}
           >
@@ -1686,39 +1683,39 @@ export const TradingRight: React.FC = () => {
 
       {/* Option Greeks & Analytics HUD */}
       {analytics && (
-        <div className="p-2 flex flex-col gap-2 font-mono text-xs select-none text-slate-300 border-t border-white/5">
-          <div className="text-[12px] font-sans font-bold text-slate-200 border-b border-white/5 pb-1 flex justify-between items-center">
+        <div className="p-2 flex flex-col gap-2 font-mono vdl-body select-none text-slate-300 border-t">
+          <div className="text-[12px] font-sans font-semibold text-slate-200 border-b pb-1 flex justify-between items-center">
             <span>Option analytics</span>
-            <span className={`px-1 py-0.5 rounded text-xs font-sans font-bold border ${
+            <span className={`px-1 py-0.5 rounded vdl-body font-sans font-semibold border${
               analytics.domSignal === "BULLISH" ? "text-emerald-400 bg-emerald-950/40 border-emerald-700/30" :
               analytics.domSignal === "BEARISH" ? "text-rose-400 bg-rose-950/40 border-rose-700/30" :
-              "text-slate-400 bg-slate-900/40 border-white/10"
+              "text-slate-400 bg-card/40"
             }`}>
               DOM: {analytics.domSignal}
             </span>
           </div>
 
           {/* Greeks Grid */}
-          <div className="grid grid-cols-5 gap-1.5 border-b border-white/5 pb-2 text-center text-xs text-slate-400">
+          <div className="grid grid-cols-5 gap-1.5 border-b pb-2 text-center vdl-body text-slate-400">
             <div>
-              <div className="text-slate-500">DELTA</div>
-              <div className="font-bold text-slate-200 mt-0.5">{analytics.delta.toFixed(3)}</div>
+              <div className="text-slate-500">Delta</div>
+              <div className="font-semibold text-slate-200 mt-0.5">{analytics.delta.toFixed(3)}</div>
             </div>
             <div>
-              <div className="text-slate-500">GAMMA</div>
-              <div className="font-bold text-slate-200 mt-0.5">{analytics.gamma.toFixed(5)}</div>
+              <div className="text-slate-500">Gamma</div>
+              <div className="font-semibold text-slate-200 mt-0.5">{analytics.gamma.toFixed(5)}</div>
             </div>
             <div>
-              <div className="text-slate-500">THETA</div>
-              <div className="font-bold text-slate-200 mt-0.5">{analytics.theta.toFixed(1)}</div>
+              <div className="text-slate-500">Theta</div>
+              <div className="font-semibold text-slate-200 mt-0.5">{analytics.theta.toFixed(1)}</div>
             </div>
             <div>
-              <div className="text-slate-500">VEGA</div>
-              <div className="font-bold text-slate-200 mt-0.5">{analytics.vega.toFixed(3)}</div>
+              <div className="text-slate-500">Vega</div>
+              <div className="font-semibold text-slate-200 mt-0.5">{analytics.vega.toFixed(3)}</div>
             </div>
             <div>
-              <div className="text-slate-500">IV%</div>
-              <div className="font-bold text-amber-400 mt-0.5">{analytics.iv.toFixed(1)}%</div>
+              <div className="text-slate-500">Iv%</div>
+              <div className="font-semibold text-amber-400 mt-0.5">{analytics.iv.toFixed(1)}%</div>
             </div>
           </div>
 
@@ -1726,37 +1723,37 @@ export const TradingRight: React.FC = () => {
           <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 pt-0.5">
             <div className="flex justify-between">
               <span className="text-slate-500">OI:</span>
-              <span className="text-slate-300 font-bold">{analytics.oi >= 1000000 ? `${(analytics.oi/1000000).toFixed(2)}M` : analytics.oi.toLocaleString("en-IN")}</span>
+              <span className="text-slate-300 font-semibold">{analytics.oi >= 1000000 ? `${(analytics.oi/1000000).toFixed(2)}M` : analytics.oi.toLocaleString("en-IN")}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">PCR:</span>
-              <span className="text-slate-300 font-bold">{analytics.pcr.toFixed(2)}</span>
+              <span className="text-slate-300 font-semibold">{analytics.pcr.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">OI Change:</span>
-              <span className={`font-bold ${analytics.oiChange > 0 ? "text-emerald-400" : analytics.oiChange < 0 ? "text-rose-400" : "text-slate-500"}`}>
+              <span className={`font-semibold${analytics.oiChange > 0 ? "text-emerald-400" : analytics.oiChange < 0 ? "text-rose-400" : "text-slate-500"}`}>
                 {analytics.oiChange > 0 ? "+" : ""}{analytics.oiChange >= 1000000 ? `${(analytics.oiChange/1000000).toFixed(2)}M` : analytics.oiChange.toLocaleString("en-IN")}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">OI Chg %:</span>
-              <span className={`font-bold ${analytics.oiChange > 0 ? "text-emerald-400" : analytics.oiChange < 0 ? "text-rose-400" : "text-slate-500"}`}>
+              <span className={`font-semibold${analytics.oiChange > 0 ? "text-emerald-400" : analytics.oiChange < 0 ? "text-rose-400" : "text-slate-500"}`}>
                 {analytics.oiChange > 0 ? "+" : ""}{analytics.oiPct.toFixed(1)}%
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Volume:</span>
-              <span className="text-slate-300 font-bold">{analytics.volume >= 1000000 ? `${(analytics.volume/1000000).toFixed(2)}M` : analytics.volume.toLocaleString("en-IN")}</span>
+              <span className="text-slate-300 font-semibold">{analytics.volume >= 1000000 ? `${(analytics.volume/1000000).toFixed(2)}M` : analytics.volume.toLocaleString("en-IN")}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Spread:</span>
-              <span className="text-amber-400 font-bold">₹{analytics.spread.toFixed(2)} ({((analytics.spread / (analytics.ltp || 1)) * 100).toFixed(2)}%)</span>
+              <span className="text-amber-400 font-semibold">₹{analytics.spread.toFixed(2)} ({((analytics.spread / (analytics.ltp || 1)) * 100).toFixed(2)}%)</span>
             </div>
           </div>
 
           {/* DOM Buy/Sell Ratio Progress Bar */}
-          <div className="mt-1 border-t border-white/5 pt-2 flex flex-col gap-1 select-none">
-            <div className="flex justify-between text-xs text-slate-500 uppercase">
+          <div className="mt-1 border-t pt-2 flex flex-col gap-1 select-none">
+            <div className="flex justify-between vdl-body text-slate-500">
               <span>Buy Qty (Bid): {analytics.bidQty.toLocaleString()}</span>
               <span>Sell Qty (Ask): {analytics.askQty.toLocaleString()}</span>
             </div>
@@ -1776,21 +1773,21 @@ export const TradingRight: React.FC = () => {
       )}
 
       {/* Mini Position Summary Panel - Sync'd to Broker Account */}
-      <div className="p-2 flex flex-col gap-2 flex-1 min-h-0 select-none border-t border-white/5">
-        <span className="text-[12px] font-bold text-slate-200 border-b border-white/5 pb-1">
+      <div className="p-2 flex flex-col gap-2 flex-1 min-h-0 select-none border-t">
+        <span className="text-[12px] font-semibold text-slate-200 border-b pb-1">
           Open positions ({positions.length})
         </span>
-        <div className="flex-1 overflow-y-auto flex flex-col gap-1.5 pr-1 font-sans text-xs scrollbar-thin scrollbar-thumb-white/5">
+        <div className="flex-1 overflow-y-auto flex flex-col gap-1.5 pr-1 font-sans vdl-body scrollbar-thin scrollbar-thumb-white/5">
           {positions.length > 0 ? (
             positions.map((pos) => {
               const qty = Number(pos.quantity || 0);
               return (
                 <div 
                   key={`${pos.instrument_token}_${pos.product}`}
-                  className="p-2 rounded bg-slate-900/40 border border-white/5 flex flex-col gap-1 relative group"
+                  className="p-2 rounded bg-card/40 flex flex-col gap-1 relative group"
                 >
                   <div className="flex justify-between items-center">
-                    <span className="font-bold text-slate-200">{pos.trading_symbol}</span>
+                    <span className="font-semibold text-slate-200">{pos.trading_symbol}</span>
                     <button 
                       onClick={() => closePosition(pos.trading_symbol)}
                       className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-400 transition-all absolute right-2 top-2 cursor-pointer"
@@ -1799,24 +1796,24 @@ export const TradingRight: React.FC = () => {
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                  <div className="grid grid-cols-4 text-xs text-slate-400 font-mono">
+                  <div className="grid grid-cols-4 vdl-body text-slate-400 font-mono">
                     <div className="flex flex-col">
-                      <span className="text-xs text-slate-600 font-sans ">Side</span>
+                      <span className="vdl-body text-slate-600 font-sans">Side</span>
                       <span className={qty > 0 ? "text-emerald-400 font-bold" : qty < 0 ? "text-rose-400 font-bold" : "text-slate-500"}>
                         {qty > 0 ? "LONG" : qty < 0 ? "SHORT" : "CLOSED"}
                       </span>
                     </div>
                     <div className="flex flex-col text-right">
-                      <span className="text-xs text-slate-600 font-sans ">Qty</span>
+                      <span className="vdl-body text-slate-600 font-sans">Qty</span>
                       <span>{qty}</span>
                     </div>
                     <div className="flex flex-col text-right">
-                      <span className="text-xs text-slate-600 font-sans ">Avg/LTP</span>
+                      <span className="vdl-body text-slate-600 font-sans">Avg/LTP</span>
                       <span>₹{Number(pos.average_price || pos.buy_price || 0).toFixed(1)}/₹{Number(pos.last_price || 0).toFixed(1)}</span>
                     </div>
                     <div className="flex flex-col text-right">
-                      <span className="text-xs text-slate-600 font-sans ">PnL</span>
-                      <span className={`font-bold ${Number(pos.unrealised || 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                      <span className="vdl-body text-slate-600 font-sans">PnL</span>
+                      <span className={`font-semibold${Number(pos.unrealised || 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                         {Number(pos.unrealised || 0) >= 0 ? "+" : ""}₹{Number(pos.unrealised || 0).toLocaleString("en-IN", { maximumFractionDigits: 1 })}
                       </span>
                     </div>
@@ -2049,15 +2046,15 @@ const OptionChainPanel: React.FC = () => {
   return (
     <div className="flex flex-col h-full gap-2 p-1">
       {/* Option Chain Control Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-900/40 p-2 rounded border border-white/5 select-none shrink-0">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-card/40 p-2 rounded  select-none shrink-0">
         <div className="flex items-center gap-3">
           {/* Underlying Selector */}
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-slate-500 font-bold ">Index:</span>
+            <span className="vdl-body text-slate-500 font-semibold">Index:</span>
             <select
               value={underlying}
               onChange={(e) => setUnderlying(e.target.value)}
-              className="bg-slate-950 border border-white/10 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-cyan-500/40 cursor-pointer font-sans"
+              className="bg-card  rounded px-2 py-1 vdl-body text-slate-200 focus:outline-none focus:border-cyan-500/40 cursor-pointer font-sans"
             >
               <option value="NIFTY">NIFTY</option>
               <option value="BANKNIFTY">BANKNIFTY</option>
@@ -2071,11 +2068,11 @@ const OptionChainPanel: React.FC = () => {
 
           {/* Expiry Selector */}
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-slate-500 font-bold ">Expiry:</span>
+            <span className="vdl-body text-slate-500 font-semibold">Expiry:</span>
             <select
               value={selectedExpiry}
               onChange={(e) => setSelectedExpiry(e.target.value)}
-              className="bg-slate-950 border border-white/10 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-cyan-500/40 cursor-pointer font-sans"
+              className="bg-card  rounded px-2 py-1 vdl-body text-slate-200 focus:outline-none focus:border-cyan-500/40 cursor-pointer font-sans"
             >
               {expiries.map((exp) => (
                 <option key={exp} value={exp}>
@@ -2087,61 +2084,61 @@ const OptionChainPanel: React.FC = () => {
         </div>
 
         {/* Spot Price and Status Indicator */}
-        <div className="flex items-center gap-4 text-xs font-mono">
+        <div className="flex items-center gap-4 vdl-body font-mono">
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-slate-500 ">Spot price:</span>
-            <span className="text-cyan-400 font-bold">
+            <span className="vdl-body text-slate-500">Spot price:</span>
+            <span className="text-cyan-400 font-semibold">
               ₹{spotPrice.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </span>
           </div>
-          {loading && <span className="text-xs text-cyan-500 animate-pulse uppercase">Syncing...</span>}
+          {loading && <span className="vdl-body text-cyan-500 animate-pulse">Syncing...</span>}
         </div>
       </div>
 
       {/* Selected Contract Quick HUD */}
       {currentInstrument && (
-        <div className="bg-cyan-500/5 border border-cyan-500/20 px-3 py-1.5 rounded flex items-center justify-between text-xs font-sans">
+        <div className="bg-cyan-500/5 border border-cyan-500/20 px-3 py-1.5 rounded flex items-center justify-between vdl-body font-sans">
           <div className="flex items-center gap-2">
-            <span className="text-slate-500 font-bold text-xs">Active target:</span>
-            <span className="font-bold text-cyan-400 font-mono">{currentInstrument.symbol}</span>
+            <span className="text-slate-500 font-semibold vdl-body">Active target:</span>
+            <span className="font-semibold text-cyan-400 font-mono">{currentInstrument.symbol}</span>
           </div>
-          <span className="text-xs font-mono text-slate-500 ">Key: {currentInstrument.symbol}</span>
+          <span className="vdl-body font-mono text-slate-500">Key: {currentInstrument.symbol}</span>
         </div>
       )}
 
       {/* Error alert */}
       {error && (
-        <div className="p-2 bg-rose-950/40 border border-rose-500/20 text-rose-400 text-xs rounded select-none">
+        <div className="p-2 bg-rose-950/40 border border-rose-500/20 text-rose-400 vdl-body rounded select-none">
           {error}
         </div>
       )}
 
       {/* Option Chain Table */}
-      <div className="flex-1 min-h-0 overflow-auto border border-white/5 rounded">
-        <table className="w-full text-left font-mono tabular-nums text-xs border-collapse">
-          <thead className="sticky top-0 bg-slate-950/95 backdrop-blur border-b border-white/10 z-10">
+      <div className="flex-1 min-h-0 overflow-auto  rounded">
+        <table className="w-full text-left font-mono tabular-nums vdl-body border-collapse">
+          <thead className="sticky top-0 bg-card/95 backdrop-blur border-b z-10">
             {/* Section header row */}
-            <tr className="text-xs uppercase tracking-wider select-none border-b border-white/5 bg-slate-900/10">
-              <th colSpan={7} className="py-1.5 pl-3 text-emerald-450 font-bold border-r border-white/5 text-center">— CALLS —</th>
-              <th className="py-1.5 text-center text-slate-350 font-bold bg-slate-900 border-x border-white/10">Strike</th>
-              <th colSpan={7} className="py-1.5 pr-3 text-right text-rose-400 font-bold border-l border-white/5 text-center">— PUTS —</th>
+            <tr className="vdl-body select-none border-b bg-card/10">
+              <th colSpan={7} className="py-1.5 pl-3 text-emerald-450 font-semibold border-r text-center">— CALLS —</th>
+              <th className="py-1.5 text-center text-slate-350 font-semibold bg-card border-x">Strike</th>
+              <th colSpan={7} className="py-1.5 pr-3 text-right text-rose-400 font-semibold border-l text-center">— PUTS —</th>
             </tr>
             {/* Column header row */}
-            <tr className="text-slate-500 uppercase text-xs tracking-wider select-none bg-slate-950">
+            <tr className="text-slate-500 vdl-body select-none bg-card">
               <th className="py-1.5 pl-3 text-left">DOM</th>
-              <th className="py-1.5 text-right">IV%</th>
-              <th className="py-1.5 text-right">OI</th>
+              <th className="py-1.5 text-right">Iv%</th>
+              <th className="py-1.5 text-right">Oi</th>
               <th className="py-1.5 text-right">OI Chg</th>
               <th className="py-1.5 text-right">Vol</th>
               <th className="py-1.5 text-right">Bid×Qty</th>
-              <th className="py-1.5 text-right text-emerald-400 font-bold border-r border-white/5 pr-2">LTP</th>
-              <th className="py-1.5 text-center font-bold text-slate-300 bg-slate-900 border-x border-white/10 px-2">Strike</th>
-              <th className="py-1.5 text-left text-rose-400 font-bold border-l border-white/5 pl-2">LTP</th>
+              <th className="py-1.5 text-right text-emerald-400 font-semibold border-r pr-2">Ltp</th>
+              <th className="py-1.5 text-center font-semibold text-slate-300 bg-card border-x px-2">Strike</th>
+              <th className="py-1.5 text-left text-rose-400 font-semibold border-l pl-2">Ltp</th>
               <th className="py-1.5 text-left">Ask×Qty</th>
               <th className="py-1.5 text-left">Vol</th>
-              <th className="py-1.5 text-left">OI</th>
+              <th className="py-1.5 text-left">Oi</th>
               <th className="py-1.5 text-left">OI Chg</th>
-              <th className="py-1.5 text-left">IV%</th>
+              <th className="py-1.5 text-left">Iv%</th>
               <th className="py-1.5 pr-3 text-left">DOM</th>
             </tr>
           </thead>
@@ -2157,19 +2154,19 @@ const OptionChainPanel: React.FC = () => {
                 const domColor = (sig: string) =>
                   sig === "BULLISH" ? "text-emerald-400 bg-emerald-950/40 border-emerald-700/30" :
                   sig === "BEARISH" ? "text-rose-400 bg-rose-950/40 border-rose-700/30" :
-                  "text-slate-400 bg-slate-900/40 border-white/10";
+                  "text-slate-400 bg-card/40";
                 const oiChgColor = (v: number) => v > 0 ? "text-emerald-400" : v < 0 ? "text-rose-400" : "text-slate-500";
 
                 return (
                   <tr
                     key={row.strike}
-                    className={`hover:bg-cyan-500/[0.03] transition-all ${
+                    className={`hover:bg-cyan-500/[0.03] transition-all${
                       isATM ? "bg-cyan-500/[0.02] border-y border-cyan-500/10" : ""
                     }`}
                   >
                     {/* CE: DOM Signal */}
                     <td className="py-1.5 pl-3">
-                      <span className={`px-1 py-0.5 rounded text-xs font-bold font-sans border ${domColor(row.ce_dom_signal || "NEUTRAL")}`}>
+                      <span className={`px-1 py-0.5 rounded vdl-body font-semibold font-sans border${domColor(row.ce_dom_signal || "NEUTRAL")}`}>
                         {(row.ce_dom_signal || "—").slice(0, 4)}
                       </span>
                     </td>
@@ -2181,7 +2178,7 @@ const OptionChainPanel: React.FC = () => {
                     <td className="py-1.5 text-right text-slate-400">{row.ce_oi > 0 ? fmtOI(row.ce_oi) : "—"}</td>
 
                     {/* CE: OI Change */}
-                    <td className={`py-1.5 text-right font-bold ${oiChgColor(row.ce_oi_change || 0)}`}>
+                    <td className={`py-1.5 text-right font-semibold${oiChgColor(row.ce_oi_change || 0)}`}>
                       {row.ce_oi_change !== 0 && row.ce_oi_change !== undefined ? `${row.ce_oi_change > 0 ? "+" : ""}${fmtOI(row.ce_oi_change)}` : "—"}
                     </td>
 
@@ -2189,30 +2186,30 @@ const OptionChainPanel: React.FC = () => {
                     <td className="py-1.5 text-right text-slate-500">{row.ce_volume > 0 ? fmtVol(row.ce_volume) : "—"}</td>
 
                     {/* CE: Bid × Qty */}
-                    <td className="py-1.5 text-right text-slate-400 text-xs font-mono">
+                    <td className="py-1.5 text-right text-slate-400 vdl-body font-mono">
                       {row.ce_bid > 0 ? (
                         <span>{row.ce_bid.toFixed(1)}<span className="text-slate-600">×{fmtOI(row.ce_bid_qty)}</span></span>
                       ) : "—"}
                     </td>
 
                     {/* CE: LTP — clickable */}
-                    <td className="py-1.5 pr-2 text-right border-r border-white/5">
+                    <td className="py-1.5 pr-2 text-right border-r">
                       {row.ce_key ? (
                         <button
                           onClick={() => handleSelectContract(row.strike, "CE", row.ce_key, row.ce_symbol)}
-                          className={`flex items-center justify-end gap-1 group cursor-pointer w-full focus:outline-none rounded px-1 py-0.5 transition-all ${
+                          className={`flex items-center justify-end gap-1 group cursor-pointer w-full focus:outline-none rounded px-1 py-0.5 transition-all${
                             ceActive ? "bg-emerald-500/10 ring-1 ring-emerald-500/30" : "hover:bg-emerald-500/5"
                           }`}
                         >
-                          <span className="text-emerald-400 font-bold text-xs">₹{row.ce_ltp.toFixed(2)}</span>
-                          <span className="opacity-0 group-hover:opacity-100 text-xs text-emerald-500 font-sans uppercase">CE▶</span>
+                          <span className="text-emerald-400 font-semibold vdl-body">₹{row.ce_ltp.toFixed(2)}</span>
+                          <span className="opacity-0 group-hover:opacity-100 vdl-body text-emerald-500 font-sans">CE▶</span>
                         </button>
                       ) : <span className="text-slate-600 pr-2">—</span>}
                     </td>
 
                     {/* Center Strike Axis Spine */}
-                    <td className="py-1 text-center px-3 bg-slate-900 border-x border-white/10 select-none">
-                      <span className={`px-2 py-0.5 rounded font-mono font-bold text-xs tabular-nums tracking-wide ${
+                    <td className="py-1 text-center px-3 bg-card border-x select-none">
+                      <span className={`px-2 py-0.5 rounded font-mono font-semibold vdl-body tabular-nums${
                         isATM 
                           ? "bg-amber-500 text-slate-950 font-black shadow-[0_0_10px_rgba(245,158,11,0.45)]" 
                           : "text-slate-100"
@@ -2220,27 +2217,27 @@ const OptionChainPanel: React.FC = () => {
                         {row.strike}
                       </span>
                       {row.pcr > 0 && (
-                        <div className="text-xs text-slate-500 font-sans text-center mt-0.5">PCR {row.pcr.toFixed(1)}</div>
+                        <div className="vdl-body text-slate-500 font-sans text-center mt-0.5">PCR {row.pcr.toFixed(1)}</div>
                       )}
                     </td>
 
                     {/* PE: LTP — clickable */}
-                    <td className="py-1.5 pl-2 text-left border-l border-white/5">
+                    <td className="py-1.5 pl-2 text-left border-l">
                       {row.pe_key ? (
                         <button
                           onClick={() => handleSelectContract(row.strike, "PE", row.pe_key, row.pe_symbol)}
-                          className={`flex items-center gap-1 group cursor-pointer w-full focus:outline-none rounded px-1 py-0.5 transition-all ${
+                          className={`flex items-center gap-1 group cursor-pointer w-full focus:outline-none rounded px-1 py-0.5 transition-all${
                             peActive ? "bg-rose-500/10 ring-1 ring-rose-500/30" : "hover:bg-rose-500/5"
                           }`}
                         >
-                          <span className="opacity-0 group-hover:opacity-100 text-xs text-rose-500 font-sans uppercase">◀PE</span>
-                          <span className="text-rose-400 font-bold text-xs">₹{row.pe_ltp.toFixed(2)}</span>
+                          <span className="opacity-0 group-hover:opacity-100 vdl-body text-rose-500 font-sans">◀PE</span>
+                          <span className="text-rose-400 font-semibold vdl-body">₹{row.pe_ltp.toFixed(2)}</span>
                         </button>
                       ) : <span className="text-slate-600 pl-2">—</span>}
                     </td>
 
                     {/* PE: Ask × Qty */}
-                    <td className="py-1.5 text-left text-slate-400 text-xs font-mono">
+                    <td className="py-1.5 text-left text-slate-400 vdl-body font-mono">
                       {row.pe_ask > 0 ? (
                         <span>{row.pe_ask.toFixed(1)}<span className="text-slate-600">×{fmtOI(row.pe_ask_qty)}</span></span>
                       ) : "—"}
@@ -2253,7 +2250,7 @@ const OptionChainPanel: React.FC = () => {
                     <td className="py-1.5 text-left text-slate-400">{row.pe_oi > 0 ? fmtOI(row.pe_oi) : "—"}</td>
 
                     {/* PE: OI Change */}
-                    <td className={`py-1.5 text-left font-bold ${oiChgColor(row.pe_oi_change || 0)}`}>
+                    <td className={`py-1.5 text-left font-semibold${oiChgColor(row.pe_oi_change || 0)}`}>
                       {row.pe_oi_change !== 0 && row.pe_oi_change !== undefined ? `${row.pe_oi_change > 0 ? "+" : ""}${fmtOI(row.pe_oi_change)}` : "—"}
                     </td>
 
@@ -2262,7 +2259,7 @@ const OptionChainPanel: React.FC = () => {
 
                     {/* PE: DOM Signal */}
                     <td className="py-1.5 pr-3">
-                      <span className={`px-1 py-0.5 rounded text-xs font-bold font-sans border ${domColor(row.pe_dom_signal || "NEUTRAL")}`}>
+                      <span className={`px-1 py-0.5 rounded vdl-body font-semibold font-sans border${domColor(row.pe_dom_signal || "NEUTRAL")}`}>
                         {(row.pe_dom_signal || "—").slice(0, 4)}
                       </span>
                     </td>
@@ -2434,7 +2431,6 @@ export const TradingBottom: React.FC = () => {
 
   const realizedPnL = brokerPositions.reduce((acc, pos) => acc + Number(pos.realised || 0), 0);
   const unrealizedPnL = brokerPositions.reduce((acc, pos) => acc + Number(pos.unrealised || 0), 0);
-  // Brokerage: ₹20/leg (Upstox flat) + ₹5.5 NSE charge + 0.05% STT on sell side (capped)
   const brokerage = brokerTrades.reduce((acc, t) => {
     const tradeVal = Number(t.trade_value || 0) || (Number(t.price || 0) * Number(t.quantity || 0));
     const stt = (t.transaction_type === "SELL" ? tradeVal * 0.0005 : 0);
@@ -2442,386 +2438,419 @@ export const TradingBottom: React.FC = () => {
   }, 0);
   const netPnL = realizedPnL + unrealizedPnL - brokerage;
 
-  const tabs = [
-    { id: "optionChain" as const, name: "Option Chain" },
-    { id: "positions" as const, name: `Positions (${brokerPositions.length})` },
-    { id: "orders" as const, name: `Orders (${brokerOrders.length})` },
-    { id: "trades" as const, name: `Trades (${brokerTrades.length})` },
-    { id: "holdings" as const, name: `Holdings (${brokerHoldings.length})` },
-    { id: "pnl" as const, name: "PnL Summary" },
+  const tabItems = [
+    { id: "optionChain", label: "Option Chain" },
+    { id: "positions", label: "Positions", count: brokerPositions.length },
+    { id: "orders", label: "Orders", count: brokerOrders.length },
+    { id: "trades", label: "Trades", count: brokerTrades.length },
+    { id: "holdings", label: "Holdings", count: brokerHoldings.length },
+    { id: "pnl", label: "PnL Summary" },
+  ];
+
+  const positionsColumns: ColumnDef<any>[] = [
+    {
+      header: "Symbol",
+      accessorKey: (pos) => <span className="font-sans font-semibold text-slate-200">{pos.trading_symbol}</span>,
+    },
+    {
+      header: "Qty",
+      accessorKey: (pos) => <span className="font-semibold">{Number(pos.quantity || 0)}</span>,
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Product",
+      accessorKey: "product",
+      className: "text-slate-400 font-sans text-center",
+    },
+    {
+      header: "Exchange",
+      accessorKey: "exchange",
+      className: "text-slate-400 font-sans text-center",
+    },
+    {
+      header: "Avg Price",
+      accessorKey: (pos) => `₹${Number(pos.average_price || pos.buy_price || 0).toFixed(2)}`,
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Ltp",
+      accessorKey: (pos) => `₹${Number(pos.last_price || 0).toFixed(2)}`,
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Mtm",
+      accessorKey: (pos) => {
+        const val = Number(pos.unrealised || 0);
+        return (
+          <span className={`font-semibold ${val >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+            {val >= 0 ? "+" : ""}₹{val.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </span>
+        );
+      },
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Realized PnL",
+      accessorKey: (pos) => {
+        const val = Number(pos.realised || 0);
+        return (
+          <span className={`font-semibold ${val >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+            {val >= 0 ? "+" : ""}₹{val.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </span>
+        );
+      },
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Status",
+      accessorKey: (pos) => {
+        const qty = Number(pos.quantity || 0);
+        const stateLabel = qty === 0 ? "Stopped" : qty > 0 ? "Running" : "Paused";
+        return <StatusBadge state={stateLabel} />;
+      },
+      className: "text-center",
+    },
+    {
+      header: "Action",
+      accessorKey: (pos) => {
+        const qty = Number(pos.quantity || 0);
+        const posKey = `${pos.instrument_token}_${pos.product}`;
+        if (qty === 0) return <span className="text-slate-600">—</span>;
+        return squaringOffKey === posKey ? (
+          <span className="text-rose-400 animate-pulse">Exiting...</span>
+        ) : (
+          <button
+            onClick={() => handleSquareOff(pos)}
+            className="text-rose-400 hover:text-rose-300 font-semibold hover:underline cursor-pointer"
+          >
+            Square Off
+          </button>
+        );
+      },
+      className: "text-center",
+    },
+  ];
+
+  const ordersColumns: ColumnDef<any>[] = [
+    {
+      header: "Order ID",
+      accessorKey: (ord) => <span className="text-slate-500 font-mono select-all text-xs">{ord.order_id}</span>,
+    },
+    {
+      header: "Symbol",
+      accessorKey: (ord) => <span className="font-sans font-semibold text-slate-200">{ord.trading_symbol}</span>,
+    },
+    {
+      header: "Qty",
+      accessorKey: "quantity",
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Type",
+      accessorKey: "transaction_type",
+      className: "text-center font-sans",
+    },
+    {
+      header: "Status",
+      accessorKey: (ord) => {
+        const statusLower = (ord.status || "").toLowerCase();
+        let statusLabel = "Paused";
+        if (statusLower === "complete") statusLabel = "Ready";
+        else if (statusLower === "rejected") statusLabel = "Failed";
+        else if (statusLower === "cancelled") statusLabel = "Stopped";
+        return <StatusBadge state={statusLabel} />;
+      },
+      className: "text-center",
+    },
+    {
+      header: "Avg Price",
+      accessorKey: (ord) => `₹${Number(ord.average_price || ord.price || 0).toFixed(2)}`,
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Timestamp",
+      accessorKey: (ord) => ord.order_timestamp || "—",
+      className: "text-slate-500",
+    },
+    {
+      header: "Action",
+      accessorKey: (ord) => {
+        const statusLower = (ord.status || "").toLowerCase();
+        const isPending =
+          statusLower === "open" ||
+          statusLower === "trigger pending" ||
+          statusLower === "put order req received" ||
+          statusLower === "validation pending" ||
+          statusLower === "modify validation pending" ||
+          statusLower === "not cancelled" ||
+          statusLower === "open pending" ||
+          statusLower === "after market order req received";
+        if (!isPending) return <span className="text-slate-600">—</span>;
+
+        if (editingOrderId === ord.order_id) {
+          return (
+            <div className="flex items-center gap-1.5 font-sans justify-center">
+              <input
+                type="number"
+                value={editPrice}
+                onChange={(e) => setEditPrice(Number(e.target.value))}
+                className="w-14 bg-card  rounded px-1 py-0.5 text-xs text-right font-mono"
+                placeholder="Price"
+              />
+              <input
+                type="number"
+                value={editQty}
+                onChange={(e) => setEditQty(Number(e.target.value))}
+                className="w-10 bg-card  rounded px-1 py-0.5 text-xs text-right font-mono"
+                placeholder="Qty"
+              />
+              <button
+                onClick={() => handleModifyOrder(ord.order_id, ord.order_type)}
+                className="text-emerald-400 hover:text-emerald-300 text-xs font-semibold cursor-pointer"
+                disabled={modifyingOrderId === ord.order_id}
+              >
+                {modifyingOrderId === ord.order_id ? "..." : "Save"}
+              </button>
+              <button
+                onClick={() => setEditingOrderId(null)}
+                className="text-slate-400 hover:text-slate-300 text-xs cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          );
+        }
+
+        return (
+          <div className="flex items-center justify-center gap-1.5 font-sans">
+            <button
+              onClick={() => {
+                setEditPrice(Number(ord.price || 0));
+                setEditQty(Number(ord.quantity || 0));
+                setEditingOrderId(ord.order_id);
+              }}
+              className="text-cyan-400 hover:text-cyan-300 font-semibold cursor-pointer"
+            >
+              Edit
+            </button>
+            <span className="text-slate-700">|</span>
+            <button
+              onClick={() => handleCancelOrder(ord.order_id)}
+              className="text-rose-400 hover:text-rose-300 font-semibold cursor-pointer"
+              disabled={cancellingOrderId === ord.order_id}
+            >
+              {cancellingOrderId === ord.order_id ? "..." : "Cancel"}
+            </button>
+          </div>
+        );
+      },
+      className: "text-center",
+    },
+  ];
+
+  const tradesColumns: ColumnDef<any>[] = [
+    {
+      header: "Trade ID",
+      accessorKey: (trd) => <span className="text-slate-500 font-mono select-all text-xs">{trd.trade_id}</span>,
+    },
+    {
+      header: "Order ID",
+      accessorKey: (trd) => <span className="text-slate-500 font-mono select-all text-xs">{trd.order_id}</span>,
+    },
+    {
+      header: "Symbol",
+      accessorKey: (trd) => <span className="font-sans font-semibold text-slate-200">{trd.trading_symbol}</span>,
+    },
+    {
+      header: "Side",
+      accessorKey: (trd) => (
+        <span className={`font-semibold ${trd.transaction_type === "BUY" ? "text-emerald-400" : "text-rose-400"}`}>
+          {trd.transaction_type}
+        </span>
+      ),
+      className: "text-center",
+    },
+    {
+      header: "Qty",
+      accessorKey: "quantity",
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Price",
+      accessorKey: (trd) => `₹${Number(trd.average_price || 0).toFixed(2)}`,
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Timestamp",
+      accessorKey: (trd) => trd.exchange_timestamp || trd.order_timestamp || "—",
+      className: "text-slate-500",
+    },
+  ];
+
+  const holdingsColumns: ColumnDef<any>[] = [
+    {
+      header: "Symbol",
+      accessorKey: (hold) => <span className="font-sans font-semibold text-slate-200">{hold.trading_symbol}</span>,
+    },
+    {
+      header: "Qty",
+      accessorKey: "quantity",
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Avg Cost",
+      accessorKey: (hold) => `₹${Number(hold.average_price || 0).toFixed(2)}`,
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Current Value",
+      accessorKey: (hold) => {
+        const val = Number(hold.quantity || 0) * Number(hold.last_price || 0);
+        return `₹${val.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      },
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "PnL",
+      accessorKey: (hold) => {
+        const val = Number(hold.pnl || 0);
+        return (
+          <span className={`font-semibold ${val >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+            {val >= 0 ? "+" : ""}₹{val.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </span>
+        );
+      },
+      isNumeric: true,
+      isMono: true,
+    },
+    {
+      header: "Exchange",
+      accessorKey: "exchange",
+      className: "text-slate-400 font-sans text-center",
+    },
   ];
 
   return (
-    <div className="flex flex-col h-full overflow-hidden text-xs font-sans">
-      {/* Tabs list — canonical nav-tab-strip */}
-      <div className="nav-tab-strip">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`nav-tab ${activeTab === tab.id ? "active" : ""}`}
-          >
-            {tab.name}
-          </button>
-        ))}
-      </div>
+    <div className="flex flex-col h-full overflow-hidden">
+      <SegmentedTabs
+        tabs={tabItems}
+        activeTabId={activeTab}
+        onChange={(id) => setActiveTab(id as any)}
+      />
 
-      {/* Tabs Contents */}
-      <div className="flex-1 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent min-h-0">
-        
-        {/* Tab 0: Option Chain */}
+      <div className="flex-1 overflow-y-auto min-h-0">
         {activeTab === "optionChain" && <OptionChainPanel />}
 
-        {/* Tab 1: Positions */}
         {activeTab === "positions" && (
-          <table className="w-full text-left font-mono tabular-nums text-xs">
-            <thead>
-              <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-xs tracking-wider">
-                <th className="py-1.5 pl-2">Symbol</th>
-                <th className="py-1.5 text-center">Qty</th>
-                <th className="py-1.5 text-center">Product</th>
-                <th className="py-1.5 text-center">Exchange</th>
-                <th className="py-1.5 text-right">Avg Price</th>
-                <th className="py-1.5 text-right">LTP</th>
-                <th className="py-1.5 text-right">MTM</th>
-                <th className="py-1.5 text-right">Realized PnL</th>
-                <th className="py-1.5 text-center">Status</th>
-                <th className="py-1.5 text-center pr-2">Action</th>
-              </tr>
-            </thead>
-            <tbody className="text-slate-300">
-              {brokerPositions.length > 0 ? (
-                brokerPositions.map((pos) => {
-                  const qty = Number(pos.quantity || 0);
-                  const statusLabel = qty === 0 ? "CLOSED" : qty > 0 ? "LONG" : "SHORT";
-                  const statusClass = qty === 0 ? "bg-slate-900 text-slate-500 border-white/5" : qty > 0 ? "bg-emerald-950/40 text-emerald-400 border-emerald-800/30" : "bg-rose-950/40 text-rose-400 border-rose-800/30";
-                  const posKey = `${pos.instrument_token}_${pos.product}`;
-                  
-                  return (
-                    <tr key={posKey} className="border-b border-white/[0.02] hover:bg-white/[0.01] transition-all">
-                      <td className="py-1.5 pl-2 font-sans font-bold text-slate-200">{pos.trading_symbol}</td>
-                      <td className="py-1.5 text-center font-bold">{qty}</td>
-                      <td className="py-1.5 text-center text-slate-400 font-sans">{pos.product}</td>
-                      <td className="py-1.5 text-center text-slate-400 font-sans">{pos.exchange}</td>
-                      <td className="py-1.5 text-right">₹{Number(pos.average_price || pos.buy_price || 0).toFixed(2)}</td>
-                      <td className="py-1.5 text-right font-bold">₹{Number(pos.last_price || 0).toFixed(2)}</td>
-                      <td className={`py-1.5 text-right font-bold ${Number(pos.unrealised || 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                        {Number(pos.unrealised || 0) >= 0 ? "+" : ""}₹{Number(pos.unrealised || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </td>
-                      <td className={`py-1.5 text-right font-bold ${Number(pos.realised || 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                        {Number(pos.realised || 0) >= 0 ? "+" : ""}₹{Number(pos.realised || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </td>
-                      <td className="py-1.5 text-center">
-                        <span className={`status-badge ${
-                          qty === 0 ? "inactive" : qty > 0 ? "success" : "failed"
-                        }`}>
-                          {statusLabel}
-                        </span>
-                      </td>
-                      <td className="py-1.5 text-center pr-2">
-                        {qty !== 0 ? (
-                          squaringOffKey === posKey ? (
-                            <span className="text-xs text-rose-400 font-sans animate-pulse">Exiting...</span>
-                          ) : (
-                            <button
-                              onClick={() => handleSquareOff(pos)}
-                              className="text-xs text-rose-400 hover:text-rose-300 font-sans font-bold hover:underline transition-all duration-150"
-                            >
-                              [ Square Off ]
-                            </button>
-                          )
-                        ) : (
-                          <span className="text-slate-600">—</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td colSpan={10}><div className="empty-state">No active positions found in Upstox account.</div></td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+          <DataTable
+            columns={positionsColumns}
+            data={brokerPositions}
+            emptyState={
+              <EmptyState
+                icon={Activity}
+                title="No Active Positions"
+                description="No active positions found in Upstox account. Open order ticket to execute an entry."
+              />
+            }
+          />
         )}
 
-        {/* Tab 2: Orders */}
         {activeTab === "orders" && (
-          <table className="w-full text-left font-mono tabular-nums text-xs">
-            <thead>
-              <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-xs tracking-wider">
-                <th className="py-1.5 pl-2">Order ID</th>
-                <th className="py-1.5">Symbol</th>
-                <th className="py-1.5 text-center">Qty</th>
-                <th className="py-1.5 text-center">Type</th>
-                <th className="py-1.5 text-center">Status</th>
-                <th className="py-1.5 text-right">Avg Price</th>
-                <th className="py-1.5 text-right pr-2">Timestamp</th>
-                <th className="py-1.5 text-center pr-2">Action</th>
-              </tr>
-            </thead>
-            <tbody className="text-slate-300">
-              {brokerOrders.length > 0 ? (
-                brokerOrders.map((ord) => {
-                  const statusLower = (ord.status || "").toLowerCase();
-                  let statusLabel = "PENDING";
-                  let statusClass = "bg-amber-950/20 text-amber-400 border-amber-800/30";
-                  let isPending = false;
-                  
-                  if (statusLower === "complete") {
-                    statusLabel = "FILLED";
-                    statusClass = "bg-emerald-950/20 text-emerald-400 border-emerald-800/30";
-                  } else if (statusLower === "rejected") {
-                    statusLabel = "REJECTED";
-                    statusClass = "bg-rose-950/20 text-rose-400 border-rose-800/30";
-                  } else if (statusLower === "cancelled") {
-                    statusLabel = "CANCELLED";
-                    statusClass = "bg-slate-900 text-slate-500 border-white/5";
-                  } else if (
-                    statusLower === "open" ||
-                    statusLower === "trigger pending" ||
-                    statusLower === "put order req received" ||
-                    statusLower === "validation pending" ||
-                    statusLower === "modify validation pending" ||
-                    statusLower === "not cancelled" ||
-                    statusLower === "open pending" ||
-                    statusLower === "after market order req received"
-                  ) {
-                    statusLabel = "PENDING";
-                    statusClass = "bg-amber-950/20 text-amber-400 border-amber-800/30";
-                    isPending = true;
-                  } else {
-                    statusLabel = (ord.status || "UNKNOWN").toUpperCase();
-                    statusClass = "bg-slate-900 text-slate-400 border-white/5";
-                  }
-
-                  const isEditing = editingOrderId === ord.order_id;
-                  return (
-                    <tr key={ord.order_id} className={`border-b border-white/[0.02] hover:bg-white/[0.01] transition-all ${isEditing ? "bg-cyan-500/5" : ""}`}>
-                      <td className="py-1.5 pl-2 text-slate-500 font-mono">{ord.order_id}</td>
-                      <td className="py-1.5 font-sans font-bold text-slate-200">{ord.trading_symbol}</td>
-                      <td className="py-1.5 text-center">
-                        {isEditing ? (
-                          <input
-                            type="number"
-                            value={editQty}
-                            onChange={(e) => setEditQty(Math.max(1, Number(e.target.value)))}
-                            className="w-14 bg-slate-900 border border-cyan-500/30 rounded px-1 py-0.5 text-center text-slate-200 font-mono focus:outline-none focus:border-cyan-500"
-                          />
-                        ) : (
-                          ord.quantity
-                        )}
-                      </td>
-                      <td className="py-1.5 text-center font-bold text-slate-400 font-sans">{ord.order_type}</td>
-                      <td className="py-1.5 text-center">
-                        <span className={`px-1 py-0.5 rounded text-xs font-bold uppercase font-sans border ${statusClass}`}>
-                          {statusLabel}
-                        </span>
-                      </td>
-                      <td className="py-1.5 text-right font-bold text-slate-200">
-                        {isEditing ? (
-                          <div className="flex items-center justify-end gap-1">
-                            <span className="text-xs text-slate-500">₹</span>
-                            <input
-                              type="number"
-                              step="0.05"
-                              value={editPrice}
-                              onChange={(e) => setEditPrice(Math.max(0, Number(e.target.value)))}
-                              className="w-20 bg-slate-900 border border-cyan-500/30 rounded px-1 py-0.5 text-right text-slate-200 font-mono focus:outline-none focus:border-cyan-500"
-                            />
-                          </div>
-                        ) : (
-                          `₹${Number(ord.price || ord.average_price || 0).toFixed(2)}`
-                        )}
-                      </td>
-                      <td className="py-1.5 text-right pr-2 text-slate-500">{ord.order_timestamp || ord.exchange_timestamp}</td>
-                      <td className="py-1.5 text-center pr-2 font-sans font-bold text-xs select-none">
-                        {isEditing ? (
-                          <div className="flex gap-2.5 justify-center">
-                            {modifyingOrderId === ord.order_id ? (
-                              <span className="text-emerald-400 font-sans animate-pulse">Saving...</span>
-                            ) : (
-                              <>
-                                <button
-                                  onClick={() => handleModifyOrder(ord.order_id, ord.order_type)}
-                                  className="text-emerald-400 hover:text-emerald-300 cursor-pointer"
-                                >
-                                  SAVE
-                                </button>
-                                <button
-                                  onClick={() => setEditingOrderId(null)}
-                                  className="text-slate-400 hover:text-slate-200 cursor-pointer"
-                                >
-                                  CANCEL
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        ) : isPending ? (
-                          <div className="flex gap-2.5 justify-center">
-                            {cancellingOrderId === ord.order_id ? (
-                              <span className="text-rose-400 font-sans animate-pulse">Cancelling...</span>
-                            ) : (
-                              <>
-                                <button
-                                  onClick={() => {
-                                    setEditingOrderId(ord.order_id);
-                                    setEditPrice(Number(ord.price || ord.average_price || 0));
-                                    setEditQty(Number(ord.quantity || 1));
-                                  }}
-                                  className="text-cyan-400 hover:text-cyan-300 cursor-pointer"
-                                >
-                                  EDIT
-                                </button>
-                                <button
-                                  onClick={() => handleCancelOrder(ord.order_id)}
-                                  className="text-rose-400 hover:text-rose-300 cursor-pointer"
-                                >
-                                  CANCEL
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-slate-600 font-mono font-normal text-xs">—</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td colSpan={8}><div className="empty-state">No orders found in Upstox account.</div></td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+          <DataTable
+            columns={ordersColumns}
+            data={brokerOrders}
+            emptyState={
+              <EmptyState
+                icon={Play}
+                title="No Orders Found"
+                description="No orders placed today. Send an order from the order panel."
+              />
+            }
+          />
         )}
 
-        {/* Tab 3: Trades */}
         {activeTab === "trades" && (
-          <table className="w-full text-left font-mono tabular-nums text-xs">
-            <thead>
-              <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-xs tracking-wider">
-                <th className="py-1.5 pl-2">Trade ID</th>
-                <th className="py-1.5">Order ID</th>
-                <th className="py-1.5">Symbol</th>
-                <th className="py-1.5 text-center">Side</th>
-                <th className="py-1.5 text-center">Qty</th>
-                <th className="py-1.5 text-right">Price</th>
-                <th className="py-1.5 text-right pr-2">Timestamp</th>
-              </tr>
-            </thead>
-            <tbody className="text-slate-300">
-              {brokerTrades.length > 0 ? (
-                brokerTrades.map((trd) => (
-                  <tr key={trd.trade_id} className="border-b border-white/[0.02] hover:bg-white/[0.01]">
-                    <td className="py-1.5 pl-2 text-slate-500 font-mono">{trd.trade_id}</td>
-                    <td className="py-1.5 text-slate-500 font-mono">{trd.order_id}</td>
-                    <td className="py-1.5 font-sans font-bold text-slate-200">{trd.trading_symbol}</td>
-                    <td className="py-1.5 text-center">
-                      <span className={`font-sans font-bold text-xs ${trd.transaction_type === "BUY" ? "text-emerald-400" : "text-rose-400"}`}>
-                        {trd.transaction_type}
-                      </span>
-                    </td>
-                    <td className="py-1.5 text-center">{trd.quantity}</td>
-                    <td className="py-1.5 text-right">₹{Number(trd.average_price || 0).toFixed(2)}</td>
-                    <td className="py-1.5 text-right pr-2 text-slate-500">{trd.exchange_timestamp || trd.order_timestamp}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={7}><div className="empty-state">No trades executed today in Upstox account.</div></td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+          <DataTable
+            columns={tradesColumns}
+            data={brokerTrades}
+            emptyState={
+              <EmptyState
+                icon={Terminal}
+                title="No Trades Executed"
+                description="No trades executed today in Upstox account."
+              />
+            }
+          />
         )}
 
-        {/* Tab 4: Holdings */}
         {activeTab === "holdings" && (
-          <table className="w-full text-left font-mono tabular-nums text-xs">
-            <thead>
-              <tr className="border-b border-white/10 text-slate-500 uppercase select-none text-xs tracking-wider">
-                <th className="py-1.5 pl-2">Symbol</th>
-                <th className="py-1.5 text-center">Qty</th>
-                <th className="py-1.5 text-right">Avg Cost</th>
-                <th className="py-1.5 text-right">Current Value</th>
-                <th className="py-1.5 text-right">PnL</th>
-                <th className="py-1.5 text-center pr-2">Exchange</th>
-              </tr>
-            </thead>
-            <tbody className="text-slate-300">
-              {brokerHoldings.length > 0 ? (
-                brokerHoldings.map((hold) => {
-                  const qty = Number(hold.quantity || 0);
-                  const avgPrice = Number(hold.average_price || 0);
-                  const lastPrice = Number(hold.last_price || 0);
-                  const currentValue = qty * lastPrice;
-                  const pnl = Number(hold.pnl || 0);
-                  
-                  return (
-                    <tr key={`${hold.isin}_${hold.product}`} className="border-b border-white/[0.02] hover:bg-white/[0.01]">
-                      <td className="py-1.5 pl-2 font-sans font-bold text-slate-200">{hold.trading_symbol}</td>
-                      <td className="py-1.5 text-center">{qty}</td>
-                      <td className="py-1.5 text-right">₹{avgPrice.toFixed(2)}</td>
-                      <td className="py-1.5 text-right font-bold">₹{currentValue.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                      <td className={`py-1.5 text-right font-bold ${pnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                        {pnl >= 0 ? "+" : ""}₹{pnl.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </td>
-                      <td className="py-1.5 text-center pr-2 text-slate-400 font-sans">{hold.exchange}</td>
-                    </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td colSpan={6}><div className="empty-state">No holdings found in Upstox account.</div></td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+          <DataTable
+            columns={holdingsColumns}
+            data={brokerHoldings}
+            emptyState={
+              <EmptyState
+                icon={Shield}
+                title="No Holdings Found"
+                description="No holdings found in Upstox account."
+              />
+            }
+          />
         )}
 
-        {/* Tab 5: PnL Summary — Hero KPI Typography */}
         {activeTab === "pnl" && (
-          <div className="flex items-start gap-8 max-w-5xl p-3 select-none">
-            {/* Hero: Net P&L */}
-            <div className="flex flex-col">
-              <span className="text-[12px] text-slate-400 font-sans font-semibold">Net P&L</span>
-              <span className={`font-mono text-4xl font-black tabular-nums tracking-tight ${netPnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                {netPnL >= 0 ? "+" : ""}₹{netPnL.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-              </span>
-            </div>
-            {/* Secondary metrics */}
-            <div className="flex flex-col border-l border-white/5 pl-6">
-              <span className="text-xs text-slate-500 font-sans">Realized</span>
-              <span className={`font-mono text-xl font-bold tabular-nums ${realizedPnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                {realizedPnL >= 0 ? "+" : ""}₹{realizedPnL.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-              </span>
-            </div>
-            <div className="flex flex-col border-l border-white/5 pl-6">
-              <span className="text-xs text-slate-500 font-sans">Unrealized</span>
-              <span className={`font-mono text-xl font-bold tabular-nums ${unrealizedPnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                {unrealizedPnL >= 0 ? "+" : ""}₹{unrealizedPnL.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-              </span>
-            </div>
-            <div className="flex flex-col border-l border-white/5 pl-6">
-              <span className="text-xs text-slate-500 font-sans">Day total</span>
-              <span className={`font-mono text-xl font-bold tabular-nums ${realizedPnL + unrealizedPnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                {realizedPnL + unrealizedPnL >= 0 ? "+" : ""}₹{(realizedPnL + unrealizedPnL).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-              </span>
-            </div>
-            <div className="flex flex-col border-l border-white/5 pl-6">
-              <span className="text-xs text-slate-500 font-sans">Brokerage</span>
-              <span className="font-mono text-xl font-bold tabular-nums text-slate-300">
-                ₹{brokerage.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-              </span>
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-[12px] p-4">
+            <KpiCard
+              label="Net P&L"
+              value={`₹${netPnL.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              delta={{
+                value: `${netPnL >= 0 ? "+" : ""}${netPnL.toFixed(2)}`,
+                type: netPnL >= 0 ? "positive" : "negative",
+              }}
+            />
+            <KpiCard
+              label="Realized P&L"
+              value={`₹${realizedPnL.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              delta={{
+                value: `${realizedPnL >= 0 ? "+" : ""}${realizedPnL.toFixed(2)}`,
+                type: realizedPnL >= 0 ? "positive" : "negative",
+              }}
+            />
+            <KpiCard
+              label="Unrealized P&L"
+              value={`₹${unrealizedPnL.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              delta={{
+                value: `${unrealizedPnL >= 0 ? "+" : ""}${unrealizedPnL.toFixed(2)}`,
+                type: unrealizedPnL >= 0 ? "positive" : "negative",
+              }}
+            />
+            <KpiCard
+              label="Day Total"
+              value={`₹${(realizedPnL + unrealizedPnL).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              delta={{
+                value: `${realizedPnL + unrealizedPnL >= 0 ? "+" : ""}${(realizedPnL + unrealizedPnL).toFixed(2)}`,
+                type: realizedPnL + unrealizedPnL >= 0 ? "positive" : "negative",
+              }}
+            />
+            <KpiCard
+              label="Brokerage"
+              value={`₹${brokerage.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+            />
           </div>
         )}
-
       </div>
     </div>
   );
 };
+
