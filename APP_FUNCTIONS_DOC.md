@@ -6053,6 +6053,13 @@ No description provided.
 No description provided.
 ```
 
+#### `addEvent` (Function)
+- **Signature**: `const addEvent = useEventStore((state) => state.addEvent)`
+- **Description**:
+```text
+No description provided.
+```
+
 #### `replayTrade` (Function)
 - **Signature**: `const replayTrade = React.useMemo(() => `
 - **Description**:

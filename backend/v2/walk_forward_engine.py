@@ -43,6 +43,14 @@ class WalkForwardWindow(BaseModel):
     
     # Mode-by-mode results in the testing phase
     test_mode_results: Dict[str, Dict[str, float]]
+    
+    # V2 extensions
+    profit_decay: float = 0.0
+    pf_decay: float = 0.0
+    winrate_decay: float = 0.0
+    drawdown_expansion: float = 0.0
+    regime: str = "SIDEWAYS"
+    test_equity_curve: Optional[List[Dict[str, Any]]] = None
 
 class WalkForwardStability(BaseModel):
     profit_stability: float      # Average of Test Profit / Train Profit
@@ -56,6 +64,17 @@ class WalkForwardReport(BaseModel):
     classification: str
     stability: WalkForwardStability
     windows: List[WalkForwardWindow]
+    
+    # V2 extensions
+    parameter_drift_analysis: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
+    stitched_oos_equity_curve: List[Dict[str, Any]] = Field(default_factory=list)
+    average_profit_decay: float = 0.0
+    average_pf_decay: float = 0.0
+    average_winrate_decay: float = 0.0
+    average_drawdown_expansion: float = 0.0
+    walk_forward_confidence: float = 0.0
+    walk_forward_confidence_classification: str = "Overfit"
+    heatmap_dataset: List[Dict[str, Any]] = Field(default_factory=list)
 
 
 # --- Core Analyzer ---
@@ -221,6 +240,38 @@ class WalkForwardAnalyzer:
                     "net_return": m_res.net_return
                 }
                 
+            # V2 Extension: Regime classification using underlying prices
+            try:
+                conn = sqlite3.connect(db_path)
+                cur = conn.cursor()
+                cur.execute(
+                    "SELECT close FROM underlying_candles "
+                    "WHERE date(timestamp) >= ? AND date(timestamp) <= ? "
+                    "ORDER BY timestamp",
+                    (spec["test_start"], spec["test_end"])
+                )
+                prices = [r[0] for r in cur.fetchall()]
+                conn.close()
+                if len(prices) >= 2:
+                    net_change_pct = (prices[-1] - prices[0]) / prices[0] * 100.0
+                    if net_change_pct > 0.5:
+                        regime = "BULL"
+                    elif net_change_pct < -0.5:
+                        regime = "BEAR"
+                    else:
+                        regime = "SIDEWAYS"
+                else:
+                    regime = "SIDEWAYS"
+            except Exception as e:
+                logger.error(f"Error classifying regime: {e}")
+                regime = "SIDEWAYS"
+
+            # V2 Extension: Decays calculation
+            profit_decay = ((train_net_profit - test_net_profit) / (train_net_profit if train_net_profit != 0 else 1.0)) * 100.0
+            pf_decay = ((train_profit_factor - test_profit_factor) / (train_profit_factor if train_profit_factor != 0 else 1.0)) * 100.0
+            winrate_decay = ((train_win_rate - test_win_rate) / (train_win_rate if train_win_rate != 0 else 1.0)) * 100.0
+            drawdown_expansion = ((test_max_drawdown - train_max_drawdown) / (train_max_drawdown if train_max_drawdown != 0 else 1.0)) * 100.0
+
             windows_results.append(
                 WalkForwardWindow(
                     window_index=w_idx,
@@ -243,7 +294,13 @@ class WalkForwardAnalyzer:
                     test_net_return=test_net_return,
                     test_robustness_score=test_robustness_score,
                     test_classification=test_classification,
-                    test_mode_results=test_mode_results
+                    test_mode_results=test_mode_results,
+                    profit_decay=round(profit_decay, 2),
+                    pf_decay=round(pf_decay, 2),
+                    winrate_decay=round(winrate_decay, 2),
+                    drawdown_expansion=round(drawdown_expansion, 2),
+                    regime=regime,
+                    test_equity_curve=test_robustness.theoretical_equity_curve
                 )
             )
             
@@ -300,13 +357,6 @@ class WalkForwardAnalyzer:
         )
         
         # 5. Walk Forward Score (0-100)
-        # Components:
-        # - 30% Consistency (OOS Profitability percent)
-        # - 20% Profit Retention (profit stability)
-        # - 20% PF Retention (pf stability)
-        # - 15% Drawdown Retention (dd stability)
-        # - 15% Robustness Retention (robustness stability)
-        
         raw_wf_score = (
             0.30 * (consistency_score / 100.0) +
             0.20 * profit_stability +
@@ -327,10 +377,107 @@ class WalkForwardAnalyzer:
             classification = "Fragile"
         else:
             classification = "Overfit"
-            
+
+        # V2 Extension: Calculate aggregated decays
+        average_profit_decay = sum(w.profit_decay for w in windows_results) / len(windows_results)
+        average_pf_decay = sum(w.pf_decay for w in windows_results) / len(windows_results)
+        average_winrate_decay = sum(w.winrate_decay for w in windows_results) / len(windows_results)
+        average_drawdown_expansion = sum(w.drawdown_expansion for w in windows_results) / len(windows_results)
+
+        # V2 Extension: Parameter drift analysis
+        parameter_drift_analysis = {}
+        all_param_keys = set()
+        for w in windows_results:
+            all_param_keys.update(w.best_params.keys())
+
+        for p_key in all_param_keys:
+            vals = [float(w.best_params[p_key]) for w in windows_results if p_key in w.best_params]
+            if vals:
+                avg_val = sum(vals) / len(vals)
+                variance = sum((v - avg_val)**2 for v in vals) / len(vals) if len(vals) > 1 else 0.0
+                std_dev = variance ** 0.5
+                p_stability = max(0.0, min(1.0, 1.0 - (std_dev / (avg_val if avg_val != 0 else 1.0))))
+                drift_pct = ((vals[-1] - vals[0]) / (vals[0] if vals[0] != 0 else 1.0)) * 100.0
+                drift_vel = (vals[-1] - vals[0]) / (len(vals) - 1) if len(vals) >= 2 else 0.0
+                trend = "UPWARD" if drift_vel > 0 else ("DOWNWARD" if drift_vel < 0 else "STABLE")
+                parameter_drift_analysis[p_key] = {
+                    "stability": round(p_stability, 4),
+                    "average_value": round(avg_val, 4),
+                    "drift_pct": round(drift_pct, 2),
+                    "drift_velocity": round(drift_vel, 4),
+                    "drift_trend": trend
+                }
+
+        # V2 Extension: OOS Equity Curve Stitching
+        stitched_oos_equity_curve = []
+        current_equity = base_config.execution.initial_balance
+        for w in windows_results:
+            if not w.test_equity_curve:
+                continue
+            start_val = w.test_equity_curve[0]["equity"]
+            for pt in w.test_equity_curve:
+                pnl = pt["equity"] - start_val
+                stitched_oos_equity_curve.append({
+                    "date": pt["date"],
+                    "equity": round(current_equity + pnl, 2)
+                })
+            current_equity += (w.test_equity_curve[-1]["equity"] - start_val)
+
+        # V2 Extension: Heatmap Dataset Generation
+        heatmap_dataset = []
+        for w in windows_results:
+            p_stab = max(0.0, min(1.0, w.test_net_profit / w.train_net_profit)) if w.train_net_profit > 0 else (1.0 if w.test_net_profit >= 0 else 0.0)
+            pf_stab = max(0.0, min(1.0, w.test_profit_factor / w.train_profit_factor)) if w.train_profit_factor > 0 else (1.0 if w.test_profit_factor >= 0 else 0.0)
+            heatmap_dataset.append({
+                "window": w.window_index,
+                "profit_stability": round(p_stab, 4),
+                "pf_stability": round(pf_stab, 4),
+                "robustness": round(w.test_robustness_score / 100.0, 4)
+            })
+
+        # V2 Extension: Confidence Score Calculation
+        sub_consistency = consistency_score
+        sub_stability = 100.0 * (profit_stability + pf_stability + dd_stability + robustness_stability) / 4.0
+        
+        if parameter_drift_analysis:
+            avg_p_stab = sum(d["stability"] for d in parameter_drift_analysis.values()) / len(parameter_drift_analysis)
+        else:
+            avg_p_stab = 1.0
+        sub_param_stability = avg_p_stab * 100.0
+
+        p_d_pen = max(0.0, min(100.0, average_profit_decay))
+        pf_d_pen = max(0.0, min(100.0, average_pf_decay))
+        wr_d_pen = max(0.0, min(100.0, average_winrate_decay))
+        dd_e_pen = max(0.0, min(100.0, average_drawdown_expansion))
+        sub_decay = max(0.0, 100.0 - (p_d_pen + pf_d_pen + wr_d_pen + dd_e_pen) / 4.0)
+
+        walk_forward_confidence = 0.25 * sub_consistency + 0.25 * sub_stability + 0.25 * sub_param_stability + 0.25 * sub_decay
+        walk_forward_confidence = round(max(0.0, min(100.0, walk_forward_confidence)), 2)
+
+        # Confidence Classification
+        if walk_forward_confidence >= 95:
+            conf_class = "Institutional"
+        elif walk_forward_confidence >= 80:
+            conf_class = "Strong"
+        elif walk_forward_confidence >= 60:
+            conf_class = "Tradable"
+        elif walk_forward_confidence >= 40:
+            conf_class = "Fragile"
+        else:
+            conf_class = "Overfit"
+
         return WalkForwardReport(
             walk_forward_score=walk_forward_score,
             classification=classification,
             stability=stability,
-            windows=windows_results
+            windows=windows_results,
+            parameter_drift_analysis=parameter_drift_analysis,
+            stitched_oos_equity_curve=stitched_oos_equity_curve,
+            average_profit_decay=round(average_profit_decay, 2),
+            average_pf_decay=round(average_pf_decay, 2),
+            average_winrate_decay=round(average_winrate_decay, 2),
+            average_drawdown_expansion=round(average_drawdown_expansion, 2),
+            walk_forward_confidence=walk_forward_confidence,
+            walk_forward_confidence_classification=conf_class,
+            heatmap_dataset=heatmap_dataset
         )

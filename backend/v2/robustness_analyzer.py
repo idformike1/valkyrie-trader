@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from pydantic import BaseModel, Field
 from v2.config import BacktestConfig
 from v2.types import ExecutionModel
@@ -26,6 +26,7 @@ class RobustnessAnalysisResult(BaseModel):
     classification: str
     metrics_stability: RobustnessMetricStability
     mode_results: Dict[str, ModeSummary]
+    theoretical_equity_curve: Optional[List[Dict[str, Any]]] = None
 
 class ExecutionRobustnessAnalyzer:
     @staticmethod
@@ -39,6 +40,7 @@ class ExecutionRobustnessAnalyzer:
         ]
         
         results = {}
+        theoretical_eq = []
         for mode in modes:
             config_copy = config.model_copy(deep=True)
             config_copy.execution_model = mode
@@ -54,6 +56,11 @@ class ExecutionRobustnessAnalyzer:
                 "max_drawdown": res.report.max_drawdown_pct,
                 "net_return": res.report.net_return_pct
             }
+            if mode == ExecutionModel.THEORETICAL:
+                theoretical_eq = [
+                    {"date": pt.timestamp.strftime("%Y-%m-%d"), "equity": pt.equity_value}
+                    for pt in res.equity_curve
+                ]
             
         theo = results[ExecutionModel.THEORETICAL.value]
         real = results[ExecutionModel.REALISTIC.value]
@@ -122,5 +129,6 @@ class ExecutionRobustnessAnalyzer:
             ),
             mode_results={
                 k: ModeSummary(**v) for k, v in results.items()
-            }
+            },
+            theoretical_equity_curve=theoretical_eq
         )
