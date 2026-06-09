@@ -187,6 +187,32 @@ export interface V2BacktestResult {
         max_drawdown: number;
         net_return: number;
       }>;
+      profit_decay?: number;
+      pf_decay?: number;
+      winrate_decay?: number;
+      drawdown_expansion?: number;
+      regime?: string;
+      test_equity_curve?: Array<{ date: string; equity: number }>;
+    }>;
+    parameter_drift_analysis?: Record<string, {
+      stability: number;
+      average_value: number;
+      drift_pct: number;
+      drift_velocity: number;
+      drift_trend: string;
+    }>;
+    stitched_oos_equity_curve?: Array<{ date: string; equity: number }>;
+    average_profit_decay?: number;
+    average_pf_decay?: number;
+    average_winrate_decay?: number;
+    average_drawdown_expansion?: number;
+    walk_forward_confidence?: number;
+    walk_forward_confidence_classification?: string;
+    heatmap_dataset?: Array<{
+      window: number;
+      profit_stability: number;
+      pf_stability: number;
+      robustness: number;
     }>;
   };
 }

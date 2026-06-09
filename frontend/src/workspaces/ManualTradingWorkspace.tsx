@@ -229,12 +229,12 @@ export const TradingLeft: React.FC = () => {
     "bg-rose-500 shadow-rose-500/20";
 
   return (
-    <div className="flex flex-col h-full p-2 select-none">
-      <h3 className="text-[12px] font-semibold text-slate-200 border-b pb-1.5 mb-2 flex items-center justify-between select-none">
+    <div className="flex flex-col h-full p-3 select-none">
+      <h3 className="vdl-section text-slate-200 border-b border-subtle pb-2 mb-2 flex items-center justify-between select-none">
         <span>Watchlist</span>
         <div className="flex items-center gap-1.5">
           <span className="vdl-body text-slate-500 font-mono font-medium lowercase">{connectionStatus}</span>
-          <span className={`w-1.5 h-1.5 rounded-full${connectionDotColor}shadow-md`} />
+          <span className={`w-1.5 h-1.5 rounded-full ${connectionDotColor} shadow-md`} />
         </div>
       </h3>
       <div className="flex-1 overflow-y-auto min-h-0">
@@ -251,16 +251,16 @@ export const TradingLeft: React.FC = () => {
               }}
               onFocus={() => setShowSearchResults(true)}
               placeholder="Search / Add Stock Options..."
-              className="w-full bg-card rounded pl-8 pr-3 py-1.5 vdl-body text-slate-300 focus:outline-none focus:border-cyan-500/40 font-sans"
+              className="w-full bg-deep border border-subtle rounded pl-8 pr-3 py-1.5 vdl-body text-slate-300 focus:outline-none focus:border-cyan-500/40 font-sans"
             />
             {/* Search results popup */}
             {showSearchResults && searchResults.length > 0 && (
-              <div className="absolute left-0 right-0 mt-1 bg-card  rounded shadow-xl max-h-48 overflow-y-auto z-50 font-sans vdl-body">
+              <div className="absolute left-0 right-0 mt-1 bg-card border border-subtle rounded shadow-xl max-h-48 overflow-y-auto z-50 font-sans vdl-body">
                 {searchResults.map((item) => (
                   <div
                     key={item.instrumentKey}
                     onClick={() => handleAddSymbol(item)}
-                    className="flex justify-between items-center px-3 py-2 hover:bg-cyan-500/10 cursor-pointer transition-colors text-slate-200 border-b/30"
+                    className="flex justify-between items-center px-3 py-2 hover:bg-cyan-500/10 cursor-pointer transition-colors text-slate-200 border-b border-subtle/50"
                   >
                     <span>{item.symbol}</span>
                     <span className="vdl-body text-cyan-400 font-mono bg-cyan-950/40 px-1 py-0.5 rounded border border-cyan-500/10 font-semibold">{item.exchange}</span>
@@ -273,7 +273,7 @@ export const TradingLeft: React.FC = () => {
           {/* Instruments list */}
           <div className="flex-1 overflow-y-auto flex flex-col gap-0.5 mt-1 pr-1 font-sans vdl-body scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
             {/* Header Row */}
-            <div className="grid grid-cols-12 px-2 py-1.5 text-[11px] font-sans font-semibold text-slate-500 select-none shrink-0 border-b/30 tracking-wider uppercase">
+            <div className="grid grid-cols-12 px-2 py-1 text-[11px] font-sans font-semibold text-slate-500 select-none shrink-0 border-b border-subtle tracking-wider uppercase">
               <span className="col-span-5 text-left">Symbol</span>
               <span className="col-span-3 text-right">Ltp</span>
               <span className="col-span-2 text-right">Chg%</span>
@@ -290,7 +290,7 @@ export const TradingLeft: React.FC = () => {
                 <div
                   key={item.instrumentKey}
                   onClick={() => setInstrument(item)}
-                  className={`grid grid-cols-12 items-center px-2 py-1.5 rounded cursor-pointer border transition-all group ${
+                  className={`grid grid-cols-12 items-center px-2 py-1 rounded cursor-pointer border transition-all group ${
                     isSelected
                       ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400 font-semibold"
                       : "bg-transparent border-transparent hover:bg-white/5 text-slate-300 hover:text-white"
@@ -452,10 +452,10 @@ export const TradingMain: React.FC = () => {
     }
 
     const themeColors = {
-      background: "#020617",
-      text: "#94a3b8",
-      grid: "#1e293b",
-      border: "#334155",
+      background: "#111827", // Matches --bg-base / bg-card
+      text: "#9ca3af", // Matches --text-mute
+      grid: "#1f1f22", // Matches --border-subtle
+      border: "#1f1f22", // Matches --border-subtle
       emerald: "#10b981",
       rose: "#ef4444",
     };
@@ -684,9 +684,9 @@ export const TradingMain: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-card/60 rounded-lg overflow-hidden">
+    <div className="flex flex-col h-full bg-transparent overflow-hidden">
       {/* Top Toolbar */}
-      <div className="flex items-center justify-between px-3 py-1.5 bg-card/50 border-b select-none shrink-0 font-sans vdl-body">
+      <div className="flex items-center justify-between px-3 py-1.5 bg-deep border-b border-subtle select-none shrink-0 font-sans vdl-body">
         <div className="flex items-center gap-2">
           {/* Symbol dropdown selection */}
           <select
@@ -695,7 +695,7 @@ export const TradingMain: React.FC = () => {
               const matched = AVAILABLE_INSTRUMENTS.find((i) => i.symbol === e.target.value);
               if (matched) setInstrument(matched);
             }}
-            className="bg-card  rounded px-2 py-0.5 text-cyan-400 font-semibold focus:outline-none"
+            className="bg-card rounded px-2 py-0.5 text-cyan-400 font-semibold focus:outline-none"
           >
             {AVAILABLE_INSTRUMENTS.map((ins) => (
               <option key={ins.instrumentKey} value={ins.symbol}>
@@ -715,7 +715,7 @@ export const TradingMain: React.FC = () => {
               <button
                 key={tf}
                 onClick={() => setTimeframe(tf as Timeframe)}
-                className={`tab-item${selectedTimeframe === tf ? "active" : ""}`}
+                className={`tab-item ${selectedTimeframe === tf ? "active" : ""}`}
               >
                 {tf}
               </button>
@@ -728,7 +728,7 @@ export const TradingMain: React.FC = () => {
           <div className="relative">
             <button
               onClick={() => toggleIndicator("VWAP")}
-              className={`px-2 py-0.5 rounded border transition-colors cursor-pointer body${
+              className={`px-2 py-0.5 rounded border transition-colors cursor-pointer vdl-body ${
                 activeIndicators.includes("VWAP")
                   ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400 font-bold"
                   : "bg-card text-slate-400 hover:text-slate-200"
@@ -739,7 +739,7 @@ export const TradingMain: React.FC = () => {
           </div>
           <button
             onClick={() => toggleIndicator("EMA")}
-            className={`px-2 py-0.5 rounded border transition-colors cursor-pointer body${
+            className={`px-2 py-0.5 rounded border transition-colors cursor-pointer vdl-body ${
               activeIndicators.includes("EMA")
                 ? "bg-amber-500/10 border-amber-500/30 text-amber-400 font-bold"
                 : "bg-card text-slate-400 hover:text-slate-200"
@@ -760,7 +760,7 @@ export const TradingMain: React.FC = () => {
           {/* Drawing Tools Toggle */}
           <button 
             onClick={() => setShowDrawMenu(!showDrawMenu)}
-            className={`p-1 rounded border transition-colors cursor-pointer${
+            className={`p-1 rounded border transition-colors cursor-pointer ${
               showDrawMenu 
                 ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400" 
                 : "bg-card text-slate-400 hover:text-slate-200"
@@ -774,7 +774,7 @@ export const TradingMain: React.FC = () => {
           <button
             onClick={handlePanicExit}
             disabled={panicSubmitting}
-            className={`px-3 py-1 rounded border font-semibold vdl-body transition-all select-none cursor-pointer flex items-center gap-1.5 shadow-lg${
+            className={`px-3 py-1 rounded border font-semibold vdl-body transition-all select-none cursor-pointer flex items-center gap-1.5 shadow-lg ${
               panicSubmitting
                 ? "bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed"
                 : "bg-rose-500/10 hover:bg-rose-500 border-rose-500/20 hover:border-rose-500 text-rose-400 hover:text-slate-950 shadow-rose-500/5 hover:shadow-rose-500/20"
@@ -791,7 +791,7 @@ export const TradingMain: React.FC = () => {
       <div className="flex-1 min-h-0 relative flex flex-row">
         {/* Drawing Sidebar HUD */}
         {showDrawMenu && (
-          <div className="w-9 border-r bg-card/60 flex flex-col items-center py-3 gap-3 shrink-0 select-none">
+          <div className="w-9 border-r border-subtle bg-deep flex flex-col items-center py-3 gap-3 shrink-0 select-none">
             {["Trendline", "Fibonacci", "Crosshair", "Eraser"].map((tool, idx) => (
               <button 
                 key={idx} 
@@ -809,7 +809,7 @@ export const TradingMain: React.FC = () => {
           <div ref={chartContainerRef} className="w-full h-full min-h-0" />
           
           {/* Price overlay indicator */}
-          <div className="absolute top-3 left-4 bg-card/80 backdrop-blur  px-2 py-1 rounded vdl-body font-mono text-slate-300 flex items-center gap-2 shadow-md">
+          <div className="absolute top-3 left-4 bg-deep/90 border border-subtle px-2 py-1 rounded vdl-body font-mono text-slate-300 flex items-center gap-2 shadow-md">
             <span className="font-semibold text-slate-400">Ltp:</span>
             <span className="text-emerald-400 font-semibold">
               ₹{currentLtp.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
@@ -878,18 +878,18 @@ const BrokerAccountPanel: React.FC = () => {
   };
 
   return (
-    <div className="p-2 flex flex-col gap-2 select-none border-t">
-      <h3 className="text-[12px] font-semibold text-slate-200 border-b pb-1.5 flex items-center justify-between">
+    <div className="p-3 flex flex-col gap-2 select-none border-t border-subtle">
+      <h3 className="vdl-section text-slate-200 border-b border-subtle pb-1.5 flex items-center justify-between">
         <span>Broker account</span>
         <div className="flex items-center gap-1">
-          <span className={`w-1.5 h-1.5 rounded-full${brokerConnected ? "bg-emerald-400 animate-pulse" : "bg-rose-500 animate-pulse"}`} />
+          <span className={`w-1.5 h-1.5 rounded-full ${brokerConnected ? "bg-emerald-400 animate-pulse" : "bg-rose-500 animate-pulse"}`} />
           <span className="vdl-body font-mono text-slate-500">
             {brokerConnected ? "Connected" : "Disconnected"}
           </span>
         </div>
       </h3>
 
-      <div className="grid grid-cols-2 gap-2 vdl-body bg-card/20 p-2 rounded  font-sans">
+      <div className="grid grid-cols-2 gap-2 vdl-body bg-deep border border-subtle p-2 rounded font-sans">
         <div className="flex flex-col gap-0.5">
           <span className="vdl-body text-slate-500">Client name</span>
           <span className="font-semibold text-slate-200 truncate">
@@ -910,7 +910,7 @@ const BrokerAccountPanel: React.FC = () => {
         </div>
         <div className="flex flex-col gap-0.5">
           <span className="vdl-body text-slate-500">Token status</span>
-          <span className={`font-semibold${tokenStatus === "VALID" ? "text-emerald-400" : "text-rose-400 animate-pulse"}`}>
+          <span className={`font-semibold ${tokenStatus === "VALID" ? "text-emerald-400" : "text-rose-400 animate-pulse"}`}>
             {tokenStatus}
           </span>
         </div>
@@ -923,32 +923,32 @@ const BrokerAccountPanel: React.FC = () => {
         </div>
       )}
 
-      <div className="flex flex-col gap-1.5 font-mono vdl-body">
-        <div className="flex justify-between items-center text-slate-400 py-0.5 border-b/30">
+      <div className="flex flex-col gap-1.5 font-mono vdl-body px-1">
+        <div className="flex justify-between items-center text-slate-400 py-0.5 border-b border-subtle/50">
           <span>Available Margin</span>
           <span className="font-semibold text-cyan-400">
             {loading && !funds ? "Syncing..." : formatCurrency(funds?.equity?.available_margin)}
           </span>
         </div>
-        <div className="flex justify-between items-center text-slate-400 py-0.5 border-b/30">
+        <div className="flex justify-between items-center text-slate-400 py-0.5 border-b border-subtle/50">
           <span>Used Margin</span>
           <span className="font-semibold text-slate-200">
             {loading && !funds ? "Syncing..." : formatCurrency(funds?.equity?.used_margin)}
           </span>
         </div>
-        <div className="flex justify-between items-center text-slate-400 py-0.5 border-b/30">
+        <div className="flex justify-between items-center text-slate-400 py-0.5 border-b border-subtle/50">
           <span>Available Funds</span>
           <span className="font-semibold text-slate-200">
             {loading && !funds ? "Syncing..." : formatCurrency(funds?.equity?.available_margin)}
           </span>
         </div>
-        <div className="flex justify-between items-center text-slate-400 py-0.5 border-b/30">
+        <div className="flex justify-between items-center text-slate-400 py-0.5 border-b border-subtle/50">
           <span>Payin Amount</span>
           <span className="font-semibold text-slate-200">
             {loading && !funds ? "Syncing..." : formatCurrency(funds?.equity?.payin_amount)}
           </span>
         </div>
-        <div className="flex justify-between items-center text-slate-400 py-0.5 border-b/30">
+        <div className="flex justify-between items-center text-slate-400 py-0.5 border-b border-subtle/50">
           <span>Span Margin</span>
           <span className="font-semibold text-slate-200">
             {loading && !funds ? "Syncing..." : formatCurrency(funds?.equity?.span_margin)}
@@ -962,14 +962,14 @@ const BrokerAccountPanel: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex justify-between items-center vdl-body text-slate-500 font-mono border-t pt-1.5 mt-0.5">
+      <div className="flex justify-between items-center vdl-body text-slate-500 font-mono border-t border-subtle pt-1.5 mt-0.5">
         <span>LAST SYNC: {lastSync || "NEVER"}</span>
         <button 
           onClick={fetchData} 
           disabled={loading}
           className="hover:text-cyan-400 transition-colors cursor-pointer flex items-center gap-1 disabled:opacity-50"
         >
-          <RefreshCw className={`w-2.5 h-2.5${loading ? "animate-spin" : ""}`} />
+          <RefreshCw className={`w-2.5 h-2.5 ${loading ? "animate-spin" : ""}`} />
           <span>FORCE REFRESH</span>
         </button>
       </div>
@@ -1325,30 +1325,30 @@ export const TradingRight: React.FC = () => {
   const totalPnL = totalUnrealizedPnL + totalRealizedPnL;
 
   return (
-    <div className="flex flex-col gap-2 h-full font-sans vdl-body">
+    <div className="flex flex-col h-full bg-transparent overflow-hidden">
       {/* Hero P&L Anchor */}
-      <div className="p-3 bg-card/80 border-b select-none flex flex-col gap-2 shrink-0">
+      <div className="p-3 bg-deep border-b border-subtle select-none flex flex-col gap-2 shrink-0">
         <div className="flex flex-col items-center justify-center">
           <span className="text-[12px] font-semibold text-slate-400 font-sans">Net P&L</span>
-          <span className={`text-[42px] font-semibold font-mono tabular-nums leading-none mt-1${
+          <span className={`text-[42px] font-semibold font-mono tabular-nums leading-none mt-1 ${
             totalPnL > 0 ? "text-emerald-400" : totalPnL < 0 ? "text-rose-500" : "text-slate-350"
           }`}>
             {totalPnL > 0 ? "+" : ""}₹{totalPnL.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
         </div>
         
-        <div className="grid grid-cols-2 gap-2 border-t pt-2 text-center">
+        <div className="grid grid-cols-2 gap-2 border-t border-subtle/50 pt-2 text-center">
           <div className="flex flex-col">
             <span className="text-[12px] text-slate-500 font-sans">Realized</span>
-            <span className={`text-[20px] font-semibold font-mono tabular-nums mt-0.5${
+            <span className={`text-[20px] font-semibold font-mono tabular-nums mt-0.5 ${
               totalRealizedPnL > 0 ? "text-emerald-400" : totalRealizedPnL < 0 ? "text-rose-500" : "text-slate-400"
             }`}>
               {totalRealizedPnL > 0 ? "+" : ""}₹{totalRealizedPnL.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
-          <div className="flex flex-col border-l">
+          <div className="flex flex-col border-l border-subtle/50">
             <span className="text-[12px] text-slate-500 font-sans">Unrealized</span>
-            <span className={`text-[20px] font-semibold font-mono tabular-nums mt-0.5${
+            <span className={`text-[20px] font-semibold font-mono tabular-nums mt-0.5 ${
               totalUnrealizedPnL > 0 ? "text-emerald-400" : totalUnrealizedPnL < 0 ? "text-rose-500" : "text-slate-400"
             }`}>
               {totalUnrealizedPnL > 0 ? "+" : ""}₹{totalUnrealizedPnL.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -1358,14 +1358,14 @@ export const TradingRight: React.FC = () => {
       </div>
 
       {/* Order Pad Card */}
-      <div className="px-2 flex flex-col gap-1.5">
-        <h3 className="vdl-body font-semibold text-slate-200 border-b pb-1 flex items-center justify-between select-none">
+      <div className="p-3 flex flex-col gap-1.5 shrink-0">
+        <h3 className="vdl-section text-slate-200 border-b border-subtle pb-1.5 flex items-center justify-between select-none">
           <span>Order ticket</span>
           <span className="vdl-body font-mono text-slate-500">{currentAccount.name}</span>
         </h3>
 
         {/* Selected Instrument Info with Real-time Quote Panel */}
-        <div className="flex flex-col gap-1 bg-card/40 p-1.5 rounded  font-mono vdl-body select-none text-slate-300">
+        <div className="flex flex-col gap-1 bg-deep border border-subtle p-2 rounded font-mono vdl-body select-none text-slate-300">
           <div className="flex justify-between items-center">
             <span>Contract:</span>
             <span className="font-semibold text-cyan-400">
@@ -1378,10 +1378,10 @@ export const TradingRight: React.FC = () => {
                 const details = parseInstrument(currentInstrument.symbol);
                 if (details.type === "CE" || details.type === "PE") {
                   return (
-                    <div className="grid grid-cols-3 gap-1 mt-0.5 border-t pt-1 vdl-body text-slate-400">
+                    <div className="grid grid-cols-3 gap-1 mt-0.5 border-t border-subtle pt-1.5 vdl-body text-slate-400">
                       <div>
                         <span>Type: </span>
-                        <span className={`font-semibold${details.type === "CE" ? "text-emerald-400" : "text-rose-400"}`}>{details.type}</span>
+                        <span className={`font-semibold ${details.type === "CE" ? "text-emerald-400" : "text-rose-400"}`}>{details.type}</span>
                       </div>
                       <div>
                         <span>Strike: </span>
@@ -1396,7 +1396,7 @@ export const TradingRight: React.FC = () => {
                 }
                 return null;
               })()}
-              <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 mt-0.5 border-t pt-1 vdl-body text-slate-400">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 mt-0.5 border-t border-subtle pt-1.5 vdl-body text-slate-400">
                 <div className="flex justify-between">
                   <span>Ltp:</span>
                   <span className="text-slate-200 font-semibold">₹{contractPrice.toFixed(2)}</span>
@@ -1422,13 +1422,13 @@ export const TradingRight: React.FC = () => {
         <div className="tab-container grid grid-cols-2 select-none shrink-0">
           <button
             onClick={() => setSide("BUY")}
-            className={`tab-item${side === "BUY" ? "active text-emerald-400 bg-emerald-500/10 font-bold" : ""}`}
+            className={`tab-item ${side === "BUY" ? "active text-emerald-400 bg-emerald-500/10 font-bold" : ""}`}
           >
             Buy
           </button>
           <button
             onClick={() => setSide("SELL")}
-            className={`tab-item${side === "SELL" ? "active text-rose-500 bg-rose-500/10 font-bold" : ""}`}
+            className={`tab-item ${side === "SELL" ? "active text-rose-500 bg-rose-500/10 font-bold" : ""}`}
           >
             Sell
           </button>
@@ -1456,7 +1456,7 @@ export const TradingRight: React.FC = () => {
               <button
                 key={type}
                 onClick={() => setProductType(type)}
-                className={`tab-item${productType === type ? "active" : ""}`}
+                className={`tab-item ${productType === type ? "active" : ""}`}
               >
                 {type}
               </button>
@@ -1473,7 +1473,7 @@ export const TradingRight: React.FC = () => {
           <div className="flex items-center gap-1">
             <button
               onClick={() => setQuantity((q) => Math.max(lotSize, q - lotSize))}
-              className="bg-card  hover:border-subtle w-8 py-0.5 rounded text-slate-300 font-semibold hover:text-white transition-all cursor-pointer text-center vdl-body"
+              className="bg-deep border border-subtle hover:border-cyan-500/40 w-8 py-0.5 rounded text-slate-300 font-semibold hover:text-white transition-all cursor-pointer text-center vdl-body"
             >
               -
             </button>
@@ -1481,11 +1481,11 @@ export const TradingRight: React.FC = () => {
               type="number"
               value={quantity}
               onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
-              className="flex-1 bg-card rounded py-0.5 text-center font-mono vdl-body text-slate-200 focus:outline-none focus:border-cyan-500/40"
+              className="flex-1 bg-deep border border-subtle rounded py-0.5 text-center font-mono vdl-body text-slate-200 focus:outline-none focus:border-cyan-500/40"
             />
             <button
               onClick={() => setQuantity((q) => q + lotSize)}
-              className="bg-card  hover:border-subtle w-8 py-0.5 rounded text-slate-300 font-semibold hover:text-white transition-all cursor-pointer text-center vdl-body"
+              className="bg-deep border border-subtle hover:border-cyan-500/40 w-8 py-0.5 rounded text-slate-300 font-semibold hover:text-white transition-all cursor-pointer text-center vdl-body"
             >
               +
             </button>
@@ -1500,7 +1500,7 @@ export const TradingRight: React.FC = () => {
               <button
                 key={type}
                 onClick={() => setOrderType(type)}
-                className={`tab-item${orderType === type ? "active" : ""}`}
+                className={`tab-item ${orderType === type ? "active" : ""}`}
               >
                 {type}
               </button>
@@ -1517,7 +1517,7 @@ export const TradingRight: React.FC = () => {
               disabled={orderType === "MARKET"}
               value={limitPrice || ""}
               onChange={(e) => setLimitPrice(Number(e.target.value))}
-              className="w-full bg-card  rounded py-0.5 px-2 font-mono text-center vdl-body text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:border-cyan-500/40"
+              className="w-full bg-deep border border-subtle rounded py-0.5 px-2 font-mono text-center vdl-body text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:border-cyan-500/40"
             />
           </div>
           <div className="flex flex-col gap-0.5">
@@ -1526,7 +1526,7 @@ export const TradingRight: React.FC = () => {
               type="number"
               value={triggerPrice || ""}
               onChange={(e) => setTriggerPrice(Number(e.target.value))}
-              className="w-full bg-card  rounded py-0.5 px-2 font-mono text-center vdl-body text-slate-200 focus:outline-none focus:border-cyan-500/40"
+              className="w-full bg-deep border border-subtle rounded py-0.5 px-2 font-mono text-center vdl-body text-slate-200 focus:outline-none focus:border-cyan-500/40"
             />
           </div>
         </div>
@@ -1543,7 +1543,7 @@ export const TradingRight: React.FC = () => {
               placeholder="SL Price"
               value={stopLoss || ""}
               onChange={(e) => setStopLoss(Number(e.target.value))}
-              className="w-full bg-card  rounded py-0.5 px-2 font-mono text-center vdl-body text-slate-200 focus:outline-none focus:border-cyan-500/40"
+              className="w-full bg-deep border border-subtle rounded py-0.5 px-2 font-mono text-center vdl-body text-slate-200 focus:outline-none focus:border-cyan-500/40"
             />
           </div>
           <div className="flex flex-col gap-0.5">
@@ -1553,16 +1553,16 @@ export const TradingRight: React.FC = () => {
               placeholder="Target Price"
               value={targetPrice || ""}
               onChange={(e) => setTargetPrice(Number(e.target.value))}
-              className="w-full bg-card  rounded py-0.5 px-2 font-mono text-center vdl-body text-slate-200 focus:outline-none focus:border-cyan-500/40"
+              className="w-full bg-deep border border-subtle rounded py-0.5 px-2 font-mono text-center vdl-body text-slate-200 focus:outline-none focus:border-cyan-500/40"
             />
           </div>
         </div>
 
         {/* Real Broker Margin HUD & Risk Estimation */}
-        <div className="flex flex-col gap-1 bg-card/40 p-1.5 rounded  font-mono vdl-body text-slate-500 select-none">
-          <div className="flex justify-between items-center border-b pb-0.5 mb-0.5">
+        <div className="flex flex-col gap-1 bg-deep border border-subtle p-2 rounded font-mono vdl-body text-slate-500 select-none">
+          <div className="flex justify-between items-center border-b border-subtle pb-1 mb-1">
             <span>Risk status:</span>
-            <span className={`px-2 py-0.5 rounded border vdl-body transition-all${
+            <span className={`px-2 py-0.5 rounded border vdl-body transition-all ${
               brokerMarginReq > availableMargin
                 ? "text-rose-500 bg-rose-500/10 border-rose-500/20 animate-pulse font-extrabold"
                 : (availableMargin > 0 && brokerMarginReq / availableMargin > 0.5)
@@ -1586,7 +1586,7 @@ export const TradingRight: React.FC = () => {
               </span>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2 border-t pt-1 mt-1">
+          <div className="grid grid-cols-2 gap-2 border-t border-subtle/50 pt-1 mt-1">
             <div className="flex flex-col gap-0.5">
               <span>POST-TRADE MARGIN:</span>
               <span className="font-semibold text-slate-300">
@@ -1600,12 +1600,12 @@ export const TradingRight: React.FC = () => {
               </span>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2 border-t pt-1.5 mt-1 select-none">
+          <div className="grid grid-cols-2 gap-2 border-t border-subtle/50 pt-1.5 mt-1 select-none">
             <div className="col-span-2 flex flex-col gap-1">
               <span className="vdl-body text-slate-500 font-semibold">Risk estimation</span>
               
               {!hasSL ? (
-                <div className="flex flex-col gap-0.5 bg-amber-500/5 p-1.5 rounded border border-amber-500/10 font-mono vdl-body">
+                <div className="flex flex-col gap-0.5 bg-amber-500/5 p-1.5 rounded border border-amber-500/20 font-mono vdl-body">
                   <div className="flex justify-between">
                     <span className="text-slate-500">RISK ESTIMATE:</span>
                     <span className="font-semibold text-amber-400">Undefined</span>
@@ -1616,7 +1616,7 @@ export const TradingRight: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-col gap-0.5 bg-card/40 p-1.5 rounded  font-mono vdl-body">
+                <div className="flex flex-col gap-0.5 bg-card/20 border border-subtle/50 p-1.5 rounded font-mono vdl-body">
                   <div className="flex justify-between">
                     <span className="text-slate-500">Max loss:</span>
                     <span className="font-semibold text-rose-400">
@@ -1631,7 +1631,7 @@ export const TradingRight: React.FC = () => {
               )}
 
               {hasTarget && (
-                <div className="flex flex-col gap-0.5 bg-card/40 p-1.5 rounded  font-mono vdl-body">
+                <div className="flex flex-col gap-0.5 bg-card/20 border border-subtle/50 p-1.5 rounded font-mono vdl-body">
                   <div className="flex justify-between">
                     <span className="text-slate-500">Potential reward:</span>
                     <span className="font-semibold text-emerald-400">
@@ -1639,7 +1639,7 @@ export const TradingRight: React.FC = () => {
                     </span>
                   </div>
                   {hasSL && (
-                    <div className="flex justify-between border-t pt-0.5 mt-0.5">
+                    <div className="flex justify-between border-t border-subtle/50 pt-0.5 mt-0.5">
                       <span className="text-slate-500">Risk/reward ratio:</span>
                       <span className="font-semibold text-cyan-400">1:{rrRatio}</span>
                     </div>
@@ -1656,11 +1656,11 @@ export const TradingRight: React.FC = () => {
         </div>
 
         {/* Primary Action Buttons — Maximum Visual Weight */}
-        <div className="grid grid-cols-2 gap-2 pt-2 border-t">
+        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-subtle">
           <button
             onClick={() => handlePlaceOrder("BUY")}
             disabled={orderSubmitting || !currentInstrument}
-            className={`btn-buy w-full${
+            className={`btn-buy w-full ${
               orderSubmitting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
             }`}
           >
@@ -1669,7 +1669,7 @@ export const TradingRight: React.FC = () => {
           <button
             onClick={() => handlePlaceOrder("SELL")}
             disabled={orderSubmitting || !currentInstrument}
-            className={`btn-sell w-full${
+            className={`btn-sell w-full ${
               orderSubmitting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
             }`}
           >
@@ -1683,10 +1683,10 @@ export const TradingRight: React.FC = () => {
 
       {/* Option Greeks & Analytics HUD */}
       {analytics && (
-        <div className="p-2 flex flex-col gap-2 font-mono vdl-body select-none text-slate-300 border-t">
-          <div className="text-[12px] font-sans font-semibold text-slate-200 border-b pb-1 flex justify-between items-center">
+        <div className="p-3 flex flex-col gap-2 font-mono vdl-body select-none text-slate-300 border-t border-subtle">
+          <div className="text-[12px] font-sans font-semibold text-slate-200 border-b border-subtle pb-1 flex justify-between items-center">
             <span>Option analytics</span>
-            <span className={`px-1 py-0.5 rounded vdl-body font-sans font-semibold border${
+            <span className={`px-1 py-0.5 rounded vdl-body font-sans font-semibold border ${
               analytics.domSignal === "BULLISH" ? "text-emerald-400 bg-emerald-950/40 border-emerald-700/30" :
               analytics.domSignal === "BEARISH" ? "text-rose-400 bg-rose-950/40 border-rose-700/30" :
               "text-slate-400 bg-card/40"
@@ -1696,7 +1696,7 @@ export const TradingRight: React.FC = () => {
           </div>
 
           {/* Greeks Grid */}
-          <div className="grid grid-cols-5 gap-1.5 border-b pb-2 text-center vdl-body text-slate-400">
+          <div className="grid grid-cols-5 gap-1.5 border-b border-subtle pb-2 text-center vdl-body text-slate-400">
             <div>
               <div className="text-slate-500">Delta</div>
               <div className="font-semibold text-slate-200 mt-0.5">{analytics.delta.toFixed(3)}</div>
@@ -1731,13 +1731,13 @@ export const TradingRight: React.FC = () => {
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">OI Change:</span>
-              <span className={`font-semibold${analytics.oiChange > 0 ? "text-emerald-400" : analytics.oiChange < 0 ? "text-rose-400" : "text-slate-500"}`}>
+              <span className={`font-semibold ${analytics.oiChange > 0 ? "text-emerald-400" : analytics.oiChange < 0 ? "text-rose-400" : "text-slate-500"}`}>
                 {analytics.oiChange > 0 ? "+" : ""}{analytics.oiChange >= 1000000 ? `${(analytics.oiChange/1000000).toFixed(2)}M` : analytics.oiChange.toLocaleString("en-IN")}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">OI Chg %:</span>
-              <span className={`font-semibold${analytics.oiChange > 0 ? "text-emerald-400" : analytics.oiChange < 0 ? "text-rose-400" : "text-slate-500"}`}>
+              <span className={`font-semibold ${analytics.oiChange > 0 ? "text-emerald-400" : analytics.oiChange < 0 ? "text-rose-400" : "text-slate-500"}`}>
                 {analytics.oiChange > 0 ? "+" : ""}{analytics.oiPct.toFixed(1)}%
               </span>
             </div>
@@ -1752,10 +1752,10 @@ export const TradingRight: React.FC = () => {
           </div>
 
           {/* DOM Buy/Sell Ratio Progress Bar */}
-          <div className="mt-1 border-t pt-2 flex flex-col gap-1 select-none">
+          <div className="mt-1 border-t border-subtle pt-2 flex flex-col gap-1 select-none">
             <div className="flex justify-between vdl-body text-slate-500">
               <span>Buy Qty (Bid): {analytics.bidQty.toLocaleString()}</span>
-              <span>Sell Qty (Ask): {analytics.askQty.toLocaleString()}</span>
+              <span>Ask Qty (Ask): {analytics.askQty.toLocaleString()}</span>
             </div>
             <div className="w-full bg-rose-500/20 h-1.5 rounded overflow-hidden flex">
               <div 
@@ -1773,8 +1773,8 @@ export const TradingRight: React.FC = () => {
       )}
 
       {/* Mini Position Summary Panel - Sync'd to Broker Account */}
-      <div className="p-2 flex flex-col gap-2 flex-1 min-h-0 select-none border-t">
-        <span className="text-[12px] font-semibold text-slate-200 border-b pb-1">
+      <div className="p-3 flex flex-col gap-2 flex-1 min-h-0 select-none border-t border-subtle">
+        <span className="vdl-section text-slate-200 border-b border-subtle pb-1.5">
           Open positions ({positions.length})
         </span>
         <div className="flex-1 overflow-y-auto flex flex-col gap-1.5 pr-1 font-sans vdl-body scrollbar-thin scrollbar-thumb-white/5">
@@ -1784,7 +1784,7 @@ export const TradingRight: React.FC = () => {
               return (
                 <div 
                   key={`${pos.instrument_token}_${pos.product}`}
-                  className="p-2 rounded bg-card/40 flex flex-col gap-1 relative group"
+                  className="p-2 rounded bg-deep border border-subtle flex flex-col gap-1 relative group"
                 >
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-slate-200">{pos.trading_symbol}</span>
@@ -1813,7 +1813,7 @@ export const TradingRight: React.FC = () => {
                     </div>
                     <div className="flex flex-col text-right">
                       <span className="vdl-body text-slate-600 font-sans">PnL</span>
-                      <span className={`font-semibold${Number(pos.unrealised || 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                      <span className={`font-semibold ${Number(pos.unrealised || 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                         {Number(pos.unrealised || 0) >= 0 ? "+" : ""}₹{Number(pos.unrealised || 0).toLocaleString("en-IN", { maximumFractionDigits: 1 })}
                       </span>
                     </div>
@@ -2046,7 +2046,7 @@ const OptionChainPanel: React.FC = () => {
   return (
     <div className="flex flex-col h-full gap-2 p-1">
       {/* Option Chain Control Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-card/40 p-2 rounded  select-none shrink-0">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-deep border border-subtle p-2 rounded select-none shrink-0">
         <div className="flex items-center gap-3">
           {/* Underlying Selector */}
           <div className="flex items-center gap-1.5">
@@ -2054,7 +2054,7 @@ const OptionChainPanel: React.FC = () => {
             <select
               value={underlying}
               onChange={(e) => setUnderlying(e.target.value)}
-              className="bg-card  rounded px-2 py-1 vdl-body text-slate-200 focus:outline-none focus:border-cyan-500/40 cursor-pointer font-sans"
+              className="bg-card border border-subtle rounded px-2 py-1 vdl-body text-slate-200 focus:outline-none focus:border-cyan-500/40 cursor-pointer font-sans"
             >
               <option value="NIFTY">NIFTY</option>
               <option value="BANKNIFTY">BANKNIFTY</option>
@@ -2072,7 +2072,7 @@ const OptionChainPanel: React.FC = () => {
             <select
               value={selectedExpiry}
               onChange={(e) => setSelectedExpiry(e.target.value)}
-              className="bg-card  rounded px-2 py-1 vdl-body text-slate-200 focus:outline-none focus:border-cyan-500/40 cursor-pointer font-sans"
+              className="bg-card border border-subtle rounded px-2 py-1 vdl-body text-slate-200 focus:outline-none focus:border-cyan-500/40 cursor-pointer font-sans"
             >
               {expiries.map((exp) => (
                 <option key={exp} value={exp}>
@@ -2114,26 +2114,26 @@ const OptionChainPanel: React.FC = () => {
       )}
 
       {/* Option Chain Table */}
-      <div className="flex-1 min-h-0 overflow-auto  rounded">
+      <div className="flex-1 min-h-0 overflow-auto rounded">
         <table className="w-full text-left font-mono tabular-nums vdl-body border-collapse">
-          <thead className="sticky top-0 bg-card/95 backdrop-blur border-b z-10">
+          <thead className="sticky top-0 bg-card/95 backdrop-blur border-b border-subtle z-10">
             {/* Section header row */}
-            <tr className="vdl-body select-none border-b bg-card/10">
-              <th colSpan={7} className="py-1.5 pl-3 text-emerald-450 font-semibold border-r text-center">— CALLS —</th>
-              <th className="py-1.5 text-center text-slate-350 font-semibold bg-card border-x">Strike</th>
-              <th colSpan={7} className="py-1.5 pr-3 text-right text-rose-400 font-semibold border-l text-center">— PUTS —</th>
+            <tr className="vdl-body select-none border-b border-subtle bg-deep">
+              <th colSpan={7} className="py-1.5 pl-3 text-emerald-450 font-semibold border-r border-subtle text-center">— CALLS —</th>
+              <th className="py-1.5 text-center text-slate-350 font-semibold bg-card border-x border-subtle">Strike</th>
+              <th colSpan={7} className="py-1.5 pr-3 text-right text-rose-400 font-semibold border-l border-subtle text-center">— PUTS —</th>
             </tr>
             {/* Column header row */}
-            <tr className="text-slate-500 vdl-body select-none bg-card">
+            <tr className="text-slate-500 vdl-body select-none bg-deep">
               <th className="py-1.5 pl-3 text-left">DOM</th>
               <th className="py-1.5 text-right">Iv%</th>
               <th className="py-1.5 text-right">Oi</th>
               <th className="py-1.5 text-right">OI Chg</th>
               <th className="py-1.5 text-right">Vol</th>
               <th className="py-1.5 text-right">Bid×Qty</th>
-              <th className="py-1.5 text-right text-emerald-400 font-semibold border-r pr-2">Ltp</th>
-              <th className="py-1.5 text-center font-semibold text-slate-300 bg-card border-x px-2">Strike</th>
-              <th className="py-1.5 text-left text-rose-400 font-semibold border-l pl-2">Ltp</th>
+              <th className="py-1.5 text-right text-emerald-400 font-semibold border-r border-subtle pr-2">Ltp</th>
+              <th className="py-1.5 text-center font-semibold text-slate-300 bg-card border-x border-subtle px-2">Strike</th>
+              <th className="py-1.5 text-left text-rose-400 font-semibold border-l border-subtle pl-2">Ltp</th>
               <th className="py-1.5 text-left">Ask×Qty</th>
               <th className="py-1.5 text-left">Vol</th>
               <th className="py-1.5 text-left">Oi</th>
@@ -2160,13 +2160,11 @@ const OptionChainPanel: React.FC = () => {
                 return (
                   <tr
                     key={row.strike}
-                    className={`hover:bg-cyan-500/[0.03] transition-all${
-                      isATM ? "bg-cyan-500/[0.02] border-y border-cyan-500/10" : ""
-                    }`}
+                    className={`hover:bg-cyan-500/[0.03] transition-all ${isATM ? "bg-cyan-500/[0.02] border-y border-cyan-500/10" : ""}`}
                   >
                     {/* CE: DOM Signal */}
                     <td className="py-1.5 pl-3">
-                      <span className={`px-1 py-0.5 rounded vdl-body font-semibold font-sans border${domColor(row.ce_dom_signal || "NEUTRAL")}`}>
+                      <span className={`px-1 py-0.5 rounded vdl-body font-semibold font-sans border ${domColor(row.ce_dom_signal || "NEUTRAL")}`}>
                         {(row.ce_dom_signal || "—").slice(0, 4)}
                       </span>
                     </td>
@@ -2178,7 +2176,7 @@ const OptionChainPanel: React.FC = () => {
                     <td className="py-1.5 text-right text-slate-400">{row.ce_oi > 0 ? fmtOI(row.ce_oi) : "—"}</td>
 
                     {/* CE: OI Change */}
-                    <td className={`py-1.5 text-right font-semibold${oiChgColor(row.ce_oi_change || 0)}`}>
+                    <td className={`py-1.5 text-right font-semibold ${oiChgColor(row.ce_oi_change || 0)}`}>
                       {row.ce_oi_change !== 0 && row.ce_oi_change !== undefined ? `${row.ce_oi_change > 0 ? "+" : ""}${fmtOI(row.ce_oi_change)}` : "—"}
                     </td>
 
@@ -2193,7 +2191,7 @@ const OptionChainPanel: React.FC = () => {
                     </td>
 
                     {/* CE: LTP — clickable */}
-                    <td className="py-1.5 pr-2 text-right border-r">
+                    <td className="py-1.5 pr-2 text-right border-r border-subtle">
                       {row.ce_key ? (
                         <button
                           onClick={() => handleSelectContract(row.strike, "CE", row.ce_key, row.ce_symbol)}
@@ -2208,7 +2206,7 @@ const OptionChainPanel: React.FC = () => {
                     </td>
 
                     {/* Center Strike Axis Spine */}
-                    <td className="py-1 text-center px-3 bg-card border-x select-none">
+                    <td className="py-1 text-center px-3 bg-card border-x border-subtle select-none">
                       <span className={`px-2 py-0.5 rounded font-mono font-semibold vdl-body tabular-nums${
                         isATM 
                           ? "bg-amber-500 text-slate-950 font-black shadow-[0_0_10px_rgba(245,158,11,0.45)]" 
@@ -2222,7 +2220,7 @@ const OptionChainPanel: React.FC = () => {
                     </td>
 
                     {/* PE: LTP — clickable */}
-                    <td className="py-1.5 pl-2 text-left border-l">
+                    <td className="py-1.5 pl-2 text-left border-l border-subtle">
                       {row.pe_key ? (
                         <button
                           onClick={() => handleSelectContract(row.strike, "PE", row.pe_key, row.pe_symbol)}
@@ -2250,7 +2248,7 @@ const OptionChainPanel: React.FC = () => {
                     <td className="py-1.5 text-left text-slate-400">{row.pe_oi > 0 ? fmtOI(row.pe_oi) : "—"}</td>
 
                     {/* PE: OI Change */}
-                    <td className={`py-1.5 text-left font-semibold${oiChgColor(row.pe_oi_change || 0)}`}>
+                    <td className={`py-1.5 text-left font-semibold ${oiChgColor(row.pe_oi_change || 0)}`}>
                       {row.pe_oi_change !== 0 && row.pe_oi_change !== undefined ? `${row.pe_oi_change > 0 ? "+" : ""}${fmtOI(row.pe_oi_change)}` : "—"}
                     </td>
 
@@ -2259,7 +2257,7 @@ const OptionChainPanel: React.FC = () => {
 
                     {/* PE: DOM Signal */}
                     <td className="py-1.5 pr-3">
-                      <span className={`px-1 py-0.5 rounded vdl-body font-semibold font-sans border${domColor(row.pe_dom_signal || "NEUTRAL")}`}>
+                      <span className={`px-1 py-0.5 rounded vdl-body font-semibold font-sans border ${domColor(row.pe_dom_signal || "NEUTRAL")}`}>
                         {(row.pe_dom_signal || "—").slice(0, 4)}
                       </span>
                     </td>
@@ -2601,14 +2599,14 @@ export const TradingBottom: React.FC = () => {
                 type="number"
                 value={editPrice}
                 onChange={(e) => setEditPrice(Number(e.target.value))}
-                className="w-14 bg-card  rounded px-1 py-0.5 text-xs text-right font-mono"
+                className="w-14 bg-card border border-subtle rounded px-1 py-0.5 text-xs text-right font-mono"
                 placeholder="Price"
               />
               <input
                 type="number"
                 value={editQty}
                 onChange={(e) => setEditQty(Number(e.target.value))}
-                className="w-10 bg-card  rounded px-1 py-0.5 text-xs text-right font-mono"
+                className="w-10 bg-card border border-subtle rounded px-1 py-0.5 text-xs text-right font-mono"
                 placeholder="Qty"
               />
               <button

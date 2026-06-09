@@ -4,7 +4,7 @@ import { PANEL_PADDING, BORDER_RADIUS } from "./tokens";
 
 interface PanelProps {
   title?: string;
-  variant?: "compact" | "standard" | "large";
+  variant?: "compact" | "standard" | "large" | "none";
   canCollapse?: boolean;
   isCollapsed?: boolean;
   onCollapseToggle?: () => void;
@@ -27,6 +27,7 @@ export const Panel: React.FC<PanelProps> = ({
 
   // Spacing and radii maps based on tokens
   const paddingMap = {
+    none: "p-0",
     compact: "p-[12px]",
     standard: "p-[16px]",
     large: "p-[24px]",
@@ -39,7 +40,7 @@ export const Panel: React.FC<PanelProps> = ({
     return (
       <div 
         onClick={onCollapseToggle}
-        className={`flex flex-col items-center justify-start bg-base border border-subtle py-4 w-9 h-full select-none cursor-pointer hover:bg-card-hover transition-colors ${borderRadiusClass}`}
+        className={`flex flex-col items-center justify-start bg-bg-base border border-subtle py-4 w-9 h-full select-none cursor-pointer hover:bg-card-hover transition-colors ${borderRadiusClass}`}
       >
         <button
           onClick={(e) => {
@@ -65,9 +66,9 @@ export const Panel: React.FC<PanelProps> = ({
 
   return (
     <div
-      className={`flex flex-col overflow-hidden transition-all duration-150 h-full bg-base border border-subtle ${borderRadiusClass} ${
+      className={`flex flex-col overflow-hidden transition-all duration-150 h-full bg-bg-base border border-subtle ${borderRadiusClass} ${
         isMaximized
-          ? "fixed inset-4 z-40 bg-base shadow-lg shadow-black/50"
+          ? "fixed inset-4 z-40 bg-bg-base shadow-lg shadow-black/50"
           : ""
       } ${className}`}
     >

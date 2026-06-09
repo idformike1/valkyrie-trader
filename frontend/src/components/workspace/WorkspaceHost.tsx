@@ -93,6 +93,7 @@ export const WorkspaceHost: React.FC = () => {
                 activeWorkspaceId === "paper" ? "Strategies" :
                 `${config.name} Sidebar`
               }
+              variant={activeWorkspaceId === "trading" ? "none" : "standard"}
               isCollapsed={layout.leftCollapsed}
               onCollapseToggle={() => toggleCollapse(activeWorkspaceId, "left")}
             >
@@ -113,7 +114,11 @@ export const WorkspaceHost: React.FC = () => {
 
         {/* Main Panel */}
         <div className="flex-1 min-w-0 min-h-0">
-          <Panel title={`${config.name} Main Desktop`} canCollapse={false}>
+          <Panel 
+            title={`${config.name} Main Desktop`} 
+            variant={activeWorkspaceId === "trading" ? "none" : "standard"}
+            canCollapse={false}
+          >
             <MainPanel workspaceId={activeWorkspaceId} />
           </Panel>
         </div>
@@ -145,6 +150,7 @@ export const WorkspaceHost: React.FC = () => {
                 activeWorkspaceId === "paper" ? "Paper Portfolio Health" :
                 "Execution & Stats"
               }
+              variant={activeWorkspaceId === "trading" ? "none" : "standard"}
               isCollapsed={layout.rightCollapsed}
               onCollapseToggle={() => toggleCollapse(activeWorkspaceId, "right")}
             >
@@ -185,6 +191,7 @@ export const WorkspaceHost: React.FC = () => {
             ) : (
               <Panel
                 title={`${config.name} Ledger & Analytics`}
+                variant={activeWorkspaceId === "trading" ? "none" : "standard"}
                 isCollapsed={false}
                 onCollapseToggle={() => toggleCollapse(activeWorkspaceId, "bottom")}
               >

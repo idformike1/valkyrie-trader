@@ -6194,6 +6194,20 @@ Find matching run inside report
 Coloring intensity
 ```
 
+#### `equities` (Function)
+- **Signature**: `const equities = data.map((pt: any) => pt.equity)`
+- **Description**:
+```text
+No description provided.
+```
+
+#### `points` (Function)
+- **Signature**: `const points = data.map((pt: any, idx: number) => `
+- **Description**:
+```text
+No description provided.
+```
+
 
 
 ---

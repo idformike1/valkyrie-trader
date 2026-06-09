@@ -3143,40 +3143,71 @@ export const BacktestBottom: React.FC = () => {
               <>
                 {/* Score & Stability row */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* Score Card */}
-                  <div className="bg-card/30 border border-slate-800 rounded-lg p-5 flex flex-col items-center justify-center relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-3">
-                      <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase border ${
-                        v2Result.walk_forward_analysis.classification === "Institutional" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
-                        v2Result.walk_forward_analysis.classification === "Strong" ? "bg-cyan-500/10 text-cyan-400 border-cyan-500/20" :
-                        v2Result.walk_forward_analysis.classification === "Tradable" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" :
-                        v2Result.walk_forward_analysis.classification === "Fragile" ? "bg-amber-500/10 text-amber-400 border-amber-500/20" :
-                        "bg-rose-500/10 text-rose-400 border-rose-500/20"
-                      }`}>
-                        {v2Result.walk_forward_analysis.classification}
+                  {/* Score Card (Dual Gauge: Score + Confidence) */}
+                  <div className="bg-card/30 border border-slate-800 rounded-lg p-5 flex flex-col justify-between relative overflow-hidden">
+                    <div className="flex justify-between items-center mb-4">
+                      <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
+                        Walk Forward Valuation
                       </span>
                     </div>
                     
-                    <div className="w-32 h-32 flex items-center justify-center rounded-full border-4 border-slate-800 relative mt-4">
-                      {/* Radial Progress Border */}
-                      <div className="absolute inset-0 rounded-full border-4 border-cyan-500/30" />
+                    <div className="grid grid-cols-2 gap-4 items-center">
                       <div className="flex flex-col items-center">
-                        <span className={`text-4xl font-extrabold font-mono tracking-tight ${
-                          v2Result.walk_forward_analysis.walk_forward_score >= 75 ? "text-emerald-400" :
-                          v2Result.walk_forward_analysis.walk_forward_score >= 60 ? "text-cyan-400" :
-                          v2Result.walk_forward_analysis.walk_forward_score >= 40 ? "text-amber-400" :
-                          "text-rose-400"
+                        <div className="w-24 h-24 flex items-center justify-center rounded-full border-4 border-slate-800 relative">
+                          <div className="absolute inset-0 rounded-full border-4 border-cyan-500/20" />
+                          <div className="flex flex-col items-center">
+                            <span className={`text-2xl font-bold font-mono tracking-tight ${
+                              v2Result.walk_forward_analysis.walk_forward_score >= 75 ? "text-emerald-400" :
+                              v2Result.walk_forward_analysis.walk_forward_score >= 60 ? "text-cyan-400" :
+                              v2Result.walk_forward_analysis.walk_forward_score >= 40 ? "text-amber-400" :
+                              "text-rose-400"
+                            }`}>
+                              {v2Result.walk_forward_analysis.walk_forward_score.toFixed(1)}
+                            </span>
+                            <span className="text-[7px] font-mono tracking-wider text-slate-500 uppercase mt-0.5">
+                              WF Score
+                            </span>
+                          </div>
+                        </div>
+                        <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase border mt-2 ${
+                          v2Result.walk_forward_analysis.classification === "Institutional" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
+                          v2Result.walk_forward_analysis.classification === "Strong" ? "bg-cyan-500/10 text-cyan-400 border-cyan-500/20" :
+                          v2Result.walk_forward_analysis.classification === "Tradable" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" :
+                          v2Result.walk_forward_analysis.classification === "Fragile" ? "bg-amber-500/10 text-amber-400 border-amber-500/20" :
+                          "bg-rose-500/10 text-rose-400 border-rose-500/20"
                         }`}>
-                          {v2Result.walk_forward_analysis.walk_forward_score.toFixed(1)}
+                          {v2Result.walk_forward_analysis.classification}
                         </span>
-                        <span className="text-[9px] font-mono tracking-wider text-slate-500 mt-1 uppercase">
-                          Walk Forward Score
+                      </div>
+
+                      <div className="flex flex-col items-center">
+                        <div className="w-24 h-24 flex items-center justify-center rounded-full border-4 border-slate-800 relative">
+                          <div className="absolute inset-0 rounded-full border-4 border-indigo-500/20" />
+                          <div className="flex flex-col items-center">
+                            <span className={`text-2xl font-bold font-mono tracking-tight ${
+                              (v2Result.walk_forward_analysis.walk_forward_confidence || 0) >= 80 ? "text-indigo-400" :
+                              (v2Result.walk_forward_analysis.walk_forward_confidence || 0) >= 60 ? "text-purple-400" :
+                              (v2Result.walk_forward_analysis.walk_forward_confidence || 0) >= 40 ? "text-amber-400" :
+                              "text-rose-400"
+                            }`}>
+                              {(v2Result.walk_forward_analysis.walk_forward_confidence || 0).toFixed(1)}
+                            </span>
+                            <span className="text-[7px] font-mono tracking-wider text-slate-500 uppercase mt-0.5">
+                              Confidence
+                            </span>
+                          </div>
+                        </div>
+                        <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase border mt-2 ${
+                          (v2Result.walk_forward_analysis.walk_forward_confidence_classification || "Overfit") === "Institutional" ? "bg-indigo-500/10 text-indigo-400 border-indigo-500/20" :
+                          (v2Result.walk_forward_analysis.walk_forward_confidence_classification || "Overfit") === "Strong" ? "bg-purple-500/10 text-purple-400 border-purple-500/20" :
+                          (v2Result.walk_forward_analysis.walk_forward_confidence_classification || "Overfit") === "Tradable" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" :
+                          (v2Result.walk_forward_analysis.walk_forward_confidence_classification || "Overfit") === "Fragile" ? "bg-amber-500/10 text-amber-400 border-amber-500/20" :
+                          "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                        }`}>
+                          {v2Result.walk_forward_analysis.walk_forward_confidence_classification || "Overfit"}
                         </span>
                       </div>
                     </div>
-                    <p className="text-xs text-slate-500 text-center mt-5 max-w-xs">
-                      Quantifies the strategy's out-of-sample adaptability. Scores above 75 indicate robust, non-overfit strategies.
-                    </p>
                   </div>
 
                   {/* Stability Metrics Card */}
@@ -3226,6 +3257,151 @@ export const BacktestBottom: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Performance Decay Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  {[
+                    { label: "Avg Profit Decay", val: v2Result.walk_forward_analysis.average_profit_decay, desc: "Train vs Test Profit degradation" },
+                    { label: "Avg PF Decay", val: v2Result.walk_forward_analysis.average_pf_decay, desc: "Train vs Test Profit Factor degradation" },
+                    { label: "Avg WinRate Decay", val: v2Result.walk_forward_analysis.average_winrate_decay, desc: "Train vs Test Win Rate degradation" },
+                    { label: "Avg Drawdown Expansion", val: v2Result.walk_forward_analysis.average_drawdown_expansion, desc: "Train vs Test Drawdown increase" },
+                  ].map((d, idx) => (
+                    <div key={idx} className="bg-card/20 border border-slate-800/80 rounded-lg p-4 flex flex-col justify-between">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block mb-1">
+                        {d.label}
+                      </span>
+                      <div className="flex items-baseline gap-1 mt-1">
+                        <span className={`text-2xl font-bold font-mono ${
+                          d.val !== undefined && d.val <= 25 ? "text-emerald-400" :
+                          d.val !== undefined && d.val <= 50 ? "text-amber-400" :
+                          "text-rose-400"
+                        }`}>
+                          {d.val !== undefined ? `${d.val.toFixed(1)}%` : "0.0%"}
+                        </span>
+                      </div>
+                      <p className="text-[9px] text-slate-500 mt-2 leading-snug">
+                        {d.desc}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Parameter Drift Analysis */}
+                {v2Result.walk_forward_analysis.parameter_drift_analysis && Object.keys(v2Result.walk_forward_analysis.parameter_drift_analysis).length > 0 && (
+                  <div className="bg-card/25 border border-slate-800 rounded-lg overflow-hidden">
+                    <div className="px-4 py-3 border-b border-slate-800 bg-slate-900/40">
+                      <span className="text-xs font-semibold tracking-wider text-slate-300 uppercase block">
+                        Optimal Parameter Drift Analysis
+                      </span>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-800/50 text-[10px] text-slate-500 uppercase tracking-wider bg-slate-950/20 font-mono">
+                            <th className="py-2 px-4">Parameter Name</th>
+                            <th className="py-2 px-3">Average Value</th>
+                            <th className="py-2 px-3">Parameter Stability</th>
+                            <th className="py-2 px-3">Total Drift (%)</th>
+                            <th className="py-2 px-3">Drift Velocity</th>
+                            <th className="py-2 px-4 text-right">Trend Direction</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-800/40 text-xs font-mono">
+                          {Object.entries(v2Result.walk_forward_analysis.parameter_drift_analysis).map(([pName, details]: [string, any]) => (
+                            <tr key={pName} className="hover:bg-slate-900/5">
+                              <td className="py-2.5 px-4 font-bold text-slate-300">{pName}</td>
+                              <td className="py-2.5 px-3 text-slate-200">{details.average_value.toFixed(2)}</td>
+                              <td className="py-2.5 px-3 text-slate-200">
+                                <div className="flex items-center gap-2">
+                                  <span>{(details.stability * 100).toFixed(1)}%</span>
+                                  <div className="w-16 h-1.5 bg-slate-800 rounded overflow-hidden">
+                                    <div
+                                      className={`h-full rounded-full ${
+                                        details.stability >= 0.8 ? "bg-emerald-500" :
+                                        details.stability >= 0.5 ? "bg-cyan-500" :
+                                        "bg-amber-500"
+                                      }`}
+                                      style={{ width: `${details.stability * 100}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              </td>
+                              <td className={`py-2.5 px-3 font-bold ${details.drift_pct >= 0 ? "text-cyan-400" : "text-purple-400"}`}>
+                                {details.drift_pct >= 0 ? "+" : ""}{details.drift_pct.toFixed(1)}%
+                              </td>
+                              <td className="py-2.5 px-3 text-slate-400">
+                                {details.drift_velocity >= 0 ? "+" : ""}{details.drift_velocity.toFixed(3)} / window
+                              </td>
+                              <td className="py-2.5 px-4 text-right">
+                                <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase border ${
+                                  details.drift_trend === "UPWARD" ? "bg-cyan-500/10 text-cyan-400 border-cyan-500/20" :
+                                  details.drift_trend === "DOWNWARD" ? "bg-purple-500/10 text-purple-400 border-purple-500/20" :
+                                  "bg-slate-500/10 text-slate-400 border-slate-500/20"
+                                }`}>
+                                  {details.drift_trend}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Stitched OOS Equity Curve */}
+                {v2Result.walk_forward_analysis.stitched_oos_equity_curve && v2Result.walk_forward_analysis.stitched_oos_equity_curve.length > 0 && (
+                  <div className="bg-card/25 border border-slate-800 rounded-lg p-5 flex flex-col gap-4">
+                    <span className="text-xs font-semibold tracking-wider text-slate-300 uppercase block">
+                      Continuous Out-Of-Sample Stitched Equity Curve (V2)
+                    </span>
+                    <div className="h-44 w-full bg-slate-950/40 border border-slate-900 rounded relative overflow-hidden flex items-end">
+                      {(() => {
+                        const data = v2Result.walk_forward_analysis.stitched_oos_equity_curve || [];
+                        if (data.length === 0) return null;
+                        const equities = data.map((pt: any) => pt.equity);
+                        const minEq = Math.min(...equities) * 0.995;
+                        const maxEq = Math.max(...equities) * 1.005;
+                        const eqRange = maxEq - minEq || 1;
+                        const width = 800;
+                        const height = 150;
+                        
+                        const points = data.map((pt: any, idx: number) => {
+                          const x = (idx / (data.length - 1)) * width;
+                          const y = height - ((pt.equity - minEq) / eqRange) * height;
+                          return `${x},${y}`;
+                        }).join(" ");
+                        
+                        const fillPoints = `0,${height} ${points} ${width},${height}`;
+                        
+                        return (
+                          <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full" preserveAspectRatio="none">
+                            <defs>
+                              <linearGradient id="eqGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.25" />
+                                <stop offset="100%" stopColor="#06b6d4" stopOpacity="0" />
+                              </linearGradient>
+                            </defs>
+                            <line x1="0" y1={height * 0.25} x2={width} y2={height * 0.25} stroke="#1e293b" strokeDasharray="4" strokeWidth="0.5" />
+                            <line x1="0" y1={height * 0.5} x2={width} y2={height * 0.5} stroke="#1e293b" strokeDasharray="4" strokeWidth="0.5" />
+                            <line x1="0" y1={height * 0.75} x2={width} y2={height * 0.75} stroke="#1e293b" strokeDasharray="4" strokeWidth="0.5" />
+                            <polygon points={fillPoints} fill="url(#eqGrad)" />
+                            <polyline points={points} fill="none" stroke="#06b6d4" strokeWidth="2" />
+                          </svg>
+                        );
+                      })()}
+                      
+                      <div className="absolute top-2 left-2 flex flex-col gap-0.5">
+                        <span className="text-[10px] font-mono text-cyan-400 font-semibold">
+                          Max: ₹{Math.max(...(v2Result.walk_forward_analysis.stitched_oos_equity_curve || []).map((pt: any) => pt.equity)).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+                        </span>
+                        <span className="text-[10px] font-mono text-slate-500">
+                          Min: ₹{Math.min(...(v2Result.walk_forward_analysis.stitched_oos_equity_curve || []).map((pt: any) => pt.equity)).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Windows Table */}
                 <div className="bg-card/25 border border-slate-800 rounded-lg overflow-hidden">
                   <div className="px-4 py-3 border-b border-slate-800 bg-slate-900/40 flex justify-between items-center">
@@ -3245,17 +3421,25 @@ export const BacktestBottom: React.FC = () => {
                           <th className="py-2.5 px-3">Parameters</th>
                           <th className="py-2.5 px-3">Training Window (In-Sample)</th>
                           <th className="py-2.5 px-3">Testing Window (Out-of-Sample)</th>
-                          <th className="py-2.5 px-3">Drift & Metrics Parity</th>
+                          <th className="py-2.5 px-3">OOS Performance Decay</th>
                           <th className="py-2.5 px-4 text-right">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800/40 text-xs font-sans">
                         {v2Result.walk_forward_analysis.windows.map((w) => {
-                          const profitDrift = w.train_net_profit !== 0 ? ((w.test_net_profit - w.train_net_profit) / Math.abs(w.train_net_profit)) * 100 : 0;
                           return (
                             <tr key={w.window_index} className="hover:bg-slate-900/10 transition-colors">
-                              <td className="py-3.5 px-4 font-mono font-bold text-slate-400">
-                                #{w.window_index + 1}
+                              <td className="py-3.5 px-4 font-mono">
+                                <div className="flex flex-col gap-1">
+                                  <span className="font-bold text-slate-400">#{w.window_index + 1}</span>
+                                  <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold tracking-wider text-center uppercase ${
+                                    w.regime === "BULL" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/25" :
+                                    w.regime === "BEAR" ? "bg-rose-500/10 text-rose-400 border border-rose-500/25" :
+                                    "bg-slate-500/10 text-slate-400 border border-slate-500/25"
+                                  }`}>
+                                    {w.regime || "SIDEWAYS"}
+                                  </span>
+                                </div>
                               </td>
                               <td className="py-3.5 px-3">
                                 <div className="flex flex-wrap gap-1 max-w-[180px]">
@@ -3299,17 +3483,23 @@ export const BacktestBottom: React.FC = () => {
                                 </div>
                               </td>
                               <td className="py-3.5 px-3">
-                                <div className="flex flex-col justify-center">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="text-[10px] text-slate-500 uppercase">Profit Drift:</span>
-                                    <span className={`font-mono text-[10px] font-bold ${profitDrift >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                                      {profitDrift >= 0 ? "+" : ""}{profitDrift.toFixed(1)}%
+                                <div className="flex flex-col justify-center gap-0.5 font-mono text-[9px]">
+                                  <div className="flex justify-between items-center gap-2">
+                                    <span className="text-slate-500 uppercase">Profit Decay:</span>
+                                    <span className={`font-bold ${w.profit_decay !== undefined && w.profit_decay <= 25 ? "text-emerald-400" : "text-rose-400"}`}>
+                                      {w.profit_decay !== undefined ? w.profit_decay.toFixed(1) : "0.0"}%
                                     </span>
                                   </div>
-                                  <div className="flex items-center gap-1.5 mt-0.5">
-                                    <span className="text-[10px] text-slate-500 uppercase">PF Decay:</span>
-                                    <span className={`font-mono text-[10px] font-bold ${w.test_profit_factor >= w.train_profit_factor ? "text-emerald-400" : "text-amber-400"}`}>
-                                      {w.train_profit_factor > 0 ? ((w.test_profit_factor / w.train_profit_factor) * 100).toFixed(0) : 100}%
+                                  <div className="flex justify-between items-center gap-2">
+                                    <span className="text-slate-500 uppercase">PF Decay:</span>
+                                    <span className={`font-bold ${w.pf_decay !== undefined && w.pf_decay <= 25 ? "text-emerald-400" : "text-amber-400"}`}>
+                                      {w.pf_decay !== undefined ? w.pf_decay.toFixed(1) : "0.0"}%
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between items-center gap-2">
+                                    <span className="text-slate-500 uppercase">DD Expand:</span>
+                                    <span className={`font-bold ${w.drawdown_expansion !== undefined && w.drawdown_expansion <= 25 ? "text-emerald-400" : "text-amber-400"}`}>
+                                      {w.drawdown_expansion !== undefined ? w.drawdown_expansion.toFixed(1) : "0.0"}%
                                     </span>
                                   </div>
                                 </div>

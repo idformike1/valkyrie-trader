@@ -4,6 +4,7 @@
 
 
 @theme {
+  /* Legacy prefixed aliases to prevent breaking page.tsx */
   --color-bg-deep: var(--bg-deep);
   --color-bg-base: var(--bg-base);
   --color-bg-card: var(--bg-card);
@@ -11,17 +12,31 @@
   --color-bg-elevated: var(--bg-elevated);
   --color-bg-floating: var(--bg-floating);
   --color-bg-modal: var(--bg-modal);
-
+  --color-text-main: var(--text-main);
+  --color-text-mute: var(--text-mute);
+  --color-text-dark: var(--text-dark);
   --color-border-subtle: var(--border-subtle);
+
+  /* Canonical theme tokens resolving classes like bg-deep, text-main, border-subtle */
+  --color-deep: var(--bg-deep);
+  --color-base: var(--bg-base);
+  --color-card: var(--bg-card);
+  --color-card-hover: var(--bg-card-hover);
+  --color-elevated: var(--bg-elevated);
+  --color-floating: var(--bg-floating);
+  --color-modal: var(--bg-modal);
+
+  --color-subtle: var(--border-subtle);
+  --color-main: var(--text-main);
+  --color-mute: var(--text-mute);
+  --color-dark: var(--text-dark);
+
   --color-border-glow: var(--border-glow);
   --color-cyan-neon: var(--cyan-neon);
   --color-teal-neon: var(--teal-neon);
   --color-gold-accent: var(--gold-accent);
   --color-green-neon: var(--green-neon);
   --color-red-neon: var(--red-neon);
-  --color-text-main: var(--text-main);
-  --color-text-mute: var(--text-mute);
-  --color-text-dark: var(--text-dark);
 
   /* Typography family mappings */
   --font-sans: var(--font-body);
