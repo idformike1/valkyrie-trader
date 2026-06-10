@@ -22,7 +22,7 @@ const DEFAULT_LAYOUTS: Record<string, WorkspaceLayout> = {
   trading: { leftWidth: 280, rightWidth: 320, bottomHeight: 220, leftCollapsed: false, rightCollapsed: false, bottomCollapsed: false },
   scalper: { leftWidth: 0, rightWidth: 340, bottomHeight: 200, leftCollapsed: true, rightCollapsed: false, bottomCollapsed: false }, // Scalper might not need a left panel
   backtest: { leftWidth: 260, rightWidth: 320, bottomHeight: 220, leftCollapsed: false, rightCollapsed: false, bottomCollapsed: false },
-  paper: { leftWidth: 220, rightWidth: 240, bottomHeight: 220, leftCollapsed: false, rightCollapsed: false, bottomCollapsed: false },
+  paper: { leftWidth: 220, rightWidth: 240, bottomHeight: 320, leftCollapsed: false, rightCollapsed: false, bottomCollapsed: false },
   deployments: { leftWidth: 240, rightWidth: 0, bottomHeight: 200, leftCollapsed: false, rightCollapsed: true, bottomCollapsed: false },
   operations: { leftWidth: 250, rightWidth: 250, bottomHeight: 250, leftCollapsed: false, rightCollapsed: false, bottomCollapsed: false },
 };

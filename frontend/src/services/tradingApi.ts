@@ -28,6 +28,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
 export const tradingApi = {
   getTelemetry: () => request<TelemetryPayload>("/telemetry"),
+  getMarketIndices: () => request<any>("/api/market/indices"),
   
   manualBuy: (payload: BuyOrderRequest) =>
     request<{ message: string; status: any }>("/manual/buy", {
@@ -62,6 +63,27 @@ export const tradingApi = {
       method: "POST",
       body: JSON.stringify(payload),
     }),
+
+  getUpstoxAuthUrl: () => request<{ url: string }>("/api/broker/auth/url"),
+  submitUpstoxCallback: (code: string) =>
+    request<{ status: string; message: string }>("/api/broker/auth/callback", {
+      method: "POST",
+      body: JSON.stringify({ code }),
+    }),
+  disconnectUpstox: () =>
+    request<{ status: string; message: string }>("/api/broker/auth/disconnect", {
+      method: "POST",
+    }),
+  submitRawToken: (token: string) =>
+    request<{ status: string; message: string }>("/api/broker/auth/token", {
+      method: "POST",
+      body: JSON.stringify({ token }),
+    }),
+  reconnectUpstox: () =>
+    request<{ status: string; message: string }>("/api/broker/auth/reconnect", {
+      method: "POST",
+    }),
+
 
   getBrokerProfile: () => request<any>("/api/broker/profile"),
   getBrokerFunds: () => request<any>("/api/broker/funds"),

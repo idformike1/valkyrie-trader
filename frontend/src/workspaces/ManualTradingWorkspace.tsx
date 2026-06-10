@@ -1325,7 +1325,7 @@ export const TradingRight: React.FC = () => {
   const totalPnL = totalUnrealizedPnL + totalRealizedPnL;
 
   return (
-    <div className="flex flex-col h-full bg-transparent overflow-hidden">
+    <div className="flex flex-col h-full bg-transparent overflow-y-auto scrollbar-thin pr-1">
       {/* Hero P&L Anchor */}
       <div className="p-3 bg-deep border-b border-subtle select-none flex flex-col gap-2 shrink-0">
         <div className="flex flex-col items-center justify-center">
@@ -1773,11 +1773,11 @@ export const TradingRight: React.FC = () => {
       )}
 
       {/* Mini Position Summary Panel - Sync'd to Broker Account */}
-      <div className="p-3 flex flex-col gap-2 flex-1 min-h-0 select-none border-t border-subtle">
+      <div className="p-3 flex flex-col gap-2 shrink-0 select-none border-t border-subtle">
         <span className="vdl-section text-slate-200 border-b border-subtle pb-1.5">
           Open positions ({positions.length})
         </span>
-        <div className="flex-1 overflow-y-auto flex flex-col gap-1.5 pr-1 font-sans vdl-body scrollbar-thin scrollbar-thumb-white/5">
+        <div className="flex flex-col gap-1.5 pr-1 font-sans vdl-body">
           {positions.length > 0 ? (
             positions.map((pos) => {
               const qty = Number(pos.quantity || 0);
@@ -1843,6 +1843,7 @@ const OptionChainPanel: React.FC = () => {
   const [expiries, setExpiries] = useState<string[]>([]);
   const [selectedExpiry, setSelectedExpiry] = useState<string>("");
   const [spotPrice, setSpotPrice] = useState<number>(0.0);
+  const [atmStrike, setAtmStrike] = useState<number>(0);
   const [strikesData, setStrikesData] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -1894,6 +1895,7 @@ const OptionChainPanel: React.FC = () => {
         }
       }
       setSpotPrice(data.spot_price || 0.0);
+      setAtmStrike(data.atm_strike || 0);
     } catch (err: any) {
       setError(err.message || "Failed to load option metadata");
     } finally {
@@ -1908,6 +1910,7 @@ const OptionChainPanel: React.FC = () => {
       if (!res.ok) throw new Error("Failed to load option chain");
       const data = await res.json();
       setSpotPrice(data.spot_price || 0.0);
+      setAtmStrike(data.atm_strike || 0);
       const strikes = data.strikes || [];
       setStrikesData(strikes);
 
@@ -2145,7 +2148,9 @@ const OptionChainPanel: React.FC = () => {
           <tbody className="text-slate-300 divide-y divide-white/[0.02]">
             {strikesData.length > 0 ? (
               strikesData.map((row) => {
-                const isATM = Math.abs(row.strike - spotPrice) <= (underlying === "NIFTY" || underlying === "MIDCPNIFTY" ? 25 : 50);
+                const isATM = atmStrike > 0 
+                  ? Number(row.strike) === Number(atmStrike)
+                  : Math.abs(row.strike - spotPrice) <= (underlying === "NIFTY" || underlying === "MIDCPNIFTY" ? 25 : 50);
                 const ceActive = currentInstrument?.instrumentKey === row.ce_key;
                 const peActive = currentInstrument?.instrumentKey === row.pe_key;
 
@@ -2160,7 +2165,7 @@ const OptionChainPanel: React.FC = () => {
                 return (
                   <tr
                     key={row.strike}
-                    className={`hover:bg-cyan-500/[0.03] transition-all ${isATM ? "bg-cyan-500/[0.02] border-y border-cyan-500/10" : ""}`}
+                    className={`hover:bg-cyan-500/[0.06] transition-all ${isATM ? "bg-cyan-500/10 border-y border-cyan-500/30 text-cyan-100" : ""}`}
                   >
                     {/* CE: DOM Signal */}
                     <td className="py-1.5 pl-3">
@@ -2206,7 +2211,7 @@ const OptionChainPanel: React.FC = () => {
                     </td>
 
                     {/* Center Strike Axis Spine */}
-                    <td className="py-1 text-center px-3 bg-card border-x border-subtle select-none">
+                    <td className={`py-1 text-center px-3 border-x border-subtle select-none ${isATM ? "bg-cyan-500/15" : "bg-card"}`}>
                       <span className={`px-2 py-0.5 rounded font-mono font-semibold vdl-body tabular-nums${
                         isATM 
                           ? "bg-amber-500 text-slate-950 font-black shadow-[0_0_10px_rgba(245,158,11,0.45)]" 

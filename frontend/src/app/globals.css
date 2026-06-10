@@ -60,107 +60,30 @@
 }
 
 :root {
-  /* Default: Modern Institutional TradingView/Bloomberg Dark Theme */
-  --bg-deep: #0B1220;      /* LEVEL 0: Application Background */
-  --bg-base: #111827;      /* LEVEL 1: Workspace Surface */
-  --bg-card: #111827;      /* LEVEL 2: Panel Surface */
-  --bg-card-hover: #172033; /* LEVEL 3: Interactive Surface */
-  --bg-elevated: #172033;  /* LEVEL 3: Elevated Surface */
-  --bg-floating: #172033;  /* LEVEL 3: Floating Surface */
-  --bg-modal: #111827;     /* LEVEL 2: Modal Surface */
-
-  --border-subtle: #1F1F22; /* Clean panel borders */
-  --border-glow: rgba(59, 130, 246, 0.15);
-  --cyan-neon: #3B82F6;     /* Institutional Blue Accent */
-  --teal-neon: #2563EB;
-  --gold-accent: #60A5FA;
-  --green-neon: #22C55E;
-  --red-neon: #EF4444;
-  --text-main: #E5E7EB;
-  --text-mute: #9CA3AF;
-  --text-dark: #FFFFFF;
-
-  /* Font Families */
-  --font-display: 'Geist', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-
-
-  /* Radius */
-  --radius-sm: 2px;
-  --radius-md: 2px;
-  --radius-lg: 2px;
-  --radius-xl: 2px;
-
-  /* Elevation Systems (Layered space glow) */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.02);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.03);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 255, 255, 0.04);
-  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.7), 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-[data-theme="light"] {
-  /* Stripe / Linear Premium Warm Light Theme */
-  --bg-deep: #FAF9F6;      /* LEVEL 0: Warm White Background */
-  --bg-base: #FFFFFF;      /* LEVEL 1: Workspace Surface */
-  --bg-card: #FFFFFF;      /* LEVEL 2: Panel Surface */
-  --bg-card-hover: #F3F4F6; /* LEVEL 3: Interactive Surface */
-  --bg-elevated: #FFFFFF;  /* LEVEL 3: Elevated Surface */
-  --bg-floating: #FFFFFF;  /* LEVEL 3: Floating Surface */
-  --bg-modal: #FFFFFF;     /* LEVEL 2: Modal Surface */
-
-  --border-subtle: #E4E4E7; /* Standard light panel separation */
-  --border-glow: rgba(59, 130, 246, 0.12);
-  --cyan-neon: #3B82F6;     /* Institutional Blue Accent */
-  --teal-neon: #2563EB;
-  --gold-accent: #1D4ED8;
-  --green-neon: #22C55E;
-  --red-neon: #EF4444;
-  --text-main: #1F2937;
-  --text-mute: #6B7280;
-  --text-dark: #FFFFFF;
-
-  /* Font Families */
-  --font-display: 'Geist', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-
-
-  /* Radius */
-  --radius-sm: 2px;
-  --radius-md: 2px;
-  --radius-lg: 2px;
-  --radius-xl: 2px;
-
-  /* Elevation Systems (Multi-layered light shadows) */
-  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.015);
-  --shadow-sm: 0 2px 4px rgba(15, 23, 42, 0.02), 0 1px 2px rgba(15, 23, 42, 0.015);
-  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.035), 0 1px 3px rgba(15, 23, 42, 0.015);
-  --shadow-lg: 0 10px 24px rgba(15, 23, 42, 0.045), 0 2px 6px rgba(15, 23, 42, 0.015);
-  --shadow-xl: 0 20px 48px rgba(15, 23, 42, 0.055), 0 4px 12px rgba(15, 23, 42, 0.025);
-}
-
-[data-theme="blackstone"] {
-  /* Blackstone Institutional Dark Theme */
-  --bg-deep: #070708;      /* LEVEL 0: Deep Obsidian Black */
-  --bg-base: #0B0B0D;      /* LEVEL 1: Panel base background */
-  --bg-card: #121214;      /* LEVEL 2: Card surface */
-  --bg-card-hover: #1E1E22; /* LEVEL 3: Interactive surface */
+  /* Unified Blackstone Institutional Obsidian Theme */
+  --bg-deep: #070708;       /* LEVEL 0: Deep Obsidian Black */
+  --bg-base: #0B0B0D;       /* LEVEL 1: Panel base background */
+  --bg-card: #121214;       /* LEVEL 2: Card surface */
+  --bg-card-hover: #1E1E22;  /* LEVEL 3: Interactive surface */
   --bg-elevated: #121214;
   --bg-floating: #121214;
   --bg-modal: #121214;
 
-  --border-subtle: #1F1F22; /* Clean flat border */
-  --border-glow: #1F1F22;   /* Disable neon glow border */
-  --cyan-neon: #B9923F;     /* Blackstone Gold Accent */
-  --teal-neon: #96722F;     /* Darker gold active state */
+  --border-subtle: #1F1F22;  /* Clean flat border */
+  --border-glow: #1F1F22;    /* Disable neon glow border */
+  --cyan-neon: #B9923F;      /* Blackstone Gold Accent */
+  --teal-neon: #96722F;      /* Darker gold active state */
   --gold-accent: #B9923F;
-  --green-neon: #26D380;    /* Mint positive green */
-  --red-neon: #FF5A6E;      /* Crimson negative red */
-  --text-main: #E4E4E7;     /* High readability text */
-  --text-mute: #71717A;     /* Muted text zinc-500 */
+  --green-neon: #26D380;     /* Mint positive green */
+  --red-neon: #FF5A6E;       /* Crimson negative red */
+  --text-main: #E4E4E7;      /* High readability text */
+  --text-mute: #71717A;      /* Muted text zinc-500 */
   --text-dark: #FFFFFF;
+
+  /* Font Families */
+  --font-display: 'Geist', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 
   /* Radius (Standardize to 2px maximum in Blackstone) */
   --radius-sm: 2px;
@@ -174,16 +97,6 @@
   --shadow-md: none;
   --shadow-lg: none;
   --shadow-xl: none;
-}
-
-/* Blackstone-specific glow and shadow strippers */
-[data-theme="blackstone"] [class*="shadow-"] {
-  box-shadow: none !important;
-}
-
-[data-theme="blackstone"] [class*="border-cyan-500/"],
-[data-theme="blackstone"] [class*="hover:border-cyan-500/"] {
-  border-color: var(--border-subtle) !important;
 }
 
 
@@ -755,7 +668,7 @@ input[type="datetime-local"]:focus {
 
 
 /* 5. Card/Panel System radius overrides */
-[class*="rounded-"] {
+[class*="rounded-"]:not(.m3-button):not(.m3-button *) {
   border-radius: var(--radius-sm) !important; /* Force sharp 2px corners globally */
 }
 
@@ -1148,5 +1061,111 @@ tr:hover {
   font-weight: 700;
   letter-spacing: -0.02em;
 }
+
+@theme {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card-shadcn: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+}
+
+:root {
+  --background: 204 45.4545% 97.8431%;
+  --foreground: 198 13.1313% 19.4118%;
+  --card: 207 39.1304% 95.4902%;
+  --card-foreground: 198 13.1313% 19.4118%;
+  --popover: 204 29.4118% 93.3333%;
+  --popover-foreground: 198 13.1313% 19.4118%;
+  --primary: 196 52.439% 32.1569%;
+  --primary-foreground: 203 100% 97.451%;
+  --secondary: 201 57.377% 88.0392%;
+  --secondary-foreground: 198 18.9873% 30.9804%;
+  --muted: 201 24.1379% 88.6275%;
+  --muted-foreground: 203 6.8783% 37.0588%;
+  --accent: 223 93.8462% 87.2549%;
+  --accent-foreground: 221 32.9193% 31.5686%;
+  --destructive: 1 51.3514% 43.5294%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 201 8.9744% 69.4118%;
+  --input: 201 8.9744% 69.4118%;
+  --ring: 196 52.439% 32.1569%;
+  --chart-1: 196 52.439% 32.1569%;
+  --chart-2: 199 16.7568% 36.2745%;
+  --chart-3: 221 25.7143% 41.1765%;
+  --chart-4: 199 95.5556% 82.3529%;
+  --chart-5: 201 57.377% 88.0392%;
+  --sidebar: 207 39.1304% 95.4902%;
+  --sidebar-foreground: 198 13.1313% 19.4118%;
+  --sidebar-primary: 196 52.439% 32.1569%;
+  --sidebar-primary-foreground: 203 100% 97.451%;
+  --sidebar-accent: 205 26.087% 90.9804%;
+  --sidebar-accent-foreground: 198 13.1313% 19.4118%;
+  --sidebar-border: 201 8.9744% 69.4118%;
+  --sidebar-ring: 196 52.439% 32.1569%;
+}
+
+.dark {
+  --background: 200 21.4286% 5.4902%;
+  --foreground: 201 26.9231% 89.8039%;
+  --card: 203 21.0526% 7.451%;
+  --card-foreground: 201 26.9231% 89.8039%;
+  --popover: 198 20% 9.8039%;
+  --popover-foreground: 201 26.9231% 89.8039%;
+  --primary: 199 51.6129% 75.6863%;
+  --primary-foreground: 196 59.2593% 21.1765%;
+  --secondary: 199 25.6637% 22.1569%;
+  --secondary-foreground: 199 25.7576% 74.1176%;
+  --muted: 200 16.2162% 14.5098%;
+  --muted-foreground: 203 7.6923% 66.8627%;
+  --accent: 223 93.8462% 87.2549%;
+  --accent-foreground: 221 32.9193% 31.5686%;
+  --destructive: 2 93.2886% 70.7843%;
+  --destructive-foreground: 0 0% 0%;
+  --border: 203 9.0909% 28.0392%;
+  --input: 203 9.0909% 28.0392%;
+  --ring: 199 51.6129% 75.6863%;
+  --chart-1: 199 51.6129% 75.6863%;
+  --chart-2: 200 28.2051% 77.0588%;
+  --chart-3: 225 100% 91.5686%;
+  --chart-4: 197 40.9396% 29.2157%;
+  --chart-5: 199 25.6637% 22.1569%;
+  --sidebar: 203 21.0526% 7.451%;
+  --sidebar-foreground: 201 26.9231% 89.8039%;
+  --sidebar-primary: 199 51.6129% 75.6863%;
+  --sidebar-primary-foreground: 196 59.2593% 21.1765%;
+  --sidebar-accent: 198 16.129% 12.1569%;
+  --sidebar-accent-foreground: 201 26.9231% 89.8039%;
+  --sidebar-border: 203 9.0909% 28.0392%;
+  --sidebar-ring: 199 51.6129% 75.6863%;
+}
+
 
 

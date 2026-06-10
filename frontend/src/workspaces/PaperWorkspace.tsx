@@ -16,6 +16,7 @@ import { EmptyState } from "@/design-system/EmptyState";
 import { Panel } from "@/design-system/Panel";
 import { SegmentedTabs } from "@/design-system/SegmentedTabs";
 import { FormField, FormSection } from "@/design-system/FormField";
+import { Button } from "@/components/ui/material-design-3-button";
 
 // Canonical panel wrapper — single implementation across all workspaces
 const WorkspacePanel: React.FC<{ title: string; children: React.ReactNode; className?: string; actions?: React.ReactNode }> = ({ title, children, className = "", actions }) => (
@@ -94,16 +95,16 @@ export const PaperLeft: React.FC = () => {
             <div
               key={item.id}
               onClick={() => handleSelect(item)}
-              className={`p-2 rounded transition-all flex items-center border${
+              className={`p-2 rounded transition-all flex items-center border ${
                 isSelected
-                  ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400 font-medium cursor-default"
+                  ? "bg-cyan-500/15 border-cyan-500/50 text-cyan-300 font-semibold cursor-default shadow-[inset_0_0_8px_rgba(6,182,212,0.08)]"
                   : isEngineRunning
-                    ? "bg-transparent border-transparent opacity-40 cursor-not-allowed text-slate-550"
-                    : "bg-transparent border-transparent hover:bg-white/5 text-slate-350 cursor-pointer"
+                    ? "bg-transparent border-transparent opacity-40 cursor-not-allowed text-slate-500"
+                    : "bg-transparent border-transparent hover:bg-white/[0.03] text-slate-400 hover:text-slate-200 cursor-pointer"
               }`}
             >
-              <span className={`body font-semibold mr-2 shrink-0${
-                isActiveSession ? "text-emerald-450" : "text-slate-500"
+              <span className={`body font-semibold mr-2 shrink-0 ${
+                isActiveSession ? "text-emerald-400 animate-pulse" : "text-slate-500"
               }`}>
                 {isActiveSession ? "●" : "○"}
               </span>
@@ -425,7 +426,7 @@ export const PaperMain: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col h-full bg-card/60  rounded-lg overflow-hidden font-sans vdl-body relative">
+    <div className="flex flex-col h-full bg-bg-card border border-subtle rounded-lg overflow-hidden font-sans vdl-body relative">
       
       {showMarketClosedModal && (
         <div className="fixed inset-0 bg-card/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -469,47 +470,47 @@ export const PaperMain: React.FC = () => {
           <div className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
         </div>
       )}
-
+ 
       {/* Top Controls Toolbar / Command Bar */}
       <div className="flex items-center justify-between px-3 h-11 bg-card/50 border-b select-none shrink-0">
         <div className="flex items-center gap-2">
           <span className="vdl-body font-semibold text-cyan-400 font-mono">
             {selectedStrategy ? selectedStrategy.strategyName : "No strategy selected"}
           </span>
-
+ 
           {/* Session Status Pill */}
           <div className="flex items-center">
             {isEngineRunning ? (
               isEnginePaused ? (
-                <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/25 vdl-body font-semibold font-mono flex items-center gap-1.5 shadow-[0_0_10px_rgba(245,158,11,0.05)]">
+                <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/50 vdl-body font-bold font-mono flex items-center gap-1.5 shadow-[0_0_12px_rgba(245,158,11,0.15)]">
                   <span className="relative flex h-1.5 w-1.5">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-400"></span>
                   </span>
-                  ● Paused
+                  Paused
                 </span>
               ) : (
-                <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 vdl-body font-semibold font-mono flex items-center gap-1.5 shadow-[0_0_12px_rgba(16,185,129,0.15)]">
+                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/50 vdl-body font-bold font-mono flex items-center gap-1.5 shadow-[0_0_15px_rgba(52,211,153,0.25)]">
                   <span className="relative flex h-1.5 w-1.5">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400"></span>
                   </span>
-                  ● Running {formatDuration(runtimeSeconds)}
+                  Running {formatDuration(runtimeSeconds)}
                 </span>
               )
             ) : (
-              <span className="px-2 py-0.5 rounded bg-card  text-slate-405 vdl-body font-semibold font-mono flex items-center gap-1.5">
+              <span className="px-2 py-0.5 rounded bg-bg-card border border-subtle text-slate-400 vdl-body font-bold font-mono flex items-center gap-1.5">
                 <span className="text-slate-500 vdl-body">○</span>
                 Ready
               </span>
             )}
           </div>
-
+ 
           <div className="h-4 w-px bg-white/5" />
-
+ 
           {/* Inline Capital Input */}
           <div className="flex items-center gap-1 vdl-body font-mono">
-            <span className="text-slate-500 font-semibold">₹</span>
+            <span className="text-slate-400 font-semibold">₹</span>
             <input
               type="number"
               value={allocation}
@@ -519,64 +520,70 @@ export const PaperMain: React.FC = () => {
             />
           </div>
         </div>
-
+ 
         {/* Action Controls & Settings Toggle */}
         <div className="flex items-center gap-2">
           {!isEngineRunning ? (
-            <button
+            <Button
               onClick={() => handleDeploy(false)}
               disabled={!selectedStrategy}
-              className="btn-buy flex items-center gap-1 cursor-pointer disabled:opacity-50"
+              variant="outline"
+              className="h-[36px] px-4 font-display text-[13px] font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:border-emerald-500/50 shadow-sm transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer gap-1"
             >
-              <Play className="w-3 h-3" />
+              <Play className="w-3.5 h-3.5" />
               Deploy
-            </button>
+            </Button>
           ) : (
             <>
               {isEnginePaused ? (
-                <button
+                <Button
                   onClick={handleResume}
-                  className="btn-buy flex items-center gap-1 cursor-pointer"
+                  variant="outline"
+                  className="h-[36px] px-4 font-display text-[13px] font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:border-emerald-500/50 shadow-sm transition-all duration-150 cursor-pointer gap-1"
                 >
-                  <Play className="w-3 h-3" />
+                  <Play className="w-3.5 h-3.5" />
                   Resume
-                </button>
+                </Button>
               ) : (
-                <button
+                <Button
                   onClick={handlePause}
-                  className="btn-secondary text-amber-400 flex items-center gap-1 cursor-pointer"
+                  variant="outline"
+                  className="h-[36px] px-4 font-display text-[13px] font-semibold bg-transparent hover:bg-white/[0.03] text-slate-400 hover:text-amber-400 border-subtle hover:border-amber-500/20 transition-all duration-150 cursor-pointer gap-1"
                 >
-                  <Pause className="w-3 h-3" />
+                  <Pause className="w-3.5 h-3.5" />
                   Pause
-                </button>
+                </Button>
               )}
-
-              <button
+ 
+              <Button
                 onClick={handleStop}
-                className="btn-destructive flex items-center gap-1 cursor-pointer"
+                variant="destructive"
+                className="flex items-center gap-1 cursor-pointer"
               >
-                <Square className="w-3 h-3" />
+                <Square className="w-3.5 h-3.5" />
                 Stop
-              </button>
+              </Button>
             </>
           )}
-
+ 
           {selectedStrategy && (
-            <button
+            <Button
               onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-              className={`p-1.5 rounded border cursor-pointer transition-colors${
+              variant="outline"
+              size="icon"
+              className={`!w-[36px] !h-[36px] cursor-pointer transition-colors ${
                 isSettingsOpen 
                   ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400" 
-                  : "bg-card text-slate-405 hover:text-slate-200"
+                  : "bg-bg-deep border-subtle text-slate-400 hover:text-slate-200"
               }`}
               title="Strategy Settings"
             >
               <Sliders className="w-3.5 h-3.5" />
-            </button>
+            </Button>
           )}
         </div>
       </div>
-
+ 
       {/* Main Operational Area */}
       <div className="flex-1 p-2 overflow-hidden flex flex-col gap-2 min-h-0">
         {selectedStrategy ? (
@@ -584,9 +591,9 @@ export const PaperMain: React.FC = () => {
             
             {/* Collapsible Strategy Settings Drawer */}
             {isSettingsOpen && (
-              <div className="bg-card-hover/20 rounded-lg p-3 flex flex-col gap-2 font-sans transition-all">
+              <div className="bg-bg-card border border-subtle rounded-lg p-3 flex flex-col gap-2 font-sans transition-all">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b pb-1.5">
-                  <span className="vdl-body font-semibold text-slate-500">
+                  <span className="vdl-body font-semibold text-slate-300">
                     Strategy Settings
                   </span>
                   
@@ -613,7 +620,7 @@ export const PaperMain: React.FC = () => {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 vdl-body">
                   <div className="flex flex-col gap-0.5">
                     <span className="text-slate-500 font-semibold mb-0.5">Underlying index</span>
-                    <div className="flex gap-0.5 bg-card p-0.5 rounded ">
+                    <div className="flex gap-0.5 bg-bg-deep border border-subtle/40 p-0.5 rounded">
                       {["NIFTY", "BANKNIFTY", "FINNIFTY"].map((idx) => {
                         const active = indexName === idx;
                         return (
@@ -622,10 +629,10 @@ export const PaperMain: React.FC = () => {
                             type="button"
                             disabled={isEngineRunning}
                             onClick={() => setIndexName(idx)}
-                            className={`flex-1 py-1 vdl-body font-semibold font-mono transition-all rounded-sm${
+                            className={`flex-1 py-1 vdl-body font-semibold font-mono transition-all rounded-sm border ${
                               active
-                                ? "bg-cyan-500/20 text-cyan-400 font-black"
-                                : "text-slate-400 hover:text-slate-200"
+                                ? "bg-bg-card border-cyan-400 text-cyan-200 font-bold shadow-sm"
+                                : "bg-transparent border-transparent text-slate-500 hover:text-slate-300"
                             }`}
                           >
                             {idx.replace("NIFTY", "") || "NFT"}
@@ -636,7 +643,7 @@ export const PaperMain: React.FC = () => {
                   </div>
                   <div className="flex flex-col gap-0.5">
                     <span className="text-slate-500 font-semibold mb-0.5">Option type</span>
-                    <div className="flex gap-0.5 bg-card p-0.5 rounded ">
+                    <div className="flex gap-0.5 bg-bg-deep border border-subtle/40 p-0.5 rounded">
                       {["DYNAMIC", "CE", "PE"].map((ot) => {
                         const active = optionType === ot;
                         return (
@@ -645,10 +652,10 @@ export const PaperMain: React.FC = () => {
                             type="button"
                             disabled={isEngineRunning}
                             onClick={() => setOptionType(ot)}
-                            className={`flex-1 py-1 vdl-body font-semibold font-mono transition-all rounded-sm${
+                            className={`flex-1 py-1 vdl-body font-semibold font-mono transition-all rounded-sm border ${
                               active
-                                ? "bg-cyan-500/20 text-cyan-400 font-black"
-                                : "text-slate-400 hover:text-slate-200"
+                                ? "bg-bg-card border-cyan-400 text-cyan-200 font-bold shadow-sm"
+                                : "bg-transparent border-transparent text-slate-500 hover:text-slate-300"
                             }`}
                           >
                             {ot === "DYNAMIC" ? "DYN" : ot}
@@ -672,7 +679,7 @@ export const PaperMain: React.FC = () => {
                   </div>
                   <div className="flex flex-col gap-0.5">
                     <span className="text-slate-500 font-semibold mb-0.5">Expiry mode</span>
-                    <div className="flex gap-0.5 bg-card p-0.5 rounded ">
+                    <div className="flex gap-0.5 bg-bg-deep border border-subtle/40 p-0.5 rounded">
                       {[
                         { label: "CUR", value: "CURRENT_WEEKLY" },
                         { label: "NXT", value: "NEXT_WEEKLY" },
@@ -685,10 +692,10 @@ export const PaperMain: React.FC = () => {
                             type="button"
                             disabled={isEngineRunning}
                             onClick={() => setExpiry(item.value)}
-                            className={`flex-1 py-1 vdl-body font-semibold font-mono transition-all rounded-sm whitespace-nowrap${
+                            className={`flex-1 py-1 vdl-body font-semibold font-mono transition-all rounded-sm whitespace-nowrap border ${
                               active
-                                ? "bg-cyan-500/20 text-cyan-400 font-black"
-                                : "text-slate-400 hover:text-slate-200"
+                                ? "bg-bg-card border-cyan-400 text-cyan-200 font-bold shadow-sm"
+                                : "bg-transparent border-transparent text-slate-500 hover:text-slate-300"
                             }`}
                           >
                             {item.label}
@@ -702,7 +709,7 @@ export const PaperMain: React.FC = () => {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 vdl-body">
                   <div className="flex flex-col gap-0.5">
                     <span className="text-slate-500 font-semibold mb-0.5">Timeframe</span>
-                    <div className="flex gap-0.5 bg-card p-0.5 rounded ">
+                    <div className="flex gap-0.5 bg-bg-deep border border-subtle/40 p-0.5 rounded">
                       {["10s", "1m", "3m", "5m", "15m"].map((tf) => {
                         const active = timeframe === tf;
                         return (
@@ -711,10 +718,10 @@ export const PaperMain: React.FC = () => {
                             type="button"
                             disabled={isEngineRunning}
                             onClick={() => setTimeframe(tf)}
-                            className={`flex-1 py-1 vdl-body font-semibold font-mono transition-all rounded-sm${
+                            className={`flex-1 py-1 vdl-body font-semibold font-mono transition-all rounded-sm border ${
                               active
-                                ? "bg-cyan-500/20 text-cyan-400 font-black"
-                                : "text-slate-400 hover:text-slate-200"
+                                ? "bg-bg-card border-cyan-400 text-cyan-200 font-bold shadow-sm"
+                                : "bg-transparent border-transparent text-slate-500 hover:text-slate-300"
                             }`}
                           >
                             {tf}
@@ -787,13 +794,13 @@ export const PaperMain: React.FC = () => {
             <div className="grid grid-cols-12 gap-2 shrink-0">
               {/* Hero Card 1 — P&L */}
               {(totalPnl === 0 && !status?.position) ? (
-                <div className="bg-card/40 rounded-lg p-3 flex flex-col justify-center min-h-[130px] select-none transition-all hover:border-subtle col-span-5">
-                  <span className="vdl-body text-slate-500 font-semibold mb-1">P&L</span>
-                  <span className="text-3xl font-semibold font-mono text-slate-400">₹0</span>
-                  <span className="vdl-body text-slate-500 font-semibold font-mono mt-1">Win Rate {winRate}%</span>
+                <div className="bg-bg-deep border border-subtle rounded-lg p-3 flex flex-col justify-center min-h-[130px] select-none transition-all hover:border-cyan-500/20 col-span-5">
+                  <span className="vdl-body text-slate-400 font-semibold mb-1">P&L</span>
+                  <span className="text-3xl font-semibold font-mono text-slate-200">₹0</span>
+                  <span className="vdl-body text-slate-400 font-semibold font-mono mt-1">Win Rate {winRate}%</span>
                 </div>
               ) : (
-                <div className="bg-card/40 rounded-lg p-3 flex flex-col justify-center min-h-[130px] select-none transition-all hover:border-subtle col-span-5">
+                <div className="bg-bg-deep border border-subtle rounded-lg p-3 flex flex-col justify-center min-h-[130px] select-none transition-all hover:border-cyan-500/20 col-span-5">
                   <div className="flex flex-col gap-1 text-left">
                     <span className={`text-5xl md:text-6xl font-semibold font-mono leading-none${
                       (status?.position && totalPnl !== 0) 
@@ -805,13 +812,13 @@ export const PaperMain: React.FC = () => {
                     <span className={`display font-semibold font-mono${dailyPnlPct >= 0 ? "text-emerald-400" : "text-rose-505"}`}>
                       {dailyPnlPct >= 0 ? "+" : ""}{dailyPnlPct.toFixed(2)}%
                     </span>
-                    <span className="section text-slate-500 font-semibold font-mono">Win Rate {winRate}%</span>
+                    <span className="section text-slate-400 font-semibold font-mono">Win Rate {winRate}%</span>
                   </div>
                 </div>
               )}
-
+ 
               {/* Hero Card 2 — Active Position */}
-              <div className="bg-card/40 rounded-lg p-3 flex flex-col justify-between min-h-[130px] select-none transition-all hover:border-subtle col-span-5">
+              <div className="bg-bg-deep border border-subtle rounded-lg p-3 flex flex-col justify-between min-h-[130px] select-none transition-all hover:border-cyan-500/20 col-span-5">
                 {status?.position ? (
                   <div className="flex-1 flex flex-col justify-between">
                     <div className="flex flex-col">
@@ -829,34 +836,34 @@ export const PaperMain: React.FC = () => {
                     
                     <div className="flex justify-between items-center gap-1.5 border-t pt-1 mt-1 font-mono vdl-body">
                       <div className="flex items-center gap-0.5">
-                        <span className="text-slate-500 font-semibold">Qty</span>
+                        <span className="text-slate-400 font-semibold">Qty</span>
                         <span className="font-semibold text-slate-200">{status.position.qty ?? 0}</span>
                       </div>
                       <div className="flex items-center gap-0.5">
-                        <span className="text-slate-500 font-semibold">Entry</span>
+                        <span className="text-slate-400 font-semibold">Entry</span>
                         <span className="font-semibold text-slate-200">₹{status.position.entry_price.toFixed(1)}</span>
                       </div>
                       <div className="flex items-center gap-0.5">
-                        <span className="text-slate-550 font-semibold">Ltp</span>
+                        <span className="text-slate-400 font-semibold">Ltp</span>
                         <span className="font-semibold text-cyan-400">₹{(status.position.ltp ?? 0).toFixed(1)}</span>
                       </div>
                     </div>
                   </div>
                 ) : (
                   <div className="flex-1 flex items-center justify-center">
-                    <span className="text-slate-500 font-semibold display">No Position</span>
+                    <span className="text-slate-400 font-semibold display">No Position</span>
                   </div>
                 )}
               </div>
-
+ 
               {/* Hero Card 3 — Last Signal */}
-              <div className="bg-card/40 rounded-lg p-3 flex flex-col justify-between min-h-[130px] select-none transition-all hover:border-subtle col-span-2">
+              <div className="bg-bg-deep border border-subtle rounded-lg p-3 flex flex-col justify-between min-h-[130px] select-none transition-all hover:border-cyan-500/20 col-span-2">
                 {(() => {
                   const lastTrade = trades[trades.length - 1];
                   if (!lastTrade) {
                     return (
                       <div className="flex-1 flex items-center justify-center">
-                        <span className="text-slate-500 font-semibold display">No Signal</span>
+                        <span className="text-slate-400 font-semibold display">No Signal</span>
                       </div>
                     );
                   }
@@ -886,7 +893,7 @@ export const PaperMain: React.FC = () => {
                             {executionSource.includes("LIVE") ? "LIVE" : executionSource.includes("CACHE") ? "CACHE" : "SYNTH"}
                           </span>
                         </div>
-                        <span className="vdl-body text-slate-500 font-semibold font-mono">
+                        <span className="vdl-body text-slate-400 font-semibold font-mono">
                           {new Date(lastTrade.timestamp).toLocaleTimeString()}
                         </span>
                       </div>
@@ -895,95 +902,94 @@ export const PaperMain: React.FC = () => {
                 })()}
               </div>
             </div>
-
+ 
             {/* Center Area */}
-            <div className="grid grid-cols-12 gap-2 flex-1 min-h-0">
+            <div className="grid grid-cols-12 gap-3 flex-1 min-h-0">
               
               {/* Left Column: Session Activity & Trades List (Col-span 8) */}
-              <div className="col-span-8 flex flex-col gap-2 min-h-0 bg-card/20  rounded-lg p-2.5">
-                <div className="flex items-center justify-between border-b pb-1 shrink-0">
-                  <span className="vdl-body font-semibold text-slate-400">Session Activity</span>
+              <div className="col-span-8 flex flex-col gap-3 min-h-0 bg-bg-deep border border-subtle rounded-lg p-3">
+                <div className="flex items-center justify-between border-b border-subtle/40 pb-1.5 shrink-0">
+                  <span className="vdl-body font-semibold text-slate-200">Session Activity</span>
                 </div>
                 
                 {/* Statistics row */}
-                <div className="grid grid-cols-6 gap-2 bg-card/20 rounded p-2 text-center select-none font-mono vdl-body shrink-0">
+                <div className="grid grid-cols-6 gap-2 bg-bg-card border border-subtle/50 rounded p-2.5 text-center select-none font-mono vdl-body shrink-0 shadow-sm">
                   <div className="flex flex-col">
-                    <span className="vdl-body text-slate-500 font-semibold font-sans">Trades Today</span>
+                    <span className="vdl-body text-slate-400 font-semibold font-sans">Trades Today</span>
                     <span className="text-slate-200 font-semibold vdl-body mt-0.5">{totalTradesCount}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="vdl-body text-slate-500 font-semibold font-sans">Wins</span>
+                    <span className="vdl-body text-slate-400 font-semibold font-sans">Wins</span>
                     <span className="text-emerald-400 font-semibold vdl-body mt-0.5">{winsCount}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="vdl-body text-slate-500 font-semibold font-sans">Losses</span>
-                    <span className="text-rose-455 font-semibold vdl-body mt-0.5">{lossesCount}</span>
+                    <span className="vdl-body text-slate-400 font-semibold font-sans">Losses</span>
+                    <span className="text-rose-400 font-semibold vdl-body mt-0.5">{lossesCount}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="vdl-body text-slate-500 font-semibold font-sans">Win Rate</span>
+                    <span className="vdl-body text-slate-400 font-semibold font-sans">Win Rate</span>
                     <span className="text-cyan-400 font-semibold vdl-body mt-0.5">{computedWinRate}%</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="vdl-body text-slate-500 font-semibold font-sans">Drawdown</span>
+                    <span className="vdl-body text-slate-400 font-semibold font-sans">Drawdown</span>
                     <span className="text-slate-200 font-semibold vdl-body mt-0.5">₹{drawdown.toLocaleString("en-IN")}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="vdl-body text-slate-500 font-semibold font-sans">Runtime</span>
+                    <span className="vdl-body text-slate-400 font-semibold font-sans">Runtime</span>
                     <span className="text-slate-200 font-semibold vdl-body mt-0.5">{formatDuration(runtimeSeconds)}</span>
                   </div>
                 </div>
-
+ 
                 {/* Dynamic recent trades list directly underneath if trades exist */}
                 <DataTable
                   columns={paperMainRecentTradesColumns}
                   data={trades.slice().reverse()}
                   emptyState={
-                    <span className="text-[12px] font-sans text-slate-500">
+                    <span className="text-[12px] font-sans text-slate-400">
                       No trades yet.
                     </span>
                   }
                 />
               </div>
-
+ 
               {/* Right Column: Session Statistics Panel (Col-span 4) */}
-              <div className="col-span-4 flex flex-col bg-card/20  rounded-lg p-2.5 select-none font-sans vdl-body">
-                <div className="border-b pb-1 mb-2 shrink-0">
-                  <span className="vdl-body font-semibold text-slate-500">Session Statistics</span>
+              <div className="col-span-4 flex flex-col bg-bg-deep/50 border border-subtle rounded-lg p-3 select-none font-sans vdl-body shadow-sm">
+                <div className="border-b border-subtle/40 pb-1.5 mb-3 shrink-0">
+                  <span className="vdl-body font-semibold text-slate-200">Session Statistics</span>
                 </div>
                 <div className="flex-1 flex flex-col justify-between font-mono vdl-body">
                   <div className="flex flex-col gap-2">
-                    <div className="flex justify-between items-center py-0.5 border-b/30">
-                      <span className="text-slate-550 font-sans">Trades Today</span>
+                    <div className="flex justify-between items-center py-1.5 border-b border-subtle/20">
+                      <span className="text-slate-400 font-sans">Trades Today</span>
                       <span className="text-slate-200 font-semibold">{totalTradesCount}</span>
                     </div>
-                    <div className="flex justify-between items-center py-0.5 border-b/30">
-                      <span className="text-slate-550 font-sans">Win Rate</span>
+                    <div className="flex justify-between items-center py-1.5 border-b border-subtle/20">
+                      <span className="text-slate-400 font-sans">Win Rate</span>
                       <span className="text-cyan-400 font-semibold">{computedWinRate}%</span>
                     </div>
-                    <div className="flex justify-between items-center py-0.5 border-b/30">
-                      <span className="text-slate-550 font-sans">Avg Winner</span>
+                    <div className="flex justify-between items-center py-1.5 border-b border-subtle/20">
+                      <span className="text-slate-400 font-sans">Avg Winner</span>
                       <span className="text-emerald-400 font-semibold">₹{avgWinner}</span>
                     </div>
-                    <div className="flex justify-between items-center py-0.5 border-b/30">
-                      <span className="text-slate-550 font-sans">Avg Loser</span>
-                      <span className="text-rose-455 font-semibold">₹{avgLoser}</span>
+                    <div className="flex justify-between items-center py-1.5 border-b border-subtle/20">
+                      <span className="text-slate-400 font-sans">Avg Loser</span>
+                      <span className="text-rose-400 font-semibold">₹{avgLoser}</span>
                     </div>
-                    <div className="flex justify-between items-center py-0.5 border-b/30">
-                      <span className="text-slate-550 font-sans">Profit Factor</span>
+                    <div className="flex justify-between items-center py-1.5 border-b border-subtle/20">
+                      <span className="text-slate-400 font-sans">Profit Factor</span>
                       <span className="text-slate-200 font-semibold">{profitFactor}</span>
                     </div>
-                    <div className="flex justify-between items-center py-0.5 border-b/30">
-                      <span className="text-slate-550 font-sans">Drawdown</span>
+                    <div className="flex justify-between items-center py-1.5 border-b border-subtle/20">
+                      <span className="text-slate-400 font-sans">Drawdown</span>
                       <span className="text-slate-200 font-semibold">₹{drawdown.toLocaleString("en-IN")}</span>
                     </div>
-                    <div className="flex justify-between items-center py-0.5 border-b/30">
-                      <span className="text-slate-550 font-sans">Runtime</span>
+                    <div className="flex justify-between items-center py-1.5 border-b border-subtle/20">
+                      <span className="text-slate-400 font-sans">Runtime</span>
                       <span className="text-slate-200 font-semibold">{formatDuration(runtimeSeconds)}</span>
                     </div>
                   </div>
                 </div>
               </div>
-
             </div>
 
           </div>
@@ -1107,12 +1113,15 @@ export const PaperRight: React.FC = () => {
     <div className="flex flex-col h-full select-none font-sans vdl-body gap-2.5 justify-between">
       <div className="flex flex-col gap-1.5">
         {selectedStrategy ? (
-          <div className="flex flex-col font-mono vdl-body gap-2">
+          <div className="bg-bg-deep border border-subtle rounded-lg p-2.5 flex flex-col gap-2 font-mono vdl-body">
+            <div className="border-b border-subtle/40 pb-1.5 mb-0.5">
+              <span className="vdl-body font-semibold text-slate-200">System Health</span>
+            </div>
             {/* System Health Indicators */}
             <div className="flex flex-col gap-1.5">
               {systemItems.map((item: any, idx) => (
-                <div key={idx} className="flex justify-between items-center py-1 border-b/30">
-                  <span className="text-slate-400 font-sans vdl-body">{item.name}</span>
+                <div key={idx} className="flex justify-between items-center px-2 py-1.5 bg-bg-card border border-subtle/40 rounded shadow-sm">
+                  <span className="text-slate-400 font-sans vdl-body font-medium">{item.name}</span>
                   <span className={`status-badge${
                     item.label === "Mock Sim" ? "warning" :
                     item.ok ? (
@@ -1123,22 +1132,25 @@ export const PaperRight: React.FC = () => {
                   }`}>{item.label}</span>
                 </div>
               ))}
-              <div className={`body font-semibold mt-1.5 leading-none${hasUnhealthy ? "text-rose-500 animate-pulse" : "text-slate-500"}`}>
-                {status?.engine === "v2" ? (hasUnhealthy ? "35ms" : "12ms") : "N/A"}
+              <div className="flex justify-between items-center px-2 py-1.5 bg-bg-card border border-subtle/40 rounded shadow-sm">
+                <span className="text-slate-400 font-sans vdl-body font-medium">Latency</span>
+                <span className={`font-mono font-bold ${hasUnhealthy ? "text-rose-500 animate-pulse" : "text-emerald-400"}`}>
+                  {status?.engine === "v2" ? (hasUnhealthy ? "35ms" : "12ms") : "N/A"}
+                </span>
               </div>
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-center text-slate-550 text-center font-mono vdl-body py-4">
+          <div className="flex items-center justify-center text-slate-400 text-center font-mono vdl-body py-4">
             ● WS
           </div>
         )}
       </div>
-
+ 
       {/* Session Lifecycle Status Card */}
       {selectedStrategy && (
-        <div className="p-2 bg-card/40 rounded  flex flex-col gap-2 select-text font-mono vdl-body">
-          <div className="flex justify-between items-center border-b pb-1">
+        <div className="p-2.5 bg-bg-deep border border-subtle rounded flex flex-col gap-2 select-text font-mono vdl-body">
+          <div className="flex justify-between items-center border-b border-subtle/40 pb-1.5">
             <span className={`status-badge${
               currentState === "RUNNING" ? "running" :
               currentState === "PAUSED" ? "paused" :
@@ -1150,27 +1162,27 @@ export const PaperRight: React.FC = () => {
                currentState === "STOPPED" ? "Stopped" :
                currentState === "RECOVERING" ? "Recovering" : "Ready"}
             </span>
-            <span className="vdl-body text-slate-500">
+            <span className="vdl-body text-slate-400">
               {status?.session_id ? `Session #${status.session_id}` : "No Active Session"}
             </span>
           </div>
-
+ 
           <div className="flex flex-col gap-1 text-slate-400">
-            <div className="flex justify-between">
-              <span className="text-slate-500">Started:</span>
-              <span className="text-slate-200">{sessionStartTimeStr}</span>
+            <div className="flex justify-between py-1 border-b border-subtle/20">
+              <span className="text-slate-400">Started:</span>
+              <span className="text-slate-200 font-semibold">{sessionStartTimeStr}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">Runtime:</span>
+            <div className="flex justify-between py-1 border-b border-subtle/20">
+              <span className="text-slate-400">Runtime:</span>
               <span className="text-cyan-400 font-semibold">{formatDuration(runtimeSeconds)}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">Heartbeat:</span>
-              <span className="text-slate-200">{formatTime(status?.last_heartbeat)}</span>
+            <div className="flex justify-between py-1 border-b border-subtle/20">
+              <span className="text-slate-400">Heartbeat:</span>
+              <span className="text-slate-200 font-semibold">{formatTime(status?.last_heartbeat)}</span>
             </div>
-            <div className="flex justify-between border-t/30 pt-1 mt-1">
-              <span className="text-slate-500">State:</span>
-              <span className="text-slate-200">
+            <div className="flex justify-between py-1 pt-1 mt-0.5">
+              <span className="text-slate-400">State:</span>
+              <span className="text-slate-200 font-semibold">
                 {currentState === "RUNNING" ? "Live Monitoring" :
                  currentState === "PAUSED" ? "Live Paused" :
                  currentState === "STOPPED" ? "Terminated" :
@@ -1178,23 +1190,23 @@ export const PaperRight: React.FC = () => {
               </span>
             </div>
           </div>
-
+ 
           {/* Session Recovery Audit Indicators */}
-          <div className="border-t pt-1.5 flex flex-col gap-1 vdl-body select-none">
-            <div className="flex items-center justify-between">
-              <span className="text-slate-500">Backend Alive:</span>
-              <span className={connectionStatus === "CONNECTED" ? "text-emerald-500" : "text-rose-500"}>
+          <div className="border-t border-subtle/40 pt-1.5 flex flex-col gap-1 vdl-body select-none">
+            <div className="flex items-center justify-between py-1 border-b border-subtle/20">
+              <span className="text-slate-400">Backend Alive:</span>
+              <span className={connectionStatus === "CONNECTED" ? "text-emerald-400 font-bold" : "text-rose-400 font-bold"}>
                 {connectionStatus === "CONNECTED" ? "● YES" : "● NO"}
               </span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-500">Strategy Active:</span>
-              <span className={isEngineRunning ? "text-emerald-500" : "text-slate-500"}>
+            <div className="flex items-center justify-between py-1 border-b border-subtle/20">
+              <span className="text-slate-400">Strategy Active:</span>
+              <span className={isEngineRunning ? "text-emerald-400 font-bold" : "text-slate-400 font-bold"}>
                 {isEngineRunning ? "● YES" : "● NO"}
               </span>
             </div>
             {isSessionRestored && (
-              <div className="flex items-center justify-between bg-emerald-950/20 px-1 py-0.5 rounded border border-emerald-500/10 vdl-body text-emerald-450 font-semibold mt-0.5 animate-pulse">
+              <div className="flex items-center justify-between bg-emerald-950/20 px-1 py-0.5 rounded border border-emerald-500/10 vdl-body text-emerald-400 font-semibold mt-0.5 animate-pulse">
                 <span>Session Restored:</span>
                 <span>RECOVERED</span>
               </div>
@@ -1578,8 +1590,12 @@ export const PaperBottom: React.FC = () => {
         onChange={(id) => setActiveTab(id as any)}
       />
 
-      {/* Tabs Viewport */}
-      <div className="flex-1 overflow-y-auto p-1.5 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent min-h-0">
+      {/* Tabs Viewport — overflow-hidden for trades (horizontal split), scroll for other tabs */}
+      <div className={`flex-1 min-h-0 ${
+        activeTab === "trades"
+          ? "overflow-hidden flex flex-col"
+          : "overflow-y-auto p-1.5 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent"
+      }`}>
         
         {/* Positions tab */}
         {activeTab === "positions" && (
@@ -1598,209 +1614,239 @@ export const PaperBottom: React.FC = () => {
 
         {/* Trades list tab */}
         {activeTab === "trades" && (
-          <div className="flex flex-col gap-2">
-            <DataTable
-              columns={tradesLedgerColumns}
-              data={trades}
-              onRowClick={(trade) => setSelectedTradeId(trade.id || `TRD_${trades.indexOf(trade)}`)}
-              rowClassName={(trade) => {
-                const idx = trades.indexOf(trade);
-                const isSelected = selectedTradeId === (trade.id || `TRD_${idx}`);
-                return isSelected ? "bg-cyan-500/10 border-cyan-500/20 text-cyan-400 font-semibold" : "";
-              }}
-              emptyState={
-                <EmptyState
-                  icon={Terminal}
-                  title="No Trades Executed"
-                  description="No execution reports received yet. Start the strategy engine to generate signals and route orders."
-                />
-              }
-            />
+          <div className="flex h-full min-h-0 gap-0 overflow-hidden">
+            {/* Trades table — shrinks when drawer is open */}
+            <div className={`flex flex-col min-h-0 overflow-hidden transition-all duration-200 ${selectedTrade ? "flex-1" : "w-full"}`}>
+              <DataTable
+                columns={tradesLedgerColumns}
+                data={trades}
+                onRowClick={(trade) => {
+                  const id = trade.id || `TRD_${trades.indexOf(trade)}`;
+                  setSelectedTradeId(selectedTradeId === id ? null : id);
+                }}
+                rowClassName={(trade) => {
+                  const idx = trades.indexOf(trade);
+                  const isSelected = selectedTradeId === (trade.id || `TRD_${idx}`);
+                  return isSelected ? "bg-cyan-500/10 border-l-2 border-l-cyan-500 text-cyan-300 font-semibold cursor-pointer" : "cursor-pointer hover:bg-white/[0.03]";
+                }}
+                emptyState={
+                  <EmptyState
+                    icon={Terminal}
+                    title="No Trades Executed"
+                    description="No execution reports received yet. Start the strategy engine to generate signals and route orders."
+                  />
+                }
+              />
+            </div>
 
-              {/* Trade Inspector Panel */}
-              {selectedTrade && (
-                <div className="bg-card/60 border border-cyan-500/20 rounded-lg p-2.5 flex flex-col gap-2 font-sans text-slate-300">
-                  <div className="flex justify-between items-center border-b pb-1.5">
-                    <span className="vdl-body font-semibold text-cyan-400 flex items-center gap-1.5">
-                      <Info className="w-3.5 h-3.5" />
-                      Trade explainer and diagnostics
+            {/* Trade Explainer Drawer — slides in from the right */}
+            {selectedTrade && (
+              <div className="w-[380px] shrink-0 flex flex-col border-l border-cyan-500/20 bg-slate-950/80 backdrop-blur-sm overflow-hidden animate-in slide-in-from-right duration-200">
+                {/* Drawer Header */}
+                <div className="flex items-center justify-between px-3 py-2 border-b border-white/5 bg-slate-900/60 shrink-0">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${selectedTrade.type === "BUY" ? "bg-emerald-500" : "bg-rose-500"}`} />
+                    <span className="text-xs font-bold text-slate-200 font-mono">
+                      {selectedTrade.type === "BUY" ? "ENTRY" : "EXIT"} — {selectedTrade.trading_symbol || selectedTrade.instrument_key}
                     </span>
-                    <button 
-                      onClick={() => setSelectedTradeId(null)}
-                      className="vdl-body font-medium text-slate-400 hover:text-slate-200 bg-card  px-2 py-0.5 rounded cursor-pointer transition-colors"
-                    >
-                      Clear inspector
-                    </button>
+                  </div>
+                  <button
+                    onClick={() => setSelectedTradeId(null)}
+                    className="text-slate-500 hover:text-slate-200 text-lg leading-none cursor-pointer transition-colors px-1"
+                    title="Close"
+                  >×</button>
+                </div>
+
+                {/* Drawer Body — scrollable */}
+                <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent p-3 flex flex-col gap-3 min-h-0">
+
+                  {/* Trade Timeline */}
+                  <div className="bg-slate-900/50 rounded-lg border border-white/5 p-3">
+                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Trade Timeline</div>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-slate-400">Execution time</span>
+                        <span className="text-xs font-mono text-slate-200">{new Date(selectedTrade.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit', hour12: false})}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-slate-400">Type</span>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded border ${selectedTrade.type === "BUY" ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/25" : "text-rose-400 bg-rose-500/10 border-rose-500/25"}`}>
+                          {selectedTrade.type}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-slate-400">Fill price</span>
+                        <span className="text-xs font-mono font-bold text-slate-100">₹{selectedTrade.price?.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-slate-400">Quantity</span>
+                        <span className="text-xs font-mono text-slate-200">{selectedTrade.quantity} lots</span>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 vdl-body leading-relaxed">
-                    {/* Left Column: Core Trade Reasons */}
-                    <div className="bg-card/40 p-3 rounded-lg  flex flex-col gap-3">
-                      <div>
-                        <span className="text-slate-400 font-semibold block vdl-body mb-1.5">Entry logic</span>
-                        <pre className="text-slate-200 font-mono vdl-body whitespace-pre-wrap leading-relaxed bg-card/40 p-2.5 rounded ">
-                          {selectedTrade.entry_reason || selectedTrade.reason || "Strategy entry crossover or threshold met."}
-                        </pre>
+                  {/* Stop Loss & Target Limits */}
+                  {((selectedTrade.sl && selectedTrade.sl > 0) || (selectedTrade.target && selectedTrade.target > 0)) && (
+                    <div className="bg-slate-900/50 rounded-lg border border-white/5 p-3">
+                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Risk Targets</div>
+                      <div className="flex flex-col gap-2">
+                        {selectedTrade.sl && selectedTrade.sl > 0 && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-slate-400">Stop Loss</span>
+                            <span className="text-xs font-mono text-rose-400 font-semibold">₹{selectedTrade.sl.toFixed(2)}</span>
+                          </div>
+                        )}
+                        {selectedTrade.target && selectedTrade.target > 0 && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-slate-400">Profit Target</span>
+                            <span className="text-xs font-mono text-emerald-400 font-semibold">₹{selectedTrade.target.toFixed(2)}</span>
+                          </div>
+                        )}
                       </div>
-                      {selectedTrade.type === "EXIT" && (
-                        <div>
-                          <span className="text-slate-400 font-semibold block vdl-body mb-1.5">Exit logic</span>
-                          <pre className="text-rose-400 font-mono vdl-body whitespace-pre-wrap leading-relaxed bg-card/40 p-2.5 rounded ">
-                            {selectedTrade.exit_reason || selectedTrade.reason || "Target, stop-loss, or trailing trigger executed."}
-                          </pre>
+                    </div>
+                  )}
+
+                  {/* Execution Variance (Slippage) */}
+                  <div className="bg-slate-900/50 rounded-lg border border-white/5 p-3">
+                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Execution Variance</div>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-slate-400">Intended Price</span>
+                        <span className="text-xs font-mono text-slate-300">
+                          ₹{(
+                            selectedTrade.type === "BUY"
+                              ? selectedTrade.price / (1 + (selectedTrade.fill_diagnostics?.slippage_pct ?? 0.05) / 100)
+                              : selectedTrade.price / (1 - (selectedTrade.fill_diagnostics?.slippage_pct ?? 0.05) / 100)
+                          ).toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-slate-400">Executed Price</span>
+                        <span className="text-xs font-mono text-slate-100 font-bold">₹{selectedTrade.price.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between items-center border-t border-white/5 pt-1.5 mt-0.5">
+                        <span className="text-xs text-slate-400">Difference (Slippage)</span>
+                        <span className="text-xs font-mono text-amber-400 font-semibold">
+                          ₹{(
+                            selectedTrade.type === "BUY"
+                              ? selectedTrade.price - (selectedTrade.price / (1 + (selectedTrade.fill_diagnostics?.slippage_pct ?? 0.05) / 100))
+                              : (selectedTrade.price / (1 - (selectedTrade.fill_diagnostics?.slippage_pct ?? 0.05) / 100)) - selectedTrade.price
+                          ).toFixed(2)} ({(selectedTrade.fill_diagnostics?.slippage_pct ?? 0.05).toFixed(3)}%)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* PnL Breakdown (EXIT only) */}
+                  {selectedTrade.type === "EXIT" && (
+                    <div className="bg-slate-900/50 rounded-lg border border-white/5 p-3">
+                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">P&L Breakdown</div>
+                      <div className="flex flex-col gap-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-slate-400">Gross P&L</span>
+                          <span className={`text-xs font-mono font-bold ${(selectedTrade.pnl ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                            {(selectedTrade.pnl ?? 0) >= 0 ? "+" : ""}₹{(selectedTrade.pnl ?? 0).toFixed(2)}
+                          </span>
+                        </div>
+                        {selectedTrade.fill_diagnostics?.brokerage != null && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-slate-400">Brokerage</span>
+                            <span className="text-xs font-mono text-rose-400">−₹{selectedTrade.fill_diagnostics.brokerage.toFixed(2)}</span>
+                          </div>
+                        )}
+                        {selectedTrade.fill_diagnostics?.slippage_pct != null && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-slate-400">Slippage</span>
+                            <span className="text-xs font-mono text-amber-400">{selectedTrade.fill_diagnostics.slippage_pct.toFixed(4)}%</span>
+                          </div>
+                        )}
+                        <div className="border-t border-white/5 pt-2 flex justify-between items-center">
+                          <span className="text-xs font-semibold text-slate-300">Net P&L</span>
+                          <span className={`text-sm font-mono font-black ${(selectedTrade.pnl ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                            {(selectedTrade.pnl ?? 0) >= 0 ? "+" : ""}₹{(selectedTrade.pnl ?? 0).toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Signal / Entry Logic */}
+                  <div className="bg-slate-900/50 rounded-lg border border-white/5 p-3">
+                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
+                      {selectedTrade.type === "EXIT" ? "Exit Signal" : "Entry Signal"}
+                    </div>
+                    <pre className={`text-[11px] font-mono whitespace-pre-wrap leading-relaxed rounded p-2 bg-black/20 border border-white/5 ${selectedTrade.type === "EXIT" ? "text-rose-300" : "text-emerald-300"}`}>
+                      {selectedTrade.type === "EXIT"
+                        ? (selectedTrade.exit_reason || selectedTrade.reason || "Stop-loss / target / trailing trigger executed.")
+                        : (selectedTrade.entry_reason || selectedTrade.reason || "Strategy crossover or threshold triggered entry.")}
+                    </pre>
+                  </div>
+
+                  {/* Execution Source */}
+                  <div className="bg-slate-900/50 rounded-lg border border-white/5 p-3">
+                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Execution Quality</div>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-slate-400">Fill source</span>
+                        {getSourceBadge(selectedTrade.execution_source)}
+                      </div>
+                      {selectedTrade.fill_diagnostics?.execution_latency_ms != null && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-slate-400">Execution latency</span>
+                          <span className={`text-xs font-mono font-bold ${selectedTrade.fill_diagnostics.execution_latency_ms > 200 ? "text-rose-400" : "text-cyan-400"}`}>
+                            {selectedTrade.fill_diagnostics.execution_latency_ms}ms
+                          </span>
                         </div>
                       )}
                     </div>
+                  </div>
 
-                    {/* Middle Column: Execution Source & Quote Quality */}
-                    <div className="bg-card/40 p-3 rounded-lg  flex flex-col gap-3">
-                      <div className="flex justify-between items-center py-1.5 border-b/30 vdl-body">
-                        <span className="text-slate-400 font-semibold vdl-body">Execution source:</span>
-                        <span className="font-mono text-cyan-400 font-semibold vdl-body">
-                          {selectedTrade.execution_source === "LIVE_QUOTE" ? "Live quote" : selectedTrade.execution_source === "HISTORICAL_CACHE" ? "Historical cache" : "Synthetic model"}{" "}
-                          <span className="vdl-body text-slate-500 font-semibold ml-1">Real</span>
-                        </span>
-                      </div>
-
-                      <div>
-                        <span className="text-slate-400 font-semibold block vdl-body mb-1.5 flex justify-between">
-                          <span>Quote quality diagnostics</span>
-                          <span className="vdl-body text-slate-500 font-semibold">
-                            {selectedTrade.quote_quality ? "Real" : "Quote not available"}
+                  {/* Quote Quality */}
+                  {selectedTrade.quote_quality ? (
+                    <div className="bg-slate-900/50 rounded-lg border border-white/5 p-3">
+                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Quote at Fill</div>
+                      <div className="flex flex-col gap-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-slate-400">Bid</span>
+                          <span className="text-xs font-mono text-slate-200">₹{selectedTrade.quote_quality.bid?.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-slate-400">Ask</span>
+                          <span className="text-xs font-mono text-slate-200">₹{selectedTrade.quote_quality.ask?.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-slate-400">Spread</span>
+                          <span className="text-xs font-mono text-amber-400">₹{selectedTrade.quote_quality.spread?.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-slate-400">Tick age</span>
+                          <span className={`text-xs font-mono font-bold ${(selectedTrade.quote_quality.tick_age_ms ?? 0) > 1500 ? "text-rose-400" : "text-emerald-400"}`}>
+                            {selectedTrade.quote_quality.tick_age_ms ?? 0}ms
                           </span>
-                        </span>
-                        {selectedTrade.quote_quality ? (
-                          <div className="grid grid-cols-1 gap-y-2 font-mono text-slate-355 bg-card/40 p-2.5 rounded  vdl-body">
-                            <div className="flex justify-between">
-                              <span className="text-slate-505 font-sans">Bid price:</span>
-                              <span className="text-slate-200">
-                                ₹{selectedTrade.quote_quality.bid?.toFixed(2)}{" "}
-                                <span className="vdl-body text-slate-600 font-sans font-normal ml-1">Real</span>
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-slate-505 font-sans">Ask price:</span>
-                              <span className="text-slate-200">
-                                ₹{selectedTrade.quote_quality.ask?.toFixed(2)}{" "}
-                                <span className="vdl-body text-slate-600 font-sans font-normal ml-1">Real</span>
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-slate-505 font-sans">Spread:</span>
-                              <span className="text-slate-200">
-                                ₹{selectedTrade.quote_quality.spread?.toFixed(2)}{" "}
-                                <span className="vdl-body text-slate-600 font-sans font-normal ml-1">Real</span>
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-slate-500 font-sans">Tick age:</span>
-                              <span className={`${(selectedTrade.quote_quality.tick_age_ms ?? 0) > 1500 ? "text-rose-400 font-bold" : "text-cyan-400 font-bold"}`}>
-                                {selectedTrade.quote_quality.tick_age_ms ?? 0}ms{" "}
-                                <span className="vdl-body text-slate-600 font-sans font-normal ml-1">Real</span>
-                              </span>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="text-slate-505 italic p-3 text-center bg-card/20 rounded border border-dashed font-sans leading-normal vdl-body">
-                            Quote quality unavailable
-                          </div>
-                        )}
+                        </div>
                       </div>
                     </div>
-
-                    {/* Right Column: Fill Diagnostics */}
-                    <div className="bg-card/40 p-3 rounded-lg  flex flex-col gap-3">
-                      <div>
-                        <span className="text-slate-400 font-semibold block vdl-body mb-1.5 flex justify-between">
-                          <span>Fill diagnostics</span>
-                          <span className="vdl-body text-slate-500 font-semibold">
-                            {selectedTrade.fill_diagnostics ? "Metadata" : "Not recorded"}
-                          </span>
-                        </span>
-                        {selectedTrade.fill_diagnostics ? (
-                          <div className="grid grid-cols-1 gap-y-2 font-mono text-slate-355 bg-card/40 p-2.5 rounded  vdl-body">
-                            <div className="flex justify-between">
-                              <span className="text-slate-505 font-sans">Price:</span>
-                              <span className="text-slate-200">
-                                ₹{selectedTrade.fill_diagnostics.fill_price?.toFixed(2)}{" "}
-                                <span className="vdl-body text-slate-600 font-sans font-normal ml-1">Real</span>
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-slate-505 font-sans">Quantity:</span>
-                              <span className="text-slate-200">
-                                {selectedTrade.fill_diagnostics.quantity}{" "}
-                                <span className="vdl-body text-slate-600 font-sans font-normal ml-1">Real</span>
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-slate-500 font-sans">Premium:</span>
-                              <span className="text-slate-200">
-                                ₹{selectedTrade.fill_diagnostics.premium?.toFixed(2)}{" "}
-                                <span className="vdl-body text-slate-600 font-sans font-normal ml-1">Derived</span>
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-slate-550 font-sans">Brokerage:</span>
-                              {selectedTrade.fill_diagnostics.brokerage != null ? (
-                                <span className="text-slate-200">
-                                  ₹{selectedTrade.fill_diagnostics.brokerage.toFixed(2)}{" "}
-                                  <span className="vdl-body text-slate-600 font-sans font-normal ml-1">Real</span>
-                                </span>
-                              ) : (
-                                <span className="text-amber-500 font-semibold">
-                                  Unavailable{" "}
-                                  <span className="vdl-body text-slate-500 font-sans font-normal ml-1">Not recorded</span>
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-slate-500 font-sans">Slippage:</span>
-                              {selectedTrade.fill_diagnostics.slippage_pct != null ? (
-                                <span className="text-slate-200">
-                                  {selectedTrade.fill_diagnostics.slippage_pct.toFixed(4)}%{" "}
-                                  <span className="vdl-body text-slate-600 font-sans font-normal ml-1">Real</span>
-                                </span>
-                              ) : (
-                                <span className="text-amber-500 font-semibold">
-                                  Unavailable{" "}
-                                  <span className="vdl-body text-slate-500 font-sans font-normal ml-1">Not recorded</span>
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-slate-500 font-sans">Latency:</span>
-                              {selectedTrade.fill_diagnostics.execution_latency_ms != null ? (
-                                <span className="text-slate-200">
-                                  {selectedTrade.fill_diagnostics.execution_latency_ms}ms{" "}
-                                  <span className="vdl-body text-slate-600 font-sans font-normal ml-1">Real</span>
-                                </span>
-                              ) : (
-                                <span className="text-amber-500 font-semibold">
-                                  Unavailable{" "}
-                                  <span className="vdl-body text-slate-500 font-sans font-normal ml-1">Not measured</span>
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="text-slate-500 italic p-3 text-center bg-card/20 rounded border border-dashed font-sans leading-normal vdl-body">
-                            Fill diagnostics not available for this trade record.
-                          </div>
-                        )}
-                      </div>
+                  ) : (
+                    <div className="bg-slate-900/30 rounded-lg border border-dashed border-white/10 p-3 text-center">
+                      <span className="text-xs text-slate-500 italic">Quote snapshot not recorded for this trade</span>
                     </div>
+                  )}
+
+                  {/* Trade ID */}
+                  <div className="text-[10px] font-mono text-slate-600 px-1 pb-1 break-all">
+                    ID: {selectedTrade.id}
                   </div>
                 </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Journal tab */}
         {activeTab === "journal" && (
           <div className="grid grid-cols-12 gap-3 min-h-[300px]">
             {/* Left side: sessions table */}
-            <div className="col-span-12 md:col-span-5 bg-card/45 p-2.5 rounded  flex flex-col gap-2">
+            <div className="col-span-12 md:col-span-5 bg-bg-deep border border-subtle p-2.5 rounded flex flex-col gap-2">
               <div className="flex justify-between items-center pb-2 border-b">
                 <span className="vdl-body font-semibold text-cyan-400">Historical Sessions</span>
                 <button 
@@ -1813,7 +1859,7 @@ export const PaperBottom: React.FC = () => {
               </div>
               
               {loadingSessions ? (
-                <div className="flex items-center justify-center py-6 text-slate-500 font-mono vdl-body animate-pulse">
+                <div className="flex items-center justify-center py-6 text-slate-400 font-mono vdl-body animate-pulse">
                   LOADING HISTORICAL SESSIONS...
                 </div>
               ) : (
@@ -1834,11 +1880,11 @@ export const PaperBottom: React.FC = () => {
                 />
               )}
             </div>
-
+ 
             {/* Right side: session details, trades table & CSV export */}
-            <div className="col-span-12 md:col-span-7 bg-card/45 p-2.5 rounded  flex flex-col gap-2 min-w-0">
+            <div className="col-span-12 md:col-span-7 bg-bg-deep border border-subtle p-2.5 rounded flex flex-col gap-2 min-w-0">
               {selectedSessionId === null ? (
-                <div className="flex-1 flex flex-col items-center justify-center py-12 text-slate-500 italic vdl-body font-sans">
+                <div className="flex-1 flex flex-col items-center justify-center py-12 text-slate-400 italic vdl-body font-sans">
                   <span>Select a session on the left to view detailed metrics and trades.</span>
                 </div>
               ) : (
@@ -1851,39 +1897,39 @@ export const PaperBottom: React.FC = () => {
                     const matchesSymbol = !symbolSearch || t.trading_symbol?.toLowerCase().includes(symbolSearch.toLowerCase());
                     return matchesStrat && matchesSymbol;
                   });
-
+ 
                   return (
                     <div className="flex flex-col gap-3 h-full">
                       {/* Session Metrics Bar */}
-                      <div className="grid grid-cols-4 gap-2 bg-card/40 p-2.5 rounded ">
+                      <div className="grid grid-cols-4 gap-2 bg-bg-card border border-subtle/50 p-2.5 rounded">
                         <div className="flex flex-col">
-                          <span className="vdl-body font-semibold text-slate-500">Total PnL</span>
-                          <span className={`font-mono vdl-body font-semibold${sess.pnl >= 0 ? "text-emerald-400" : "text-rose-450"}`}>
+                          <span className="vdl-body font-semibold text-slate-400">Total PnL</span>
+                          <span className={`font-mono vdl-body font-semibold ${sess.pnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                             {sess.pnl >= 0 ? "+" : ""}₹{sess.pnl.toFixed(2)}
                           </span>
                         </div>
                         <div className="flex flex-col">
-                          <span className="vdl-body font-semibold text-slate-500">Win rate</span>
+                          <span className="vdl-body font-semibold text-slate-400">Win rate</span>
                           <span className="font-mono vdl-body font-semibold text-slate-200">
                             {sess.win_rate}%
                           </span>
                         </div>
                         <div className="flex flex-col">
-                          <span className="vdl-body font-semibold text-slate-500">Total trades</span>
+                          <span className="vdl-body font-semibold text-slate-400">Total trades</span>
                           <span className="font-mono vdl-body font-semibold text-slate-200">
                             {sess.trades}
                           </span>
                         </div>
                         <div className="flex flex-col">
-                          <span className="vdl-body font-semibold text-slate-500">Status</span>
+                          <span className="vdl-body font-semibold text-slate-400">Status</span>
                           <span className="font-mono vdl-body font-semibold text-cyan-400">
                             {sess.status}
                           </span>
                         </div>
                       </div>
-
+ 
                       {/* Filter Toolbar */}
-                      <div className="flex items-center justify-between gap-2 bg-card/20 p-2 rounded  flex-wrap">
+                      <div className="flex items-center justify-between gap-2 bg-bg-card border border-subtle/50 p-2 rounded flex-wrap">
                         <div className="flex items-center gap-2">
                           <input 
                             type="text" 
@@ -1903,11 +1949,11 @@ export const PaperBottom: React.FC = () => {
                           </a>
                         </div>
                       </div>
-
+ 
                       {/* Session Trades list */}
                       <div className="flex-1 min-h-[160px] overflow-y-auto  rounded">
                         {loadingTrades ? (
-                          <div className="flex items-center justify-center py-6 text-slate-500 font-mono vdl-body animate-pulse">
+                          <div className="flex items-center justify-center py-6 text-slate-400 font-mono vdl-body animate-pulse">
                             FETCHING SESSION TRADES...
                           </div>
                         ) : (
@@ -1972,51 +2018,51 @@ export const PaperBottom: React.FC = () => {
         {/* Promotion readiness tab */}
         {activeTab === "promotion" && (
           <div className="flex flex-col gap-3 font-sans vdl-body max-w-3xl">
-            <div className="vdl-body text-slate-500 font-semibold border-b pb-1">
+            <div className="vdl-body text-slate-400 font-semibold border-b pb-1">
               Forward paper policy validation checklist
             </div>
             
             <div className="flex flex-col gap-1.5">
-              <div className="flex justify-between items-center py-1 border-b/30">
+              <div className="flex justify-between items-center py-1.5 border-b border-subtle/25">
                 <span className="text-slate-400">Target active duration (required: &gt; 14 days)</span>
                 <span className="text-amber-500 font-semibold font-mono">1 day active (in progress)</span>
               </div>
-              <div className="flex justify-between items-center py-1 border-b/30">
+              <div className="flex justify-between items-center py-1.5 border-b border-subtle/25">
                 <span className="text-slate-400">Dynamic trade count target (required: &gt; 100)</span>
                 <span className={`${(status?.total_trades || 0) >= 100 ? "text-emerald-455" : "text-amber-500"}font-semibold font-mono`}>
                   {status?.total_trades || 0} trades ({ (status?.total_trades || 0) >= 100 ? "passed" : "needs more trades" })
                 </span>
               </div>
-              <div className="flex justify-between items-center py-1 border-b/30">
+              <div className="flex justify-between items-center py-1.5 border-b border-subtle/25">
                 <span className="text-slate-400">Win rate requirement (required: &gt; 50%)</span>
                 <span className={`${(status?.win_rate || 0) >= 50 ? "text-emerald-455" : "text-amber-500"}font-semibold font-mono`}>
                   {status?.win_rate || 0}% ({ (status?.win_rate || 0) >= 50 ? "passed" : "underperforming" })
                 </span>
               </div>
-              <div className="flex justify-between items-center py-1 border-b/30">
+              <div className="flex justify-between items-center py-1.5 border-b border-subtle/25">
                 <span className="text-slate-400">Maximum drawdown constraint (required: &lt; 10%)</span>
                 <span className="text-emerald-405 font-semibold font-mono">Healthy (passed)</span>
               </div>
             </div>
-
-            <div className="bg-card/40 p-2.5 rounded  flex flex-col gap-1">
+ 
+            <div className="bg-bg-card border border-subtle p-2.5 rounded flex flex-col gap-1">
               <div className="flex items-center gap-1.5 font-semibold">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                 <span className="text-amber-500">Status: Not eligible for production</span>
               </div>
-              <span className="vdl-body text-slate-500">
+              <span className="vdl-body text-slate-400">
                 Strategy needs to accumulate more trading days to satisfy the 14-day live paper test policy before production promotion is unlocked.
               </span>
             </div>
           </div>
         )}
-
+ 
         {/* Live option chain & quote health tab */}
         {activeTab === "chain" && (
           <div className="flex flex-col lg:flex-row gap-4 w-full h-full min-h-[250px]">
             {/* Left Side: Option Chain Table */}
-            <div className="flex-1 bg-card/40 p-3 rounded  flex flex-col gap-2">
-              <div className="vdl-body text-slate-550 font-semibold border-b pb-1 flex justify-between items-center">
+            <div className="flex-1 bg-bg-deep border border-subtle p-3 rounded flex flex-col gap-2">
+              <div className="vdl-body text-slate-400 font-semibold border-b pb-1 flex justify-between items-center">
                 <span>ATM±2 option chain</span>
                 <span className="text-cyan-400 font-mono vdl-body lowercase font-normal">rolling dynamically</span>
               </div>
@@ -2024,40 +2070,39 @@ export const PaperBottom: React.FC = () => {
                 columns={optionChainColumns}
                 data={status?.option_chain || []}
                 emptyState={
-                  <span className="text-[12px] font-sans text-slate-500">
+                  <span className="text-[12px] font-sans text-slate-400">
                     Scanning...
                   </span>
                 }
               />
             </div>
-
+ 
             {/* Right Side: Quote Health & Telemetry Metrics */}
             <div className="w-full lg:w-[350px] flex flex-col gap-3 select-none">
-              <div className="bg-card/40 p-4 rounded-lg  flex flex-col gap-3">
+              <div className="bg-bg-deep border border-subtle p-4 rounded-lg flex flex-col gap-3">
                 <div className="vdl-body font-semibold text-cyan-400 border-b pb-1.5 flex justify-between items-center">
                   <span>Quote health diagnostics</span>
                   <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
                 </div>
                 
                 <div className="flex flex-col gap-2.5 font-sans vdl-body text-slate-350">
-                  <div className="flex justify-between items-center py-1 border-b/30">
+                  <div className="flex justify-between items-center py-1.5 border-b border-subtle/20">
                     <span className="text-slate-400 font-semibold">Subscribed contracts:</span>
                     <span className="text-slate-200 font-semibold font-mono section">{status?.quote_health?.subscribed_contracts ?? 0}</span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b/30">
+                  <div className="flex justify-between items-center py-1.5 border-b border-subtle/20">
                     <span className="text-slate-400 font-semibold">Live quotes (cache):</span>
                     <span className="text-emerald-450 font-semibold font-mono section">{status?.quote_health?.live_quotes ?? 0}</span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b/30">
+                  <div className="flex justify-between items-center py-1.5 border-b border-subtle/20">
                     <span className="text-slate-400 font-semibold">Stale quotes (&gt;1.5s):</span>
-                    <span className={`font-semibold font-mono section px-2 py-0.5 rounded border${(status?.quote_health?.stale_quotes ?? 0) > 0 ? "text-rose-455 bg-rose-950/20 border-rose-500/20 animate-pulse" : "text-emerald-450 bg-emerald-950/20 border-emerald-500/20"}`}>
+                    <span className={`font-semibold font-mono section px-2 py-0.5 rounded border ${(status?.quote_health?.stale_quotes ?? 0) > 0 ? "text-rose-455 bg-rose-950/20 border-rose-500/20 animate-pulse" : "text-emerald-450 bg-emerald-950/20 border-emerald-500/20"}`}>
                       {status?.quote_health?.stale_quotes ?? 0}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b/30">
+                  <div className="flex justify-between items-center py-1.5 border-b border-subtle/20">
                     <span className="text-slate-400 font-semibold">Feed hit rate:</span>
-                    <span className={`font-semibold font-mono section px-2 py-0.5 rounded border${
-                      (status?.quote_health?.hit_rate ?? 0) > 0.95 
+                    <span className={`font-semibold font-mono section px-2 py-0.5 rounded border ${(status?.quote_health?.hit_rate ?? 0) > 0.95 
                         ? "text-emerald-450 bg-emerald-950/20 border-emerald-500/20" 
                         : (status?.quote_health?.hit_rate ?? 0) > 0.8
                         ? "text-amber-500 bg-amber-950/20 border-amber-500/20"
@@ -2066,10 +2111,9 @@ export const PaperBottom: React.FC = () => {
                       {((status?.quote_health?.hit_rate ?? 0) * 100).toFixed(1)}%
                     </span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b/30">
+                  <div className="flex justify-between items-center py-1.5 border-b border-subtle/20">
                     <span className="text-slate-400 font-semibold">Feed miss rate:</span>
-                    <span className={`font-semibold font-mono section px-2 py-0.5 rounded border${
-                      (status?.quote_health?.miss_rate ?? 0) > 0.1 
+                    <span className={`font-semibold font-mono section px-2 py-0.5 rounded border ${(status?.quote_health?.miss_rate ?? 0) > 0.1 
                         ? "text-rose-455 bg-rose-950/20 border-rose-500/20" 
                         : "text-slate-450 bg-card"
                     }`}>
@@ -2078,8 +2122,7 @@ export const PaperBottom: React.FC = () => {
                   </div>
                   <div className="flex justify-between items-center py-1 pt-2 border-t font-semibold">
                     <span className="text-slate-400 font-semibold">Synthetic fallbacks:</span>
-                    <span className={`font-semibold font-mono section px-2 py-0.5 rounded border${
-                      (status?.quote_health?.synthetic_fills ?? 0) > 0 
+                    <span className={`font-semibold font-mono section px-2 py-0.5 rounded border ${(status?.quote_health?.synthetic_fills ?? 0) > 0 
                         ? "text-amber-500 bg-amber-950/20 border-amber-500/20 animate-pulse" 
                         : "text-emerald-450 bg-emerald-950/20 border-emerald-500/20"
                     }`}>
@@ -2090,7 +2133,7 @@ export const PaperBottom: React.FC = () => {
               </div>
  
               {/* Status Indicator */}
-              <div className="bg-card/40 p-3 rounded-lg  flex flex-col gap-2 font-sans">
+              <div className="bg-bg-card border border-subtle p-3 rounded-lg flex flex-col gap-2 font-sans">
                 <div className="flex items-center gap-1.5 font-semibold vdl-body">
                   {((status?.quote_health?.hit_rate ?? 0) > 0.95 && (status?.quote_health?.stale_quotes ?? 0) === 0) ? (
                     <div className="flex items-center gap-2">
@@ -2104,7 +2147,7 @@ export const PaperBottom: React.FC = () => {
                     </div>
                   )}
                 </div>
-                <span className="vdl-body text-slate-500 leading-relaxed">
+                <span className="vdl-body text-slate-400 leading-relaxed">
                   Real-time option quote engine automatically rolls NIFTY option subscriptions dynamically as index spot price changes to ensure 100% quote-driven fills.
                 </span>
               </div>

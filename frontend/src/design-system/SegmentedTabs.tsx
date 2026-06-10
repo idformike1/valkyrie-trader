@@ -27,17 +27,17 @@ export const SegmentedTabs: React.FC<SegmentedTabsProps> = ({
           <button
             key={tab.id}
             onClick={() => onChange(tab.id)}
-            className={`px-[12px] py-[8px] vdl-body border-b-[2px] transition-all duration-150 cursor-pointer ${
+            className={`px-[12px] py-[6px] my-[3px] rounded vdl-body transition-all duration-150 cursor-pointer border ${
               isActive
-                ? "color-cyan-neon border-cyan-neon font-semibold text-cyan-neon"
-                : "text-slate-400 border-transparent hover:text-slate-200"
+                ? "bg-cyan-500/12 border-cyan-500/30 text-cyan-300 font-semibold shadow-[0_0_8px_rgba(6,182,212,0.15)]"
+                : "bg-bg-deep/20 border-subtle/10 text-slate-300 hover:text-cyan-200 hover:bg-white/[0.02] hover:border-subtle/30"
             }`}
           >
             <span className="flex items-center gap-1.5">
               {tab.label}
               {tab.count !== undefined && (
-                <span className={`vdl-mono text-[10px] px-1 py-0.2 rounded bg-card border border-subtle ${
-                  isActive ? "text-cyan-neon border-cyan-neon/20 bg-cyan-neon/5" : "text-slate-500"
+                <span className={`vdl-mono text-[10px] px-1 py-0.2 rounded border ${
+                  isActive ? "text-cyan-300 border-cyan-500/30 bg-cyan-500/5" : "text-slate-500 border-subtle bg-card"
                 }`}>
                   [{tab.count}]
                 </span>

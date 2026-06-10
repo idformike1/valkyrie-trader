@@ -29,11 +29,11 @@ export function DataTable<T>({
     <div className={`w-full overflow-x-auto ${className}`}>
       <table className="w-full text-left border-collapse select-none">
         <thead>
-          <tr className="border-b border-subtle bg-deep/50 h-[36px]">
+          <tr className="border-b border-subtle bg-bg-deep h-[36px]">
             {columns.map((col, idx) => (
               <th
                 key={idx}
-                className={`px-[12px] vdl-meta font-semibold text-slate-400 normal-case tracking-normal ${
+                className={`px-[12px] vdl-meta font-bold text-slate-200 normal-case tracking-normal ${
                   col.isNumeric ? "text-right" : "text-left"
                 } ${col.className || ""}`}
               >

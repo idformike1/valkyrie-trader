@@ -54,7 +54,7 @@ export const WorkspaceHost: React.FC = () => {
       } else if (panel === "bottom") {
         newSize = containerRect.bottom - mouseMoveEvent.clientY;
         // Apply limits
-        newSize = Math.max(80, Math.min(newSize, 500));
+        newSize = Math.max(80, Math.min(newSize, 700));
         updateSize(activeWorkspaceId, "bottom", newSize);
       }
     };

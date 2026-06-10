@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { 
   Layers, Search, Bell, User, CheckCircle2, AlertTriangle, 
-  ChevronDown, Globe, Wifi, KeyRound, Sun, Moon, Shield
+  ChevronDown, Globe, Wifi, KeyRound, Sun, Moon, Shield,
+  X, ExternalLink
 } from "lucide-react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { useCommandPaletteStore } from "@/store/useCommandPaletteStore";
@@ -9,6 +10,7 @@ import { getWorkspaceConfig, getAllWorkspaces } from "@/workspaces/registry";
 import { useThemeStore } from "@/store/useThemeStore";
 import { useTerminalStore } from "@/store/useTerminalStore";
 import { useBackendTradingStore } from "@/services/tradingQueries";
+import { Button } from "@/components/ui/material-design-3-button";
 
 export const Header: React.FC = () => {
   const { theme, setTheme } = useThemeStore();
@@ -28,47 +30,148 @@ export const Header: React.FC = () => {
   const status = useBackendTradingStore((state) => state.status);
   const connectionStatus = useBackendTradingStore((state) => state.connectionStatus);
 
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const isUpstoxConnected = status?.broker_auth === "Valid";
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authCode, setAuthCode] = useState("");
+  const [rawTokenInput, setRawTokenInput] = useState("");
+  const [authUrl, setAuthUrl] = useState("");
+
+  // Check for oauth code in URL query params on load
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get("code");
+    if (code) {
+      // Clear the code from URL immediately to keep it clean and prevent double-submission
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+      
+      // Submit code to backend
+      const handleAuthCallback = async () => {
+        setIsAuthLoading(true);
+        try {
+          const { tradingApi } = await import("@/services/tradingApi");
+          const res = await tradingApi.submitUpstoxCallback(code);
+          if (res.status === "success") {
+            alert("✅ Upstox connected successfully!");
+            window.location.reload();
+          } else {
+            alert("❌ Upstox connection failed: " + res.message);
+          }
+        } catch (err: any) {
+          alert("❌ Upstox connection failed: " + err.message);
+        } finally {
+          setIsAuthLoading(false);
+        }
+      };
+      handleAuthCallback();
+    }
+  }, []);
+
+  const handleConnectDisconnect = async () => {
+    setIsAuthLoading(true);
+    try {
+      const { tradingApi } = await import("@/services/tradingApi");
+      if (isUpstoxConnected) {
+        const res = await tradingApi.disconnectUpstox();
+        if (res.status === "success") {
+          alert("🔌 Disconnected from Upstox.");
+          window.location.reload();
+        }
+      } else {
+        // Try reconnecting using the stored token first!
+        try {
+          const res = await tradingApi.reconnectUpstox();
+          if (res.status === "success") {
+            alert("✅ Reconnected using stored token!");
+            window.location.reload();
+            return;
+          }
+        } catch (reconnectErr) {
+          console.log("No valid stored token to reconnect, opening login flow.");
+        }
+
+        // Fetch the auth URL and show the authorization modal
+        try {
+          const res = await tradingApi.getUpstoxAuthUrl();
+          if (res.url) {
+            setAuthUrl(res.url);
+          }
+        } catch (err: any) {
+          console.error("Failed to load auth URL:", err);
+        }
+        setShowAuthModal(true);
+      }
+    } catch (err: any) {
+      alert("Error: " + err.message);
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
+  const handleSubmitCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!authCode.trim()) return;
+    setIsAuthLoading(true);
+    try {
+      const { tradingApi } = await import("@/services/tradingApi");
+      const res = await tradingApi.submitUpstoxCallback(authCode.trim());
+      if (res.status === "success") {
+        alert("✅ Connected to Upstox successfully!");
+        setShowAuthModal(false);
+        window.location.reload();
+      } else {
+        alert("❌ Upstox connection failed: " + res.message);
+      }
+    } catch (err: any) {
+      alert("❌ Upstox connection failed: " + err.message);
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
+  const handleSubmitRawToken = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rawTokenInput.trim()) return;
+    setIsAuthLoading(true);
+    try {
+      const { tradingApi } = await import("@/services/tradingApi");
+      const res = await tradingApi.submitRawToken(rawTokenInput.trim());
+      if (res.status === "success") {
+        alert("✅ Access token saved successfully!");
+        setShowAuthModal(false);
+        window.location.reload();
+      } else {
+        alert("❌ Upstox connection failed: " + res.message);
+      }
+    } catch (err: any) {
+      alert("❌ Upstox connection failed: " + err.message);
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
   // Live index ticker state
   const [tickerData, setTickerData] = useState({
-    nifty: { price: 22356.20, change: 123.40, pct: 0.55 },
-    banknifty: { price: 47820.50, change: 256.30, pct: 0.53 },
-    vix: { price: 12.84, change: -0.21, pct: -1.56 }
+    nifty: { price: 23395.55, change: 153.45, pct: 0.66 },
+    banknifty: { price: 55477.40, change: 282.90, pct: 0.51 },
+    vix: { price: 15.49, change: -0.09, pct: -0.58 }
   });
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTickerData(prev => {
-        const niftyTick = (Math.random() - 0.5) * 4;
-        const bankniftyTick = (Math.random() - 0.5) * 10;
-        const vixTick = (Math.random() - 0.5) * 0.05;
-        
-        const nextNiftyPrice = prev.nifty.price + niftyTick;
-        const nextBankniftyPrice = prev.banknifty.price + bankniftyTick;
-        const nextVixPrice = Math.max(8, prev.vix.price + vixTick);
-        
-        const niftyChange = prev.nifty.change + niftyTick;
-        const bankniftyChange = prev.banknifty.change + bankniftyTick;
-        const vixChange = prev.vix.change + vixTick;
-
-        return {
-          nifty: {
-            price: nextNiftyPrice,
-            change: niftyChange,
-            pct: (niftyChange / (nextNiftyPrice - niftyChange)) * 100
-          },
-          banknifty: {
-            price: nextBankniftyPrice,
-            change: bankniftyChange,
-            pct: (bankniftyChange / (nextBankniftyPrice - bankniftyChange)) * 100
-          },
-          vix: {
-            price: nextVixPrice,
-            change: vixChange,
-            pct: (vixChange / (nextVixPrice - vixChange)) * 100
-          }
-        };
-      });
-    }, 1500);
+    const fetchIndices = async () => {
+      try {
+        const { tradingApi } = await import("@/services/tradingApi");
+        const res = await tradingApi.getMarketIndices();
+        if (res.status === "success" && res.data) {
+          setTickerData(res.data);
+        }
+      } catch (err) {
+        // Fallback silently
+      }
+    };
+    fetchIndices();
+    const timer = setInterval(fetchIndices, 3000);
     return () => clearInterval(timer);
   }, []);
 
@@ -115,16 +218,17 @@ export const Header: React.FC = () => {
 
           {/* Combined Workspace Selector & Trigger */}
           <div className="relative">
-            <button
+            <Button
               onClick={() => setShowWorkspaceDropdown(!showWorkspaceDropdown)}
-              className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-white/5 transition-all text-cyan-neon font-sans font-semibold cursor-pointer"
+              variant="ghost"
+              className="flex items-center gap-1.5 px-2 py-1 text-cyan-neon font-sans font-semibold cursor-pointer"
               title="Switch Workspace"
             >
               <span className="body">
                 {workspaces.find((ws) => ws.id === selectedWorkspace)?.name || selectedWorkspace}
               </span>
               <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-            </button>
+            </Button>
 
             {showWorkspaceDropdown && (
               <>
@@ -217,9 +321,10 @@ export const Header: React.FC = () => {
         <div className="flex items-center gap-4 body">
           {/* Account Selector */}
           <div className="relative">
-            <button
+            <Button
               onClick={() => setShowAccountDropdown(!showAccountDropdown)}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-sm border font-semibold body transition-all cursor-pointer${
+              variant="outline"
+              className={`flex items-center gap-1.5 px-2.5 py-1 font-semibold body transition-all cursor-pointer ${
                 currentAccount.type === "live"
                   ? "bg-rose-500/10 border-rose-500/20 text-rose-455 hover:bg-rose-500/20"
                   : "bg-amber-500/10 border-amber-500/20 text-amber-455 hover:bg-amber-500/20"
@@ -228,7 +333,7 @@ export const Header: React.FC = () => {
               <KeyRound className="w-3.5 h-3.5" />
               <span>{currentAccount.type === "live" ? "Live Account" : "Paper Mode"}</span>
               <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
-            </button>
+            </Button>
 
             {showAccountDropdown && (
               <div className="absolute right-0 mt-1 w-44 bg-elevated border border-subtle rounded-sm shadow-md py-1 z-50 font-sans">
@@ -255,6 +360,38 @@ export const Header: React.FC = () => {
               </div>
             )}
           </div>
+
+          {/* Upstox Connection Control Button */}
+          <Button
+            onClick={handleConnectDisconnect}
+            disabled={isAuthLoading || !status}
+            variant="outline"
+            className={`flex items-center gap-1 px-2 py-0.5 font-semibold text-[10px] uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50 select-none ${
+              !status
+                ? "bg-slate-800/10 border-slate-700/30 text-slate-500 cursor-not-allowed"
+                : isUpstoxConnected
+                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
+                : "bg-cyan-neon/10 border-cyan-neon/30 text-cyan-neon hover:bg-cyan-neon/20 hover:scale-[1.02] active:scale-[0.98]"
+            }`}
+            title={
+              !status 
+                ? "Checking Upstox Connection Status..." 
+                : isUpstoxConnected 
+                ? "Disconnect from Upstox API" 
+                : "Authenticate & Connect with Upstox API"
+            }
+          >
+            <Globe className={`w-3 h-3 ${!status ? "animate-spin" : isUpstoxConnected ? "" : "animate-pulse"}`} />
+            <span>
+              {isAuthLoading 
+                ? "Auth..." 
+                : !status 
+                ? "Checking..." 
+                : isUpstoxConnected 
+                ? "Upstox Connected" 
+                : "Connect Upstox"}
+            </span>
+          </Button>
 
           {/* Compact Telemetry HUD */}
           <div className="flex items-center gap-2 bg-deep/20 border border-subtle py-1 px-2.5 rounded text-[10px] font-mono text-slate-500 select-none">
@@ -336,6 +473,103 @@ export const Header: React.FC = () => {
         </div>
       </div>
     </header>
+
+    {/* Upstox Authentication Modal */}
+    {showAuthModal && (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div className="w-full max-w-lg bg-[#0e131f] border border-slate-800 rounded-lg shadow-2xl p-6 relative font-sans text-slate-200">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
+            <div className="flex items-center gap-2">
+              <Globe className="w-5 h-5 text-cyan-neon" />
+              <h3 className="text-base font-semibold text-main uppercase tracking-wider">Upstox Broker Authorization</h3>
+            </div>
+            <button
+              onClick={() => setShowAuthModal(false)}
+              className="text-slate-400 hover:text-slate-200 transition-colors p-1 rounded-full hover:bg-slate-800"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Instruction Steps */}
+          <div className="space-y-4 mb-6 text-xs text-slate-400">
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-md p-3 text-amber-400 font-medium leading-relaxed">
+              ⚠️ <strong>Note on Redirects:</strong> After authorizing, you might see a connection error page (e.g. <code>127.0.0.1</code> or <code>localhost</code> refused connection). <strong>This is normal!</strong> The address bar still contains your code. Just copy the code value from the address bar URL.
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <p className="font-semibold text-slate-300">Follow these steps to connect:</p>
+              <ol className="list-decimal list-inside space-y-2 leading-relaxed">
+                <li>
+                  Click the link to open the login page in a new tab:{" "}
+                  <a
+                    href={authUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-cyan-neon hover:underline font-semibold ml-1 bg-cyan-neon/10 px-2 py-0.5 rounded"
+                  >
+                    Login to Upstox <ExternalLink className="w-3 h-3" />
+                  </a>
+                </li>
+                <li>Log in securely using your Upstox credentials (mobile number, OTP, PIN).</li>
+                <li>Copy the temporary authorization code (the value after <code>code=</code> in the address bar).</li>
+              </ol>
+            </div>
+          </div>
+
+          {/* Submissions Section */}
+          <div className="space-y-5">
+            {/* Form 1: Authorization Code */}
+            <form onSubmit={handleSubmitCode} className="border-t border-slate-800/60 pt-4">
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                1. Paste Authorization Code
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="e.g. XXXXXX"
+                  value={authCode}
+                  onChange={(e) => setAuthCode(e.target.value)}
+                  className="flex-1 bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-xs text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-cyan-neon"
+                />
+                <button
+                  type="submit"
+                  disabled={isAuthLoading || !authCode.trim()}
+                  className="px-4 py-1.5 bg-cyan-neon/20 hover:bg-cyan-neon/30 text-cyan-neon border border-cyan-neon/30 rounded text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50"
+                >
+                  Submit Code
+                </button>
+              </div>
+            </form>
+
+            {/* Form 2: Direct Access Token */}
+            <form onSubmit={handleSubmitRawToken} className="border-t border-slate-800/60 pt-4">
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                Alternative: Paste Access Token Directly
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Enter raw access token"
+                  value={rawTokenInput}
+                  onChange={(e) => setRawTokenInput(e.target.value)}
+                  className="flex-1 bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-xs text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-cyan-neon"
+                />
+                <button
+                  type="submit"
+                  disabled={isAuthLoading || !rawTokenInput.trim()}
+                  className="px-4 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 rounded text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50"
+                  title="Directly save token to token.txt"
+                >
+                  Save Token
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    )}
     </>
   );
 };

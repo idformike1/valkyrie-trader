@@ -340,7 +340,7 @@ class RealtimeSignalRunner:
                         exit_price = highest - rm.trailing_sl_gap
 
             if exit_reason:
-                pos_data = self.execution_adapter.execute_sell(exit_price, current_ts, exit_reason=exit_reason)
+                pos_data = self.execution_adapter.execute_sell(spot_price, current_ts, exit_reason=exit_reason)
                 self.active_contract = None
                 self.adapter.reset_state()
                 return "SELL", pos_data or {"exit_reason": exit_reason, "exit_price": exit_price}

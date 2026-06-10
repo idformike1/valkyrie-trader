@@ -328,6 +328,22 @@ class PaperExecutionAdapter:
         num_lots = self.config.execution.lot_size
         quantity = num_lots * idx_lot
 
+        # Calculate Stop Loss and Target
+        stop_loss_val = 0.0
+        target_val = 0.0
+        if self.config and hasattr(self.config, "risk_management"):
+            rm = self.config.risk_management
+            if rm.stop_loss_value > 0:
+                if rm.stop_loss_type == "percent":
+                    stop_loss_val = float(premium * (1.0 - rm.stop_loss_value / 100.0))
+                else:
+                    stop_loss_val = float(premium - rm.stop_loss_value)
+            if rm.target_value > 0:
+                if rm.target_type == "percent":
+                    target_val = float(premium * (1.0 + rm.target_value / 100.0))
+                else:
+                    target_val = float(premium + rm.target_value)
+
         pos_data = {
             "underlying": underlying,
             "strike": float(strike),
@@ -341,7 +357,9 @@ class PaperExecutionAdapter:
             "execution_source": execution_source,
             "entry_reason": entry_reason,
             "metadata": {
-                "quote_quality": quote_quality
+                "quote_quality": quote_quality,
+                "stop_loss": stop_loss_val,
+                "target_price": target_val
             }
         }
 
@@ -375,8 +393,8 @@ class PaperExecutionAdapter:
                     trade_type="BUY",
                     price=float(premium),
                     quantity=quantity,
-                    stop_loss=0.0,
-                    target_price=0.0,
+                    stop_loss=stop_loss_val,
+                    target_price=target_val,
                     reason=entry_reason or "Strategy Signal",
                     pnl=0.0,
                     execution_source=execution_source,
@@ -470,6 +488,10 @@ class PaperExecutionAdapter:
             "execution_latency_ms": None
         }
 
+        # Retrieve stop loss and target from metadata or recalculate
+        stop_loss_val = active_pos.metadata.get("stop_loss", 0.0)
+        target_val = active_pos.metadata.get("target_price", 0.0)
+
         # Incrementally log trade to SQLite db
         try:
             import app
@@ -482,8 +504,8 @@ class PaperExecutionAdapter:
                     trade_type="EXIT",
                     price=float(premium),
                     quantity=active_pos.quantity,
-                    stop_loss=0.0,
-                    target_price=0.0,
+                    stop_loss=stop_loss_val,
+                    target_price=target_val,
                     reason=structured_exit_reason,
                     pnl=accounting_record.net_pnl,
                     execution_source=execution_source,

@@ -32,20 +32,23 @@ ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(ROOT_DIR)
 sys.path.append(os.path.join(ROOT_DIR, "backend"))
 
+from dotenv import load_dotenv
+load_dotenv(os.path.join(ROOT_DIR, ".env"))
+
 import database as db
 import auth
 from strategy_heikin_ashi_gar import HeikinAshiGarStrategy, HeikinAshiGarStrategyV2, FiveEmaScalpingStrategy, OneMinuteTestStrategy, TenSecondTestStrategy, calculate_heikin_ashi
 import MarketDataFeed_pb2 as pb
 
+IS_BROKER_DISCONNECTED = False
 TOKEN_FILE = os.path.join(ROOT_DIR, "token.txt")
 CSV_PATH = os.path.join(ROOT_DIR, "nifty_options.csv")
 DB_PATH = db.DEFAULT_DB_PATH
 
 # Proxy configuration for Upstox order API
-PROXIES = {
-    "http": "http://USER:PASS@STATIC_PROXY_IP:PORT",
-    "https": "http://USER:PASS@STATIC_PROXY_IP:PORT",
-}
+# If you have a corporate proxy, set the environment variables HTTP_PROXY and HTTPS_PROXY.
+# Otherwise, leave PROXIES empty to connect directly.
+PROXIES = {}
 
 STRATEGY_REGISTRY = {
     "heikin_ashi_gar": HeikinAshiGarStrategy,
@@ -239,6 +242,9 @@ async def broadcast_telemetry():
             ws_connections.remove(ws)
 
 def load_upstox_token():
+    global IS_BROKER_DISCONNECTED
+    if IS_BROKER_DISCONNECTED:
+        return ""
     paths = [
         os.path.join(ROOT_DIR, "backend", "token.txt"),
         os.path.join(ROOT_DIR, "token.txt")
@@ -268,7 +274,8 @@ def sync_nifty_options_csv(force=False):
             else:
                 max_expiry_ts = df['expiry'].max()
                 max_expiry_date = pd.to_datetime(max_expiry_ts, unit='ms')
-                if max_expiry_date.date() < datetime.now().date():
+                file_mtime = datetime.fromtimestamp(os.path.getmtime(CSV_PATH)).date()
+                if max_expiry_date.date() < datetime.now().date() or file_mtime < datetime.now().date():
                     stale = True
         except Exception:
             stale = True
@@ -425,6 +432,21 @@ def update_telemetry_metrics():
         # 2. Trade Mapping
         temp_trades = []
         for pos in v2_ledger.positions:
+            rm = current_v2_runner.config.risk_management
+            entry_premium = pos.entry_premium
+            
+            stop_loss_price = pos.metadata.get("stop_loss", 0.0)
+            if stop_loss_price == 0.0 and rm.stop_loss_value > 0:
+                sl_pct = rm.stop_loss_value / 100.0 if rm.stop_loss_type == "percent" else 0.0
+                sl_pts = rm.stop_loss_value if rm.stop_loss_type == "points" else (entry_premium * sl_pct)
+                stop_loss_price = entry_premium - sl_pts
+                
+            target_price = pos.metadata.get("target_price", 0.0)
+            if target_price == 0.0 and rm.target_value > 0:
+                t_pct = rm.target_value / 100.0 if rm.target_type == "percent" else 0.0
+                t_pts = rm.target_value if rm.target_type == "points" else (entry_premium * t_pct)
+                target_price = entry_premium + t_pts
+
             buy_time = pos.entry_time.isoformat() if hasattr(pos.entry_time, 'isoformat') else str(pos.entry_time)
             temp_trades.append({
                 "id": f"v2_buy_{pos.position_id}",
@@ -434,19 +456,39 @@ def update_telemetry_metrics():
                 "type": "BUY",
                 "price": pos.entry_premium,
                 "quantity": pos.quantity,
-                "sl": 0.0,
-                "target": 0.0,
-                "reason": "Strategy Signal",
+                "sl": stop_loss_price,
+                "target": target_price,
+                "reason": pos.entry_reason or "Strategy Signal",
+                "entry_reason": pos.entry_reason or "Strategy Signal",
                 "pnl": 0.0,
                 "timestamp": buy_time,
                 "upstox_order_id": "",
-                "execution_source": pos.entry_execution_source or pos.execution_source or "SYNTHETIC_MODEL"
+                "execution_source": pos.entry_execution_source or pos.execution_source or "SYNTHETIC_MODEL",
+                "fill_diagnostics": {
+                    "fill_price": pos.entry_premium,
+                    "quantity": pos.quantity,
+                    "premium": pos.entry_premium * pos.quantity,
+                    "brokerage": 20.0,
+                    "slippage_pct": 0.05
+                }
             })
             
             if pos.status == PositionStatus.CLOSED or pos.exit_time is not None:
                 matching = next((r for r in v2_ledger.accounting_records if r.position_id == pos.position_id), None)
                 net_pnl = matching.net_pnl if matching else 0.0
                 exit_time = pos.exit_time.isoformat() if hasattr(pos.exit_time, 'isoformat') else str(pos.exit_time)
+                
+                quote_quality = pos.metadata.get("quote_quality", None)
+                fill_diagnostics = pos.metadata.get("fill_diagnostics", None)
+                if not fill_diagnostics:
+                    fill_diagnostics = {
+                        "fill_price": pos.exit_premium if pos.exit_premium is not None else 0.0,
+                        "quantity": pos.quantity,
+                        "premium": (pos.exit_premium if pos.exit_premium is not None else 0.0) * pos.quantity,
+                        "brokerage": 20.0,
+                        "slippage_pct": 0.05
+                    }
+                
                 temp_trades.append({
                     "id": f"v2_exit_{pos.position_id}",
                     "session_id": CURRENT_SESSION_ID or 0,
@@ -455,13 +497,16 @@ def update_telemetry_metrics():
                     "type": "EXIT",
                     "price": pos.exit_premium if pos.exit_premium is not None else 0.0,
                     "quantity": pos.quantity,
-                    "sl": 0.0,
-                    "target": 0.0,
-                    "reason": pos.exit_signal or "Target/SL Hit",
+                    "sl": stop_loss_price,
+                    "target": target_price,
+                    "reason": pos.exit_reason or "Target/SL Hit",
+                    "exit_reason": pos.exit_reason or "Target/SL Hit",
                     "pnl": net_pnl,
                     "timestamp": exit_time,
                     "upstox_order_id": "",
-                    "execution_source": pos.exit_execution_source or "SYNTHETIC_MODEL"
+                    "execution_source": pos.exit_execution_source or "SYNTHETIC_MODEL",
+                    "quote_quality": quote_quality,
+                    "fill_diagnostics": fill_diagnostics
                 })
         TRADE_LOGS = temp_trades
         
@@ -1664,7 +1709,7 @@ def get_atr(period: int = 14):
 
 @app.get('/api/options/metadata')
 def get_options_metadata(exchange: str = 'NSE', index: str = 'NIFTY'):
-    use_mock = SYSTEM_STATUS.get("use_mock_feed", False)
+    use_mock = SYSTEM_STATUS.get("use_mock_feed", False) and SYSTEM_STATUS.get("state") != "IDLE"
     
     underlying_keys_map = {
         "NIFTY": "NSE_INDEX|Nifty 50",
@@ -1691,7 +1736,7 @@ def get_options_metadata(exchange: str = 'NSE', index: str = 'NIFTY'):
             "strikes": strikes
         }
     
-    sync_nifty_options_csv(exchange)
+    sync_nifty_options_csv()
     if not os.path.exists(CSV_PATH):
         raise HTTPException(status_code=404, detail="CSV file missing")
         
@@ -2072,8 +2117,8 @@ def get_options_chain(expiry: str, index: str = 'NIFTY', exchange: str = 'NSE'):
     if spot_price > 0 and strikes:
         sorted_strikes = sorted(strikes, key=lambda x: x["strike"])
         atm_idx = min(range(len(sorted_strikes)), key=lambda i: abs(sorted_strikes[i]["strike"] - spot_price))
-        start = max(0, atm_idx - 8)
-        end = min(len(sorted_strikes), atm_idx + 9)
+        start = max(0, atm_idx - 10)
+        end = min(len(sorted_strikes), atm_idx + 11)
         strikes = sorted_strikes[start:end]
 
     return {
@@ -2081,6 +2126,136 @@ def get_options_chain(expiry: str, index: str = 'NIFTY', exchange: str = 'NSE'):
         "atm_strike": atm_strike,
         "strikes": strikes
     }
+
+class UpstoxCallbackRequest(BaseModel):
+    code: str
+
+@app.get('/api/broker/auth/url')
+def get_upstox_auth_url():
+    client_id = os.getenv("UPSTOX_API_KEY")
+    redirect_uri = os.getenv("UPSTOX_REDIRECT_URI", "https://127.0.0.1:3000")
+    if not client_id:
+        raise HTTPException(status_code=500, detail="Missing UPSTOX_API_KEY in environment.")
+    # Build OAuth URL
+    url = f"https://api.upstox.com/v2/login/authorization/dialog?response_type=code&client_id={client_id}&redirect_uri={urllib.parse.quote(redirect_uri)}"
+    return {"url": url}
+
+@app.post('/api/broker/auth/callback')
+def upstox_auth_callback(req: UpstoxCallbackRequest):
+    client_id = os.getenv("UPSTOX_API_KEY")
+    client_secret = os.getenv("UPSTOX_CLIENT_SECRET")
+    redirect_uri = os.getenv("UPSTOX_REDIRECT_URI", "https://127.0.0.1:3000")
+    
+    if not all([client_id, client_secret]):
+        raise HTTPException(status_code=500, detail="Missing Upstox API Credentials in .env")
+        
+    url = "https://api.upstox.com/v2/login/authorization/token"
+    payload = {
+        "code": req.code,
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "redirect_uri": redirect_uri,
+        "grant_type": "authorization_code"
+    }
+    headers = {
+        "accept": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    
+    try:
+        resp = requests.post(url, data=payload, headers=headers, timeout=10)
+        if resp.status_code == 200:
+            data = resp.json()
+            access_token = data.get("access_token")
+            if access_token:
+                # Save token to both paths to ensure reliability
+                for p in [os.path.join(ROOT_DIR, "backend", "token.txt"), os.path.join(ROOT_DIR, "token.txt")]:
+                    try:
+                        with open(p, "w") as f:
+                            f.write(access_token)
+                    except Exception as e:
+                        log_event(f"Error writing token to {p}: {e}", "ERROR")
+                
+                # Force auth check variables to re-evaluate immediately
+                global LAST_AUTH_CHECK_TIME, IS_AUTH_VALID, IS_BROKER_DISCONNECTED
+                IS_BROKER_DISCONNECTED = False
+                LAST_AUTH_CHECK_TIME = 0
+                IS_AUTH_VALID = True
+                
+                log_event("Upstox broker connected successfully via Web UI OAuth callback.", "SYSTEM")
+                return {"status": "success", "message": "Successfully authenticated with Upstox."}
+            else:
+                raise HTTPException(status_code=400, detail=f"No access token in Upstox response: {data}")
+        else:
+            raise HTTPException(status_code=resp.status_code, detail=f"Upstox OAuth error: {resp.text}")
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=503, detail=f"Upstox token request failed: {e}")
+
+@app.post('/api/broker/auth/disconnect')
+def upstox_auth_disconnect():
+    global LAST_AUTH_CHECK_TIME, IS_AUTH_VALID, IS_BROKER_DISCONNECTED
+    IS_BROKER_DISCONNECTED = True
+    LAST_AUTH_CHECK_TIME = 0
+    IS_AUTH_VALID = False
+    
+    log_event("Upstox broker disconnected (token stored, but connection inactive) by user request.", "SYSTEM")
+    return {"status": "success", "message": "Successfully disconnected."}
+
+@app.post('/api/broker/auth/reconnect')
+def upstox_auth_reconnect():
+    global LAST_AUTH_CHECK_TIME, IS_AUTH_VALID, IS_BROKER_DISCONNECTED
+    
+    # Temporarily set IS_BROKER_DISCONNECTED to False to load the stored token
+    old_disconnected = IS_BROKER_DISCONNECTED
+    IS_BROKER_DISCONNECTED = False
+    
+    token = load_upstox_token()
+    if not token:
+        IS_BROKER_DISCONNECTED = old_disconnected
+        raise HTTPException(status_code=400, detail="No stored token found. Please authenticate.")
+        
+    # Verify stored token
+    url = "https://api.upstox.com/v2/user/profile"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json"
+    }
+    try:
+        resp = requests.get(url, headers=headers, timeout=5)
+        if resp.status_code == 200:
+            IS_BROKER_DISCONNECTED = False
+            LAST_AUTH_CHECK_TIME = 0
+            IS_AUTH_VALID = True
+            log_event("Upstox broker reconnected successfully using stored token.", "SYSTEM")
+            return {"status": "success", "message": "Successfully reconnected using stored token."}
+        else:
+            IS_BROKER_DISCONNECTED = old_disconnected
+            raise HTTPException(status_code=401, detail="Stored token is invalid or expired.")
+    except Exception as e:
+        IS_BROKER_DISCONNECTED = old_disconnected
+        raise HTTPException(status_code=503, detail=f"Failed to verify stored token: {e}")
+
+class RawTokenRequest(BaseModel):
+    token: str
+
+@app.post('/api/broker/auth/token')
+def save_raw_token(req: RawTokenRequest):
+    if not req.token.strip():
+        raise HTTPException(status_code=400, detail="Token cannot be empty.")
+    for p in [os.path.join(ROOT_DIR, "backend", "token.txt"), os.path.join(ROOT_DIR, "token.txt")]:
+        try:
+            with open(p, "w") as f:
+                f.write(req.token.strip())
+        except Exception as e:
+            log_event(f"Error writing raw token to {p}: {e}", "ERROR")
+    
+    global LAST_AUTH_CHECK_TIME, IS_AUTH_VALID, IS_BROKER_DISCONNECTED
+    IS_BROKER_DISCONNECTED = False
+    LAST_AUTH_CHECK_TIME = 0
+    IS_AUTH_VALID = True
+    
+    log_event("Upstox raw access token saved manually by user.", "SYSTEM")
+    return {"status": "success", "message": "Access token saved successfully."}
 
 @app.get('/api/broker/profile')
 def get_broker_profile():
@@ -2601,6 +2776,59 @@ def get_broker_quotes(instrument_key: str):
         return resp.json()
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=503, detail=f"Upstox connection failed: {e}")
+
+
+@app.get('/api/market/indices')
+def get_market_indices():
+    token = load_upstox_token()
+    fallbacks = {
+        "nifty": {"price": 23395.55, "change": 153.45, "pct": 0.66},
+        "banknifty": {"price": 55477.40, "change": 282.90, "pct": 0.51},
+        "vix": {"price": 15.49, "change": -0.09, "pct": -0.58}
+    }
+    if not token:
+        return {"status": "success", "data": fallbacks}
+        
+    keys = "NSE_INDEX|Nifty 50,NSE_INDEX|Nifty Bank,NSE_INDEX|India VIX"
+    url = f"https://api.upstox.com/v2/market-quote/quotes?instrument_key={urllib.parse.quote(keys)}"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json"
+    }
+    try:
+        resp = requests.get(url, headers=headers, timeout=5)
+        if resp.status_code == 200:
+            res_data = resp.json().get("data", {})
+            
+            nifty_data = res_data.get("NSE_INDEX:Nifty 50", {})
+            nifty_price = nifty_data.get("last_price", 23395.55) or 23395.55
+            nifty_change = nifty_data.get("net_change", 0.0) or 0.0
+            nifty_prev = nifty_price - nifty_change
+            nifty_pct = (nifty_change / nifty_prev * 100) if nifty_prev > 0 else 0.0
+            
+            bank_data = res_data.get("NSE_INDEX:Nifty Bank", {})
+            bank_price = bank_data.get("last_price", 55477.40) or 55477.40
+            bank_change = bank_data.get("net_change", 0.0) or 0.0
+            bank_prev = bank_price - bank_change
+            bank_pct = (bank_change / bank_prev * 100) if bank_prev > 0 else 0.0
+            
+            vix_data = res_data.get("NSE_INDEX:India VIX", {})
+            vix_price = vix_data.get("last_price", 15.49) or 15.49
+            vix_change = vix_data.get("net_change", 0.0) or 0.0
+            vix_prev = vix_price - vix_change
+            vix_pct = (vix_change / vix_prev * 100) if vix_prev > 0 else 0.0
+            
+            return {
+                "status": "success",
+                "data": {
+                    "nifty": {"price": nifty_price, "change": nifty_change, "pct": nifty_pct},
+                    "banknifty": {"price": bank_price, "change": bank_change, "pct": bank_pct},
+                    "vix": {"price": vix_price, "change": vix_change, "pct": vix_pct}
+                }
+            }
+    except Exception as e:
+        log_event(f"Error fetching indices: {e}", "WARNING")
+    return {"status": "success", "data": fallbacks}
 
 class ChartConfigModel(BaseModel):
     interval: str = "1minute"
@@ -3281,6 +3509,7 @@ def stop_engine():
     SYSTEM_STATUS["session_id"] = None
     SYSTEM_STATUS["session_start_timestamp"] = None
     SYSTEM_STATUS["state"] = "IDLE"
+    SYSTEM_STATUS["use_mock_feed"] = False
     
     try:
         from v2.option_quote_cache import OptionQuoteCache
