@@ -1228,7 +1228,10 @@ export const PaperBottom: React.FC = () => {
   const trades = useBackendTradingStore((state) => state.trades) || [];
   const logs = useBackendTradingStore((state) => state.logs) || [];
   
-  const selectedTrade = trades.find((t, i) => (t.id === selectedTradeId || `TRD_${i}` === selectedTradeId)) || null;
+  const selectedTrade = trades.find((t, i) => (
+    (t.id != null && selectedTradeId != null && String(t.id) === String(selectedTradeId)) ||
+    `TRD_${i}` === String(selectedTradeId)
+  )) || null;
 
   const [historicalSessions, setHistoricalSessions] = useState<any[]>([]);
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
@@ -1622,11 +1625,13 @@ export const PaperBottom: React.FC = () => {
                 data={trades}
                 onRowClick={(trade) => {
                   const id = trade.id || `TRD_${trades.indexOf(trade)}`;
-                  setSelectedTradeId(selectedTradeId === id ? null : id);
+                  setSelectedTradeId(selectedTradeId != null && String(selectedTradeId) === String(id) ? null : id);
                 }}
                 rowClassName={(trade) => {
                   const idx = trades.indexOf(trade);
-                  const isSelected = selectedTradeId === (trade.id || `TRD_${idx}`);
+                  const isSelected = selectedTradeId != null && (
+                    String(trade.id || `TRD_${idx}`) === String(selectedTradeId)
+                  );
                   return isSelected ? "bg-cyan-500/10 border-l-2 border-l-cyan-500 text-cyan-300 font-semibold cursor-pointer" : "cursor-pointer hover:bg-white/[0.03]";
                 }}
                 emptyState={
@@ -1777,8 +1782,12 @@ export const PaperBottom: React.FC = () => {
                     </div>
                     <pre className={`text-[11px] font-mono whitespace-pre-wrap leading-relaxed rounded p-2 bg-black/20 border border-white/5 ${selectedTrade.type === "EXIT" ? "text-rose-300" : "text-emerald-300"}`}>
                       {selectedTrade.type === "EXIT"
-                        ? (selectedTrade.exit_reason || selectedTrade.reason || "Stop-loss / target / trailing trigger executed.")
-                        : (selectedTrade.entry_reason || selectedTrade.reason || "Strategy crossover or threshold triggered entry.")}
+                        ? (selectedTrade.exit_reason === "SELL_INTENT" || selectedTrade.reason === "SELL_INTENT"
+                            ? "Strategy Sell Signal\nType: SELL_INTENT\nExecution: Instant Market Order"
+                            : (selectedTrade.exit_reason || selectedTrade.reason || "Stop-loss / target / trailing trigger executed."))
+                        : (selectedTrade.entry_reason === "BUY_INTENT" || selectedTrade.reason === "BUY_INTENT"
+                            ? "Strategy Buy Signal\nType: BUY_INTENT\nExecution: Instant Market Order"
+                            : (selectedTrade.entry_reason || selectedTrade.reason || "Strategy crossover or threshold triggered entry."))}
                     </pre>
                   </div>
 

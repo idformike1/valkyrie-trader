@@ -6,6 +6,6 @@ interface ThemeState {
 }
 
 export const useThemeStore = create<ThemeState>((set) => ({
-  theme: "navy",
-  setTheme: (theme) => set({ theme }),
+  theme: "blackstone",
+  setTheme: () => {}, // Disabled theme switching
 }));

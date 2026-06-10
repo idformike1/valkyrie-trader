@@ -423,20 +423,7 @@ export const Header: React.FC = () => {
             </span>
           </div>
 
-          {/* Dynamic Theme Toggle */}
-          <button
-            onClick={() => setTheme(theme === "navy" ? "light" : theme === "light" ? "blackstone" : "navy")}
-            className="text-slate-400 hover:text-main transition-colors p-1 cursor-pointer rounded-sm hover:bg-card-hover border border-transparent hover:border-subtle flex items-center justify-center"
-            title={`Switch Theme (Current: ${theme})`}
-          >
-            {theme === "navy" ? (
-              <Sun className="w-3.5 h-3.5 text-amber-455" />
-            ) : theme === "light" ? (
-              <Moon className="w-3.5 h-3.5 text-indigo-455" />
-            ) : (
-              <Shield className="w-3.5 h-3.5 text-yellow-600" />
-            )}
-          </button>
+          {/* Dynamic Theme Toggle removed to lock Blackstone Obsidian theme */}
 
           {/* Notifications Bell */}
           <button className="relative text-slate-400 hover:text-main transition-colors p-1 cursor-pointer rounded-sm hover:bg-card-hover border border-transparent hover:border-subtle flex items-center justify-center">

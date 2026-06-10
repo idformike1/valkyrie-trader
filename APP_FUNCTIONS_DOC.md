@@ -467793,7 +467793,7 @@ No description provided.
 ```
 
 #### `selectedTrade` (Function)
-- **Signature**: `const selectedTrade = trades.find((t, i) => (t.id === selectedTradeId || `TRD_${i}` === selectedTradeId)) || null`
+- **Signature**: `const selectedTrade = trades.find((t, i) => (`
 - **Description**:
 ```text
 No description provided.

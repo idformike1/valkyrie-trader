@@ -33,7 +33,7 @@ export default function ValkyrieCommandRoom() {
         <Header />
 
         {/* Dynamic Workspace Container */}
-        <main className="flex-1 flex flex-col min-w-0 overflow-hidden pt-10 pb-6">
+        <main className="flex-1 flex flex-col min-w-0 overflow-hidden p-0">
           <WorkspaceHost />
         </main>
 

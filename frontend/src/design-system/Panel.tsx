@@ -74,7 +74,9 @@ export const Panel: React.FC<PanelProps> = ({
     >
       {/* Panel Header */}
       {title && (
-        <div className="flex items-center justify-between px-4 py-2 bg-deep border-b border-subtle shrink-0">
+        <div className={`flex items-center justify-between py-1.5 bg-deep border-b border-subtle shrink-0 ${
+          variant === "compact" ? "px-3" : "px-4"
+        }`}>
           <h3 className="vdl-section text-main select-none">
             {title}
           </h3>

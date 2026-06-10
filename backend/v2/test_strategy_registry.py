@@ -4,7 +4,7 @@ from v2.strategy_registry import get_strategy_metadata, get_all_strategy_metadat
 class TestStrategyRegistry(unittest.TestCase):
     def test_get_all_strategy_metadata(self):
         all_metadata = get_all_strategy_metadata()
-        self.assertEqual(len(all_metadata), 3)
+        self.assertEqual(len(all_metadata), 6)
         ids = [m.id for m in all_metadata]
         self.assertIn("five_ema", ids)
         self.assertIn("ema", ids)
