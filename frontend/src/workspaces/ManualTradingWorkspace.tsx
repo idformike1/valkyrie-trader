@@ -1070,6 +1070,7 @@ export const TradingRight: React.FC = () => {
   const [orderCollapsed, setOrderCollapsed] = useState(false);
   const [analyticsCollapsed, setAnalyticsCollapsed] = useState(false);
   const [positionsCollapsed, setPositionsCollapsed] = useState(false);
+  const [riskCollapsed, setRiskCollapsed] = useState(false);
 
   const [lotSize, setLotSize] = useState<number>(1);
   const [quantity, setQuantity] = useState<number>(1);
@@ -1647,102 +1648,7 @@ export const TradingRight: React.FC = () => {
               </div>
             </div>
 
-            {/* Real Broker Margin HUD & Risk Estimation */}
-            <div className="flex flex-col gap-1 bg-deep border border-subtle p-2 rounded font-mono vdl-body text-slate-500 select-none">
-              <div className="flex justify-between items-center border-b border-subtle pb-1 mb-1">
-                <span>Risk status:</span>
-                <span className={`px-2 py-0.5 rounded border vdl-body transition-all ${
-                  brokerMarginReq > availableMargin
-                    ? "text-rose-500 bg-rose-500/10 border-rose-500/20 animate-pulse font-extrabold"
-                    : (availableMargin > 0 && brokerMarginReq / availableMargin > 0.5)
-                      ? "text-amber-400 bg-amber-500/10 border-amber-500/20 font-bold"
-                      : "text-emerald-400 bg-emerald-500/10 border-emerald-500/20 font-semibold"
-                }`}>
-                  {brokerMarginReq > availableMargin ? "BLOCKED" : (availableMargin > 0 && brokerMarginReq / availableMargin > 0.5) ? "WARNING" : "SAFE"}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="flex flex-col gap-0.5">
-                  <span>REQUIRED MARGIN:</span>
-                  <span className="font-semibold text-slate-300">
-                    ₹{brokerMarginReq.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </span>
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <span>AVAILABLE MARGIN:</span>
-                  <span className="font-semibold text-slate-300">
-                    ₹{availableMargin.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </span>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2 border-t border-subtle/50 pt-1 mt-1">
-                <div className="flex flex-col gap-0.5">
-                  <span>POST-TRADE MARGIN:</span>
-                  <span className="font-semibold text-slate-300">
-                    ₹{(availableMargin - brokerMarginReq).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </span>
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <span>MARGIN UTILIZATION:</span>
-                  <span className="font-semibold text-slate-300">
-                    {(availableMargin > 0 ? (brokerMarginReq / availableMargin) * 100 : 0).toFixed(2)}%
-                  </span>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2 border-t border-subtle/50 pt-1.5 mt-1 select-none">
-                <div className="col-span-2 flex flex-col gap-1">
-                  <span className="vdl-body text-slate-500 font-semibold">Risk estimation</span>
-                  
-                  {!hasSL ? (
-                    <div className="flex flex-col gap-0.5 bg-amber-500/5 p-1.5 rounded border border-amber-500/20 font-mono vdl-body">
-                      <div className="flex justify-between">
-                        <span className="text-slate-500">RISK ESTIMATE:</span>
-                        <span className="font-semibold text-amber-400">Undefined</span>
-                      </div>
-                      <div className="flex justify-between mt-0.5">
-                        <span className="text-slate-500">STATUS:</span>
-                        <span className="font-semibold text-amber-400 animate-pulse font-sans">Warning</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col gap-0.5 bg-card/20 border border-subtle/50 p-1.5 rounded font-mono vdl-body">
-                      <div className="flex justify-between">
-                        <span className="text-slate-500">Max loss:</span>
-                        <span className="font-semibold text-rose-400">
-                          ₹{riskAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-500">Risk percent:</span>
-                        <span className="font-semibold text-rose-400">{riskPct.toFixed(2)}%</span>
-                      </div>
-                    </div>
-                  )}
 
-                  {hasTarget && (
-                    <div className="flex flex-col gap-0.5 bg-card/20 border border-subtle/50 p-1.5 rounded font-mono vdl-body">
-                      <div className="flex justify-between">
-                        <span className="text-slate-500">Potential reward:</span>
-                        <span className="font-semibold text-emerald-400">
-                          ₹{rewardAmountVal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </span>
-                      </div>
-                      {hasSL && (
-                        <div className="flex justify-between border-t border-subtle/50 pt-0.5 mt-0.5">
-                          <span className="text-slate-500">Risk/reward ratio:</span>
-                          <span className="font-semibold text-cyan-400">1:{rrRatio}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-              {brokerMarginError && (
-                <span className="vdl-body text-rose-400 mt-1 font-sans animate-pulse">
-                  * {brokerMarginError}
-                </span>
-              )}
-            </div>
 
             {/* Primary Action Buttons — Maximum Visual Weight */}
             <div className="grid grid-cols-2 gap-2 pt-2 border-t border-subtle">
@@ -1769,7 +1675,148 @@ export const TradingRight: React.FC = () => {
         )}
       </div>
 
-      {/* 3. Option Greeks & Analytics HUD */}
+      {/* 3. Margin & Risk Estimation HUD */}
+      <div className="flex flex-col shrink-0 border-b border-subtle">
+        <div 
+          className="p-3 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all select-none"
+          onClick={() => setRiskCollapsed(!riskCollapsed)}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-[12px] font-sans font-semibold text-slate-200">MARGIN & RISK HUD</span>
+            {riskCollapsed && (
+              <span className={`px-2 py-0.5 rounded text-[9px] font-sans font-semibold border ${
+                brokerMarginReq > availableMargin
+                  ? "text-rose-500 bg-rose-500/10 border-rose-500/20 animate-pulse font-extrabold"
+                  : (availableMargin > 0 && brokerMarginReq / availableMargin > 0.5)
+                    ? "text-amber-400 bg-amber-500/10 border-amber-500/20 font-bold"
+                    : "text-emerald-400 bg-emerald-500/10 border-emerald-500/20 font-semibold"
+              }`}>
+                {brokerMarginReq > availableMargin ? "BLOCKED" : (availableMargin > 0 && brokerMarginReq / availableMargin > 0.5) ? "WARNING" : "SAFE"}
+              </span>
+            )}
+          </div>
+          <button className="text-slate-500 hover:text-text-main p-0.5 rounded hover:bg-white/5 transition-colors">
+            {riskCollapsed ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
+          </button>
+        </div>
+
+        {!riskCollapsed && (
+          <div className="p-3 flex flex-col gap-3 border-t border-subtle/40 bg-deep/10 font-mono vdl-body">
+            {/* Risk Status Badge */}
+            <div className="flex justify-between items-center bg-deep border border-subtle p-2 rounded">
+              <span className="text-slate-500">Risk status:</span>
+              <span className={`px-2.5 py-1 rounded border text-[11px] font-sans transition-all tracking-wider ${
+                brokerMarginReq > availableMargin
+                  ? "text-rose-500 bg-rose-500/10 border-rose-500/20 animate-pulse font-extrabold shadow-[0_0_10px_rgba(244,63,94,0.2)]"
+                  : (availableMargin > 0 && brokerMarginReq / availableMargin > 0.5)
+                    ? "text-amber-400 bg-amber-500/10 border-amber-500/20 font-bold shadow-[0_0_10px_rgba(251,191,36,0.1)]"
+                    : "text-emerald-400 bg-emerald-500/10 border-emerald-500/20 font-semibold shadow-[0_0_10px_rgba(52,211,153,0.1)]"
+              }`}>
+                {brokerMarginReq > availableMargin ? "BLOCKED" : (availableMargin > 0 && brokerMarginReq / availableMargin > 0.5) ? "WARNING" : "SAFE"}
+              </span>
+            </div>
+
+            {/* Margin Telemetry */}
+            <div className="flex flex-col gap-1.5 bg-deep border border-subtle p-2 rounded">
+              <div className="flex justify-between items-center text-[10px] text-slate-500 font-sans font-semibold border-b border-subtle/40 pb-1 mb-1">
+                <span>MARGIN TELEMETRY</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-[11px]">
+                <div className="flex flex-col">
+                  <span className="text-slate-500 text-[10px]">REQUIRED MARGIN</span>
+                  <span className="font-semibold text-slate-200 mt-0.5">
+                    ₹{brokerMarginReq.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-slate-500 text-[10px]">AVAILABLE MARGIN</span>
+                  <span className="font-semibold text-slate-200 mt-0.5">
+                    ₹{availableMargin.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2 border-t border-subtle/40 pt-1.5 mt-1 text-[11px]">
+                <div className="flex flex-col">
+                  <span className="text-slate-500 text-[10px]">POST-TRADE MARGIN</span>
+                  <span className={`font-semibold mt-0.5 ${(availableMargin - brokerMarginReq) < 0 ? "text-rose-400" : "text-slate-200"}`}>
+                    ₹{(availableMargin - brokerMarginReq).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-slate-500 text-[10px]">UTILIZATION</span>
+                  <span className={`font-semibold mt-0.5 ${
+                    (availableMargin > 0 ? (brokerMarginReq / availableMargin) * 100 : 0) > 100 
+                      ? "text-rose-400" 
+                      : (availableMargin > 0 ? (brokerMarginReq / availableMargin) * 100 : 0) > 50 
+                        ? "text-amber-400" 
+                        : "text-slate-200"
+                  }`}>
+                    {(availableMargin > 0 ? (brokerMarginReq / availableMargin) * 100 : 0).toFixed(2)}%
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Risk Estimation Card */}
+            <div className="flex flex-col gap-1.5 bg-deep border border-subtle p-2 rounded">
+              <div className="flex justify-between items-center text-[10px] text-slate-500 font-sans font-semibold border-b border-subtle/40 pb-1 mb-1">
+                <span>RISK ESTIMATION</span>
+              </div>
+              
+              {!hasSL ? (
+                <div className="flex flex-col gap-0.5 bg-amber-500/5 p-1.5 rounded border border-amber-500/20 font-mono text-[11px]">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">RISK ESTIMATE:</span>
+                    <span className="font-semibold text-amber-400">Undefined</span>
+                  </div>
+                  <div className="flex justify-between mt-0.5">
+                    <span className="text-slate-500">STATUS:</span>
+                    <span className="font-semibold text-amber-400 animate-pulse font-sans">Warning</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-1 bg-card/20 border border-subtle/50 p-1.5 rounded text-[11px]">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Max monetary risk:</span>
+                    <span className="font-semibold text-rose-400">
+                      ₹{riskAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Percentage risk:</span>
+                    <span className="font-semibold text-rose-400">{riskPct.toFixed(2)}%</span>
+                  </div>
+                </div>
+              )}
+
+              {hasTarget && (
+                <div className="flex flex-col gap-1 bg-card/20 border border-subtle/50 p-1.5 rounded text-[11px] mt-1">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Potential reward:</span>
+                    <span className="font-semibold text-emerald-400">
+                      ₹{rewardAmountVal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  {hasSL && (
+                    <div className="flex justify-between border-t border-subtle/50 pt-1 mt-1">
+                      <span className="text-slate-500">Risk/reward ratio:</span>
+                      <span className="font-semibold text-cyan-400">1:{rrRatio}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {brokerMarginError && (
+              <span className="vdl-body text-rose-400 mt-1 font-sans animate-pulse">
+                * {brokerMarginError}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* 4. Option Greeks & Analytics HUD */}
       {analytics && (
         <div className="flex flex-col select-none text-slate-300 border-b border-subtle">
           <div 
