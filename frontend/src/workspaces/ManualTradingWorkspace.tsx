@@ -1651,7 +1651,7 @@ export const TradingRight: React.FC = () => {
 
 
             {/* Primary Action Buttons — Maximum Visual Weight */}
-            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-subtle">
+            <div className="grid grid-cols-2 gap-2 pt-2">
               <button
                 onClick={() => handlePlaceOrder("BUY")}
                 disabled={orderSubmitting || !currentInstrument}
