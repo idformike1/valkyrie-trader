@@ -6,7 +6,8 @@ import {
   Play, Activity, Terminal, Shield, Cpu, RefreshCw, BarChart2,
   TrendingUp, Layers, Server, Settings, Zap, ArrowUpRight, ArrowDownRight,
   Sliders, Search, Plus, Trash2, SlidersHorizontal, Lock, CheckCircle2, 
-  AlertTriangle, Star, Check, X, Maximize2, Minimize2, ZoomIn, ZoomOut
+  AlertTriangle, Star, Check, X, Maximize2, Minimize2, ZoomIn, ZoomOut,
+  ChevronDown, ChevronUp
 } from "lucide-react";
 import { useTerminalStore, Instrument, Timeframe } from "@/store/useTerminalStore";
 import { useBackendTradingStore } from "@/services/tradingQueries";
@@ -77,7 +78,27 @@ export const TradingLeft: React.FC = () => {
     const saved = localStorage.getItem("valkyrie_watchlist");
     if (saved) {
       try {
-        setWatchlist(JSON.parse(saved));
+        let list = JSON.parse(saved) as Instrument[];
+        let modified = false;
+        // Clean up any numeric/key symbol leaks from local storage
+        list = list.map(item => {
+          const isNumeric = /^\d+$/.test(item.symbol);
+          const isKey = item.symbol.includes("|") || item.symbol.includes("FO") || item.symbol.includes("EQ");
+          if (isNumeric || isKey) {
+            modified = true;
+            const cleanSymbol = item.instrumentKey.split("|")[1] || item.symbol;
+            return {
+              ...item,
+              symbol: cleanSymbol.toUpperCase().startsWith("NIFTY") ? cleanSymbol : `OPT ${cleanSymbol}`
+            };
+          }
+          return item;
+        });
+        if (modified) {
+          saveWatchlist(list);
+        } else {
+          setWatchlist(list);
+        }
       } catch (e) {
         setWatchlist(AVAILABLE_INSTRUMENTS);
       }
@@ -251,19 +272,19 @@ export const TradingLeft: React.FC = () => {
               }}
               onFocus={() => setShowSearchResults(true)}
               placeholder="Search / Add Stock Options..."
-              className="w-full bg-deep border border-subtle rounded pl-8 pr-3 py-1.5 vdl-body text-slate-300 focus:outline-none focus:border-cyan-500/40 font-sans"
+              className="w-full bg-deep border border-subtle rounded-[var(--radius-sm)] pl-8 pr-3 py-1.5 vdl-body text-slate-300 focus:outline-none focus:border-[var(--gold-accent)]/40 font-sans"
             />
             {/* Search results popup */}
             {showSearchResults && searchResults.length > 0 && (
-              <div className="absolute left-0 right-0 mt-1 bg-card border border-subtle rounded shadow-xl max-h-48 overflow-y-auto z-50 font-sans vdl-body">
+              <div className="absolute left-0 right-0 mt-1 bg-card border border-subtle rounded-[var(--radius-sm)] shadow-xl max-h-48 overflow-y-auto z-50 font-sans vdl-body">
                 {searchResults.map((item) => (
                   <div
                     key={item.instrumentKey}
                     onClick={() => handleAddSymbol(item)}
-                    className="flex justify-between items-center px-3 py-2 hover:bg-cyan-500/10 cursor-pointer transition-colors text-slate-200 border-b border-subtle/50"
+                    className="flex justify-between items-center px-3 py-2 hover:bg-[var(--gold-accent)]/10 cursor-pointer transition-colors text-slate-200 border-b border-subtle/50"
                   >
                     <span>{item.symbol}</span>
-                    <span className="vdl-body text-cyan-400 font-mono bg-cyan-950/40 px-1 py-0.5 rounded border border-cyan-500/10 font-semibold">{item.exchange}</span>
+                    <span className="vdl-body text-[var(--gold-accent)] font-mono bg-[var(--bg-card)] px-1 py-0.5 rounded border border-[var(--border-subtle)] font-semibold">{item.exchange}</span>
                   </div>
                 ))}
               </div>
@@ -290,9 +311,9 @@ export const TradingLeft: React.FC = () => {
                 <div
                   key={item.instrumentKey}
                   onClick={() => setInstrument(item)}
-                  className={`grid grid-cols-12 items-center px-2 py-1 rounded cursor-pointer border transition-all group ${
+                  className={`grid grid-cols-12 items-center px-2 py-1 rounded-[var(--radius-sm)] cursor-pointer border transition-all group ${
                     isSelected
-                      ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400 font-semibold"
+                      ? "bg-[var(--gold-accent)]/10 border-[var(--gold-accent)]/30 text-[var(--gold-accent)] font-semibold"
                       : "bg-transparent border-transparent hover:bg-white/5 text-slate-300 hover:text-white"
                   }`}
                 >
@@ -300,19 +321,19 @@ export const TradingLeft: React.FC = () => {
                   <div className="col-span-5 flex items-center gap-1.5 min-w-0">
                     <button
                       onClick={(e) => togglePin(item.symbol, e)}
-                      className="text-slate-600 hover:text-cyan-400 transition-colors cursor-pointer shrink-0"
+                      className="text-slate-600 hover:text-[var(--gold-accent)] transition-colors cursor-pointer shrink-0"
                     >
-                      <Star className={`w-3 h-3 ${isPinned ? "fill-cyan-400 text-cyan-400" : ""}`} />
+                      <Star className={`w-3 h-3 ${isPinned ? "fill-[var(--gold-accent)] text-[var(--gold-accent)]" : ""}`} />
                     </button>
                     
                     {/* Reorder Up/Down buttons (Hover-only) */}
                     <div className="flex flex-col text-[7px] text-slate-600 font-mono shrink-0 select-none mr-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={(e) => handleMoveUp(index, e)} className="hover:text-cyan-400 cursor-pointer">▲</button>
-                      <button onClick={(e) => handleMoveDown(index, e)} className="hover:text-cyan-400 cursor-pointer">▼</button>
+                      <button onClick={(e) => handleMoveUp(index, e)} className="hover:text-[var(--gold-accent)] cursor-pointer">▲</button>
+                      <button onClick={(e) => handleMoveDown(index, e)} className="hover:text-[var(--gold-accent)] cursor-pointer">▼</button>
                     </div>
 
                     <div className="flex flex-col min-w-0 flex-1">
-                      <span className={`truncate font-semibold text-[12px] font-sans ${isSelected ? "text-cyan-400" : "text-slate-200"}`}>{item.symbol}</span>
+                      <span className={`truncate font-semibold text-[12px] font-sans ${isSelected ? "text-[var(--gold-accent)]" : "text-slate-200"}`}>{item.symbol}</span>
                     </div>
                   </div>
 
@@ -695,7 +716,7 @@ export const TradingMain: React.FC = () => {
               const matched = AVAILABLE_INSTRUMENTS.find((i) => i.symbol === e.target.value);
               if (matched) setInstrument(matched);
             }}
-            className="bg-card rounded px-2 py-0.5 text-cyan-400 font-semibold focus:outline-none"
+            className="bg-card rounded px-2 py-0.5 text-[var(--gold-accent)] font-semibold focus:outline-none"
           >
             {AVAILABLE_INSTRUMENTS.map((ins) => (
               <option key={ins.instrumentKey} value={ins.symbol}>
@@ -728,10 +749,10 @@ export const TradingMain: React.FC = () => {
           <div className="relative">
             <button
               onClick={() => toggleIndicator("VWAP")}
-              className={`px-2 py-0.5 rounded border transition-colors cursor-pointer vdl-body ${
+              className={`btn-xs ${
                 activeIndicators.includes("VWAP")
-                  ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400 font-bold"
-                  : "bg-card text-slate-400 hover:text-slate-200"
+                  ? "btn-primary"
+                  : "btn-secondary text-slate-400"
               }`}
             >
               VWAP
@@ -739,10 +760,10 @@ export const TradingMain: React.FC = () => {
           </div>
           <button
             onClick={() => toggleIndicator("EMA")}
-            className={`px-2 py-0.5 rounded border transition-colors cursor-pointer vdl-body ${
+            className={`btn-xs ${
               activeIndicators.includes("EMA")
-                ? "bg-amber-500/10 border-amber-500/30 text-amber-400 font-bold"
-                : "bg-card text-slate-400 hover:text-slate-200"
+                ? "btn-primary"
+                : "btn-secondary text-slate-400"
             }`}
           >
             EMA (9/21)
@@ -752,7 +773,7 @@ export const TradingMain: React.FC = () => {
         <div className="flex items-center gap-2">
           {/* Chart loading indicator */}
           {chartLoading && (
-            <span className="flex items-center gap-1 vdl-body text-cyan-400 font-mono animate-pulse">
+            <span className="flex items-center gap-1 vdl-body text-[var(--gold-accent)] font-mono animate-pulse">
               <RefreshCw className="w-2.5 h-2.5 animate-spin" />
               LOADING
             </span>
@@ -760,10 +781,10 @@ export const TradingMain: React.FC = () => {
           {/* Drawing Tools Toggle */}
           <button 
             onClick={() => setShowDrawMenu(!showDrawMenu)}
-            className={`p-1 rounded border transition-colors cursor-pointer ${
+            className={`btn-secondary btn-sm ${
               showDrawMenu 
-                ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400" 
-                : "bg-card text-slate-400 hover:text-slate-200"
+                ? "btn-primary" 
+                : ""
             }`}
             title="Drawing Tools"
           >
@@ -774,14 +795,10 @@ export const TradingMain: React.FC = () => {
           <button
             onClick={handlePanicExit}
             disabled={panicSubmitting}
-            className={`px-3 py-1 rounded border font-semibold vdl-body transition-all select-none cursor-pointer flex items-center gap-1.5 shadow-lg ${
-              panicSubmitting
-                ? "bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed"
-                : "bg-rose-500/10 hover:bg-rose-500 border-rose-500/20 hover:border-rose-500 text-rose-400 hover:text-slate-950 shadow-rose-500/5 hover:shadow-rose-500/20"
-            }`}
+            className="btn-destructive btn-sm flex items-center gap-1.5"
             title="Emergency Panic Exit (Cancel Orders & Square Off)"
           >
-            <AlertTriangle className="w-3.5 h-3.5 text-rose-500 hover:text-slate-950 transition-colors" />
+            <AlertTriangle className="w-3.5 h-3.5" />
             {panicSubmitting ? "SQUARING OFF..." : "PANIC EXIT"}
           </button>
         </div>
@@ -795,7 +812,7 @@ export const TradingMain: React.FC = () => {
             {["Trendline", "Fibonacci", "Crosshair", "Eraser"].map((tool, idx) => (
               <button 
                 key={idx} 
-                className="text-slate-500 hover:text-cyan-400 transition-colors p-1"
+                className="text-slate-500 hover:text-[var(--gold-accent)] transition-colors p-1"
                 title={tool}
               >
                 <Sliders className="w-3.5 h-3.5" />
@@ -829,6 +846,7 @@ const BrokerAccountPanel: React.FC = () => {
   const [lastSync, setLastSync] = useState<string>("");
   const [brokerConnected, setBrokerConnected] = useState<boolean>(false);
   const [tokenStatus, setTokenStatus] = useState<string>("UNKNOWN");
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -878,101 +896,113 @@ const BrokerAccountPanel: React.FC = () => {
   };
 
   return (
-    <div className="p-3 flex flex-col gap-2 select-none border-t border-subtle">
-      <h3 className="vdl-section text-slate-200 border-b border-subtle pb-1.5 flex items-center justify-between">
-        <span>Broker account</span>
-        <div className="flex items-center gap-1">
-          <span className={`w-1.5 h-1.5 rounded-full ${brokerConnected ? "bg-emerald-400 animate-pulse" : "bg-rose-500 animate-pulse"}`} />
-          <span className="vdl-body font-mono text-slate-500">
-            {brokerConnected ? "Connected" : "Disconnected"}
-          </span>
-        </div>
-      </h3>
-
-      <div className="grid grid-cols-2 gap-2 vdl-body bg-deep border border-subtle p-2 rounded font-sans">
-        <div className="flex flex-col gap-0.5">
-          <span className="vdl-body text-slate-500">Client name</span>
-          <span className="font-semibold text-slate-200 truncate">
-            {profile?.user_name || (loading ? "Loading..." : "N/A")}
-          </span>
-        </div>
-        <div className="flex flex-col gap-0.5">
-          <span className="vdl-body text-slate-500">Client ID</span>
-          <span className="font-semibold text-slate-200 font-mono">
-            {profile?.user_id || (loading ? "Loading..." : "N/A")}
-          </span>
-        </div>
-        <div className="flex flex-col gap-0.5">
-          <span className="vdl-body text-slate-500">Broker</span>
-          <span className="font-semibold text-slate-200">
-            {profile?.broker || "UPSTOX"}
-          </span>
-        </div>
-        <div className="flex flex-col gap-0.5">
-          <span className="vdl-body text-slate-500">Token status</span>
-          <span className={`font-semibold ${tokenStatus === "VALID" ? "text-emerald-400" : "text-rose-400 animate-pulse"}`}>
-            {tokenStatus}
-          </span>
+    <div className="flex flex-col select-none">
+      <div 
+        className="p-3 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all select-none"
+        onClick={() => setIsCollapsed(!isCollapsed)}
+      >
+        <span className="text-[12px] font-sans font-semibold text-slate-200">BROKER ACCOUNT</span>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            <span className={`w-1.5 h-1.5 rounded-full ${brokerConnected ? "bg-emerald-400 animate-pulse" : "bg-rose-500 animate-pulse"}`} />
+            <span className="vdl-body font-mono text-slate-500 text-[10px]">
+              {brokerConnected ? "Connected" : "Disconnected"}
+            </span>
+          </div>
+          <button className="text-slate-500 hover:text-text-main p-0.5 rounded hover:bg-white/5 transition-colors">
+            {isCollapsed ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
+          </button>
         </div>
       </div>
 
-      {error && (
-        <div className="p-2 bg-rose-950/40 border border-rose-500/20 text-rose-400 vdl-body rounded flex items-center gap-1.5 font-mono">
-          <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-          <span className="truncate" title={error}>{error}</span>
+      {!isCollapsed && (
+        <div className="p-3 pt-0 flex flex-col gap-2">
+          <div className="grid grid-cols-2 gap-2 vdl-body bg-deep border border-subtle p-2 rounded font-sans">
+            <div className="flex flex-col gap-0.5">
+              <span className="vdl-body text-slate-500">Client name</span>
+              <span className="font-semibold text-slate-200 truncate">
+                {profile?.user_name || (loading ? "Loading..." : "N/A")}
+              </span>
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <span className="vdl-body text-slate-500">Client ID</span>
+              <span className="font-semibold text-slate-200 font-mono">
+                {profile?.user_id || (loading ? "Loading..." : "N/A")}
+              </span>
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <span className="vdl-body text-slate-500">Broker</span>
+              <span className="font-semibold text-slate-200">
+                {profile?.broker || "UPSTOX"}
+              </span>
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <span className="vdl-body text-slate-500">Token status</span>
+              <span className={`font-semibold ${tokenStatus === "VALID" ? "text-emerald-400" : "text-rose-400 animate-pulse"}`}>
+                {tokenStatus}
+              </span>
+            </div>
+          </div>
+
+          {error && (
+            <div className="p-2 bg-rose-950/40 border border-rose-500/20 text-rose-400 vdl-body rounded flex items-center gap-1.5 font-mono">
+              <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate" title={error}>{error}</span>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-1.5 font-mono vdl-body px-1">
+            <div className="flex justify-between items-center text-slate-400 py-0.5 border-b border-subtle/50">
+              <span>Available Margin</span>
+              <span className="font-semibold text-[var(--gold-accent)]">
+                {loading && !funds ? "Syncing..." : formatCurrency(funds?.equity?.available_margin)}
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-slate-400 py-0.5 border-b border-subtle/50">
+              <span>Used Margin</span>
+              <span className="font-semibold text-slate-200">
+                {loading && !funds ? "Syncing..." : formatCurrency(funds?.equity?.used_margin)}
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-slate-400 py-0.5 border-b border-subtle/50">
+              <span>Available Funds</span>
+              <span className="font-semibold text-slate-200">
+                {loading && !funds ? "Syncing..." : formatCurrency(funds?.equity?.available_margin)}
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-slate-400 py-0.5 border-b border-subtle/50">
+              <span>Payin Amount</span>
+              <span className="font-semibold text-slate-200">
+                {loading && !funds ? "Syncing..." : formatCurrency(funds?.equity?.payin_amount)}
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-slate-400 py-0.5 border-b border-subtle/50">
+              <span>Span Margin</span>
+              <span className="font-semibold text-slate-200">
+                {loading && !funds ? "Syncing..." : formatCurrency(funds?.equity?.span_margin)}
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-slate-400 py-0.5">
+              <span>Exposure Margin</span>
+              <span className="font-semibold text-slate-200">
+                {loading && !funds ? "Syncing..." : formatCurrency(funds?.equity?.exposure_margin)}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center vdl-body text-slate-500 font-mono border-t border-subtle pt-1.5 mt-0.5">
+            <span>LAST SYNC: {lastSync || "NEVER"}</span>
+            <button 
+              onClick={fetchData} 
+              disabled={loading}
+              className="hover:text-[var(--gold-accent)] transition-colors cursor-pointer flex items-center gap-1 disabled:opacity-50"
+            >
+              <RefreshCw className={`w-2.5 h-2.5 ${loading ? "animate-spin" : ""}`} />
+              <span>FORCE REFRESH</span>
+            </button>
+          </div>
         </div>
       )}
-
-      <div className="flex flex-col gap-1.5 font-mono vdl-body px-1">
-        <div className="flex justify-between items-center text-slate-400 py-0.5 border-b border-subtle/50">
-          <span>Available Margin</span>
-          <span className="font-semibold text-cyan-400">
-            {loading && !funds ? "Syncing..." : formatCurrency(funds?.equity?.available_margin)}
-          </span>
-        </div>
-        <div className="flex justify-between items-center text-slate-400 py-0.5 border-b border-subtle/50">
-          <span>Used Margin</span>
-          <span className="font-semibold text-slate-200">
-            {loading && !funds ? "Syncing..." : formatCurrency(funds?.equity?.used_margin)}
-          </span>
-        </div>
-        <div className="flex justify-between items-center text-slate-400 py-0.5 border-b border-subtle/50">
-          <span>Available Funds</span>
-          <span className="font-semibold text-slate-200">
-            {loading && !funds ? "Syncing..." : formatCurrency(funds?.equity?.available_margin)}
-          </span>
-        </div>
-        <div className="flex justify-between items-center text-slate-400 py-0.5 border-b border-subtle/50">
-          <span>Payin Amount</span>
-          <span className="font-semibold text-slate-200">
-            {loading && !funds ? "Syncing..." : formatCurrency(funds?.equity?.payin_amount)}
-          </span>
-        </div>
-        <div className="flex justify-between items-center text-slate-400 py-0.5 border-b border-subtle/50">
-          <span>Span Margin</span>
-          <span className="font-semibold text-slate-200">
-            {loading && !funds ? "Syncing..." : formatCurrency(funds?.equity?.span_margin)}
-          </span>
-        </div>
-        <div className="flex justify-between items-center text-slate-400 py-0.5">
-          <span>Exposure Margin</span>
-          <span className="font-semibold text-slate-200">
-            {loading && !funds ? "Syncing..." : formatCurrency(funds?.equity?.exposure_margin)}
-          </span>
-        </div>
-      </div>
-
-      <div className="flex justify-between items-center vdl-body text-slate-500 font-mono border-t border-subtle pt-1.5 mt-0.5">
-        <span>LAST SYNC: {lastSync || "NEVER"}</span>
-        <button 
-          onClick={fetchData} 
-          disabled={loading}
-          className="hover:text-cyan-400 transition-colors cursor-pointer flex items-center gap-1 disabled:opacity-50"
-        >
-          <RefreshCw className={`w-2.5 h-2.5 ${loading ? "animate-spin" : ""}`} />
-          <span>FORCE REFRESH</span>
-        </button>
-      </div>
     </div>
   );
 };
@@ -985,28 +1015,42 @@ interface OptionDetails {
 }
 
 const parseInstrument = (symbol: string): OptionDetails => {
-  // Regex to match option symbols like:
-  // "NIFTY 24850 CE"
-  // "NIFTY 29AUG24 24850 CE"
-  // "BANKNIFTY 26JUN24 46700 PE"
-  const regex = /([A-Z0-9]+)\s+(?:(\d+[A-Z]+\d+|\d{2}\s+[A-Z]{3}\s+\d{2}|\d{2}[A-Z]{3}\d{2})\s+)?(\d+(?:\.\d+)?)\s+(CE|PE)/i;
-  const match = symbol.match(regex);
-  if (match) {
+  if (!symbol) return { type: "EQ" };
+  
+  // Format 2: "NIFTY 23250 CE 16 JUN 26"
+  // Let's match: [INDEX/SYMBOL] [STRIKE] [CE/PE] [EXPIRY]
+  const format2Regex = /^([A-Z0-9\s]+?)\s+(\d+(?:\.\d+)?)\s+(CE|PE)\s+(.+)$/i;
+  const match2 = symbol.match(format2Regex);
+  if (match2) {
     return {
-      expiry: match[2] || "—",
-      strike: match[3],
-      type: match[4] as "CE" | "PE",
+      type: match2[3].toUpperCase() as "CE" | "PE",
+      strike: match2[2],
+      expiry: match2[4].trim(),
     };
   }
-  
-  if (symbol.includes("CE")) {
-    return { type: "CE", expiry: "—", strike: "—" };
+
+  // Format 1: "NIFTY 26JUN24 24850 CE" or "BANKNIFTY 26JUN24 46700 PE"
+  const format1Regex = /^([A-Z0-9\s]+?)\s+([0-9A-Z\s\-]+?)\s+(\d+(?:\.\d+)?)\s+(CE|PE)$/i;
+  const match1 = symbol.match(format1Regex);
+  if (match1) {
+    return {
+      type: match1[4].toUpperCase() as "CE" | "PE",
+      expiry: match1[2].trim(),
+      strike: match1[3],
+    };
   }
-  if (symbol.includes("PE")) {
-    return { type: "PE", expiry: "—", strike: "—" };
+
+  const upperSymbol = symbol.toUpperCase();
+  if (upperSymbol.includes("CE")) {
+    const strikes = symbol.match(/\d+/g);
+    return { type: "CE", expiry: "—", strike: strikes ? strikes[0] : "—" };
+  }
+  if (upperSymbol.includes("PE")) {
+    const strikes = symbol.match(/\d+/g);
+    return { type: "PE", expiry: "—", strike: strikes ? strikes[0] : "—" };
   }
   
-  if (symbol.includes("50") || symbol.includes("BANK") || symbol.includes("MIDCP") || symbol.includes("FIN")) {
+  if (upperSymbol.includes("50") || upperSymbol.includes("BANK") || upperSymbol.includes("MIDCP") || upperSymbol.includes("FIN")) {
     return { type: "INDEX" };
   }
   
@@ -1021,6 +1065,11 @@ export const TradingRight: React.FC = () => {
   const activeMode = useTerminalStore((state) => state.activeMode);
   const currentAccount = useTerminalStore((state) => state.currentAccount);
   const addEvent = useEventStore((state) => state.addEvent);
+
+  const [pnlCollapsed, setPnlCollapsed] = useState(false);
+  const [orderCollapsed, setOrderCollapsed] = useState(false);
+  const [analyticsCollapsed, setAnalyticsCollapsed] = useState(false);
+  const [positionsCollapsed, setPositionsCollapsed] = useState(false);
 
   const [lotSize, setLotSize] = useState<number>(1);
   const [quantity, setQuantity] = useState<number>(1);
@@ -1326,508 +1375,586 @@ export const TradingRight: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full bg-transparent overflow-y-auto scrollbar-thin pr-1">
-      {/* Hero P&L Anchor */}
-      <div className="p-3 bg-deep border-b border-subtle select-none flex flex-col gap-2 shrink-0">
-        <div className="flex flex-col items-center justify-center">
-          <span className="text-[12px] font-semibold text-slate-400 font-sans">Net P&L</span>
-          <span className={`text-[42px] font-semibold font-mono tabular-nums leading-none mt-1 ${
-            totalPnL > 0 ? "text-emerald-400" : totalPnL < 0 ? "text-rose-500" : "text-slate-350"
-          }`}>
-            {totalPnL > 0 ? "+" : ""}₹{totalPnL.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </span>
+      {/* 1. Hero P&L Anchor */}
+      <div className="flex flex-col shrink-0 border-b border-subtle">
+        <div 
+          className="p-3 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all select-none"
+          onClick={() => setPnlCollapsed(!pnlCollapsed)}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-[12px] font-sans font-semibold text-slate-200">PORTFOLIO P&L</span>
+            {pnlCollapsed && (
+              <span className={`text-[12px] font-mono font-bold ml-2 ${
+                totalPnL > 0 ? "text-emerald-400" : totalPnL < 0 ? "text-rose-500" : "text-slate-400"
+              }`}>
+                {totalPnL > 0 ? "+" : ""}₹{totalPnL.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+              </span>
+            )}
+          </div>
+          <button className="text-slate-500 hover:text-text-main p-0.5 rounded hover:bg-white/5 transition-colors">
+            {pnlCollapsed ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
+          </button>
         </div>
         
-        <div className="grid grid-cols-2 gap-2 border-t border-subtle/50 pt-2 text-center">
-          <div className="flex flex-col">
-            <span className="text-[12px] text-slate-500 font-sans">Realized</span>
-            <span className={`text-[20px] font-semibold font-mono tabular-nums mt-0.5 ${
-              totalRealizedPnL > 0 ? "text-emerald-400" : totalRealizedPnL < 0 ? "text-rose-500" : "text-slate-400"
-            }`}>
-              {totalRealizedPnL > 0 ? "+" : ""}₹{totalRealizedPnL.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </span>
+        {!pnlCollapsed && (
+          <div className="p-3 bg-deep flex flex-col gap-2 border-t border-subtle/40">
+            <div className="flex flex-col items-center justify-center">
+              <span className="text-[12px] font-semibold text-slate-400 font-sans">Net P&L</span>
+              <span className={`text-[42px] font-semibold font-mono tabular-nums leading-none mt-1 ${
+                totalPnL > 0 ? "text-emerald-400" : totalPnL < 0 ? "text-rose-500" : "text-slate-350"
+              }`}>
+                {totalPnL > 0 ? "+" : ""}₹{totalPnL.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2 border-t border-subtle/50 pt-2 text-center">
+              <div className="flex flex-col">
+                <span className="text-[12px] text-slate-500 font-sans">Realized</span>
+                <span className={`text-[20px] font-semibold font-mono tabular-nums mt-0.5 ${
+                  totalRealizedPnL > 0 ? "text-emerald-400" : totalRealizedPnL < 0 ? "text-rose-500" : "text-slate-400"
+                }`}>
+                  {totalRealizedPnL > 0 ? "+" : ""}₹{totalRealizedPnL.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className="flex flex-col border-l border-subtle/50">
+                <span className="text-[12px] text-slate-500 font-sans">Unrealized</span>
+                <span className={`text-[20px] font-semibold font-mono tabular-nums mt-0.5 ${
+                  totalUnrealizedPnL > 0 ? "text-emerald-400" : totalUnrealizedPnL < 0 ? "text-rose-500" : "text-slate-400"
+                }`}>
+                  {totalUnrealizedPnL > 0 ? "+" : ""}₹{totalUnrealizedPnL.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+            </div>
           </div>
-          <div className="flex flex-col border-l border-subtle/50">
-            <span className="text-[12px] text-slate-500 font-sans">Unrealized</span>
-            <span className={`text-[20px] font-semibold font-mono tabular-nums mt-0.5 ${
-              totalUnrealizedPnL > 0 ? "text-emerald-400" : totalUnrealizedPnL < 0 ? "text-rose-500" : "text-slate-400"
-            }`}>
-              {totalUnrealizedPnL > 0 ? "+" : ""}₹{totalUnrealizedPnL.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </span>
-          </div>
-        </div>
+        )}
       </div>
 
-      {/* Order Pad Card */}
-      <div className="p-3 flex flex-col gap-1.5 shrink-0">
-        <h3 className="vdl-section text-slate-200 border-b border-subtle pb-1.5 flex items-center justify-between select-none">
-          <span>Order ticket</span>
-          <span className="vdl-body font-mono text-slate-500">{currentAccount.name}</span>
-        </h3>
-
-        {/* Selected Instrument Info with Real-time Quote Panel */}
-        <div className="flex flex-col gap-1 bg-deep border border-subtle p-2 rounded font-mono vdl-body select-none text-slate-300">
-          <div className="flex justify-between items-center">
-            <span>Contract:</span>
-            <span className="font-semibold text-cyan-400">
-              {currentInstrument ? currentInstrument.symbol : "NONE SELECTED"}
-            </span>
+      {/* 2. Order Ticket Pad */}
+      <div className="flex flex-col shrink-0 border-b border-subtle">
+        <div 
+          className="p-3 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all select-none"
+          onClick={() => setOrderCollapsed(!orderCollapsed)}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-[12px] font-sans font-semibold text-slate-200">ORDER TICKET</span>
+            {orderCollapsed && currentInstrument && (
+              <span className="vdl-body font-mono text-[var(--gold-accent)] ml-2 truncate max-w-[150px]">
+                {currentInstrument.symbol}
+              </span>
+            )}
           </div>
-          {currentInstrument && (
-            <>
-              {(() => {
-                const details = parseInstrument(currentInstrument.symbol);
-                if (details.type === "CE" || details.type === "PE") {
-                  return (
-                    <div className="grid grid-cols-3 gap-1 mt-0.5 border-t border-subtle pt-1.5 vdl-body text-slate-400">
-                      <div>
-                        <span>Type: </span>
-                        <span className={`font-semibold ${details.type === "CE" ? "text-emerald-400" : "text-rose-400"}`}>{details.type}</span>
-                      </div>
-                      <div>
-                        <span>Strike: </span>
-                        <span className="font-semibold text-slate-200">{details.strike}</span>
-                      </div>
-                      <div>
-                        <span>Expiry: </span>
-                        <span className="font-semibold text-slate-200">{details.expiry}</span>
-                      </div>
+          <div className="flex items-center gap-2">
+            <span className="vdl-body font-mono text-slate-500 text-[10px]">{currentAccount.name}</span>
+            <button className="text-slate-500 hover:text-text-main p-0.5 rounded hover:bg-white/5 transition-colors">
+              {orderCollapsed ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
+            </button>
+          </div>
+        </div>
+
+        {!orderCollapsed && (
+          <div className="p-3 flex flex-col gap-1.5 border-t border-subtle/40 bg-deep/10">
+            {/* Selected Instrument Info with Real-time Quote Panel */}
+            <div className="flex flex-col gap-1 bg-deep border border-subtle p-2 rounded font-mono vdl-body select-none text-slate-300">
+              <div className="flex justify-between items-center">
+                <span>Contract:</span>
+                <span className="font-semibold text-[var(--gold-accent)]">
+                  {currentInstrument ? currentInstrument.symbol : "NONE SELECTED"}
+                </span>
+              </div>
+              {currentInstrument && (
+                <>
+                  {(() => {
+                    const details = parseInstrument(currentInstrument.symbol);
+                    if (details.type === "CE" || details.type === "PE") {
+                      return (
+                        <div className="grid grid-cols-3 gap-1 mt-0.5 border-t border-subtle pt-1.5 vdl-body text-slate-400">
+                          <div>
+                            <span>Type: </span>
+                            <span className={`font-semibold ${details.type === "CE" ? "text-emerald-400" : "text-rose-400"}`}>{details.type}</span>
+                          </div>
+                          <div>
+                            <span>Strike: </span>
+                            <span className="font-semibold text-slate-200">{details.strike}</span>
+                          </div>
+                          <div>
+                            <span>Expiry: </span>
+                            <span className="font-semibold text-slate-200">{details.expiry}</span>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 mt-0.5 border-t border-subtle pt-1.5 vdl-body text-slate-400">
+                    <div className="flex justify-between">
+                      <span>Ltp:</span>
+                      <span className="text-slate-200 font-semibold">₹{contractPrice.toFixed(2)}</span>
                     </div>
-                  );
-                }
-                return null;
-              })()}
-              <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 mt-0.5 border-t border-subtle pt-1.5 vdl-body text-slate-400">
+                    <div className="flex justify-between">
+                      <span>Updated:</span>
+                      <span className="text-slate-500">{lastUpdated || "N/A"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Bid:</span>
+                      <span className="text-emerald-400 font-semibold">₹{bidPrice.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Ask:</span>
+                      <span className="text-rose-400 font-semibold">₹{askPrice.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Side Selector Toggle */}
+            <div className="tab-container grid grid-cols-2 select-none shrink-0">
+              <button
+                onClick={() => setSide("BUY")}
+                className={`tab-item ${side === "BUY" ? "active !text-[var(--green-neon)] !bg-[var(--green-neon)]/10 !border-[var(--green-neon)]/20" : ""}`}
+              >
+                Buy
+              </button>
+              <button
+                onClick={() => setSide("SELL")}
+                className={`tab-item ${side === "SELL" ? "active !text-[var(--red-neon)] !bg-[var(--red-neon)]/10 !border-[var(--red-neon)]/20" : ""}`}
+              >
+                Sell
+              </button>
+            </div>
+
+            {/* Action Feedbacks */}
+            {orderError && (
+              <div className="p-1.5 bg-rose-950/40 border border-rose-500/20 text-rose-400 vdl-body rounded flex items-center gap-1.5 font-sans animate-pulse">
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">{orderError}</span>
+              </div>
+            )}
+            {orderSuccess && (
+              <div className="p-1.5 bg-emerald-950/40 border border-emerald-500/20 text-emerald-400 vdl-body rounded flex items-center gap-1.5 font-sans">
+                <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
+                <span className="truncate">{orderSuccess}</span>
+              </div>
+            )}
+
+            {/* Product Type (MIS/NRML/CNC) */}
+            <div className="flex flex-col gap-0.5 select-none">
+              <span className="vdl-body text-slate-500 font-semibold">Product Type</span>
+              <div className="tab-container grid grid-cols-3">
+                {(["MIS", "NRML", "CNC"] as const).map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setProductType(type)}
+                    className={`tab-item ${productType === type ? "active" : ""}`}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Quantity (Lots / Units) */}
+            <div className="flex flex-col gap-0.5">
+              <div className="flex justify-between items-center">
+                <span className="vdl-body text-slate-500 font-semibold">Quantity</span>
+                <span className="vdl-body text-slate-500 font-mono">Lot: {lotSize}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setQuantity((q) => Math.max(lotSize, q - lotSize))}
+                  className="btn-secondary btn-xs cursor-pointer w-8"
+                >
+                  -
+                </button>
+                <input
+                  type="number"
+                  value={quantity}
+                  onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
+                  className="flex-1 bg-deep border border-subtle rounded py-0.5 text-center font-mono vdl-body text-slate-200 focus:outline-none focus:border-[var(--gold-accent)]/40 h-7"
+                />
+                <button
+                  onClick={() => setQuantity((q) => q + lotSize)}
+                  className="btn-secondary btn-xs cursor-pointer w-8"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            {/* Order Type Toggle */}
+            <div className="flex flex-col gap-0.5 select-none">
+              <span className="vdl-body text-slate-500 font-semibold">Order Type</span>
+              <div className="tab-container grid grid-cols-3">
+                {(["MARKET", "LIMIT", "SL"] as const).map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setOrderType(type)}
+                    className={`tab-item ${orderType === type ? "active" : ""}`}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Limit Price / Trigger Price */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-col gap-0.5">
+                <span className="vdl-body text-slate-500">Limit Price</span>
+                <input
+                  type="number"
+                  disabled={orderType === "MARKET"}
+                  value={limitPrice || ""}
+                  onChange={(e) => setLimitPrice(Number(e.target.value))}
+                  className="w-full bg-deep border border-subtle rounded-[var(--radius-sm)] py-0.5 px-2 font-mono text-center vdl-body text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:border-[var(--gold-accent)]/40"
+                />
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="vdl-body text-slate-500">Trigger Price</span>
+                <input
+                  type="number"
+                  value={triggerPrice || ""}
+                  onChange={(e) => setTriggerPrice(Number(e.target.value))}
+                  className="w-full bg-deep border border-subtle rounded-[var(--radius-sm)] py-0.5 px-2 font-mono text-center vdl-body text-slate-200 focus:outline-none focus:border-[var(--gold-accent)]/40"
+                />
+              </div>
+            </div>
+
+            {/* Risk Targets (Optional for SL / Target placement) */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-col gap-0.5">
                 <div className="flex justify-between">
-                  <span>Ltp:</span>
-                  <span className="text-slate-200 font-semibold">₹{contractPrice.toFixed(2)}</span>
+                  <span className="vdl-body text-slate-500 font-semibold">Stop loss</span>
+                  <span className="vdl-body text-slate-500 font-mono">Opt</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Updated:</span>
-                  <span className="text-slate-500">{lastUpdated || "N/A"}</span>
+                <input
+                  type="number"
+                  placeholder="SL Price"
+                  value={stopLoss || ""}
+                  onChange={(e) => setStopLoss(Number(e.target.value))}
+                  className="w-full bg-deep border border-subtle rounded-[var(--radius-sm)] py-0.5 px-2 font-mono text-center vdl-body text-slate-200 focus:outline-none focus:border-[var(--gold-accent)]/40"
+                />
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="vdl-body text-slate-500">Target price</span>
+                <input
+                  type="number"
+                  placeholder="Target Price"
+                  value={targetPrice || ""}
+                  onChange={(e) => setTargetPrice(Number(e.target.value))}
+                  className="w-full bg-deep border border-subtle rounded-[var(--radius-sm)] py-0.5 px-2 font-mono text-center vdl-body text-slate-200 focus:outline-none focus:border-[var(--gold-accent)]/40"
+                />
+              </div>
+            </div>
+
+            {/* Real Broker Margin HUD & Risk Estimation */}
+            <div className="flex flex-col gap-1 bg-deep border border-subtle p-2 rounded font-mono vdl-body text-slate-500 select-none">
+              <div className="flex justify-between items-center border-b border-subtle pb-1 mb-1">
+                <span>Risk status:</span>
+                <span className={`px-2 py-0.5 rounded border vdl-body transition-all ${
+                  brokerMarginReq > availableMargin
+                    ? "text-rose-500 bg-rose-500/10 border-rose-500/20 animate-pulse font-extrabold"
+                    : (availableMargin > 0 && brokerMarginReq / availableMargin > 0.5)
+                      ? "text-amber-400 bg-amber-500/10 border-amber-500/20 font-bold"
+                      : "text-emerald-400 bg-emerald-500/10 border-emerald-500/20 font-semibold"
+                }`}>
+                  {brokerMarginReq > availableMargin ? "BLOCKED" : (availableMargin > 0 && brokerMarginReq / availableMargin > 0.5) ? "WARNING" : "SAFE"}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-col gap-0.5">
+                  <span>REQUIRED MARGIN:</span>
+                  <span className="font-semibold text-slate-300">
+                    ₹{brokerMarginReq.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Bid:</span>
-                  <span className="text-emerald-400 font-semibold">₹{bidPrice.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Ask:</span>
-                  <span className="text-rose-400 font-semibold">₹{askPrice.toFixed(2)}</span>
+                <div className="flex flex-col gap-0.5">
+                  <span>AVAILABLE MARGIN:</span>
+                  <span className="font-semibold text-slate-300">
+                    ₹{availableMargin.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
                 </div>
               </div>
-            </>
-          )}
-        </div>
-
-        {/* Side Selector Toggle */}
-        <div className="tab-container grid grid-cols-2 select-none shrink-0">
-          <button
-            onClick={() => setSide("BUY")}
-            className={`tab-item ${side === "BUY" ? "active text-emerald-400 bg-emerald-500/10 font-bold" : ""}`}
-          >
-            Buy
-          </button>
-          <button
-            onClick={() => setSide("SELL")}
-            className={`tab-item ${side === "SELL" ? "active text-rose-500 bg-rose-500/10 font-bold" : ""}`}
-          >
-            Sell
-          </button>
-        </div>
-
-        {/* Action Feedbacks */}
-        {orderError && (
-          <div className="p-1.5 bg-rose-950/40 border border-rose-500/20 text-rose-400 vdl-body rounded flex items-center gap-1.5 font-sans animate-pulse">
-            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate">{orderError}</span>
-          </div>
-        )}
-        {orderSuccess && (
-          <div className="p-1.5 bg-emerald-950/40 border border-emerald-500/20 text-emerald-400 vdl-body rounded flex items-center gap-1.5 font-sans">
-            <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
-            <span className="truncate">{orderSuccess}</span>
-          </div>
-        )}
-
-        {/* Product Type (MIS/NRML/CNC) */}
-        <div className="flex flex-col gap-0.5 select-none">
-          <span className="vdl-body text-slate-500 font-semibold">Product Type</span>
-          <div className="tab-container grid grid-cols-3">
-            {(["MIS", "NRML", "CNC"] as const).map((type) => (
-              <button
-                key={type}
-                onClick={() => setProductType(type)}
-                className={`tab-item ${productType === type ? "active" : ""}`}
-              >
-                {type}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Quantity (Lots / Units) */}
-        <div className="flex flex-col gap-0.5">
-          <div className="flex justify-between items-center">
-            <span className="vdl-body text-slate-500 font-semibold">Quantity</span>
-            <span className="vdl-body text-slate-500 font-mono">Lot: {lotSize}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setQuantity((q) => Math.max(lotSize, q - lotSize))}
-              className="bg-deep border border-subtle hover:border-cyan-500/40 w-8 py-0.5 rounded text-slate-300 font-semibold hover:text-white transition-all cursor-pointer text-center vdl-body"
-            >
-              -
-            </button>
-            <input
-              type="number"
-              value={quantity}
-              onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
-              className="flex-1 bg-deep border border-subtle rounded py-0.5 text-center font-mono vdl-body text-slate-200 focus:outline-none focus:border-cyan-500/40"
-            />
-            <button
-              onClick={() => setQuantity((q) => q + lotSize)}
-              className="bg-deep border border-subtle hover:border-cyan-500/40 w-8 py-0.5 rounded text-slate-300 font-semibold hover:text-white transition-all cursor-pointer text-center vdl-body"
-            >
-              +
-            </button>
-          </div>
-        </div>
-
-        {/* Order Type Toggle */}
-        <div className="flex flex-col gap-0.5 select-none">
-          <span className="vdl-body text-slate-500 font-semibold">Order Type</span>
-          <div className="tab-container grid grid-cols-3">
-            {(["MARKET", "LIMIT", "SL"] as const).map((type) => (
-              <button
-                key={type}
-                onClick={() => setOrderType(type)}
-                className={`tab-item ${orderType === type ? "active" : ""}`}
-              >
-                {type}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Limit Price / Trigger Price */}
-        <div className="grid grid-cols-2 gap-2">
-          <div className="flex flex-col gap-0.5">
-            <span className="vdl-body text-slate-500">Limit Price</span>
-            <input
-              type="number"
-              disabled={orderType === "MARKET"}
-              value={limitPrice || ""}
-              onChange={(e) => setLimitPrice(Number(e.target.value))}
-              className="w-full bg-deep border border-subtle rounded py-0.5 px-2 font-mono text-center vdl-body text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:border-cyan-500/40"
-            />
-          </div>
-          <div className="flex flex-col gap-0.5">
-            <span className="vdl-body text-slate-500">Trigger Price</span>
-            <input
-              type="number"
-              value={triggerPrice || ""}
-              onChange={(e) => setTriggerPrice(Number(e.target.value))}
-              className="w-full bg-deep border border-subtle rounded py-0.5 px-2 font-mono text-center vdl-body text-slate-200 focus:outline-none focus:border-cyan-500/40"
-            />
-          </div>
-        </div>
-
-        {/* Risk Targets (Optional for SL / Target placement) */}
-        <div className="grid grid-cols-2 gap-2">
-          <div className="flex flex-col gap-0.5">
-            <div className="flex justify-between">
-              <span className="vdl-body text-slate-500 font-semibold">Stop loss</span>
-              <span className="vdl-body text-slate-500 font-mono">Opt</span>
-            </div>
-            <input
-              type="number"
-              placeholder="SL Price"
-              value={stopLoss || ""}
-              onChange={(e) => setStopLoss(Number(e.target.value))}
-              className="w-full bg-deep border border-subtle rounded py-0.5 px-2 font-mono text-center vdl-body text-slate-200 focus:outline-none focus:border-cyan-500/40"
-            />
-          </div>
-          <div className="flex flex-col gap-0.5">
-            <span className="vdl-body text-slate-500">Target price</span>
-            <input
-              type="number"
-              placeholder="Target Price"
-              value={targetPrice || ""}
-              onChange={(e) => setTargetPrice(Number(e.target.value))}
-              className="w-full bg-deep border border-subtle rounded py-0.5 px-2 font-mono text-center vdl-body text-slate-200 focus:outline-none focus:border-cyan-500/40"
-            />
-          </div>
-        </div>
-
-        {/* Real Broker Margin HUD & Risk Estimation */}
-        <div className="flex flex-col gap-1 bg-deep border border-subtle p-2 rounded font-mono vdl-body text-slate-500 select-none">
-          <div className="flex justify-between items-center border-b border-subtle pb-1 mb-1">
-            <span>Risk status:</span>
-            <span className={`px-2 py-0.5 rounded border vdl-body transition-all ${
-              brokerMarginReq > availableMargin
-                ? "text-rose-500 bg-rose-500/10 border-rose-500/20 animate-pulse font-extrabold"
-                : (availableMargin > 0 && brokerMarginReq / availableMargin > 0.5)
-                  ? "text-amber-400 bg-amber-500/10 border-amber-500/20 font-bold"
-                  : "text-emerald-400 bg-emerald-500/10 border-emerald-500/20 font-semibold"
-            }`}>
-              {brokerMarginReq > availableMargin ? "BLOCKED" : (availableMargin > 0 && brokerMarginReq / availableMargin > 0.5) ? "WARNING" : "SAFE"}
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="flex flex-col gap-0.5">
-              <span>REQUIRED MARGIN:</span>
-              <span className="font-semibold text-slate-300">
-                ₹{brokerMarginReq.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </span>
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <span>AVAILABLE MARGIN:</span>
-              <span className="font-semibold text-slate-300">
-                ₹{availableMargin.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </span>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-2 border-t border-subtle/50 pt-1 mt-1">
-            <div className="flex flex-col gap-0.5">
-              <span>POST-TRADE MARGIN:</span>
-              <span className="font-semibold text-slate-300">
-                ₹{(availableMargin - brokerMarginReq).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </span>
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <span>MARGIN UTILIZATION:</span>
-              <span className="font-semibold text-slate-300">
-                {(availableMargin > 0 ? (brokerMarginReq / availableMargin) * 100 : 0).toFixed(2)}%
-              </span>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-2 border-t border-subtle/50 pt-1.5 mt-1 select-none">
-            <div className="col-span-2 flex flex-col gap-1">
-              <span className="vdl-body text-slate-500 font-semibold">Risk estimation</span>
-              
-              {!hasSL ? (
-                <div className="flex flex-col gap-0.5 bg-amber-500/5 p-1.5 rounded border border-amber-500/20 font-mono vdl-body">
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">RISK ESTIMATE:</span>
-                    <span className="font-semibold text-amber-400">Undefined</span>
-                  </div>
-                  <div className="flex justify-between mt-0.5">
-                    <span className="text-slate-500">STATUS:</span>
-                    <span className="font-semibold text-amber-400 animate-pulse font-sans">Warning</span>
-                  </div>
+              <div className="grid grid-cols-2 gap-2 border-t border-subtle/50 pt-1 mt-1">
+                <div className="flex flex-col gap-0.5">
+                  <span>POST-TRADE MARGIN:</span>
+                  <span className="font-semibold text-slate-300">
+                    ₹{(availableMargin - brokerMarginReq).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
                 </div>
-              ) : (
-                <div className="flex flex-col gap-0.5 bg-card/20 border border-subtle/50 p-1.5 rounded font-mono vdl-body">
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Max loss:</span>
-                    <span className="font-semibold text-rose-400">
-                      ₹{riskAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Risk percent:</span>
-                    <span className="font-semibold text-rose-400">{riskPct.toFixed(2)}%</span>
-                  </div>
+                <div className="flex flex-col gap-0.5">
+                  <span>MARGIN UTILIZATION:</span>
+                  <span className="font-semibold text-slate-300">
+                    {(availableMargin > 0 ? (brokerMarginReq / availableMargin) * 100 : 0).toFixed(2)}%
+                  </span>
                 </div>
-              )}
+              </div>
+              <div className="grid grid-cols-2 gap-2 border-t border-subtle/50 pt-1.5 mt-1 select-none">
+                <div className="col-span-2 flex flex-col gap-1">
+                  <span className="vdl-body text-slate-500 font-semibold">Risk estimation</span>
+                  
+                  {!hasSL ? (
+                    <div className="flex flex-col gap-0.5 bg-amber-500/5 p-1.5 rounded border border-amber-500/20 font-mono vdl-body">
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">RISK ESTIMATE:</span>
+                        <span className="font-semibold text-amber-400">Undefined</span>
+                      </div>
+                      <div className="flex justify-between mt-0.5">
+                        <span className="text-slate-500">STATUS:</span>
+                        <span className="font-semibold text-amber-400 animate-pulse font-sans">Warning</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-0.5 bg-card/20 border border-subtle/50 p-1.5 rounded font-mono vdl-body">
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Max loss:</span>
+                        <span className="font-semibold text-rose-400">
+                          ₹{riskAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Risk percent:</span>
+                        <span className="font-semibold text-rose-400">{riskPct.toFixed(2)}%</span>
+                      </div>
+                    </div>
+                  )}
 
-              {hasTarget && (
-                <div className="flex flex-col gap-0.5 bg-card/20 border border-subtle/50 p-1.5 rounded font-mono vdl-body">
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Potential reward:</span>
-                    <span className="font-semibold text-emerald-400">
-                      ₹{rewardAmountVal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                  {hasSL && (
-                    <div className="flex justify-between border-t border-subtle/50 pt-0.5 mt-0.5">
-                      <span className="text-slate-500">Risk/reward ratio:</span>
-                      <span className="font-semibold text-cyan-400">1:{rrRatio}</span>
+                  {hasTarget && (
+                    <div className="flex flex-col gap-0.5 bg-card/20 border border-subtle/50 p-1.5 rounded font-mono vdl-body">
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Potential reward:</span>
+                        <span className="font-semibold text-emerald-400">
+                          ₹{rewardAmountVal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      {hasSL && (
+                        <div className="flex justify-between border-t border-subtle/50 pt-0.5 mt-0.5">
+                          <span className="text-slate-500">Risk/reward ratio:</span>
+                          <span className="font-semibold text-cyan-400">1:{rrRatio}</span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
+              </div>
+              {brokerMarginError && (
+                <span className="vdl-body text-rose-400 mt-1 font-sans animate-pulse">
+                  * {brokerMarginError}
+                </span>
               )}
             </div>
-          </div>
-          {brokerMarginError && (
-            <span className="vdl-body text-rose-400 mt-1 font-sans animate-pulse">
-              * {brokerMarginError}
-            </span>
-          )}
-        </div>
 
-        {/* Primary Action Buttons — Maximum Visual Weight */}
-        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-subtle">
-          <button
-            onClick={() => handlePlaceOrder("BUY")}
-            disabled={orderSubmitting || !currentInstrument}
-            className={`btn-buy w-full ${
-              orderSubmitting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-            }`}
-          >
-            {orderSubmitting ? "Submitting..." : "Buy"}
-          </button>
-          <button
-            onClick={() => handlePlaceOrder("SELL")}
-            disabled={orderSubmitting || !currentInstrument}
-            className={`btn-sell w-full ${
-              orderSubmitting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-            }`}
-          >
-            {orderSubmitting ? "Submitting..." : "Sell"}
-          </button>
-        </div>
+            {/* Primary Action Buttons — Maximum Visual Weight */}
+            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-subtle">
+              <button
+                onClick={() => handlePlaceOrder("BUY")}
+                disabled={orderSubmitting || !currentInstrument}
+                className={`btn-buy w-full ${
+                  orderSubmitting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                }`}
+              >
+                {orderSubmitting ? "Submitting..." : "Buy"}
+              </button>
+              <button
+                onClick={() => handlePlaceOrder("SELL")}
+                disabled={orderSubmitting || !currentInstrument}
+                className={`btn-sell w-full ${
+                  orderSubmitting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                }`}
+              >
+                {orderSubmitting ? "Submitting..." : "Sell"}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Broker Account Panel */}
-      <BrokerAccountPanel />
-
-      {/* Option Greeks & Analytics HUD */}
+      {/* 3. Option Greeks & Analytics HUD */}
       {analytics && (
-        <div className="p-3 flex flex-col gap-2 font-mono vdl-body select-none text-slate-300 border-t border-subtle">
-          <div className="text-[12px] font-sans font-semibold text-slate-200 border-b border-subtle pb-1 flex justify-between items-center">
-            <span>Option analytics</span>
-            <span className={`px-1 py-0.5 rounded vdl-body font-sans font-semibold border ${
-              analytics.domSignal === "BULLISH" ? "text-emerald-400 bg-emerald-950/40 border-emerald-700/30" :
-              analytics.domSignal === "BEARISH" ? "text-rose-400 bg-rose-950/40 border-rose-700/30" :
-              "text-slate-400 bg-card/40"
-            }`}>
-              DOM: {analytics.domSignal}
-            </span>
+        <div className="flex flex-col select-none text-slate-300 border-b border-subtle">
+          <div 
+            className="p-3 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all"
+            onClick={() => setAnalyticsCollapsed(!analyticsCollapsed)}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-[12px] font-sans font-semibold text-slate-200">OPTION ANALYTICS</span>
+              {analyticsCollapsed && (
+                <span className={`px-1 py-0.5 rounded text-[9px] font-sans font-semibold border ${
+                  analytics.domSignal === "BULLISH" ? "text-emerald-400 bg-emerald-950/40 border-emerald-700/30" :
+                  analytics.domSignal === "BEARISH" ? "text-rose-400 bg-rose-950/40 border-rose-700/30" :
+                  "text-slate-400 bg-card/40"
+                }`}>
+                  DOM: {analytics.domSignal}
+                </span>
+              )}
+            </div>
+            <button className="text-slate-500 hover:text-text-main p-0.5 rounded hover:bg-white/5 transition-colors">
+              {analyticsCollapsed ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
+            </button>
           </div>
 
-          {/* Greeks Grid */}
-          <div className="grid grid-cols-5 gap-1.5 border-b border-subtle pb-2 text-center vdl-body text-slate-400">
-            <div>
-              <div className="text-slate-500">Delta</div>
-              <div className="font-semibold text-slate-200 mt-0.5">{analytics.delta.toFixed(3)}</div>
-            </div>
-            <div>
-              <div className="text-slate-500">Gamma</div>
-              <div className="font-semibold text-slate-200 mt-0.5">{analytics.gamma.toFixed(5)}</div>
-            </div>
-            <div>
-              <div className="text-slate-500">Theta</div>
-              <div className="font-semibold text-slate-200 mt-0.5">{analytics.theta.toFixed(1)}</div>
-            </div>
-            <div>
-              <div className="text-slate-500">Vega</div>
-              <div className="font-semibold text-slate-200 mt-0.5">{analytics.vega.toFixed(3)}</div>
-            </div>
-            <div>
-              <div className="text-slate-500">Iv%</div>
-              <div className="font-semibold text-amber-400 mt-0.5">{analytics.iv.toFixed(1)}%</div>
-            </div>
-          </div>
+          {!analyticsCollapsed && (
+            <div className="p-3 flex flex-col gap-2 font-mono vdl-body border-t border-subtle/40 bg-deep/10">
+              <div className="text-[12px] font-sans font-semibold text-slate-200 border-b border-subtle pb-1 flex justify-between items-center">
+                <span>Metrics</span>
+                <span className={`px-1 py-0.5 rounded vdl-body font-sans font-semibold border ${
+                  analytics.domSignal === "BULLISH" ? "text-emerald-400 bg-emerald-950/40 border-emerald-700/30" :
+                  analytics.domSignal === "BEARISH" ? "text-rose-400 bg-rose-950/40 border-rose-700/30" :
+                  "text-slate-400 bg-card/40"
+                }`}>
+                  DOM: {analytics.domSignal}
+                </span>
+              </div>
 
-          {/* Market Data Grid */}
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 pt-0.5">
-            <div className="flex justify-between">
-              <span className="text-slate-500">OI:</span>
-              <span className="text-slate-300 font-semibold">{analytics.oi >= 1000000 ? `${(analytics.oi/1000000).toFixed(2)}M` : analytics.oi.toLocaleString("en-IN")}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">PCR:</span>
-              <span className="text-slate-300 font-semibold">{analytics.pcr.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">OI Change:</span>
-              <span className={`font-semibold ${analytics.oiChange > 0 ? "text-emerald-400" : analytics.oiChange < 0 ? "text-rose-400" : "text-slate-500"}`}>
-                {analytics.oiChange > 0 ? "+" : ""}{analytics.oiChange >= 1000000 ? `${(analytics.oiChange/1000000).toFixed(2)}M` : analytics.oiChange.toLocaleString("en-IN")}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">OI Chg %:</span>
-              <span className={`font-semibold ${analytics.oiChange > 0 ? "text-emerald-400" : analytics.oiChange < 0 ? "text-rose-400" : "text-slate-500"}`}>
-                {analytics.oiChange > 0 ? "+" : ""}{analytics.oiPct.toFixed(1)}%
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">Volume:</span>
-              <span className="text-slate-300 font-semibold">{analytics.volume >= 1000000 ? `${(analytics.volume/1000000).toFixed(2)}M` : analytics.volume.toLocaleString("en-IN")}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">Spread:</span>
-              <span className="text-amber-400 font-semibold">₹{analytics.spread.toFixed(2)} ({((analytics.spread / (analytics.ltp || 1)) * 100).toFixed(2)}%)</span>
-            </div>
-          </div>
+              {/* Greeks Grid */}
+              <div className="grid grid-cols-5 gap-1.5 border-b border-subtle pb-2 text-center vdl-body text-slate-400">
+                <div>
+                  <div className="text-slate-500">Delta</div>
+                  <div className="font-semibold text-slate-200 mt-0.5">{analytics.delta.toFixed(3)}</div>
+                </div>
+                <div>
+                  <div className="text-slate-500">Gamma</div>
+                  <div className="font-semibold text-slate-200 mt-0.5">{analytics.gamma.toFixed(5)}</div>
+                </div>
+                <div>
+                  <div className="text-slate-500">Theta</div>
+                  <div className="font-semibold text-slate-200 mt-0.5">{analytics.theta.toFixed(1)}</div>
+                </div>
+                <div>
+                  <div className="text-slate-500">Vega</div>
+                  <div className="font-semibold text-slate-200 mt-0.5">{analytics.vega.toFixed(3)}</div>
+                </div>
+                <div>
+                  <div className="text-slate-500">Iv%</div>
+                  <div className="font-semibold text-amber-400 mt-0.5">{analytics.iv.toFixed(1)}%</div>
+                </div>
+              </div>
 
-          {/* DOM Buy/Sell Ratio Progress Bar */}
-          <div className="mt-1 border-t border-subtle pt-2 flex flex-col gap-1 select-none">
-            <div className="flex justify-between vdl-body text-slate-500">
-              <span>Buy Qty (Bid): {analytics.bidQty.toLocaleString()}</span>
-              <span>Ask Qty (Ask): {analytics.askQty.toLocaleString()}</span>
+              {/* Market Data Grid */}
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 pt-0.5">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">OI:</span>
+                  <span className="text-slate-300 font-semibold">{analytics.oi >= 1000000 ? `${(analytics.oi/1000000).toFixed(2)}M` : analytics.oi.toLocaleString("en-IN")}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">PCR:</span>
+                  <span className="text-slate-300 font-semibold">{analytics.pcr.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">OI Change:</span>
+                  <span className={`font-semibold ${analytics.oiChange > 0 ? "text-emerald-400" : analytics.oiChange < 0 ? "text-rose-400" : "text-slate-500"}`}>
+                    {analytics.oiChange > 0 ? "+" : ""}{analytics.oiChange >= 1000000 ? `${(analytics.oiChange/1000000).toFixed(2)}M` : analytics.oiChange.toLocaleString("en-IN")}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">OI Chg %:</span>
+                  <span className={`font-semibold ${analytics.oiChange > 0 ? "text-emerald-400" : analytics.oiChange < 0 ? "text-rose-400" : "text-slate-500"}`}>
+                    {analytics.oiChange > 0 ? "+" : ""}{analytics.oiPct.toFixed(1)}%
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Volume:</span>
+                  <span className="text-slate-300 font-semibold">{analytics.volume >= 1000000 ? `${(analytics.volume/1000000).toFixed(2)}M` : analytics.volume.toLocaleString("en-IN")}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Spread:</span>
+                  <span className="text-amber-400 font-semibold">₹{analytics.spread.toFixed(2)} ({((analytics.spread / (analytics.ltp || 1)) * 100).toFixed(2)}%)</span>
+                </div>
+              </div>
+
+              {/* DOM Buy/Sell Ratio Progress Bar */}
+              <div className="mt-1 border-t border-subtle pt-2 flex flex-col gap-1 select-none">
+                <div className="flex justify-between vdl-body text-slate-500">
+                  <span>Buy Qty (Bid): {analytics.bidQty.toLocaleString()}</span>
+                  <span>Ask Qty (Ask): {analytics.askQty.toLocaleString()}</span>
+                </div>
+                <div className="w-full bg-rose-500/20 h-1.5 rounded overflow-hidden flex">
+                  <div 
+                    className="bg-emerald-500 h-full transition-all duration-300"
+                    style={{ width: `${(analytics.domRatio * 100).toFixed(1)}%` }}
+                  />
+                </div>
+                <div className="flex justify-between text-[7px] text-slate-600 font-mono mt-0.5">
+                  <span>{(analytics.domRatio * 100).toFixed(1)}%</span>
+                  <span>Ratio: {(analytics.bidQty / (analytics.askQty || 1)).toFixed(2)}x</span>
+                  <span>{((1 - analytics.domRatio) * 100).toFixed(1)}%</span>
+                </div>
+              </div>
             </div>
-            <div className="w-full bg-rose-500/20 h-1.5 rounded overflow-hidden flex">
-              <div 
-                className="bg-emerald-500 h-full transition-all duration-300"
-                style={{ width: `${(analytics.domRatio * 100).toFixed(1)}%` }}
-              />
-            </div>
-            <div className="flex justify-between text-[7px] text-slate-600 font-mono mt-0.5">
-              <span>{(analytics.domRatio * 100).toFixed(1)}%</span>
-              <span>Ratio: {(analytics.bidQty / (analytics.askQty || 1)).toFixed(2)}x</span>
-              <span>{((1 - analytics.domRatio) * 100).toFixed(1)}%</span>
-            </div>
-          </div>
+          )}
         </div>
       )}
 
-      {/* Mini Position Summary Panel - Sync'd to Broker Account */}
-      <div className="p-3 flex flex-col gap-2 shrink-0 select-none border-t border-subtle">
-        <span className="vdl-section text-slate-200 border-b border-subtle pb-1.5">
-          Open positions ({positions.length})
-        </span>
-        <div className="flex flex-col gap-1.5 pr-1 font-sans vdl-body">
-          {positions.length > 0 ? (
-            positions.map((pos) => {
-              const qty = Number(pos.quantity || 0);
-              return (
-                <div 
-                  key={`${pos.instrument_token}_${pos.product}`}
-                  className="p-2 rounded bg-deep border border-subtle flex flex-col gap-1 relative group"
-                >
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold text-slate-200">{pos.trading_symbol}</span>
-                    <button 
-                      onClick={() => closePosition(pos.trading_symbol)}
-                      className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-400 transition-all absolute right-2 top-2 cursor-pointer"
-                      title="Squareoff Position"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-4 vdl-body text-slate-400 font-mono">
-                    <div className="flex flex-col">
-                      <span className="vdl-body text-slate-600 font-sans">Side</span>
-                      <span className={qty > 0 ? "text-emerald-400 font-bold" : qty < 0 ? "text-rose-400 font-bold" : "text-slate-500"}>
-                        {qty > 0 ? "LONG" : qty < 0 ? "SHORT" : "CLOSED"}
-                      </span>
-                    </div>
-                    <div className="flex flex-col text-right">
-                      <span className="vdl-body text-slate-600 font-sans">Qty</span>
-                      <span>{qty}</span>
-                    </div>
-                    <div className="flex flex-col text-right">
-                      <span className="vdl-body text-slate-600 font-sans">Avg/LTP</span>
-                      <span>₹{Number(pos.average_price || pos.buy_price || 0).toFixed(1)}/₹{Number(pos.last_price || 0).toFixed(1)}</span>
-                    </div>
-                    <div className="flex flex-col text-right">
-                      <span className="vdl-body text-slate-600 font-sans">PnL</span>
-                      <span className={`font-semibold ${Number(pos.unrealised || 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                        {Number(pos.unrealised || 0) >= 0 ? "+" : ""}₹{Number(pos.unrealised || 0).toLocaleString("en-IN", { maximumFractionDigits: 1 })}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <div className="empty-state flex-1">
-              <span>No active open positions.</span>
-            </div>
-          )}
+      {/* 4. Mini Position Summary Panel */}
+      <div className="flex flex-col shrink-0 border-b border-subtle">
+        <div 
+          className="p-3 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-all select-none"
+          onClick={() => setPositionsCollapsed(!positionsCollapsed)}
+        >
+          <span className="text-[12px] font-sans font-semibold text-slate-200">OPEN POSITIONS ({positions.length})</span>
+          <button className="text-slate-500 hover:text-text-main p-0.5 rounded hover:bg-white/5 transition-colors">
+            {positionsCollapsed ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
+          </button>
         </div>
+
+        {!positionsCollapsed && (
+          <div className="p-3 pt-0 flex flex-col gap-2 font-sans vdl-body">
+            <div className="flex flex-col gap-1.5 pr-1 font-sans vdl-body">
+              {positions.length > 0 ? (
+                positions.map((pos) => {
+                  const qty = Number(pos.quantity || 0);
+                  return (
+                    <div 
+                      key={`${pos.instrument_token}_${pos.product}`}
+                      className="p-2 rounded bg-deep border border-subtle flex flex-col gap-1 relative group"
+                    >
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold text-slate-200">{pos.trading_symbol}</span>
+                        <button 
+                          onClick={() => closePosition(pos.trading_symbol)}
+                          className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-400 transition-all absolute right-2 top-2 cursor-pointer"
+                          title="Squareoff Position"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-4 vdl-body text-slate-400 font-mono">
+                        <div className="flex flex-col">
+                          <span className="vdl-body text-slate-600 font-sans">Side</span>
+                          <span className={qty > 0 ? "text-emerald-400 font-bold" : qty < 0 ? "text-rose-400 font-bold" : "text-slate-500"}>
+                            {qty > 0 ? "LONG" : qty < 0 ? "SHORT" : "CLOSED"}
+                          </span>
+                        </div>
+                        <div className="flex flex-col text-right">
+                          <span className="vdl-body text-slate-600 font-sans">Qty</span>
+                          <span>{qty}</span>
+                        </div>
+                        <div className="flex flex-col text-right">
+                          <span className="vdl-body text-slate-600 font-sans">Avg/LTP</span>
+                          <span>₹{Number(pos.average_price || pos.buy_price || 0).toFixed(1)}/₹{Number(pos.last_price || 0).toFixed(1)}</span>
+                        </div>
+                        <div className="flex flex-col text-right">
+                          <span className="vdl-body text-slate-600 font-sans">PnL</span>
+                          <span className={`font-semibold ${Number(pos.unrealised || 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                            {Number(pos.unrealised || 0) >= 0 ? "+" : ""}₹{Number(pos.unrealised || 0).toLocaleString("en-IN", { maximumFractionDigits: 1 })}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="empty-state flex-1 py-4 text-center text-slate-500">
+                  <span>No active open positions.</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* 5. Broker Account Panel - RENDERED LAST */}
+      <BrokerAccountPanel />
     </div>
   );
 };
@@ -1847,6 +1974,21 @@ const OptionChainPanel: React.FC = () => {
   const [strikesData, setStrikesData] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  const atmRowRef = useRef<HTMLTableRowElement | null>(null);
+
+  // Auto-scroll option chain table to center around the ATM strike row
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (atmRowRef.current) {
+        atmRowRef.current.scrollIntoView({
+          behavior: "auto",
+          block: "center",
+        });
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [strikesData, selectedExpiry, underlying]);
 
   // Sync option chain underlying when watchlist instrument changes
   useEffect(() => {
@@ -2057,7 +2199,7 @@ const OptionChainPanel: React.FC = () => {
             <select
               value={underlying}
               onChange={(e) => setUnderlying(e.target.value)}
-              className="bg-card border border-subtle rounded px-2 py-1 vdl-body text-slate-200 focus:outline-none focus:border-cyan-500/40 cursor-pointer font-sans"
+              className="bg-card border border-subtle rounded px-2 py-1 vdl-body text-slate-200 focus:outline-none focus:border-[var(--gold-accent)]/40 cursor-pointer font-sans"
             >
               <option value="NIFTY">NIFTY</option>
               <option value="BANKNIFTY">BANKNIFTY</option>
@@ -2075,7 +2217,7 @@ const OptionChainPanel: React.FC = () => {
             <select
               value={selectedExpiry}
               onChange={(e) => setSelectedExpiry(e.target.value)}
-              className="bg-card border border-subtle rounded px-2 py-1 vdl-body text-slate-200 focus:outline-none focus:border-cyan-500/40 cursor-pointer font-sans"
+              className="bg-card border border-subtle rounded px-2 py-1 vdl-body text-slate-200 focus:outline-none focus:border-[var(--gold-accent)]/40 cursor-pointer font-sans"
             >
               {expiries.map((exp) => (
                 <option key={exp} value={exp}>
@@ -2090,20 +2232,20 @@ const OptionChainPanel: React.FC = () => {
         <div className="flex items-center gap-4 vdl-body font-mono">
           <div className="flex items-center gap-1.5">
             <span className="vdl-body text-slate-500">Spot price:</span>
-            <span className="text-cyan-400 font-semibold">
+            <span className="text-[var(--gold-accent)] font-semibold">
               ₹{spotPrice.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </span>
           </div>
-          {loading && <span className="vdl-body text-cyan-500 animate-pulse">Syncing...</span>}
+          {loading && <span className="vdl-body text-[var(--gold-accent)] animate-pulse">Syncing...</span>}
         </div>
       </div>
 
       {/* Selected Contract Quick HUD */}
       {currentInstrument && (
-        <div className="bg-cyan-500/5 border border-cyan-500/20 px-3 py-1.5 rounded flex items-center justify-between vdl-body font-sans">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] px-3 py-1.5 rounded flex items-center justify-between vdl-body font-sans">
           <div className="flex items-center gap-2">
             <span className="text-slate-500 font-semibold vdl-body">Active target:</span>
-            <span className="font-semibold text-cyan-400 font-mono">{currentInstrument.symbol}</span>
+            <span className="font-semibold text-[var(--gold-accent)] font-mono">{currentInstrument.symbol}</span>
           </div>
           <span className="vdl-body font-mono text-slate-500">Key: {currentInstrument.symbol}</span>
         </div>
@@ -2165,7 +2307,8 @@ const OptionChainPanel: React.FC = () => {
                 return (
                   <tr
                     key={row.strike}
-                    className={`hover:bg-cyan-500/[0.06] transition-all ${isATM ? "bg-cyan-500/10 border-y border-cyan-500/30 text-cyan-100" : ""}`}
+                    ref={isATM ? atmRowRef : null}
+                    className={`hover:bg-[var(--gold-accent)]/[0.06] transition-all ${isATM ? "bg-[var(--gold-accent)]/10 border-y border-[var(--gold-accent)]/30 text-slate-100" : ""}`}
                   >
                     {/* CE: DOM Signal */}
                     <td className="py-1.5 pl-3">
@@ -2211,10 +2354,10 @@ const OptionChainPanel: React.FC = () => {
                     </td>
 
                     {/* Center Strike Axis Spine */}
-                    <td className={`py-1 text-center px-3 border-x border-subtle select-none ${isATM ? "bg-cyan-500/15" : "bg-card"}`}>
-                      <span className={`px-2 py-0.5 rounded font-mono font-semibold vdl-body tabular-nums${
+                    <td className={`py-1 text-center px-3 border-x border-subtle select-none ${isATM ? "bg-[var(--gold-accent)]/15" : "bg-card"}`}>
+                      <span className={`px-2 py-0.5 rounded font-mono font-semibold vdl-body tabular-nums ${
                         isATM 
-                          ? "bg-amber-500 text-slate-950 font-black shadow-[0_0_10px_rgba(245,158,11,0.45)]" 
+                          ? "bg-[var(--gold-accent)] text-slate-950 font-bold" 
                           : "text-slate-100"
                       }`}>
                         {row.strike}

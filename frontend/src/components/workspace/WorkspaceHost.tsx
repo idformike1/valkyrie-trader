@@ -1,4 +1,5 @@
 import React, { useRef } from "react";
+import { Maximize2, Minimize2 } from "lucide-react";
 import { useTerminalStore } from "@/store/useTerminalStore";
 import { useLayoutStore } from "@/store/useLayoutStore";
 import { getWorkspaceConfig } from "@/workspaces/registry";
@@ -73,7 +74,7 @@ export const WorkspaceHost: React.FC = () => {
   };
 
   return (
-    <div ref={containerRef} className="flex-1 flex flex-col overflow-hidden min-h-0 p-0 gap-0 select-none">
+    <div ref={containerRef} className="flex-1 flex flex-col overflow-hidden min-h-0 p-1.5 gap-0 select-none">
       {/* Top Section: Left + Main + Right Panels */}
       <div className="flex-1 flex flex-row overflow-hidden min-h-0 gap-0 relative">
         {/* Left Panel */}
@@ -105,7 +106,7 @@ export const WorkspaceHost: React.FC = () => {
         {/* Left Resize Handle (Enhanced hit area & hover visualization) */}
         {LeftPanel && !layout.leftCollapsed && (
           <div
-            className="group relative w-2 cursor-col-resize shrink-0 self-stretch flex items-center justify-center z-10"
+            className="group relative w-2 cursor-col-resize shrink-0 self-stretch flex items-center justify-center z-10 mx-[-4px]"
             onMouseDown={handleResize("left")}
           >
             <div className="absolute inset-y-0 w-[1px] bg-transparent group-hover:bg-cyan-500/60 group-active:bg-cyan-400 transition-colors" />
@@ -126,7 +127,7 @@ export const WorkspaceHost: React.FC = () => {
         {/* Right Resize Handle (Enhanced hit area & hover visualization) */}
         {RightPanel && !layout.rightCollapsed && (
           <div
-            className="group relative w-2 cursor-col-resize shrink-0 self-stretch flex items-center justify-center z-10"
+            className="group relative w-2 cursor-col-resize shrink-0 self-stretch flex items-center justify-center z-10 mx-[-4px]"
             onMouseDown={handleResize("right")}
           >
             <div className="absolute inset-y-0 w-[1px] bg-transparent group-hover:bg-cyan-500/60 group-active:bg-cyan-400 transition-colors" />
@@ -161,46 +162,65 @@ export const WorkspaceHost: React.FC = () => {
       </div>
 
       {/* Bottom Section: Bottom Panel */}
-      {BottomPanel && (
-        <>
-          {/* Bottom Resize Handle (Enhanced hit area & hover visualization) */}
-          {!layout.bottomCollapsed && (
-            <div
-              className="group relative h-2 cursor-row-resize shrink-0 w-full flex flex-col items-center justify-center z-10"
-              onMouseDown={handleResize("bottom")}
+      {BottomPanel && (() => {
+        const bottomActions = (
+          <div className="flex items-center gap-2 select-none mr-2">
+            <button
+              onClick={() => {
+                updateSize(activeWorkspaceId, "bottom", 350);
+                if (layout.bottomCollapsed) {
+                  toggleCollapse(activeWorkspaceId, "bottom");
+                }
+              }}
+              className="text-slate-500 hover:text-[var(--gold-accent)] p-1 transition-colors rounded hover:bg-white/5 cursor-pointer flex items-center justify-center border border-subtle/40"
+              title="Half Size (350px)"
             >
-              <div className="absolute inset-x-0 h-[1px] bg-transparent group-hover:bg-cyan-500/60 group-active:bg-cyan-400 transition-colors" />
-            </div>
-          )}
-
-          <div
-            style={{
-              height: layout.bottomCollapsed ? "32px" : `${layout.bottomHeight || 200}px`,
-              transition: "height 0.15s ease-out",
-            }}
-            className="shrink-0 flex flex-col min-w-0"
-          >
-            {layout.bottomCollapsed ? (
-              <div 
-                className="flex items-center justify-between px-3 py-1.5 bg-card/50 border-t border-subtle cursor-pointer hover:bg-card transition-all text-[10px] font-bold text-slate-400 uppercase select-none tracking-widest"
-                onClick={() => toggleCollapse(activeWorkspaceId, "bottom")}
-              >
-                <span>{config.name} Ledger / Telemetry</span>
-                <span className="text-[9px] text-cyan-400">CLICK TO EXPAND</span>
-              </div>
-            ) : (
-              <Panel
-                title={`${config.name} Ledger & Analytics`}
-                variant={activeWorkspaceId === "trading" ? "none" : "standard"}
-                isCollapsed={false}
-                onCollapseToggle={() => toggleCollapse(activeWorkspaceId, "bottom")}
-              >
-                <BottomPanel workspaceId={activeWorkspaceId} />
-              </Panel>
-            )}
+              <Minimize2 className="w-3.5 h-3.5" />
+            </button>
           </div>
-        </>
-      )}
+        );
+
+        return (
+          <>
+            {/* Bottom Resize Handle (Enhanced hit area & hover visualization) */}
+            {!layout.bottomCollapsed && (
+              <div
+                className="group relative h-2 cursor-row-resize shrink-0 w-full flex flex-col items-center justify-center z-10 my-[-4px]"
+                onMouseDown={handleResize("bottom")}
+              >
+                <div className="absolute inset-x-0 h-[1px] bg-transparent group-hover:bg-cyan-500/60 group-active:bg-cyan-400 transition-colors" />
+              </div>
+            )}
+
+            <div
+              style={{
+                height: layout.bottomCollapsed ? "44px" : `${layout.bottomHeight || 200}px`,
+                transition: "height 0.15s ease-out",
+              }}
+              className="shrink-0 flex flex-col min-w-0"
+            >
+              {layout.bottomCollapsed ? (
+                <div 
+                  className="panel flex items-center justify-between px-3 py-1.5 bg-card/50 border-t border-subtle cursor-pointer hover:bg-card transition-all text-[10px] font-bold text-slate-400 uppercase select-none tracking-widest"
+                  onClick={() => toggleCollapse(activeWorkspaceId, "bottom")}
+                >
+                  <span>{config.name} Ledger / Telemetry</span>
+                  <span className="text-[9px] text-[var(--gold-accent)]">CLICK TO EXPAND</span>
+                </div>
+              ) : (
+                <Panel
+                  title={`${config.name} Ledger & Analytics`}
+                  variant={activeWorkspaceId === "trading" ? "none" : "standard"}
+                  isCollapsed={false}
+                  actions={bottomActions}
+                >
+                  <BottomPanel workspaceId={activeWorkspaceId} />
+                </Panel>
+              )}
+            </div>
+          </>
+        );
+      })()}
 
       {/* Developer Context HUD */}
       <DevContextHUD />
