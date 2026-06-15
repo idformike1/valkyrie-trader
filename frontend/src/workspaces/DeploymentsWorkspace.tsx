@@ -148,21 +148,17 @@ export const DeploymentsLeft: React.FC = () => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search active clusters..."
-          className="w-full bg-card  rounded pl-8 pr-3 py-1.5 vdl-body text-slate-350 focus:outline-none focus:border-cyan-500/40"
+          className="w-full bg-card  rounded-[var(--radius-sm)] pl-8 pr-3 py-1.5 vdl-body text-slate-350 focus:outline-none focus:border-[var(--gold-accent)]/40"
         />
       </div>
 
       {/* Filter List */}
-      <div className="grid grid-cols-2 gap-1.5 shrink-0 select-none vdl-meta font-semibold">
+      <div className="tab-container grid grid-cols-5 shrink-0 select-none">
         {["All", "Running", "Paused", "Degraded", "Failed"].map((status) => (
           <button
             key={status}
             onClick={() => setActiveFilter(status)}
-            className={`py-1 rounded transition-all cursor-pointer text-center border truncate px-1${
-              activeFilter === status
-                ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400"
-                : "bg-card text-slate-500 hover:text-slate-300"
-            }`}
+            className={`tab-item ${activeFilter === status ? "active" : ""}`}
           >
             {status}
           </button>
@@ -179,7 +175,7 @@ export const DeploymentsLeft: React.FC = () => {
               onClick={() => handleSelect(item)}
               className={`p-2.5 rounded border transition-all cursor-pointer flex flex-col gap-1.5 relative${
                 isSelected
-                  ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400"
+                  ? "bg-[var(--gold-accent)]/10 border-[var(--gold-accent)]/30 text-[var(--gold-accent)]"
                   : "bg-card/40 hover:bg-card-hover/40 text-slate-300"
               }`}
             >
@@ -325,7 +321,7 @@ export const DeploymentsMain: React.FC = () => {
           <button
             onClick={() => handleAction("DEPLOY")}
             disabled={!selectedStrategy}
-            className="btn-buy disabled:opacity-30 cursor-pointer text-center"
+            className="btn-buy btn-sm cursor-pointer text-center"
           >
             Deploy
           </button>
@@ -333,7 +329,7 @@ export const DeploymentsMain: React.FC = () => {
           <button
             onClick={() => handleAction("PAUSE")}
             disabled={!selectedStrategy}
-            className="btn-secondary text-amber-500 hover:text-amber-450 disabled:opacity-30 cursor-pointer text-center"
+            className="btn-secondary btn-sm cursor-pointer text-center"
           >
             Pause
           </button>
@@ -341,7 +337,7 @@ export const DeploymentsMain: React.FC = () => {
           <button
             onClick={() => handleAction("RESUME")}
             disabled={!selectedStrategy}
-            className="btn-primary disabled:opacity-30 cursor-pointer text-center"
+            className="btn-primary btn-sm cursor-pointer text-center"
           >
             Resume
           </button>
@@ -349,7 +345,7 @@ export const DeploymentsMain: React.FC = () => {
           <button
             onClick={() => handleAction("STOP")}
             disabled={!selectedStrategy}
-            className="btn-destructive disabled:opacity-30 cursor-pointer text-center"
+            className="btn-destructive btn-sm cursor-pointer text-center"
           >
             Stop
           </button>
@@ -357,13 +353,13 @@ export const DeploymentsMain: React.FC = () => {
           <button
             onClick={() => handleAction("RESTART")}
             disabled={!selectedStrategy}
-            className="btn-secondary disabled:opacity-30 cursor-pointer text-center"
+            className="btn-secondary btn-sm cursor-pointer text-center"
           >
             Restart
           </button>
         </div>
 
-        <button className="btn-secondary cursor-pointer text-center">
+        <button className="btn-danger btn-sm cursor-pointer text-center">
           Bulk Shutdown
         </button>
       </div>
@@ -374,7 +370,7 @@ export const DeploymentsMain: React.FC = () => {
           columns={columns}
           data={clusters}
           onRowClick={handleRowSelect}
-          rowClassName={(row) => selectedStrategy?.strategyId === row.id ? "bg-cyan-500/10 text-cyan-400 font-semibold border-cyan-500/30" : ""}
+          rowClassName={(row) => selectedStrategy?.strategyId === row.id ? "bg-[var(--gold-accent)]/10 text-[var(--gold-accent)] font-semibold border-[var(--gold-accent)]/30" : ""}
         />
       </div>
     </div>
@@ -414,7 +410,7 @@ export const DeploymentsRight: React.FC = () => {
               <span className="text-slate-500 font-semibold">Risk Management Telemetry</span>
               <div className="flex justify-between">
                 <span>Margin Usage:</span>
-                <span className="text-cyan-400 font-semibold">14.2%</span>
+                <span className="text-[var(--gold-accent)] font-semibold">14.2%</span>
               </div>
               <div className="flex justify-between">
                 <span>Ping RTT latency:</span>

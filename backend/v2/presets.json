@@ -158,5 +158,39 @@
         ],
         "created_at": "2026-06-03T03:03:50.169458Z",
         "updated_at": "2026-06-03T03:03:50.169461Z"
+    },
+    {
+        "id": "preset_7e630d93",
+        "name": "Five EMA Aggressive Copy Copy",
+        "strategy_id": "five_ema",
+        "parameters": {
+            "five_ema_period": 5,
+            "five_ema_rr": 4.0,
+            "max_candles": 5,
+            "cut_off_time": "15:15"
+        },
+        "risk_management": {
+            "target_type": "percent",
+            "target_value": 4.0,
+            "stop_loss_type": "percent",
+            "stop_loss_value": 1.5,
+            "max_holding_candles": 5,
+            "cutoff_time": "15:15"
+        },
+        "strike_selection": {
+            "mode": "OTM_1"
+        },
+        "expiry_selection": {
+            "mode": "CURRENT_WEEKLY"
+        },
+        "timeframe": "1m",
+        "notes": "Aggressive scalping settings with tight exit and higher risk-reward targets.",
+        "tags": [
+            "scalping",
+            "aggressive",
+            "5ema"
+        ],
+        "created_at": "2026-06-11T02:31:23.724974Z",
+        "updated_at": "2026-06-11T02:31:23.724980Z"
     }
 ]

@@ -110,9 +110,9 @@ export const OperationsLeft: React.FC = () => {
           <button
             key={sec.name}
             onClick={() => setActiveSection(sec.name)}
-            className={`flex justify-between items-center px-2 py-1.5 rounded transition-all cursor-pointer text-left${
+            className={`flex justify-between items-center px-2 py-1.5 rounded-[var(--radius-sm)] transition-all cursor-pointer text-left${
               activeSection === sec.name
-                ? "bg-cyan-500/10 text-cyan-400 font-bold"
+                ? "bg-[var(--gold-accent)]/10 text-[var(--gold-accent)] font-bold"
                 : "text-slate-400 hover:bg-white/5"
             }`}
           >
@@ -132,7 +132,7 @@ export const OperationsLeft: React.FC = () => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search logs, correlation IDs..."
-          className="w-full bg-card  rounded pl-7 pr-2 py-1 vdl-body text-slate-300 focus:outline-none focus:border-cyan-500/40"
+          className="w-full bg-card rounded-[var(--radius-sm)] pl-7 pr-2 py-1 vdl-body text-slate-300 focus:outline-none focus:border-[var(--gold-accent)]/40"
         />
       </div>
 
@@ -145,9 +145,9 @@ export const OperationsLeft: React.FC = () => {
           <button
             key={sev}
             onClick={() => setSeverityFilter(sev)}
-            className={`flex items-center gap-2 px-2 py-1 rounded transition-all cursor-pointer text-left${
+            className={`flex items-center gap-2 px-2 py-1 rounded-[var(--radius-sm)] transition-all cursor-pointer text-left${
               severityFilter === sev
-                ? "bg-cyan-500/10 text-cyan-400 font-semibold"
+                ? "bg-[var(--gold-accent)]/10 text-[var(--gold-accent)] font-semibold"
                 : "text-slate-400 hover:bg-white/5"
             }`}
           >
@@ -155,7 +155,7 @@ export const OperationsLeft: React.FC = () => {
               sev === "SUCCESS" ? "bg-emerald-450" :
               sev === "INFO" ? "bg-slate-400" :
               sev === "WARNING" ? "bg-amber-450" :
-              sev === "ERROR" || sev === "CRITICAL" ? "bg-rose-500" : "bg-cyan-400"
+              sev === "ERROR" || sev === "CRITICAL" ? "bg-rose-500" : "bg-[var(--gold-accent)]"
             }`} />
             <span className="vdl-body">{sev}</span>
           </button>
@@ -224,7 +224,7 @@ export const OperationsMain: React.FC = () => {
         <div className="flex items-center gap-2">
           <span className="vdl-body text-slate-500 font-semibold">Log Stream Viewer</span>
           <div className="h-4 w-px bg-white/5" />
-          <span className="text-cyan-400 font-mono vdl-body font-semibold">Live streams & interfaces</span>
+          <span className="text-[var(--gold-accent)] font-mono vdl-body font-semibold">Live streams & interfaces</span>
         </div>
 
         {/* Quick Filter */}
@@ -235,7 +235,7 @@ export const OperationsMain: React.FC = () => {
             value={filterQuery}
             onChange={(e) => setFilterQuery(e.target.value)}
             placeholder="Filter message or Correlation ID..."
-            className="bg-card  rounded pl-7 pr-3 py-0.5 vdl-body text-slate-300 focus:outline-none w-56 font-mono"
+            className="bg-card rounded-[var(--radius-sm)] pl-7 pr-3 py-0.5 vdl-body text-slate-300 focus:outline-none w-56 font-mono"
           />
         </div>
       </div>
@@ -281,7 +281,7 @@ export const OperationsRight: React.FC = () => {
             <span className="text-slate-500 font-semibold">Network Telemetry</span>
             <div className="flex justify-between">
               <span>Packet Queue Size:</span>
-              <span className="text-cyan-400 font-semibold">0</span>
+              <span className="text-[var(--gold-accent)] font-semibold">0</span>
             </div>
             <div className="flex justify-between">
               <span>Average Jitter RTT:</span>
@@ -425,7 +425,7 @@ export const OperationsBottom: React.FC = () => {
     },
     {
       header: "What",
-      accessorKey: (row) => <span className="font-semibold text-cyan-400">{row.what}</span>,
+      accessorKey: (row) => <span className="font-semibold text-[var(--gold-accent)]">{row.what}</span>,
     },
     {
       header: "When",

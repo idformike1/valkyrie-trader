@@ -35,21 +35,21 @@ export const WorkspaceSidebarItem: React.FC<SidebarItemProps> = ({
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center justify-between px-3 py-2 rounded-[4px] transition-all group relative cursor-pointer font-sans text-[12px] ${
+      className={`w-full flex items-center justify-between px-3 py-1.5 rounded-[var(--radius-sm)] transition-all group relative cursor-pointer font-sans text-[11px] ${
         isActive
-          ? "bg-card-hover text-cyan-neon font-semibold border-l-2 border-cyan-neon pl-2.5"
-          : "bg-transparent text-slate-400 hover:text-main hover:bg-card-hover/40"
+          ? "bg-[var(--bg-card)] text-[var(--gold-accent)] font-semibold border-l-2 border-[var(--gold-accent)] pl-2.5"
+          : "bg-transparent text-slate-400 hover:text-[var(--text-main)] hover:bg-[var(--bg-card-hover)]/45"
       }`}
       title={isCollapsed ? label : undefined}
     >
       <div className="flex items-center gap-2.5">
         <Icon
           className={`w-3.5 h-3.5 shrink-0 transition-transform ${
-            isActive ? "scale-105 text-cyan-neon" : "group-hover:scale-102 text-slate-500"
+            isActive ? "scale-105 text-[var(--gold-accent)]" : "group-hover:scale-102 text-slate-500"
           }`}
         />
         {!isCollapsed && (
-          <span className={`tracking-normal text-left truncate ${isActive ? "text-cyan-neon font-semibold" : "text-slate-300"}`}>
+          <span className={`tracking-normal text-left truncate ${isActive ? "text-[var(--text-main)] font-semibold" : "text-slate-300"}`}>
             {label}
           </span>
         )}
@@ -57,8 +57,8 @@ export const WorkspaceSidebarItem: React.FC<SidebarItemProps> = ({
 
       {!isCollapsed && count !== undefined && count > 0 && (
         <span
-          className={`text-[10px] font-mono font-medium px-1 rounded bg-card border border-subtle ${
-            isActive ? "text-cyan-neon border-cyan-neon/20 bg-cyan-neon/5" : "text-slate-500"
+          className={`text-[10px] font-mono font-medium px-1 rounded-[var(--radius-sm)] bg-[var(--bg-card)] border border-[var(--border-subtle)] ${
+            isActive ? "text-[var(--gold-accent)] border-[var(--gold-accent)]/20 bg-[var(--gold-accent)]/5" : "text-slate-500"
           }`}
         >
           [{count}]

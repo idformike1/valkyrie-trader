@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { 
   Play, Pause, Square, Activity, Server, Zap, Shield, AlertTriangle, 
   Search, Sliders, CheckCircle2, ChevronRight, BarChart2, Cpu, 
-  Database, RefreshCw, Terminal, TrendingUp, HelpCircle, Info
+  Database, RefreshCw, Terminal, TrendingUp, HelpCircle, Info, ChevronDown
 } from "lucide-react";
 import { useTerminalStore } from "@/store/useTerminalStore";
 import { useEventStore } from "@/store/useEventStore";
@@ -16,7 +16,7 @@ import { EmptyState } from "@/design-system/EmptyState";
 import { Panel } from "@/design-system/Panel";
 import { SegmentedTabs } from "@/design-system/SegmentedTabs";
 import { FormField, FormSection } from "@/design-system/FormField";
-import { Button } from "@/components/ui/material-design-3-button";
+import { Button } from "@/components/ui/button";
 
 // Canonical panel wrapper — single implementation across all workspaces
 const WorkspacePanel: React.FC<{ title: string; children: React.ReactNode; className?: string; actions?: React.ReactNode }> = ({ title, children, className = "", actions }) => (
@@ -81,7 +81,7 @@ export const PaperLeft: React.FC = () => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Filter..."
-          className="w-full bg-card rounded pl-7 pr-2 py-1 vdl-body text-slate-350 focus:outline-none focus:border-cyan-500/40 font-medium"
+          className="w-full bg-card rounded-[var(--radius-sm)] pl-7 pr-2 py-1 vdl-body text-slate-355 focus:outline-none focus:border-[var(--gold-accent)]/40 font-medium"
         />
       </div>
 
@@ -95,9 +95,9 @@ export const PaperLeft: React.FC = () => {
             <div
               key={item.id}
               onClick={() => handleSelect(item)}
-              className={`p-2 rounded transition-all flex items-center border ${
+              className={`p-2 rounded-[var(--radius-sm)] transition-all flex items-center border ${
                 isSelected
-                  ? "bg-cyan-500/15 border-cyan-500/50 text-cyan-300 font-semibold cursor-default shadow-[inset_0_0_8px_rgba(6,182,212,0.08)]"
+                  ? "bg-[var(--gold-accent)]/15 border-[var(--gold-accent)]/50 text-[var(--gold-accent)] font-semibold cursor-default"
                   : isEngineRunning
                     ? "bg-transparent border-transparent opacity-40 cursor-not-allowed text-slate-500"
                     : "bg-transparent border-transparent hover:bg-white/[0.03] text-slate-400 hover:text-slate-200 cursor-pointer"
@@ -127,6 +127,7 @@ export const PaperMain: React.FC = () => {
   const selectedStrategy = useTerminalStore((state) => state.selectedStrategy);
   const setStrategy = useTerminalStore((state) => state.setStrategy);
   const currentAccount = useTerminalStore((state) => state.currentAccount);
+  const setAccount = useTerminalStore((state) => state.setAccount);
   const addEvent = useEventStore((state) => state.addEvent);
 
   // V2 Live paper telemetry
@@ -164,6 +165,7 @@ export const PaperMain: React.FC = () => {
 
   // Collapsible configuration state
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [showAccountDropdown, setShowAccountDropdown] = useState(false);
 
   // Session Runtime Clock logic
   const [isSessionRestored, setIsSessionRestored] = useState(false);
@@ -274,7 +276,7 @@ export const PaperMain: React.FC = () => {
     useBackendTradingStore.setState({ actionError: null });
     
     const ok = await startV2PaperSession({
-      mode: "PAPER",
+      mode: currentAccount.type.toUpperCase(),
       strategy: selectedStrategy.strategyId,
       index_name: indexName,
       strike: strike,
@@ -442,7 +444,7 @@ export const PaperMain: React.FC = () => {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowMarketClosedModal(false)}
-                className="px-4 py-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 vdl-body font-semibold transition"
+                className="btn-secondary btn-md cursor-pointer"
               >
                 Cancel
               </button>
@@ -451,7 +453,7 @@ export const PaperMain: React.FC = () => {
                   setShowMarketClosedModal(false);
                   await handleDeploy(true);
                 }}
-                className="px-4 py-2 rounded bg-cyan-600 hover:bg-cyan-500 text-white vdl-body font-semibold shadow-lg shadow-cyan-900/20 transition"
+                className="btn-primary btn-md cursor-pointer"
               >
                 Run Mock Simulator
               </button>
@@ -474,7 +476,7 @@ export const PaperMain: React.FC = () => {
       {/* Top Controls Toolbar / Command Bar */}
       <div className="flex items-center justify-between px-3 h-11 bg-card/50 border-b select-none shrink-0">
         <div className="flex items-center gap-2">
-          <span className="vdl-body font-semibold text-cyan-400 font-mono">
+          <span className="vdl-body font-semibold text-[var(--gold-accent)] font-mono">
             {selectedStrategy ? selectedStrategy.strategyName : "No strategy selected"}
           </span>
  
@@ -482,7 +484,7 @@ export const PaperMain: React.FC = () => {
           <div className="flex items-center">
             {isEngineRunning ? (
               isEnginePaused ? (
-                <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/50 vdl-body font-bold font-mono flex items-center gap-1.5 shadow-[0_0_12px_rgba(245,158,11,0.15)]">
+                <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/50 vdl-body font-bold font-mono flex items-center gap-1.5">
                   <span className="relative flex h-1.5 w-1.5">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-400"></span>
@@ -490,7 +492,7 @@ export const PaperMain: React.FC = () => {
                   Paused
                 </span>
               ) : (
-                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/50 vdl-body font-bold font-mono flex items-center gap-1.5 shadow-[0_0_15px_rgba(52,211,153,0.25)]">
+                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/50 vdl-body font-bold font-mono flex items-center gap-1.5">
                   <span className="relative flex h-1.5 w-1.5">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400"></span>
@@ -507,16 +509,76 @@ export const PaperMain: React.FC = () => {
           </div>
  
           <div className="h-4 w-px bg-white/5" />
+
+          {/* Account Selector (Environment State Tag) */}
+          <div className="relative">
+            <button
+              onClick={() => setShowAccountDropdown(!showAccountDropdown)}
+              disabled={isEngineRunning}
+              className={`h-6 flex items-center gap-1.5 px-2 bg-deep border font-mono text-[10px] font-semibold uppercase tracking-wider rounded-[var(--radius-sm)] transition-all ${
+                isEngineRunning ? "opacity-60 cursor-not-allowed border-subtle text-slate-450" : "cursor-pointer hover:bg-white/[0.02] border-subtle text-slate-355"
+              }`}
+              title={isEngineRunning ? "Cannot change mode while session is active" : "Switch Environment"}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${
+                currentAccount.type === "live" ? "bg-[var(--red-neon)] animate-pulse" : "bg-[var(--gold-accent)]"
+              }`} />
+              <span>{currentAccount.type === "live" ? "LIVE" : "PAPER"}</span>
+              {!isEngineRunning && <ChevronDown className="w-3 h-3 text-slate-500" />}
+            </button>
+
+            {showAccountDropdown && !isEngineRunning && (
+              <>
+                <div 
+                  className="fixed inset-0 z-40" 
+                  onClick={() => setShowAccountDropdown(false)}
+                />
+                <div className="absolute left-0 mt-1.5 w-36 bg-deep border border-subtle rounded-[var(--radius-sm)] shadow-lg py-1 z-50 font-mono text-[10px]">
+                  <button
+                    onClick={() => {
+                      setAccount({ id: "paper-default", name: "Paper Account", type: "paper" });
+                      setShowAccountDropdown(false);
+                    }}
+                    className={`w-full text-left px-3 py-1.5 font-semibold transition-all cursor-pointer flex items-center justify-between uppercase tracking-wider ${
+                      currentAccount.type === "paper" 
+                        ? "text-[var(--gold-accent)] bg-[var(--gold-accent)]/10" 
+                        : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.02]"
+                    }`}
+                  >
+                    <span>PAPER</span>
+                    {currentAccount.type === "paper" && <span className="w-1 h-1 rounded-full bg-[var(--gold-accent)]" />}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setAccount({ id: "live-default", name: "Live Account", type: "live" });
+                      setShowAccountDropdown(false);
+                    }}
+                    className={`w-full text-left px-3 py-1.5 font-semibold transition-all cursor-pointer flex items-center justify-between uppercase tracking-wider ${
+                      currentAccount.type === "live" 
+                        ? "text-[var(--red-neon)] bg-[var(--red-neon)]/10" 
+                        : "text-slate-405 hover:text-slate-200 hover:bg-white/[0.02]"
+                    }`}
+                  >
+                    <span className="text-[var(--red-neon)]">LIVE</span>
+                    {currentAccount.type === "live" && <span className="w-1 h-1 rounded-full bg-[var(--red-neon)]" />}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="h-4 w-px bg-white/5" />
  
-          {/* Inline Capital Input */}
-          <div className="flex items-center gap-1 vdl-body font-mono">
-            <span className="text-slate-400 font-semibold">₹</span>
+          {/* Framed Capital Input */}
+          <div className="h-6 flex items-center gap-1.5 px-2 bg-deep border border-subtle font-mono text-[10px] font-semibold rounded-[var(--radius-sm)] text-slate-300 select-none">
+            <span className="text-slate-500 uppercase tracking-wider">CAPITAL:</span>
+            <span className="text-[var(--gold-accent)]/80">₹</span>
             <input
               type="number"
               value={allocation}
               onChange={(e) => setAllocation(Number(e.target.value))}
               disabled={isEngineRunning}
-              className="bg-transparent border-none vdl-body text-slate-300 focus:outline-none font-mono w-24 py-0.5"
+              className="bg-transparent border-none text-slate-200 focus:outline-none font-mono font-bold w-16 p-0 text-[10px] leading-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </div>
         </div>
@@ -528,7 +590,7 @@ export const PaperMain: React.FC = () => {
               onClick={() => handleDeploy(false)}
               disabled={!selectedStrategy}
               variant="outline"
-              className="h-[36px] px-4 font-display text-[13px] font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:border-emerald-500/50 shadow-sm transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer gap-1"
+              className="h-7 px-3 font-display text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:border-emerald-500/50 transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer gap-1"
             >
               <Play className="w-3.5 h-3.5" />
               Deploy
@@ -539,7 +601,7 @@ export const PaperMain: React.FC = () => {
                 <Button
                   onClick={handleResume}
                   variant="outline"
-                  className="h-[36px] px-4 font-display text-[13px] font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:border-emerald-500/50 shadow-sm transition-all duration-150 cursor-pointer gap-1"
+                  className="h-7 px-3 font-display text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:border-emerald-500/50 transition-all duration-150 cursor-pointer gap-1"
                 >
                   <Play className="w-3.5 h-3.5" />
                   Resume
@@ -548,7 +610,7 @@ export const PaperMain: React.FC = () => {
                 <Button
                   onClick={handlePause}
                   variant="outline"
-                  className="h-[36px] px-4 font-display text-[13px] font-semibold bg-transparent hover:bg-white/[0.03] text-slate-400 hover:text-amber-400 border-subtle hover:border-amber-500/20 transition-all duration-150 cursor-pointer gap-1"
+                  className="h-7 px-3 font-display text-xs font-semibold bg-transparent hover:bg-white/[0.03] text-slate-400 hover:text-amber-400 border-subtle hover:border-amber-500/20 transition-all duration-150 cursor-pointer gap-1"
                 >
                   <Pause className="w-3.5 h-3.5" />
                   Pause
@@ -558,7 +620,7 @@ export const PaperMain: React.FC = () => {
               <Button
                 onClick={handleStop}
                 variant="destructive"
-                className="flex items-center gap-1 cursor-pointer"
+                className="h-7 px-3 font-display text-xs font-semibold flex items-center gap-1 cursor-pointer"
               >
                 <Square className="w-3.5 h-3.5" />
                 Stop
@@ -571,9 +633,9 @@ export const PaperMain: React.FC = () => {
               onClick={() => setIsSettingsOpen(!isSettingsOpen)}
               variant="outline"
               size="icon"
-              className={`!w-[36px] !h-[36px] cursor-pointer transition-colors ${
+              className={`!w-7 !h-7 cursor-pointer transition-colors ${
                 isSettingsOpen 
-                  ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400" 
+                  ? "bg-[var(--gold-accent)]/10 border-[var(--gold-accent)]/30 text-[var(--gold-accent)]" 
                   : "bg-bg-deep border-subtle text-slate-400 hover:text-slate-200"
               }`}
               title="Strategy Settings"
@@ -613,14 +675,14 @@ export const PaperMain: React.FC = () => {
                         </option>
                       ))}
                     </select>
-                    {presetsLoading && <span className="vdl-body text-cyan-500 animate-pulse">Loading...</span>}
+                    {presetsLoading && <span className="vdl-body text-[var(--gold-accent)] animate-pulse">Loading...</span>}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 vdl-body">
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-slate-500 font-semibold mb-0.5">Underlying index</span>
-                    <div className="flex gap-0.5 bg-bg-deep border border-subtle/40 p-0.5 rounded">
+                    <span className="text-slate-505 font-semibold mb-0.5">Underlying index</span>
+                    <div className="tab-container w-full">
                       {["NIFTY", "BANKNIFTY", "FINNIFTY"].map((idx) => {
                         const active = indexName === idx;
                         return (
@@ -629,11 +691,7 @@ export const PaperMain: React.FC = () => {
                             type="button"
                             disabled={isEngineRunning}
                             onClick={() => setIndexName(idx)}
-                            className={`flex-1 py-1 vdl-body font-semibold font-mono transition-all rounded-sm border ${
-                              active
-                                ? "bg-bg-card border-cyan-400 text-cyan-200 font-bold shadow-sm"
-                                : "bg-transparent border-transparent text-slate-500 hover:text-slate-300"
-                            }`}
+                            className={`tab-item flex-1 ${active ? "active" : ""}`}
                           >
                             {idx.replace("NIFTY", "") || "NFT"}
                           </button>
@@ -642,8 +700,8 @@ export const PaperMain: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-slate-500 font-semibold mb-0.5">Option type</span>
-                    <div className="flex gap-0.5 bg-bg-deep border border-subtle/40 p-0.5 rounded">
+                    <span className="text-slate-505 font-semibold mb-0.5">Option type</span>
+                    <div className="tab-container w-full">
                       {["DYNAMIC", "CE", "PE"].map((ot) => {
                         const active = optionType === ot;
                         return (
@@ -652,11 +710,7 @@ export const PaperMain: React.FC = () => {
                             type="button"
                             disabled={isEngineRunning}
                             onClick={() => setOptionType(ot)}
-                            className={`flex-1 py-1 vdl-body font-semibold font-mono transition-all rounded-sm border ${
-                              active
-                                ? "bg-bg-card border-cyan-400 text-cyan-200 font-bold shadow-sm"
-                                : "bg-transparent border-transparent text-slate-500 hover:text-slate-300"
-                            }`}
+                            className={`tab-item flex-1 ${active ? "active" : ""}`}
                           >
                             {ot === "DYNAMIC" ? "DYN" : ot}
                           </button>
@@ -665,12 +719,12 @@ export const PaperMain: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-slate-500 font-semibold">Strike mode</span>
+                    <span className="text-slate-505 font-semibold">Strike mode</span>
                     <select
                       value={strike}
                       onChange={(e) => setStrike(e.target.value)}
                       disabled={isEngineRunning}
-                      className="bg-card  rounded px-1.5 py-0.5 text-slate-305 font-mono focus:outline-none vdl-body"
+                      className="bg-card rounded-[var(--radius-sm)] px-1.5 py-0.5 text-slate-305 font-mono focus:outline-none vdl-body h-7 border border-subtle"
                     >
                       {["ATM", "ATM+1", "ATM+2", "ATM+3", "ATM-1", "ATM-2", "ATM-3", "OTM_1", "OTM_2", "OTM_3", "ITM_1", "ITM_2", "ITM_3"].map((stk) => (
                         <option key={stk} value={stk}>{stk.replace("_", " ")}</option>
@@ -678,8 +732,8 @@ export const PaperMain: React.FC = () => {
                     </select>
                   </div>
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-slate-500 font-semibold mb-0.5">Expiry mode</span>
-                    <div className="flex gap-0.5 bg-bg-deep border border-subtle/40 p-0.5 rounded">
+                    <span className="text-slate-505 font-semibold mb-0.5">Expiry mode</span>
+                    <div className="tab-container w-full">
                       {[
                         { label: "CUR", value: "CURRENT_WEEKLY" },
                         { label: "NXT", value: "NEXT_WEEKLY" },
@@ -692,11 +746,7 @@ export const PaperMain: React.FC = () => {
                             type="button"
                             disabled={isEngineRunning}
                             onClick={() => setExpiry(item.value)}
-                            className={`flex-1 py-1 vdl-body font-semibold font-mono transition-all rounded-sm whitespace-nowrap border ${
-                              active
-                                ? "bg-bg-card border-cyan-400 text-cyan-200 font-bold shadow-sm"
-                                : "bg-transparent border-transparent text-slate-500 hover:text-slate-300"
-                            }`}
+                            className={`tab-item flex-1 ${active ? "active" : ""}`}
                           >
                             {item.label}
                           </button>
@@ -708,8 +758,8 @@ export const PaperMain: React.FC = () => {
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 vdl-body">
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-slate-500 font-semibold mb-0.5">Timeframe</span>
-                    <div className="flex gap-0.5 bg-bg-deep border border-subtle/40 p-0.5 rounded">
+                    <span className="text-slate-505 font-semibold mb-0.5">Timeframe</span>
+                    <div className="tab-container w-full">
                       {["10s", "1m", "3m", "5m", "15m"].map((tf) => {
                         const active = timeframe === tf;
                         return (
@@ -718,11 +768,7 @@ export const PaperMain: React.FC = () => {
                             type="button"
                             disabled={isEngineRunning}
                             onClick={() => setTimeframe(tf)}
-                            className={`flex-1 py-1 vdl-body font-semibold font-mono transition-all rounded-sm border ${
-                              active
-                                ? "bg-bg-card border-cyan-400 text-cyan-200 font-bold shadow-sm"
-                                : "bg-transparent border-transparent text-slate-500 hover:text-slate-300"
-                            }`}
+                            className={`tab-item flex-1 ${active ? "active" : ""}`}
                           >
                             {tf}
                           </button>
@@ -794,13 +840,13 @@ export const PaperMain: React.FC = () => {
             <div className="grid grid-cols-12 gap-2 shrink-0">
               {/* Hero Card 1 — P&L */}
               {(totalPnl === 0 && !status?.position) ? (
-                <div className="bg-bg-deep border border-subtle rounded-lg p-3 flex flex-col justify-center min-h-[130px] select-none transition-all hover:border-cyan-500/20 col-span-5">
+                <div className="bg-bg-deep border border-subtle rounded-[var(--radius-sm)] p-3 flex flex-col justify-center min-h-[130px] select-none transition-all hover:border-[var(--gold-accent)]/20 col-span-5">
                   <span className="vdl-body text-slate-400 font-semibold mb-1">P&L</span>
                   <span className="text-3xl font-semibold font-mono text-slate-200">₹0</span>
                   <span className="vdl-body text-slate-400 font-semibold font-mono mt-1">Win Rate {winRate}%</span>
                 </div>
               ) : (
-                <div className="bg-bg-deep border border-subtle rounded-lg p-3 flex flex-col justify-center min-h-[130px] select-none transition-all hover:border-cyan-500/20 col-span-5">
+                <div className="bg-bg-deep border border-subtle rounded-[var(--radius-sm)] p-3 flex flex-col justify-center min-h-[130px] select-none transition-all hover:border-[var(--gold-accent)]/20 col-span-5">
                   <div className="flex flex-col gap-1 text-left">
                     <span className={`text-5xl md:text-6xl font-semibold font-mono leading-none${
                       (status?.position && totalPnl !== 0) 

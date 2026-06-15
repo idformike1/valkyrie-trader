@@ -15,7 +15,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 }) => {
   return (
     <div
-      className={`h-[40px] px-4 border-b border-subtle bg-deep flex items-center justify-between shrink-0 select-none ${className}`}
+      className={`toolbar px-4 border-b border-subtle bg-deep flex items-center justify-between shrink-0 select-none ${className}`}
     >
       <div className="flex items-center gap-[12px]">
         {title && (

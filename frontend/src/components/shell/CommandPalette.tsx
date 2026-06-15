@@ -212,12 +212,12 @@ export const CommandPalette: React.FC = () => {
                             onMouseEnter={() => setSelectedIndex(globalIdx)}
                             className={`w-full flex items-center justify-between px-3 py-2 rounded-md transition-all text-left text-xs relative cursor-pointer ${
                               isActive
-                                ? "bg-cyan-500/10 text-cyan-400 font-semibold"
+                                ? "bg-[var(--gold-accent)]/10 text-[var(--gold-accent)] font-semibold"
                                 : "text-slate-400 hover:text-slate-200"
                             }`}
                           >
                             <div className="flex items-center gap-3">
-                              <CmdIcon className={`w-3.5 h-3.5 ${isActive ? "text-cyan-400" : "text-slate-500"}`} />
+                              <CmdIcon className={`w-3.5 h-3.5 ${isActive ? "text-[var(--gold-accent)]" : "text-slate-500"}`} />
                               <span>{cmd.name}</span>
                             </div>
                             {cmd.shortcut && (

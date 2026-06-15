@@ -34,7 +34,7 @@ export const Panel: React.FC<PanelProps> = ({
   };
 
   const paddingClass = paddingMap[variant];
-  const borderRadiusClass = "rounded-[6px]"; // approved 6px radius for standard components
+  const borderRadiusClass = "panel"; // approved radius for standard components
 
   if (isCollapsed && onCollapseToggle) {
     return (
@@ -66,15 +66,15 @@ export const Panel: React.FC<PanelProps> = ({
 
   return (
     <div
-      className={`flex flex-col overflow-hidden transition-all duration-150 h-full bg-bg-base border border-subtle ${borderRadiusClass} ${
+      className={`flex flex-col overflow-hidden transition-all duration-150 bg-bg-base border border-subtle ${borderRadiusClass} ${
         isMaximized
           ? "fixed inset-4 z-40 bg-bg-base shadow-lg shadow-black/50"
-          : ""
+          : "h-[calc(100%-12px)] w-[calc(100%-12px)]"
       } ${className}`}
     >
       {/* Panel Header */}
       {title && (
-        <div className={`flex items-center justify-between py-1.5 bg-deep border-b border-subtle shrink-0 ${
+        <div className={`panel-header flex items-center justify-between py-1.5 bg-deep border-b border-subtle shrink-0 ${
           variant === "compact" ? "px-3" : "px-4"
         }`}>
           <h3 className="vdl-section text-main select-none">

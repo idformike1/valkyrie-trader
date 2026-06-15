@@ -839,8 +839,35 @@ class LiveFeed:
             SYSTEM_STATUS["state"] = "LIVE_MONITORING"
             SESSION_START_TIME = time.time()
             
-            # Pre-populate some dummy candles so len(candles_history) >= 3
-            base_price = 22000.0
+            # Determine dynamic spot price based on instrument key
+            underlying_key = self.instrument_key or "NSE_INDEX|Nifty 50"
+            index_name = "NIFTY"
+            if "Nifty Bank" in underlying_key or "BANKNIFTY" in underlying_key:
+                index_name = "BANKNIFTY"
+            elif "Nifty Fin" in underlying_key or "FINNIFTY" in underlying_key:
+                index_name = "FINNIFTY"
+            elif "MID SELECT" in underlying_key or "MIDCPNIFTY" in underlying_key:
+                index_name = "MIDCPNIFTY"
+            elif "SENSEX" in underlying_key:
+                index_name = "SENSEX"
+            elif "BANKEX" in underlying_key:
+                index_name = "BANKEX"
+            
+            base_price = get_index_spot_price(underlying_key)
+            if base_price <= 0.0:
+                if index_name == "BANKNIFTY":
+                    base_price = 55100.0
+                elif index_name == "FINNIFTY":
+                    base_price = 24500.0
+                elif index_name == "MIDCPNIFTY":
+                    base_price = 12000.0
+                elif index_name == "SENSEX":
+                    base_price = 76000.0
+                elif index_name == "BANKEX":
+                    base_price = 56000.0
+                else:
+                    base_price = 23215.0  # Default NIFTY
+
             now = datetime.now()
             for i in range(5):
                 ts = now - timedelta(minutes=5 - i)
@@ -1724,7 +1751,20 @@ def get_options_metadata(exchange: str = 'NSE', index: str = 'NIFTY'):
     if use_mock:
         # Provide fully-synthetic metadata centred on the current mock spot price
         from v2.resolvers import MockExpiryProvider
-        spot_price = SYSTEM_STATUS.get("spot_price", 22000.0)
+        spot_price = SYSTEM_STATUS.get("spot_price", 0.0)
+        if spot_price <= 0.0:
+            if index.upper() == "BANKNIFTY":
+                spot_price = 55100.0
+            elif index.upper() == "FINNIFTY":
+                spot_price = 24500.0
+            elif index.upper() == "MIDCPNIFTY":
+                spot_price = 12000.0
+            elif index.upper() == "SENSEX":
+                spot_price = 76000.0
+            elif index.upper() == "BANKEX":
+                spot_price = 56000.0
+            else:
+                spot_price = 23215.0  # Default NIFTY
         step = 50 if index.upper() in ["NIFTY", "MIDCPNIFTY", "FINNIFTY"] else 100
         atm_strike = round(spot_price / step) * step
         expiries = MockExpiryProvider().get_expiries(index)
@@ -1749,17 +1789,23 @@ def get_options_metadata(exchange: str = 'NSE', index: str = 'NIFTY'):
         
     sub_df['expiry_date'] = pd.to_datetime(sub_df['expiry'], unit='ms').dt.strftime('%Y-%m-%d')
     today_str = datetime.now().strftime('%Y-%m-%d')
-    sub_df = sub_df[sub_df['expiry_date'] >= today_str]
+    
+    # Check if there are active/future contracts. If none, do not filter out expired ones (robust fallback)
+    sub_df_future = sub_df[sub_df['expiry_date'] >= today_str]
+    if not sub_df_future.empty:
+        sub_df = sub_df_future
+        
     expiries = sorted(sub_df['expiry_date'].dropna().unique())
     
     spot_price = get_index_spot_price(underlying_key)
-    
+    if spot_price <= 0.0:
+        spot_price = SYSTEM_STATUS.get("spot_price", 23425.0) if index != "BANKNIFTY" else 53600.0
+        
     atm_strike = 0.0
-    if spot_price > 0:
-        step = 100
-        if index in ["NIFTY", "MIDCPNIFTY"]:
-            step = 50
-        atm_strike = round(spot_price / step) * step
+    step = 100
+    if index in ["NIFTY", "MIDCPNIFTY"]:
+        step = 50
+    atm_strike = round(spot_price / step) * step
         
     strikes = sorted([float(x) for x in sub_df['strike_price'].dropna().unique()])
     
@@ -1832,6 +1878,10 @@ def get_options_chain(expiry: str, index: str = 'NIFTY', exchange: str = 'NSE'):
                 mask = (df_csv['name'] == index) & (df_csv['expiry_date'] == expiry)
                 filtered = df_csv[mask]
                 if not filtered.empty:
+                    spot_val = get_index_spot_price(underlying_key)
+                    if spot_val <= 0.0:
+                        spot_val = SYSTEM_STATUS.get("spot_price", 23425.0) if index != "BANKNIFTY" else 53600.0
+
                     strikes_map = {}
                     for _, row in filtered.iterrows():
                         strike = float(row['strike_price'])
@@ -1839,7 +1889,7 @@ def get_options_chain(expiry: str, index: str = 'NIFTY', exchange: str = 'NSE'):
                             strikes_map[strike] = {
                                 "strike_price": strike,
                                 "pcr": 1.0,
-                                "underlying_spot_price": 53600.0 if index == "BANKNIFTY" else 23400.0,
+                                "underlying_spot_price": spot_val,
                                 "call_options": None,
                                 "put_options": None
                             }
@@ -1879,7 +1929,20 @@ def get_options_chain(expiry: str, index: str = 'NIFTY', exchange: str = 'NSE'):
             import hashlib
             import sqlite3
             from v2.cache.database import DEFAULT_CACHE_DB_PATH
-            spot_price = SYSTEM_STATUS.get("spot_price", 22000.0)
+            spot_price = SYSTEM_STATUS.get("spot_price", 0.0)
+            if spot_price <= 0.0:
+                if index.upper() == "BANKNIFTY":
+                    spot_price = 55100.0
+                elif index.upper() == "FINNIFTY":
+                    spot_price = 24500.0
+                elif index.upper() == "MIDCPNIFTY":
+                    spot_price = 12000.0
+                elif index.upper() == "SENSEX":
+                    spot_price = 76000.0
+                elif index.upper() == "BANKEX":
+                    spot_price = 56000.0
+                else:
+                    spot_price = 23215.0  # Default NIFTY
             step = 50
             if index.upper() in ["BANKNIFTY", "SENSEX", "BANKEX"]:
                 step = 100
@@ -2893,10 +2956,21 @@ def handle_unified_target_update(req_data: UnifiedTargetUpdateModel):
         underlying_key = underlying_keys_map.get(index_name, "NSE_INDEX|Nifty 50")
         spot_price = get_index_spot_price(underlying_key)
         if spot_price == 0.0:
-            strike_price = 22000.0
+            if index_name == "BANKNIFTY":
+                strike_price = 55100.0
+            elif index_name == "FINNIFTY":
+                strike_price = 24500.0
+            elif index_name == "MIDCPNIFTY":
+                strike_price = 12000.0
+            elif index_name == "SENSEX":
+                strike_price = 76000.0
+            elif index_name == "BANKEX":
+                strike_price = 56000.0
+            else:
+                strike_price = 23200.0  # Default NIFTY
         else:
             step = 100
-            if index_name in ["NIFTY", "MIDCPNIFTY"]:
+            if index_name in ["NIFTY", "MIDCPNIFTY", "FINNIFTY"]:
                 step = 50
             strike_price = round(spot_price / step) * step
     else:
@@ -3304,10 +3378,21 @@ def start_engine(req_data: StartEngineModel):
         underlying_key = underlying_keys_map.get(index_name, "NSE_INDEX|Nifty 50")
         spot_price = get_index_spot_price(underlying_key)
         if spot_price == 0.0:
-            strike_price = 22000.0
+            if index_name == "BANKNIFTY":
+                strike_price = 55100.0
+            elif index_name == "FINNIFTY":
+                strike_price = 24500.0
+            elif index_name == "MIDCPNIFTY":
+                strike_price = 12000.0
+            elif index_name == "SENSEX":
+                strike_price = 76000.0
+            elif index_name == "BANKEX":
+                strike_price = 56000.0
+            else:
+                strike_price = 23200.0  # Default NIFTY
         else:
             step = 100
-            if index_name in ["NIFTY", "MIDCPNIFTY"]:
+            if index_name in ["NIFTY", "MIDCPNIFTY", "FINNIFTY"]:
                 step = 50
             strike_price = round(spot_price / step) * step
     else:
@@ -3338,10 +3423,21 @@ def start_engine(req_data: StartEngineModel):
             underlying_key = underlying_keys_map.get(index_name, "NSE_INDEX|Nifty 50")
             spot_price = get_index_spot_price(underlying_key)
             if spot_price == 0.0:
-                scalper_strike_price = 22000.0
+                if index_name == "BANKNIFTY":
+                    scalper_strike_price = 55100.0
+                elif index_name == "FINNIFTY":
+                    scalper_strike_price = 24500.0
+                elif index_name == "MIDCPNIFTY":
+                    scalper_strike_price = 12000.0
+                elif index_name == "SENSEX":
+                    scalper_strike_price = 76000.0
+                elif index_name == "BANKEX":
+                    scalper_strike_price = 56000.0
+                else:
+                    scalper_strike_price = 23200.0  # Default NIFTY
             else:
                 step = 100
-                if index_name in ["NIFTY", "MIDCPNIFTY"]:
+                if index_name in ["NIFTY", "MIDCPNIFTY", "FINNIFTY"]:
                     step = 50
                 scalper_strike_price = round(spot_price / step) * step
         else:

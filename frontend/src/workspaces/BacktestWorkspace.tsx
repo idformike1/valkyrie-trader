@@ -1818,13 +1818,13 @@ export const BacktestBottom: React.FC = () => {
             <div className="flex items-center justify-between border-b pb-2 mb-3.5 select-none">
               <div className="flex items-center gap-2">
                 <span className="relative flex h-2 w-2">
-                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75${isPlaying ? "bg-amber-400" : "bg-cyan-400"}`}></span>
-                  <span className={`relative inline-flex rounded-full h-2 w-2${isPlaying ? "bg-amber-500" : "bg-cyan-500"}`}></span>
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isPlaying ? "bg-amber-400" : "bg-[var(--gold-accent)]"}`}></span>
+                  <span className={`relative inline-flex rounded-full h-2 w-2 ${isPlaying ? "bg-amber-500" : "bg-[var(--gold-accent)]"}`}></span>
                 </span>
                 <span className="font-mono vdl-body font-semibold text-slate-200">
                   Trade Forensic Replay Cockpit
                 </span>
-                <span className="px-2 py-0.5 rounded vdl-body font-mono font-semibold bg-card  text-cyan-400 select-text">
+                <span className="px-2 py-0.5 rounded vdl-body font-mono font-semibold bg-card text-[var(--gold-accent)] select-text">
                   {replayTrade.contract}
                 </span>
               </div>
@@ -1834,7 +1834,7 @@ export const BacktestBottom: React.FC = () => {
                   setIsPlaying(false);
                   setIsReplayMode(false);
                 }}
-                className="px-2.5 py-1 bg-rose-950/30 hover:bg-rose-900/40 text-rose-400 font-semibold vdl-body rounded border border-rose-800/30 transition-all cursor-pointer"
+                className="btn-destructive btn-xs"
               >
                 Exit Replay
               </button>
@@ -1855,7 +1855,7 @@ export const BacktestBottom: React.FC = () => {
                         setIsPlaying(false);
                         if (totalSteps > 0) setReplayCurrentTime(replayTimeline[0]);
                       }}
-                      className="p-2 bg-card  hover:border-subtle active:bg-card rounded text-slate-300 hover:text-white transition-all cursor-pointer"
+                      className="btn-secondary btn-sm"
                       title="Restart Replay"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
@@ -1867,7 +1867,7 @@ export const BacktestBottom: React.FC = () => {
                         const idx = replayTimeline.indexOf(replayCurrentTime || 0);
                         if (idx > 0) setReplayCurrentTime(replayTimeline[idx - 1]);
                       }}
-                      className="p-2 bg-card  hover:border-subtle active:bg-card rounded text-slate-300 hover:text-white transition-all cursor-pointer"
+                      className="btn-secondary btn-sm"
                       title="Previous Candle"
                     >
                       <ChevronLeft className="w-3.5 h-3.5" />
@@ -1875,9 +1875,7 @@ export const BacktestBottom: React.FC = () => {
 
                     <button
                       onClick={() => setIsPlaying(!isPlaying)}
-                      className={`px-4 py-2 rounded text-slate-950 font-semibold flex items-center gap-1.5 transition-all cursor-pointer${
-                        isPlaying ? "bg-amber-400 hover:bg-amber-300" : "bg-cyan-400 hover:bg-cyan-300"
-                      }`}
+                      className="btn-primary btn-sm flex items-center gap-1.5"
                       title={isPlaying ? "Pause Playback" : "Start Playback"}
                     >
                       {isPlaying ? (
@@ -1899,7 +1897,7 @@ export const BacktestBottom: React.FC = () => {
                         const idx = replayTimeline.indexOf(replayCurrentTime || 0);
                         if (idx < totalSteps - 1) setReplayCurrentTime(replayTimeline[idx + 1]);
                       }}
-                      className="p-2 bg-card  hover:border-subtle active:bg-card rounded text-slate-300 hover:text-white transition-all cursor-pointer"
+                      className="btn-secondary btn-sm"
                       title="Next Candle"
                     >
                       <ChevronRight className="w-3.5 h-3.5" />
@@ -1908,15 +1906,13 @@ export const BacktestBottom: React.FC = () => {
 
                   {/* Playback Speed Deck */}
                   <span className="vdl-body text-slate-500 font-semibold block mb-1.5">Speed multiplier</span>
-                  <div className="flex gap-1.5 mb-4">
+                  <div className="tab-container mb-4">
                     {([1, 2, 5, 10] as const).map((speed) => (
                       <button
                         key={speed}
                         onClick={() => setPlaySpeed(speed)}
-                        className={`px-3 py-1 font-mono vdl-body font-semibold rounded border transition-all cursor-pointer${
-                          playSpeed === speed 
-                            ? "bg-cyan-950 text-cyan-400 border-cyan-500/30" 
-                            : "bg-card text-slate-500 hover:text-slate-300 hover:border-subtle"
+                        className={`tab-item ${
+                          playSpeed === speed ? "active" : ""
                         }`}
                       >
                         {speed}x
@@ -1935,7 +1931,7 @@ export const BacktestBottom: React.FC = () => {
                   </div>
                   <div className="w-full h-1.5 bg-card rounded-full overflow-hidden ">
                     <div 
-                      className="h-full bg-cyan-400 rounded-full transition-all duration-150"
+                      className="h-full bg-[var(--gold-accent)] rounded-full transition-all duration-150"
                       style={{ width: `${totalSteps > 0 ? ((currentIndex + 1) / totalSteps) * 100 : 0}%` }}
                     />
                   </div>

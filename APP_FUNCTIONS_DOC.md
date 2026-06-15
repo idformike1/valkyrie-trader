@@ -3260,8 +3260,8 @@
 - [frontend/src/components/shell/EventBar.tsx](#frontendsrccomponentsshelleventbartsx)
 - [frontend/src/components/shell/Header.tsx](#frontendsrccomponentsshellheadertsx)
 - [frontend/src/components/shell/Sidebar.tsx](#frontendsrccomponentsshellsidebartsx)
+- [frontend/src/components/ui/button.tsx](#frontendsrccomponentsuibuttontsx)
 - [frontend/src/components/ui/demo.tsx](#frontendsrccomponentsuidemotsx)
-- [frontend/src/components/ui/material-design-3-button.tsx](#frontendsrccomponentsuimaterial-design-3-buttontsx)
 - [frontend/src/components/workspace/WorkspaceHost.tsx](#frontendsrccomponentsworkspaceworkspacehosttsx)
 - [frontend/src/design-system/DataTable.tsx](#frontendsrcdesign-systemdatatabletsx)
 - [frontend/src/design-system/EmptyState.tsx](#frontendsrcdesign-systememptystatetsx)
@@ -465720,6 +465720,12 @@ No description provided.
 
 ---
 
+## frontend/src/components/ui/button.tsx
+*TypeScript/JavaScript Source Component*
+
+
+---
+
 ## frontend/src/components/ui/demo.tsx
 *TypeScript/JavaScript Source Component*
 
@@ -465733,105 +465739,6 @@ No description provided.
 
 #### `M3ExpressiveDemo` (React Component)
 - **Signature**: `export default function M3ExpressiveDemo() `
-- **Description**:
-```text
-No description provided.
-```
-
-
-
----
-
-## frontend/src/components/ui/material-design-3-button.tsx
-*TypeScript/JavaScript Source Component*
-
-### Functions & Endpoints
-#### `playTactilePopSound` (Function)
-- **Signature**: `const playTactilePopSound = () => `
-- **Description**:
-```text
---- 2. DYNAMIC AUDIO GENERATOR (For XL/2XL Buttons) ---
-```
-
-#### `useMaterialRipple` (React Hook)
-- **Signature**: `const useMaterialRipple = (disabled = false) => `
-- **Description**:
-```text
---- 4. MATERIAL RIPPLE HOOK ---
-```
-
-#### `isTouch` (Function)
-- **Signature**: `const isTouch = (event: React.PointerEvent) => event.pointerType === "touch"`
-- **Description**:
-```text
-No description provided.
-```
-
-#### `shouldReactToEvent` (Function)
-- **Signature**: `const shouldReactToEvent = (event: React.PointerEvent) => `
-- **Description**:
-```text
-No description provided.
-```
-
-#### `determineRippleSize` (Function)
-- **Signature**: `const determineRippleSize = () => `
-- **Description**:
-```text
-No description provided.
-```
-
-#### `getTranslationCoordinates` (Function)
-- **Signature**: `const getTranslationCoordinates = (event?: React.PointerEvent) => `
-- **Description**:
-```text
-No description provided.
-```
-
-#### `startPressAnimation` (Function)
-- **Signature**: `const startPressAnimation = (event?: React.PointerEvent) => `
-- **Description**:
-```text
-No description provided.
-```
-
-#### `endPressAnimation` (Function)
-- **Signature**: `const endPressAnimation = async () => `
-- **Description**:
-```text
-No description provided.
-```
-
-#### `handlePointerDown` (Function)
-- **Signature**: `const handlePointerDown = async (event: React.PointerEvent) => `
-- **Description**:
-```text
-No description provided.
-```
-
-#### `handlePointerUp` (Function)
-- **Signature**: `const handlePointerUp = (event: React.PointerEvent) => `
-- **Description**:
-```text
-No description provided.
-```
-
-#### `handlePointerEnter` (Function)
-- **Signature**: `const handlePointerEnter = (event: React.PointerEvent) => `
-- **Description**:
-```text
-No description provided.
-```
-
-#### `handlePointerLeave` (Function)
-- **Signature**: `const handlePointerLeave = (event: React.PointerEvent) => `
-- **Description**:
-```text
-No description provided.
-```
-
-#### `handleClick` (Function)
-- **Signature**: `const handleClick = () => `
 - **Description**:
 ```text
 No description provided.
@@ -467269,6 +467176,13 @@ OPTION CONTRACT SELECTOR & CHAIN PANEL
 - **Description**:
 ```text
 No description provided.
+```
+
+#### `timer` (Function)
+- **Signature**: `const timer = setTimeout(() => `
+- **Description**:
+```text
+Auto-scroll option chain table to center around the ATM strike row
 ```
 
 #### `fetchMetadata` (Function)

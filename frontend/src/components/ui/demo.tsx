@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, SplitButton } from "@/components/ui/material-design-3-button";
+import { Button, SplitButton } from "@/components/ui/button";
 import { Plus, ChevronDown, Send, MoreVertical, LayoutGrid, Volume2 } from "lucide-react";
 
 const VARIANTS = ["default", "secondary", "elevated", "outline", "ghost", "destructive"] as const;

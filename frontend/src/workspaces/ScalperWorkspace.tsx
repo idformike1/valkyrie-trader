@@ -390,8 +390,8 @@ export const ScalperMain: React.FC = () => {
       <div className="flex-1 p-2 flex flex-col justify-between overflow-hidden relative">
         <div className="flex justify-between items-center vdl-body font-semibold text-slate-400 border-b pb-1">
           <div className="flex items-center gap-1.5">
-            <Radio className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-            <span className="text-cyan-400">Tick chart (40 ticks)</span>
+            <Radio className="w-3.5 h-3.5 text-[var(--gold-accent)] animate-pulse" />
+            <span className="text-[var(--gold-accent)]">Tick chart (40 ticks)</span>
           </div>
           <span className="font-mono">Ltp: ₹{ltp.toFixed(2)}</span>
         </div>
@@ -399,7 +399,7 @@ export const ScalperMain: React.FC = () => {
         {/* SVG Drawing for Tick Lines */}
         <div className="flex-1 min-h-[140px] relative mt-2">
           {ticks.length > 1 && (
-            <svg viewBox="0 0 480 200" className="w-full h-full text-cyan-400 overflow-visible">
+            <svg viewBox="0 0 480 200" className="w-full h-full text-[var(--gold-accent)] overflow-visible">
               {/* Tick price line */}
               <polyline
                 fill="none"
@@ -456,7 +456,7 @@ export const ScalperMain: React.FC = () => {
           {/* Value tags on the right */}
           {trade.side !== "FLAT" && (
             <div className="absolute right-1 top-0 bottom-0 flex flex-col justify-between font-mono vdl-body pointer-events-none">
-              {trade.targetPrice > 0 && <span className="text-cyan-400 bg-cyan-950/80 px-1 border border-cyan-800 rounded">TGT: {trade.targetPrice.toFixed(1)}</span>}
+              {trade.targetPrice > 0 && <span className="text-[var(--gold-accent)] bg-[var(--bg-card)] px-1 border border-[var(--border-subtle)] rounded-[var(--radius-sm)]">TGT: {trade.targetPrice.toFixed(1)}</span>}
               {trade.avgEntry > 0 && <span className="text-emerald-400 bg-emerald-950/80 px-1 border border-emerald-800 rounded">AVG: {trade.avgEntry.toFixed(1)}</span>}
               {trade.stopPrice > 0 && <span className="text-rose-400 bg-rose-950/80 px-1 border border-rose-800 rounded">SL: {trade.stopPrice.toFixed(1)}</span>}
             </div>
@@ -471,16 +471,16 @@ export const ScalperMain: React.FC = () => {
         <div className="col-span-8 p-2 flex flex-col justify-between">
           <div className="flex justify-between items-center vdl-body font-semibold text-slate-500">
             <span>Scalping order pad</span>
-            <span className="text-cyan-400 font-semibold">Qty: {activeLots} lot(s)</span>
+            <span className="text-[var(--gold-accent)] font-semibold">Qty: {activeLots} lot(s)</span>
           </div>
 
           {/* Lot Toggles */}
-          <div className="tab-container grid grid-cols-4 select-none font-mono">
+          <div className="tab-container grid grid-cols-4 select-none">
             {[1, 2, 5, 10].map((lots) => (
               <button
                 key={lots}
                 onClick={() => setActiveLots(lots)}
-                className={`tab-item${activeLots === lots ? "active" : ""}`}
+                className={`tab-item ${activeLots === lots ? "active" : ""}`}
               >
                 {lots} L
               </button>
@@ -508,20 +508,20 @@ export const ScalperMain: React.FC = () => {
             <button 
               onClick={handleReverse}
               disabled={trade.side === "FLAT"}
-              className="btn-secondary text-amber-500 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-center"
+              className="btn-secondary cursor-pointer text-center"
             >
               Reverse
             </button>
             <button 
               onClick={handleFlatten}
               disabled={trade.side === "FLAT"}
-              className="btn-secondary text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-center"
+              className="btn-secondary cursor-pointer text-center"
             >
               Flatten
             </button>
             <button 
               onClick={handleCancel}
-              className="btn-secondary text-rose-500 cursor-pointer text-center"
+              className="btn-danger cursor-pointer text-center"
             >
               Cancel
             </button>
@@ -668,7 +668,7 @@ export const ScalperRight: React.FC = () => {
               <div 
                 key={idx} 
                 className={`grid grid-cols-4 py-0.5 items-center text-center relative rounded${
-                  isMid ? "bg-cyan-500/10 font-bold border border-cyan-500/20" : ""
+                  isMid ? "bg-[var(--gold-accent)]/10 font-bold border border-[var(--gold-accent)]/20" : ""
                 }`}
               >
                 {/* Bid Visual Liquidity Bar */}
@@ -690,8 +690,8 @@ export const ScalperRight: React.FC = () => {
                 <span className="text-emerald-400 text-left pl-2 z-10 font-semibold font-mono section">{row.bid || ""}</span>
                 
                 {/* Price columns */}
-                <span className={`col-span-2 text-center font-semibold font-mono section z-10${
-                  row.bid ? "text-emerald-500" : row.ask ? "text-rose-500" : "text-cyan-400"
+                <span className={`col-span-2 text-center font-semibold font-mono section z-10 ${
+                  row.bid ? "text-emerald-500" : row.ask ? "text-rose-500" : "text-[var(--gold-accent)]"
                 }`}>
                   ₹{row.price.toFixed(2)}
                 </span>
@@ -812,7 +812,7 @@ export const ScalperBottom: React.FC = () => {
     {
       header: "Reward (Tgt)",
       accessorKey: () => `₹${reward.toFixed(2)}`,
-      className: "text-right text-cyan-400 font-mono tabular-nums",
+      className: "text-right text-[var(--gold-accent)] font-mono tabular-nums",
     },
     {
       header: "R:R Ratio",
@@ -834,7 +834,7 @@ export const ScalperBottom: React.FC = () => {
       accessorKey: () => (
         <button
           onClick={handleClosePos}
-          className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded px-2 py-0.5 font-semibold font-sans text-xs cursor-pointer"
+          className="btn-danger btn-xs cursor-pointer"
         >
           Close
         </button>

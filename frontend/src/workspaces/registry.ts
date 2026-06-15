@@ -71,18 +71,6 @@ export const WORKSPACE_REGISTRY: Record<string, WorkspaceConfig> = {
       bottom: BacktestBottom
     }
   },
-  paper: {
-    id: "paper",
-    name: "Paper Trading",
-    description: "Deploy options strategies on real-time paper accounts",
-    icon: "Layers",
-    panels: {
-      left: PaperLeft,
-      main: PaperMain,
-      right: PaperRight,
-      bottom: PaperBottom
-    }
-  },
   deployments: {
     id: "deployments",
     name: "Deployments",
@@ -93,6 +81,18 @@ export const WORKSPACE_REGISTRY: Record<string, WorkspaceConfig> = {
       main: DeploymentsMain,
       right: DeploymentsRight,
       bottom: DeploymentsBottom
+    }
+  },
+  paper: {
+    id: "paper",
+    name: "Paper Trading",
+    description: "Deploy options strategies on real-time paper accounts",
+    icon: "Layers",
+    panels: {
+      left: PaperLeft,
+      main: PaperMain,
+      right: PaperRight,
+      bottom: PaperBottom
     }
   },
   operations: {

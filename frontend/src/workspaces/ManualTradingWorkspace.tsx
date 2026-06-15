@@ -1063,7 +1063,6 @@ const parseInstrument = (symbol: string): OptionDetails => {
 export const TradingRight: React.FC = () => {
   const currentInstrument = useTerminalStore((state) => state.selectedInstrument);
   const activeMode = useTerminalStore((state) => state.activeMode);
-  const currentAccount = useTerminalStore((state) => state.currentAccount);
   const addEvent = useEventStore((state) => state.addEvent);
 
   const [pnlCollapsed, setPnlCollapsed] = useState(false);
@@ -1445,7 +1444,7 @@ export const TradingRight: React.FC = () => {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <span className="vdl-body font-mono text-slate-500 text-[10px]">{currentAccount.name}</span>
+            <span className="vdl-body font-mono text-slate-500 text-[10px]">Live Account</span>
             <button className="text-slate-500 hover:text-text-main p-0.5 rounded hover:bg-white/5 transition-colors">
               {orderCollapsed ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
             </button>
