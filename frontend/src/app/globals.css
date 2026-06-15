@@ -1103,5 +1103,16 @@ tr:hover {
   --color-cyan-950: #1A1004;
 }
 
+/* Custom class to override global input styling (e.g. for small inline inputs) */
+.input-unstyled-override {
+  height: auto !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+
 
 

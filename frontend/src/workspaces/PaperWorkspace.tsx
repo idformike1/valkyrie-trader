@@ -578,7 +578,7 @@ export const PaperMain: React.FC = () => {
               value={allocation}
               onChange={(e) => setAllocation(Number(e.target.value))}
               disabled={isEngineRunning}
-              className="bg-transparent border-none text-slate-200 focus:outline-none font-mono font-bold w-16 p-0 text-[10px] leading-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              className="input-unstyled-override bg-transparent border-none text-slate-200 focus:outline-none font-mono font-bold w-16 p-0 text-[10px] leading-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </div>
         </div>
