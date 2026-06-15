@@ -383,7 +383,7 @@ export const PaperMain: React.FC = () => {
         const side = row.type;
         const isBuy = side === "BUY";
         return (
-          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-sans font-semibold border ${
+          <span className={`inline-flex items-center px-1.5 py-0.5 rounded-sm text-[11px] font-sans font-semibold border ${
             isBuy 
               ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/25" 
               : "bg-rose-500/10 text-rose-400 border-rose-500/25"
@@ -484,7 +484,7 @@ export const PaperMain: React.FC = () => {
           <div className="flex items-center">
             {isEngineRunning ? (
               isEnginePaused ? (
-                <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/50 vdl-body font-bold font-mono flex items-center gap-1.5">
+                <span className="px-2 py-0.5 rounded-sm bg-amber-500/20 text-amber-300 border border-amber-400/50 vdl-body font-bold font-mono flex items-center gap-1.5">
                   <span className="relative flex h-1.5 w-1.5">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-400"></span>
@@ -492,7 +492,7 @@ export const PaperMain: React.FC = () => {
                   Paused
                 </span>
               ) : (
-                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/50 vdl-body font-bold font-mono flex items-center gap-1.5">
+                <span className="px-2 py-0.5 rounded-sm bg-emerald-500/20 text-emerald-300 border border-emerald-400/50 vdl-body font-bold font-mono flex items-center gap-1.5">
                   <span className="relative flex h-1.5 w-1.5">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400"></span>
@@ -501,7 +501,7 @@ export const PaperMain: React.FC = () => {
                 </span>
               )
             ) : (
-              <span className="px-2 py-0.5 rounded bg-bg-card border border-subtle text-slate-400 vdl-body font-bold font-mono flex items-center gap-1.5">
+              <span className="px-2 py-0.5 rounded-sm bg-bg-card border border-subtle text-slate-400 vdl-body font-bold font-mono flex items-center gap-1.5">
                 <span className="text-slate-500 vdl-body">○</span>
                 Ready
               </span>
@@ -571,6 +571,16 @@ export const PaperMain: React.FC = () => {
  
           {/* Framed Capital Input */}
           <div className="h-6 flex items-center gap-1.5 px-2 bg-deep border border-subtle font-mono text-[10px] font-semibold rounded-[var(--radius-sm)] text-slate-300 select-none">
+            <style dangerouslySetInnerHTML={{ __html: `
+              input[type="number"].input-unstyled-override {
+                height: 100% !important;
+                padding: 0 !important;
+                border-radius: 0 !important;
+                background-color: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+              }
+            `}} />
             <span className="text-slate-500 uppercase tracking-wider">CAPITAL:</span>
             <span className="text-[var(--gold-accent)]/80">₹</span>
             <input
@@ -666,7 +676,7 @@ export const PaperMain: React.FC = () => {
                       value={selectedPresetId}
                       onChange={(e) => handlePresetChange(e.target.value)}
                       disabled={isEngineRunning}
-                      className="bg-card  rounded px-1.5 py-0.5 text-slate-305 font-mono focus:outline-none vdl-body"
+                      className="bg-card  rounded-sm px-1.5 py-0.5 text-slate-305 font-mono focus:outline-none vdl-body"
                     >
                       <option value="">-- Manual --</option>
                       {presets.map((preset) => (
@@ -783,7 +793,7 @@ export const PaperMain: React.FC = () => {
                       value={lotSize}
                       onChange={(e) => setLotSize(Number(e.target.value))}
                       disabled={isEngineRunning}
-                      className="bg-card  rounded px-1.5 py-0.5 w-full text-slate-305 font-mono focus:outline-none vdl-body"
+                      className="bg-card  rounded-sm px-1.5 py-0.5 w-full text-slate-305 font-mono focus:outline-none vdl-body"
                     />
                   </div>
                   <div className="flex flex-col gap-0.5">
@@ -793,7 +803,7 @@ export const PaperMain: React.FC = () => {
                       value={maxCandles}
                       onChange={(e) => setMaxCandles(Number(e.target.value))}
                       disabled={isEngineRunning}
-                      className="bg-card  rounded px-1.5 py-0.5 w-full text-slate-305 font-mono focus:outline-none vdl-body"
+                      className="bg-card  rounded-sm px-1.5 py-0.5 w-full text-slate-305 font-mono focus:outline-none vdl-body"
                     />
                   </div>
                   <div className="flex flex-col gap-0.5">
@@ -803,7 +813,7 @@ export const PaperMain: React.FC = () => {
                       value={cutoffTime}
                       onChange={(e) => setCutoffTime(e.target.value)}
                       disabled={isEngineRunning}
-                      className="bg-card  rounded px-1.5 py-0.5 w-full text-slate-305 font-mono focus:outline-none vdl-body"
+                      className="bg-card  rounded-sm px-1.5 py-0.5 w-full text-slate-305 font-mono focus:outline-none vdl-body"
                     />
                   </div>
                 </div>
@@ -817,7 +827,7 @@ export const PaperMain: React.FC = () => {
                         value={fiveEmaPeriod}
                         onChange={(e) => setFiveEmaPeriod(Number(e.target.value))}
                         disabled={isEngineRunning}
-                        className="bg-card  rounded px-1.5 py-0.5 text-slate-305 font-mono focus:outline-none vdl-body"
+                        className="bg-card  rounded-sm px-1.5 py-0.5 text-slate-305 font-mono focus:outline-none vdl-body"
                       />
                     </div>
                     <div className="flex flex-col gap-0.5">
@@ -828,7 +838,7 @@ export const PaperMain: React.FC = () => {
                         value={fiveEmaRr}
                         onChange={(e) => setFiveEmaRr(Number(e.target.value))}
                         disabled={isEngineRunning}
-                        className="bg-card  rounded px-1.5 py-0.5 text-slate-305 font-mono focus:outline-none vdl-body"
+                        className="bg-card  rounded-sm px-1.5 py-0.5 text-slate-305 font-mono focus:outline-none vdl-body"
                       />
                     </div>
                   </div>
@@ -929,7 +939,7 @@ export const PaperMain: React.FC = () => {
                       
                       <div className="flex flex-col gap-1.5 mt-1 border-t pt-1">
                         <div>
-                          <span className={`px-1.5 py-0.5 rounded vdl-body font-semibold font-mono border${
+                          <span className={`px-1.5 py-0.5 rounded-sm vdl-body font-semibold font-mono border${
                             executionSource.includes("LIVE") 
                               ? "bg-cyan-500/10 text-cyan-400 border-cyan-500/25" 
                               : executionSource.includes("CACHE")
@@ -959,7 +969,7 @@ export const PaperMain: React.FC = () => {
                 </div>
                 
                 {/* Statistics row */}
-                <div className="grid grid-cols-6 gap-2 bg-bg-card border border-subtle/50 rounded p-2.5 text-center select-none font-mono vdl-body shrink-0 shadow-sm">
+                <div className="grid grid-cols-6 gap-2 bg-bg-card border border-subtle/50 rounded-md p-2.5 text-center select-none font-mono vdl-body shrink-0 shadow-sm">
                   <div className="flex flex-col">
                     <span className="vdl-body text-slate-400 font-semibold font-sans">Trades Today</span>
                     <span className="text-slate-200 font-semibold vdl-body mt-0.5">{totalTradesCount}</span>
@@ -1159,14 +1169,14 @@ export const PaperRight: React.FC = () => {
     <div className="flex flex-col h-full select-none font-sans vdl-body gap-2.5 justify-between">
       <div className="flex flex-col gap-1.5">
         {selectedStrategy ? (
-          <div className="bg-bg-deep border border-subtle rounded-lg p-2.5 flex flex-col gap-2 font-mono vdl-body">
+          <div className="bg-bg-deep border border-subtle rounded-md p-2.5 flex flex-col gap-2 font-mono vdl-body">
             <div className="border-b border-subtle/40 pb-1.5 mb-0.5">
               <span className="vdl-body font-semibold text-slate-200">System Health</span>
             </div>
             {/* System Health Indicators */}
             <div className="flex flex-col gap-1.5">
               {systemItems.map((item: any, idx) => (
-                <div key={idx} className="flex justify-between items-center px-2 py-1.5 bg-bg-card border border-subtle/40 rounded shadow-sm">
+                <div key={idx} className="flex justify-between items-center px-2 py-1.5 bg-bg-card border border-subtle/40 rounded-md shadow-sm">
                   <span className="text-slate-400 font-sans vdl-body font-medium">{item.name}</span>
                   <span className={`status-badge${
                     item.label === "Mock Sim" ? "warning" :
@@ -1178,7 +1188,7 @@ export const PaperRight: React.FC = () => {
                   }`}>{item.label}</span>
                 </div>
               ))}
-              <div className="flex justify-between items-center px-2 py-1.5 bg-bg-card border border-subtle/40 rounded shadow-sm">
+              <div className="flex justify-between items-center px-2 py-1.5 bg-bg-card border border-subtle/40 rounded-md shadow-sm">
                 <span className="text-slate-400 font-sans vdl-body font-medium">Latency</span>
                 <span className={`font-mono font-bold ${hasUnhealthy ? "text-rose-500 animate-pulse" : "text-emerald-400"}`}>
                   {status?.engine === "v2" ? (hasUnhealthy ? "35ms" : "12ms") : "N/A"}
@@ -1195,7 +1205,7 @@ export const PaperRight: React.FC = () => {
  
       {/* Session Lifecycle Status Card */}
       {selectedStrategy && (
-        <div className="p-2.5 bg-bg-deep border border-subtle rounded flex flex-col gap-2 select-text font-mono vdl-body">
+        <div className="p-2.5 bg-bg-deep border border-subtle rounded-md flex flex-col gap-2 select-text font-mono vdl-body">
           <div className="flex justify-between items-center border-b border-subtle/40 pb-1.5">
             <span className={`status-badge${
               currentState === "RUNNING" ? "running" :
@@ -1252,7 +1262,7 @@ export const PaperRight: React.FC = () => {
               </span>
             </div>
             {isSessionRestored && (
-              <div className="flex items-center justify-between bg-emerald-950/20 px-1 py-0.5 rounded border border-emerald-500/10 vdl-body text-emerald-400 font-semibold mt-0.5 animate-pulse">
+              <div className="flex items-center justify-between bg-emerald-950/20 px-1 py-0.5 rounded-md border border-emerald-500/10 vdl-body text-emerald-400 font-semibold mt-0.5 animate-pulse">
                 <span>Session Restored:</span>
                 <span>RECOVERED</span>
               </div>
@@ -1299,7 +1309,7 @@ export const PaperBottom: React.FC = () => {
         const side = row.side ?? "BUY";
         const isBuy = side === "BUY";
         return (
-          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-sans font-semibold border ${
+          <span className={`inline-flex items-center px-1.5 py-0.5 rounded-sm text-[11px] font-sans font-semibold border ${
             isBuy 
               ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/25" 
               : "bg-rose-500/10 text-rose-400 border-rose-500/25"
@@ -1366,7 +1376,7 @@ export const PaperBottom: React.FC = () => {
         const side = row.type;
         const isBuy = side === "BUY";
         return (
-          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-sans font-semibold border ${
+          <span className={`inline-flex items-center px-1.5 py-0.5 rounded-sm text-[11px] font-sans font-semibold border ${
             isBuy 
               ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/25" 
               : "bg-rose-500/10 text-rose-400 border-rose-500/25"
@@ -1464,7 +1474,7 @@ export const PaperBottom: React.FC = () => {
         const side = row.type;
         const isBuy = side === "BUY";
         return (
-          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-sans font-semibold border ${
+          <span className={`inline-flex items-center px-1.5 py-0.5 rounded-sm text-[11px] font-sans font-semibold border ${
             isBuy 
               ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/25" 
               : "bg-rose-500/10 text-rose-400 border-rose-500/25"
@@ -1610,20 +1620,20 @@ export const PaperBottom: React.FC = () => {
     const s = (src || "SYNTHETIC_MODEL").toUpperCase();
     if (s.includes("LIVE")) {
       return (
-        <span className="px-2 py-0.5 rounded vdl-body bg-cyan-500/10 text-cyan-400 border border-cyan-500/10 font-medium">
+        <span className="px-2 py-0.5 rounded-sm vdl-body bg-cyan-500/10 text-cyan-400 border border-cyan-500/10 font-medium">
           Live quote
         </span>
       );
     }
     if (s.includes("CACHE")) {
       return (
-        <span className="px-2 py-0.5 rounded vdl-body bg-blue-500/10 text-blue-400 border border-blue-500/10 font-medium">
+        <span className="px-2 py-0.5 rounded-sm vdl-body bg-blue-500/10 text-blue-400 border border-blue-500/10 font-medium">
           Historical cache
         </span>
       );
     }
     return (
-      <span className="px-2 py-0.5 rounded vdl-body bg-amber-500/10 text-amber-500 border border-amber-500/10 font-medium">
+      <span className="px-2 py-0.5 rounded-sm vdl-body bg-amber-500/10 text-amber-500 border border-amber-500/10 font-medium">
         Synthetic model
       </span>
     );
@@ -1721,7 +1731,7 @@ export const PaperBottom: React.FC = () => {
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-xs text-slate-400">Type</span>
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded border ${selectedTrade.type === "BUY" ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/25" : "text-rose-400 bg-rose-500/10 border-rose-500/25"}`}>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-sm border ${selectedTrade.type === "BUY" ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/25" : "text-rose-400 bg-rose-500/10 border-rose-500/25"}`}>
                           {selectedTrade.type}
                         </span>
                       </div>
@@ -1826,7 +1836,7 @@ export const PaperBottom: React.FC = () => {
                     <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
                       {selectedTrade.type === "EXIT" ? "Exit Signal" : "Entry Signal"}
                     </div>
-                    <pre className={`text-[11px] font-mono whitespace-pre-wrap leading-relaxed rounded p-2 bg-black/20 border border-white/5 ${selectedTrade.type === "EXIT" ? "text-rose-300" : "text-emerald-300"}`}>
+                    <pre className={`text-[11px] font-mono whitespace-pre-wrap leading-relaxed rounded-md p-2 bg-black/20 border border-white/5 ${selectedTrade.type === "EXIT" ? "text-rose-300" : "text-emerald-300"}`}>
                       {selectedTrade.type === "EXIT"
                         ? (selectedTrade.exit_reason === "SELL_INTENT" || selectedTrade.reason === "SELL_INTENT"
                             ? "Strategy Sell Signal\nType: SELL_INTENT\nExecution: Instant Market Order"
@@ -1901,12 +1911,12 @@ export const PaperBottom: React.FC = () => {
         {activeTab === "journal" && (
           <div className="grid grid-cols-12 gap-3 min-h-[300px]">
             {/* Left side: sessions table */}
-            <div className="col-span-12 md:col-span-5 bg-bg-deep border border-subtle p-2.5 rounded flex flex-col gap-2">
+            <div className="col-span-12 md:col-span-5 bg-bg-deep border border-subtle p-2.5 rounded-md flex flex-col gap-2">
               <div className="flex justify-between items-center pb-2 border-b">
                 <span className="vdl-body font-semibold text-cyan-400">Historical Sessions</span>
                 <button 
                   onClick={fetchSessions}
-                  className="p-1 hover:bg-white/5 rounded text-slate-400 hover:text-white transition-colors"
+                  className="p-1 hover:bg-white/5 rounded-sm text-slate-400 hover:text-white transition-colors"
                   title="Reload Sessions"
                 >
                   <RefreshCw className="w-3 h-3" />
@@ -1937,7 +1947,7 @@ export const PaperBottom: React.FC = () => {
             </div>
  
             {/* Right side: session details, trades table & CSV export */}
-            <div className="col-span-12 md:col-span-7 bg-bg-deep border border-subtle p-2.5 rounded flex flex-col gap-2 min-w-0">
+            <div className="col-span-12 md:col-span-7 bg-bg-deep border border-subtle p-2.5 rounded-md flex flex-col gap-2 min-w-0">
               {selectedSessionId === null ? (
                 <div className="flex-1 flex flex-col items-center justify-center py-12 text-slate-400 italic vdl-body font-sans">
                   <span>Select a session on the left to view detailed metrics and trades.</span>
@@ -1956,7 +1966,7 @@ export const PaperBottom: React.FC = () => {
                   return (
                     <div className="flex flex-col gap-3 h-full">
                       {/* Session Metrics Bar */}
-                      <div className="grid grid-cols-4 gap-2 bg-bg-card border border-subtle/50 p-2.5 rounded">
+                      <div className="grid grid-cols-4 gap-2 bg-bg-card border border-subtle/50 p-2.5 rounded-md">
                         <div className="flex flex-col">
                           <span className="vdl-body font-semibold text-slate-400">Total PnL</span>
                           <span className={`font-mono vdl-body font-semibold ${sess.pnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
@@ -1984,21 +1994,21 @@ export const PaperBottom: React.FC = () => {
                       </div>
  
                       {/* Filter Toolbar */}
-                      <div className="flex items-center justify-between gap-2 bg-bg-card border border-subtle/50 p-2 rounded flex-wrap">
+                      <div className="flex items-center justify-between gap-2 bg-bg-card border border-subtle/50 p-2 rounded-md flex-wrap">
                         <div className="flex items-center gap-2">
                           <input 
                             type="text" 
                             placeholder="Search by symbol..." 
                             value={symbolSearch}
                             onChange={(e) => setSymbolSearch(e.target.value)}
-                            className="bg-card  rounded px-2 py-1 vdl-body text-slate-300 focus:outline-none focus:border-cyan-500/40 w-32"
+                            className="bg-card  rounded-sm px-2 py-1 vdl-body text-slate-300 focus:outline-none focus:border-cyan-500/40 w-32"
                           />
                         </div>
                         <div className="flex items-center gap-2">
                           <a 
                             href={`http://localhost:8081/api/v2/paper/export?session_id=${selectedSessionId}`}
                             download
-                            className="flex items-center gap-1.5 px-3 py-1 bg-cyan-500/10 hover:bg-cyan-500 text-cyan-400 hover:text-slate-950 border border-cyan-500/20 hover:border-cyan-500 rounded vdl-body font-semibold transition-all select-none cursor-pointer"
+                            className="flex items-center gap-1.5 px-3 py-1 bg-cyan-500/10 hover:bg-cyan-500 text-cyan-400 hover:text-slate-950 border border-cyan-500/20 hover:border-cyan-500 rounded-sm vdl-body font-semibold transition-all select-none cursor-pointer"
                           >
                             Export CSV
                           </a>
@@ -2006,7 +2016,7 @@ export const PaperBottom: React.FC = () => {
                       </div>
  
                       {/* Session Trades list */}
-                      <div className="flex-1 min-h-[160px] overflow-y-auto  rounded">
+                      <div className="flex-1 min-h-[160px] overflow-y-auto  rounded-md">
                         {loadingTrades ? (
                           <div className="flex items-center justify-center py-6 text-slate-400 font-mono vdl-body animate-pulse">
                             FETCHING SESSION TRADES...
@@ -2100,7 +2110,7 @@ export const PaperBottom: React.FC = () => {
               </div>
             </div>
  
-            <div className="bg-bg-card border border-subtle p-2.5 rounded flex flex-col gap-1">
+            <div className="bg-bg-card border border-subtle p-2.5 rounded-md flex flex-col gap-1">
               <div className="flex items-center gap-1.5 font-semibold">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                 <span className="text-amber-500">Status: Not eligible for production</span>
@@ -2116,7 +2126,7 @@ export const PaperBottom: React.FC = () => {
         {activeTab === "chain" && (
           <div className="flex flex-col lg:flex-row gap-4 w-full h-full min-h-[250px]">
             {/* Left Side: Option Chain Table */}
-            <div className="flex-1 bg-bg-deep border border-subtle p-3 rounded flex flex-col gap-2">
+            <div className="flex-1 bg-bg-deep border border-subtle p-3 rounded-md flex flex-col gap-2">
               <div className="vdl-body text-slate-400 font-semibold border-b pb-1 flex justify-between items-center">
                 <span>ATM±2 option chain</span>
                 <span className="text-cyan-400 font-mono vdl-body lowercase font-normal">rolling dynamically</span>
@@ -2151,13 +2161,13 @@ export const PaperBottom: React.FC = () => {
                   </div>
                   <div className="flex justify-between items-center py-1.5 border-b border-subtle/20">
                     <span className="text-slate-400 font-semibold">Stale quotes (&gt;1.5s):</span>
-                    <span className={`font-semibold font-mono section px-2 py-0.5 rounded border ${(status?.quote_health?.stale_quotes ?? 0) > 0 ? "text-rose-455 bg-rose-950/20 border-rose-500/20 animate-pulse" : "text-emerald-450 bg-emerald-950/20 border-emerald-500/20"}`}>
+                    <span className={`font-semibold font-mono section px-2 py-0.5 rounded-sm border ${(status?.quote_health?.stale_quotes ?? 0) > 0 ? "text-rose-455 bg-rose-950/20 border-rose-500/20 animate-pulse" : "text-emerald-450 bg-emerald-950/20 border-emerald-500/20"}`}>
                       {status?.quote_health?.stale_quotes ?? 0}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-1.5 border-b border-subtle/20">
                     <span className="text-slate-400 font-semibold">Feed hit rate:</span>
-                    <span className={`font-semibold font-mono section px-2 py-0.5 rounded border ${(status?.quote_health?.hit_rate ?? 0) > 0.95 
+                    <span className={`font-semibold font-mono section px-2 py-0.5 rounded-sm border ${(status?.quote_health?.hit_rate ?? 0) > 0.95 
                         ? "text-emerald-450 bg-emerald-950/20 border-emerald-500/20" 
                         : (status?.quote_health?.hit_rate ?? 0) > 0.8
                         ? "text-amber-500 bg-amber-950/20 border-amber-500/20"
@@ -2168,7 +2178,7 @@ export const PaperBottom: React.FC = () => {
                   </div>
                   <div className="flex justify-between items-center py-1.5 border-b border-subtle/20">
                     <span className="text-slate-400 font-semibold">Feed miss rate:</span>
-                    <span className={`font-semibold font-mono section px-2 py-0.5 rounded border ${(status?.quote_health?.miss_rate ?? 0) > 0.1 
+                    <span className={`font-semibold font-mono section px-2 py-0.5 rounded-sm border ${(status?.quote_health?.miss_rate ?? 0) > 0.1 
                         ? "text-rose-455 bg-rose-950/20 border-rose-500/20" 
                         : "text-slate-450 bg-card"
                     }`}>
@@ -2177,7 +2187,7 @@ export const PaperBottom: React.FC = () => {
                   </div>
                   <div className="flex justify-between items-center py-1 pt-2 border-t font-semibold">
                     <span className="text-slate-400 font-semibold">Synthetic fallbacks:</span>
-                    <span className={`font-semibold font-mono section px-2 py-0.5 rounded border ${(status?.quote_health?.synthetic_fills ?? 0) > 0 
+                    <span className={`font-semibold font-mono section px-2 py-0.5 rounded-sm border ${(status?.quote_health?.synthetic_fills ?? 0) > 0 
                         ? "text-amber-500 bg-amber-950/20 border-amber-500/20 animate-pulse" 
                         : "text-emerald-450 bg-emerald-950/20 border-emerald-500/20"
                     }`}>

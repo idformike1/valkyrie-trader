@@ -1104,7 +1104,9 @@ tr:hover {
 }
 
 /* Custom class to override global input styling (e.g. for small inline inputs) */
-.input-unstyled-override {
+input[type="number"].input-unstyled-override,
+input[type="text"].input-unstyled-override,
+input.input-unstyled-override {
   height: auto !important;
   padding: 0 !important;
   border-radius: 0 !important;
